@@ -6,7 +6,7 @@ OpticsSimulation.jl is a [Julia](https://julialang.org/) package for simulation 
 
 It is designed to allow optical engineers to create optical systems procedurally and then to simulate and optimize them. Unlike Zemax, Code V, or other interactive optical design systems Optics.jl has limited support for interactivity, primarily in the tools for visualizing optical systems.
 
-A large variety of surface types are supported, and these can be composed into complex 3D objects through the use of constructive solid geometry (CSG). A substantial catalog of optical materials is provided through the complementary GlassCat submodule.
+A large variety of surface types are supported, and these can be composed into complex 3D objects through the use of constructive solid geometry (CSG). A substantial catalog of optical materials is provided through the GlassCat submodule.
 
 This software provides extensive control over the modelling, simulation, visualization and optimization of optical systems. It is especially suited for designs that have a procedural architecture.
 
