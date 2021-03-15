@@ -1,4 +1,4 @@
-# Optics.jl
+# Opticks.jl
 
 [![](https://img.shields.io/badge/docs-dev-blue.svg)](https://vigilant-giggle-6a673aa5.pages.github.io/dev/)
 
