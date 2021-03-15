@@ -1,14 +1,18 @@
-# Project
+# Optics.jl
 
-> This repo has been populated by an initial template to help get you started. Please
-> make sure to update the content to build a great experience for community-building.
+[![](https://img.shields.io/badge/docs-dev-blue.svg)](https://vigilant-giggle-6a673aa5.pages.github.io/dev/)
 
-As the maintainer of this project, please make a few updates:
+OpticsSimulation.jl is a [Julia](https://julialang.org/) package for simulation and optimization of complex optical systems developed by the Microsoft Research Interactive Media Group and the Microsoft HART group.
 
-- Improving this README.MD file to provide a great experience
-- Updating SUPPORT.MD with content about this project's support experience
-- Understanding the security reporting process in SECURITY.MD
-- Remove this section from the README
+It is designed to allow optical engineers to create optical systems procedurally and then to simulate and optimize them. Unlike Zemax, Code V, or other interactive optical design systems Optics.jl has limited support for interactivity, primarily in the tools for visualizing optical systems.
+
+A large variety of surface types are supported, and these can be composed into complex 3D objects through the use of constructive solid geometry (CSG). A substantial catalog of optical materials is provided through the complementary GlassCat submodule.
+
+This software provides extensive control over the modelling, simulation, visualization and optimization of optical systems. It is especially suited for designs that have a procedural architecture.
+
+# Installation
+
+Before you can use the software you will need to download glass files. See the documentation for detailed information about how to do this.
 
 ## Contributing
 
