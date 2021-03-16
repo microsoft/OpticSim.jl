@@ -169,7 +169,7 @@ end
 # pregenerate a small number at compile time
 for N in 1:PREGENERATED_LENS_ASSEMBLY_SIZE
     type = :($(Symbol("LensAssembly$(N)")))
-    if !isdefined(Optics, type)
+    if !isdefined(OpticSim, type)
         @eval @lensassembly_constructor($N)
         @eval @lensassembly_intersection($N)
         @eval @lensassembly_elements($N)
@@ -199,7 +199,7 @@ function LensAssembly(elements::Vararg{Union{Surface{T},CSGTree{T},LensAssembly{
             rectangles = vcat(rectangles, e.rectangles)
             ellipses = vcat(ellipses, e.ellipses)
             hexagons = vcat(hexagons, e.hexagons)
-            for lae in Optics.typed_elements(e)
+            for lae in OpticSim.typed_elements(e)
                 push!(actual_elements, lae)
             end
         end
@@ -207,7 +207,7 @@ function LensAssembly(elements::Vararg{Union{Surface{T},CSGTree{T},LensAssembly{
     N = length(actual_elements)
     # make the methods for this N
     type = :($(Symbol("LensAssembly$(N)")))
-    if !isdefined(Optics, type)
+    if !isdefined(OpticSim, type)
         @eval @lensassembly_constructor($N)
         @eval @lensassembly_intersection($N)
         @eval @lensassembly_elements($N)
@@ -320,7 +320,7 @@ Recursive rays are offset by a small amount (`RAY_OFFSET`) to prevent it from im
 
 `trackrays` can be passed an empty vector to accumulate the `LensTrace` objects at each intersection of `ray` with a surface in the assembly.
 """
-function trace(assembly::LensAssembly{T}, r::OpticalRay{T,N}, temperature::T = T(Optics.GlassCat.TEMP_REF), pressure::T = T(Optics.GlassCat.PRESSURE_REF); trackrays::Union{Nothing,Vector{LensTrace{T,N}}} = nothing, test::Bool = false, recursion::Int = 0)::Union{Nothing,NoPower,LensTrace{T,N}} where {T<:Real,N}
+function trace(assembly::LensAssembly{T}, r::OpticalRay{T,N}, temperature::T = T(OpticSim.GlassCat.TEMP_REF), pressure::T = T(OpticSim.GlassCat.PRESSURE_REF); trackrays::Union{Nothing,Vector{LensTrace{T,N}}} = nothing, test::Bool = false, recursion::Int = 0)::Union{Nothing,NoPower,LensTrace{T,N}} where {T<:Real,N}
     if power(r) < POWER_THRESHOLD || recursion > TRACE_RECURSION_LIMIT
         return nopower
     end

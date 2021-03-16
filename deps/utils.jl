@@ -107,7 +107,7 @@ function downloadcatalogs(glassdirectory::String)
         end
     end
 
-    #write the glass files with standard names so the examples in Optics.jl will work
+    #write the glass files with standard names so the examples in OpticSim.jl will work
     writeglassfile(catalogs[1],"NIKON.agf")
     writeglassfile(catalogs[2],"OHARA.agf")
     writeglassfile(catalogs[3],"HOYA.agf")

@@ -78,7 +78,7 @@ normal
 partials(::ParametricSurface{T}, ::T, ::T) where {T<:Real}
 uvrange
 uv
-Optics.uvtopix
+OpticSim.uvtopix
 inside(s::ParametricSurface{T,3}, x::T, y::T, z::T) where {T<:Real}
 onsurface(s::ParametricSurface{T,3}, x::T, y::T, z::T) where {T<:Real}
 interface

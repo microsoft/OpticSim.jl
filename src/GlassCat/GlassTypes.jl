@@ -31,7 +31,7 @@ Stores all attributes relating to a glass type specified in an .AGF glass catalo
 
 Never used directly, instead created using catalog glasses, e.g. `GlassCat.SCHOTT.N_BK7`.
 
-In order to prevent type ambiguities in Optics.jl we can't have this type paramaterized.
+In order to prevent type ambiguities in OpticSim.jl we can't have this type paramaterized.
 """
 struct Glass <: AbstractGlass
     ID::GlassID

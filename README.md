@@ -1,10 +1,10 @@
-# Opticks.jl
+# OpticSim.jl
 
 [![](https://img.shields.io/badge/docs-dev-blue.svg)](https://vigilant-giggle-6a673aa5.pages.github.io/dev/)
 
-OpticsSimulation.jl is a [Julia](https://julialang.org/) package for simulation and optimization of complex optical systems developed by the Microsoft Research Interactive Media Group and the Microsoft HART group.
+OpticSim.jl is a [Julia](https://julialang.org/) package for simulation and optimization of complex optical systems developed by the Microsoft Research Interactive Media Group and the Microsoft HART group.
 
-It is designed to allow optical engineers to create optical systems procedurally and then to simulate and optimize them. Unlike Zemax, Code V, or other interactive optical design systems Optics.jl has limited support for interactivity, primarily in the tools for visualizing optical systems.
+It is designed to allow optical engineers to create optical systems procedurally and then to simulate and optimize them. Unlike Zemax, Code V, or other interactive optical design systems OpticSim.jl has limited support for interactivity, primarily in the tools for visualizing optical systems.
 
 A large variety of surface types are supported, and these can be composed into complex 3D objects through the use of constructive solid geometry (CSG). A substantial catalog of optical materials is provided through the GlassCat submodule.
 

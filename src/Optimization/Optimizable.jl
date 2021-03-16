@@ -5,8 +5,8 @@ Optimization interface consists of two functions `optimizationvariables` and `up
 """
 module Optimizable
 
-using ..Optics
-using ..Optics: detectorsize, temperature, pressure
+using ..OpticSim
+using ..OpticSim: detectorsize, temperature, pressure
 
 
 """

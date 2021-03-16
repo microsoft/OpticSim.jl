@@ -1,4 +1,4 @@
-using Optics
+using OpticSim
 @info "Running representative workload"
 # add stuff here #
 Examples.autodrawrays()

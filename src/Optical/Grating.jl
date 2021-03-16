@@ -74,12 +74,12 @@ function processintersection(opticalinterface::ThinGratingInterface{T}, point::S
     nₜ = one(T)
     α = zero(T)
     if !isair(mᵢ)
-        mat = glassforid(mᵢ)::Optics.GlassCat.Glass
+        mat = glassforid(mᵢ)::OpticSim.GlassCat.Glass
         nᵢ = index(mat, λ, temperature = temperature, pressure = pressure)::T
         α = absorption(mat, λ, temperature = temperature, pressure = pressure)::T
     end
     if !isair(mₜ)
-        nₜ = index(glassforid(mₜ)::Optics.GlassCat.Glass, λ, temperature = temperature, pressure = pressure)::T
+        nₜ = index(glassforid(mₜ)::OpticSim.GlassCat.Glass, λ, temperature = temperature, pressure = pressure)::T
     end
 
     incident_pow = power(incidentray)
@@ -189,7 +189,7 @@ function processintersection(opticalinterface::HologramInterface{T}, point::SVec
     end
 
     λ = wavelength(incidentray)
-    mat = glassforid(opticalinterface.substratematerial)::Optics.GlassCat.Glass
+    mat = glassforid(opticalinterface.substratematerial)::OpticSim.GlassCat.Glass
     # get the index of the playback ray in the substrate
     nₛ = index(mat, λ, temperature = temperature, pressure = pressure)::T
     # get the index of the recording ray in the substrate
@@ -197,7 +197,7 @@ function processintersection(opticalinterface::HologramInterface{T}, point::SVec
 
     # get the index of the recording ray in the material of the signal beam
     if !isair(opticalinterface.signalrecordingmaterial)
-        signalbeammaterial = glassforid(opticalinterface.signalrecordingmaterial)::Optics.GlassCat.Glass
+        signalbeammaterial = glassforid(opticalinterface.signalrecordingmaterial)::OpticSim.GlassCat.Glass
         nsig = index(signalbeammaterial, opticalinterface.recordingλ, temperature = temperature, pressure = pressure)::T
     else
         nsig = one(T)
@@ -224,7 +224,7 @@ function processintersection(opticalinterface::HologramInterface{T}, point::SVec
 
     # get the index of the recording ray in the material of the reference beam
     if !isair(opticalinterface.referencerecordingmaterial)
-        referencebeammaterial = glassforid(opticalinterface.referencerecordingmaterial)::Optics.GlassCat.Glass
+        referencebeammaterial = glassforid(opticalinterface.referencerecordingmaterial)::OpticSim.GlassCat.Glass
         nref = index(referencebeammaterial, opticalinterface.recordingλ, temperature = temperature, pressure = pressure)::T
     else
         nref = one(T)
