@@ -31,7 +31,7 @@ makedocs(
     expandfirst = ["systems.md", "vis.md"])
 
 deploydocs(
-    repo = "github.com/microsoft/Opticks.git",
+    repo = "github.com/microsoft/Opticks.jl.git",
     devbranch = "main",
 )
 
