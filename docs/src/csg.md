@@ -10,7 +10,7 @@ This diagram shows the basic idea:
 The code for this in our system would look this this:
 
 ```@example
-using Opticks # hide
+using OpticSim # hide
 cyl = Cylinder(0.7)
 cyl_cross = csgunion(csgunion(leaf(cyl), leaf(cyl, rotationd(90, 0, 0))), leaf(cyl, rotationd(0, 90, 0)))
 
@@ -52,12 +52,12 @@ Transforms are used to position does within the CSG tree.
 
 ```@docs
 RigidBodyTransform
-Opticks.rotation
-Opticks.rotationd
-Opticks.translation
-Opticks.rotmat
-Opticks.rotmatd
-Opticks.rotmatbetween
+OpticSim.rotation
+OpticSim.rotationd
+OpticSim.translation
+OpticSim.rotmat
+OpticSim.rotmatd
+OpticSim.rotmatbetween
 ```
 
 ## CSG Types
@@ -65,12 +65,12 @@ Opticks.rotmatbetween
 These are the types of the primary CSG elements, i.e. the nodes in the CSG tree.
 
 ```@docs
-Opticks.CSGTree
-Opticks.CSGGenerator
-Opticks.ComplementNode
-Opticks.UnionNode
-Opticks.IntersectionNode
-Opticks.LeafNode
+OpticSim.CSGTree
+OpticSim.CSGGenerator
+OpticSim.ComplementNode
+OpticSim.UnionNode
+OpticSim.IntersectionNode
+OpticSim.LeafNode
 ```
 
 ## Additional Functions and Types
@@ -91,21 +91,21 @@ onsurface(a::CSGTree{T}, x::T, y::T, z::T) where {T<:Real}
 Interval
 EmptyInterval
 DisjointUnion
-Opticks.isemptyinterval
-Opticks.ispositivehalfspace
-Opticks.israyorigininterval
-Opticks.halfspaceintersection
-Opticks.closestintersection
-Opticks.IntervalPool
+OpticSim.isemptyinterval
+OpticSim.ispositivehalfspace
+OpticSim.israyorigininterval
+OpticSim.halfspaceintersection
+OpticSim.closestintersection
+OpticSim.IntervalPool
 ```
 
 ### Intersections
 
 ```@docs
-Opticks.IntervalPoint
+OpticSim.IntervalPoint
 RayOrigin
 Infinity
 Intersection
-Opticks.isinfinity
-Opticks.israyorigin
+OpticSim.isinfinity
+OpticSim.israyorigin
 ```

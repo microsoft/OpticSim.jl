@@ -126,12 +126,12 @@ function processintersection(opticalinterface::FresnelInterface{T}, point::SVect
     nₜ = one(T)
     α = zero(T)
     if !isair(mᵢ)
-        mat = glassforid(mᵢ)::Opticks.GlassCat.Glass
+        mat = glassforid(mᵢ)::OpticSim.GlassCat.Glass
         nᵢ = index(mat, λ, temperature = temperature, pressure = pressure)::T
         α = absorption(mat, λ, temperature = temperature, pressure = pressure)::T
     end
     if !isair(mₜ)
-        nₜ = index(glassforid(mₜ)::Opticks.GlassCat.Glass, λ, temperature = temperature, pressure = pressure)::T
+        nₜ = index(glassforid(mₜ)::OpticSim.GlassCat.Glass, λ, temperature = temperature, pressure = pressure)::T
     end
     (sinθᵢ, sinθₜ) = snell(normal, direction(incidentray), nᵢ, nₜ)
     (powᵣ, powₜ) = fresnel(nᵢ, nₜ, sinθᵢ, sinθₜ)

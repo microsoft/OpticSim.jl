@@ -116,7 +116,7 @@ end
 
 function emptyintervalpool!(::Type{T} = Float64, tid::Int = Threads.threadid()) where {T}
     if T ∈ keys(threadedintervalpool[tid])
-        Opticks.empty!(threadedintervalpool[tid][T])
+        OpticSim.empty!(threadedintervalpool[tid][T])
     end
 end
 

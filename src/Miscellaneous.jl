@@ -1,7 +1,7 @@
 module Junk
 # TODO clean this up
 
-using ..Opticks
+using ..OpticSim
 using BenchmarkTools
 import Unitful
 
@@ -350,7 +350,7 @@ function testclippedbeziersurface()
     r = Ray([0.5, 0.5, 3.0], [0.0, 0.0, -1.0])
     gen = TestData.clippedbeziersurface()
     csg = gen(identitytransform())
-    intsct = Opticks.evalcsg(csg, r)
+    intsct = OpticSim.evalcsg(csg, r)
     # println(intsct)
     view = Vis.CSGViewer(SVector{3}(2.0, 2.0, 5.0), 2.0, 1000, (csg,))
     Vis.imshow(Vis.render(view))
@@ -399,7 +399,7 @@ function testcsgwithmultipleobjects()
     csg = generator(identitytransform())
     r = Ray{Float64,3}(SVector(0.5, 0.5, 4.0), SVector(0.0, 0.0, -1.0))
 
-    intscts = Opticks.evalcsg(csg, r)[1]
+    intscts = OpticSim.evalcsg(csg, r)[1]
     # println(intscts)
     s = Vis.scene()
     Vis.draw!(s, surf1)
@@ -476,7 +476,7 @@ function testorthogonalitymatrix()
         0.0 0.0 4.5 -4.5 0.0 0.0 20.25 -31.5 0.0 0.0 0.0 0.0
         0.0 0.0 0.0 4.5 0.0 0.0 0.0 20.25 0.0 0.0 0.0 0.0
     ]
-    cmat = Opticks.orthogonalitymatrix(x, 3)
+    cmat = OpticSim.orthogonalitymatrix(x, 3)
     show(IOContext(stdout), "text/plain", cmat)
     for i in CartesianIndices(cmat)
         if cmat[i] != correctCmatrix[i]
@@ -497,7 +497,7 @@ end
 function testcurvetobeziersegments()
     orig = TestData.homogeneousbsplinecurve()
     segments = tobeziersegments(orig)
-    allsegments = [BezierCurve{Opticks.Rational,Float64,3,3}(segment) for segment in segments]
+    allsegments = [BezierCurve{OpticSim.Rational,Float64,3,3}(segment) for segment in segments]
     Vis.draw(orig, allsegments...)
 end
 
@@ -533,18 +533,18 @@ end
 #             print("SIZE: $(length(vec1))\n")
 #             # NORMS
 #             print("NORMALIZE\n")
-#             @btime (Opticks.mnormalize($vec1))
+#             @btime (OpticSim.mnormalize($vec1))
 #             @btime (LinearAlgebra.normalize($vec1))
 
 #             # DOT
 #             print("DOT\n")
-#             @btime (Opticks.dot($vec1, $vec2))
+#             @btime (OpticSim.dot($vec1, $vec2))
 #             @btime (LinearAlgebra.dot($vec1, $vec2))
 
 #             # CROSS
 #             if length(vec1) == 3
 #                 print("CROSS\n")
-#                 @btime (Opticks.cross($vec1, $vec2))
+#                 @btime (OpticSim.cross($vec1, $vec2))
 #                 @btime (LinearAlgebra.cross($vec1, $vec2))
 #             end
 #         end
@@ -563,17 +563,17 @@ end
 
 #             # DETERMINANT
 #             print("DET\n")
-#             @btime (Opticks.det($mat1))
+#             @btime (OpticSim.det($mat1))
 #             @btime (LinearAlgebra.det($mat1))
 
 #             # INVERSE
 #             print("INV\n")
-#             @btime (Opticks.minv($mat1))
+#             @btime (OpticSim.minv($mat1))
 #             @btime (LinearAlgebra.inv($mat1))
 
 #             # DIVISON
 #             print("DIV\n")
-#             @btime (Opticks.mdiv($mat1, $mat2))
+#             @btime (OpticSim.mdiv($mat1, $mat2))
 #             @btime ($mat1 \ $mat2)
 #         end
 #     end
@@ -587,22 +587,22 @@ function testniandnt()
 end
 
 function testrefractedray()
-    elt = TestData.planoconvexelement(Opticks.GlassCat.SCHOTT.N_BK7, 0.0, 5.0, 60.0)
-    lens = Opticks.LensAssembly(elt.lens)
+    elt = TestData.planoconvexelement(OpticSim.GlassCat.SCHOTT.N_BK7, 0.0, 5.0, 60.0)
+    lens = OpticSim.LensAssembly(elt.lens)
     r = Ray([0.0, 0.0, 7.0], [0.0, 0.0, -1.0])
 
     green = 500 * Unitful.u"nm"
-    glass = Opticks.GlassCat.SCHOTT.BAK50
+    glass = OpticSim.GlassCat.SCHOTT.BAK50
 
-    intsct = Opticks.closestintersection(lens, r)
+    intsct = OpticSim.closestintersection(lens, r)
 
     pt = point(intsct[1])
     nml = normal(intsct[1])
 
     rdir = direction(r)
-    (nᵢ, nₜ) = Opticks.nᵢandnₜ(index(Opticks.GlassCat.Air, green), index(glass, green), nml, r)
+    (nᵢ, nₜ) = OpticSim.nᵢandnₜ(index(OpticSim.GlassCat.Air, green), index(glass, green), nml, r)
 
-    refracted = Opticks.refractedray(nᵢ, nₜ, nml, rdir)
+    refracted = OpticSim.refractedray(nᵢ, nₜ, nml, rdir)
 end
 
 badray() = Ray([5.000000042187876, 5.000000042187876, 0.6143579891640621], [0.042187876699796796, 0.042187876699796796, -0.9982185963600987])
@@ -620,12 +620,12 @@ function testdoubleconcave()
     r1 = Ray([5.0, 5.0, 2.0], [0.0, 0.0, -1.0])
     r2 = badray()
     elt = system.system.assembly.elements[1]
-    # intsct = Opticks.surfaceintersection(elt,r)
+    # intsct = OpticSim.surfaceintersection(elt,r)
     # println(intsct)
     for r in (r1,)
-        allrays = Array{Opticks.LensTrace{Float64,3},1}(undef, 0)
+        allrays = Array{OpticSim.LensTrace{Float64,3},1}(undef, 0)
 
-        res = Opticks.trace(system, r, green, trackrays = allrays)
+        res = OpticSim.trace(system, r, green, trackrays = allrays)
         printtrace(allrays)
     end
 end
@@ -678,7 +678,7 @@ end
 
 function testintervalcomplement()
     intvl = surfaceintersection((leaf(Sphere(1.0)))(identitytransform()), Ray([2.0, 0.0, 0.0], [-1.0, 0.0, 0.0]))
-    comp = Opticks.intervalcomplement(intvl)
+    comp = OpticSim.intervalcomplement(intvl)
     println(comp)
 end
 
@@ -722,7 +722,7 @@ function testsinglenegsurface()
     semidiameter = 9.0
     r = Ray([5.0, 5.0, 1.0], [0.0, 0.0, -1.0])
 
-    temp = leaf(Sphere(abs(frontradius)), Opticks.translation(0.0, 0.0, frontvertex - frontradius))
+    temp = leaf(Sphere(abs(frontradius)), OpticSim.translation(0.0, 0.0, frontvertex - frontradius))
     d = -frontradius - sqrt(frontradius^2 - semidiameter^2) #offset from vertex to cutting plane. Plane is necessary to prevent parts of the complement from showing up in the final CSG
     p₀ = frontvertex + d
     plane = Plane(0.0, 0.0, 1.0, 0.0, 0.0, p₀)
@@ -740,7 +740,7 @@ end
 #     semidiameter = 9.0
 #     r = Ray([5.000000042187876, 5.000000042187876, 0.6143579891640621], [0.042187876699796796, 0.042187876699796796, -0.9982185963600987])
 
-#     temp = leaf(Sphere(abs(backradius)), Opticks.translation(0.0, 0.0, (frontvertex - thickness) - backradius))
+#     temp = leaf(Sphere(abs(backradius)), OpticSim.translation(0.0, 0.0, (frontvertex - thickness) - backradius))
 #     d = backradius - sqrt(backradius^2 - semidiameter^2)
 #     p₀ = frontvertex - thickness - d
 #     plane = Plane(0.0, 0.0, -1.0, 0.0, 0.0, p₀)
@@ -753,7 +753,7 @@ end
 
 
 # function testnegcurveintersection()
-#     gen = Opticks.csgcomplement(leaf(Sphere(60.0), Opticks.translation(0.0, 0.0, 60.0)))
+#     gen = OpticSim.csgcomplement(leaf(Sphere(60.0), OpticSim.translation(0.0, 0.0, 60.0)))
 #     concave = gen()
 
 #     r = Ray([0.0, 0.0, 1.0], [0.0, 0.0, -1.0])
@@ -767,7 +767,7 @@ function testdoubleconvex()
     green = 500 * Unitful.u"nm"
     r = Ray([0.0, 0.0, 10.0], [0.0, 0.0, -1.0])
 
-    res = Opticks.trace(system, r, green)
+    res = OpticSim.trace(system, r, green)
     println(res)
 end
 
@@ -779,7 +779,7 @@ function testcooketriplet()
 
     r = Ray([0.0, 0.0, 1.0], [0.0, 0.0, -1.0])
 
-    res = Opticks.trace(system, r, green, temperature)
+    res = OpticSim.trace(system, r, green, temperature)
 end
 
 function testopticalsystem(lenssystem::T) where {T<:OpticalSystem}
@@ -788,7 +788,7 @@ function testopticalsystem(lenssystem::T) where {T<:OpticalSystem}
     lenssystem = Examples.doubleconvex()
     green = 500 * Unitful.u"nm"
 
-    rad = Opticks.semidiameter(lenssystem)
+    rad = OpticSim.semidiameter(lenssystem)
     points = Array{SVector{3,Float64},1}(undef, 0)
 
     count = 0
@@ -801,7 +801,7 @@ function testopticalsystem(lenssystem::T) where {T<:OpticalSystem}
 
 
         count += 1
-        res = Opticks.trace(lenssystem, r, green)
+        res = OpticSim.trace(lenssystem, r, green)
 
         if !(nothing === res)
             push!(points, point(res.intersection))
@@ -814,7 +814,7 @@ function testopticalsystem(lenssystem::T) where {T<:OpticalSystem}
 end
 
 function testelementsurfaceintersection()
-    elt = Opticks.SphericalLens(Opticks.GlassCat.SCHOTT.BK6, 0.0, 60.0, Inf64, 5.0, 9.0)
+    elt = OpticSim.SphericalLens(OpticSim.GlassCat.SCHOTT.BK6, 0.0, 60.0, Inf64, 5.0, 9.0)
     r = Ray([0.0, 0.0, 10.0], [0.0, 0.0, -1.0])
     res = surfaceintersection(elt, r)
     println(res)
@@ -968,7 +968,7 @@ function testtransmission()
     println(result)
 
     lenselement = lens.system.assembly.elements[1].objecttree
-    println("Direct result of surface intersection on csg tree $(Opticks.evalcsg(lenselement,r))")
+    println("Direct result of surface intersection on csg tree $(OpticSim.evalcsg(lenselement,r))")
     # pln1 = Plane(0.0,0.0,1.0,0.0,0.0,0.0)
     # pln2 = Plane(0.0,0.0,-1.0,0.0,0.0,-10.0)
 
@@ -979,14 +979,14 @@ function testtransmission()
 
     cyl = Cylinder(9.0, 10.0)
     csg = csgintersection(leaf(pln1), csgintersection(leaf(pln2), leaf(cyl)))
-    intsct = Opticks.evalcsg(csg(), r)
+    intsct = OpticSim.evalcsg(csg(), r)
     println("rectangle top and bottom CSG intsct $intsct")
     # result = surfaceintersection(cyl, r)
     # println(result)
 end
 
 function testgenerateray()
-    gen = Opticks.RayGeneratorUniform(10, 2.0, 10.0)
+    gen = OpticSim.RayGeneratorUniform(10, 2.0, 10.0)
 
     for i in gen
         println(i)
@@ -1010,7 +1010,7 @@ function randunit()
 end
 
 function makeeye()
-    eye = CSGOpticalSystem(Opticks.ModelEye(), Rectangle(10.0, 10.0, SVector{3,Float64}(0.0, 0.0, 1.0), SVector{3,Float64}(0.0, 0.0, -26.0)))
+    eye = CSGOpticalSystem(OpticSim.ModelEye(), Rectangle(10.0, 10.0, SVector{3,Float64}(0.0, 0.0, 1.0), SVector{3,Float64}(0.0, 0.0, -26.0)))
     # Vis.drawtracerays(eye)
     ray = OpticalRay([0.0, 0.0, 10.0], [0.0, 0.001, -1.0], 1.0, 0.55)
 
@@ -1026,14 +1026,14 @@ end
 
 function testnearestsquareroots()
     for i in 1:10:1000
-        a, b = Opticks.nearestsqrts(i)
+        a, b = OpticSim.nearestsqrts(i)
         approx = a * b
         println(approx - i)
     end
 end
 
 function hierarchicalimage()
-    a = Opticks.HierarchicalImage{Float32}(100, 200)
+    a = OpticSim.HierarchicalImage{Float32}(100, 200)
 
     for i in CartesianIndices(a)
         a[i] = 2.0
@@ -1088,9 +1088,9 @@ function singleemitter(numrays)
     # end
 
     for ray in a
-        temp = Opticks.direction(a, 1)
-        #  temp  = Opticks.spectrumsample(a)
-        # temp = Opticks.spectrumpower(a.spectrum,.6)
+        temp = OpticSim.direction(a, 1)
+        #  temp  = OpticSim.spectrumsample(a)
+        # temp = OpticSim.spectrumpower(a.spectrum,.6)
     end
 
     return temp

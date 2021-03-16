@@ -11,9 +11,9 @@ Merit functions must currently be implemented by the user, this is quite straigh
 There are some helper functions implemented for [`AxisymmetricOpticalSystem`](@ref)s which can make optimization of basic systems much easier:
 
 ```@docs
-Opticks.Optimizable
-Opticks.Optimizable.optimizationvariables
-Opticks.Optimizable.updateoptimizationvariables
+OpticSim.Optimizable
+OpticSim.Optimizable.optimizationvariables
+OpticSim.Optimizable.updateoptimizationvariables
 ```
 
 It is of course possible to write your own optimization loop for more complex (i.e. non-AxisymmetricOpticalSystem) systems and this _should_ work without issue.
@@ -21,7 +21,7 @@ It is of course possible to write your own optimization loop for more complex (i
 ## Example
 
 ```julia
-using Opticks
+using OpticSim
 using ForwardDiff
 using Optim
 

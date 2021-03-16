@@ -1,7 +1,7 @@
 module Vis
 
-using ..Opticks
-using ..Opticks: euclideancontrolpoints, evalcsg, vertex, makiemesh, detector, centroid, origingen, lower, upper, intervals, α
+using ..OpticSim
+using ..OpticSim: euclideancontrolpoints, evalcsg, vertex, makiemesh, detector, centroid, origingen, lower, upper, intervals, α
 
 using Unitful
 using ImageView
@@ -961,8 +961,8 @@ function eyebox_eval_eye(assembly::LensAssembly{T}, raygen::OpticalRayGenerator{
     for (xi, erx) in enumerate(xrange)
         for (yi, ery) in enumerate(yrange)
             print("Position: ($xi, $yi) / ($sample_points_x, $sample_points_y)\r")
-            r = Opticks.rotmatd(T, ery, erx, 0.0)
-            ov = Opticks.rotate(eye_transform, SVector{3,T}(0.0, 0.0, 13.0))
+            r = OpticSim.rotmatd(T, ery, erx, 0.0)
+            ov = OpticSim.rotate(eye_transform, SVector{3,T}(0.0, 0.0, 13.0))
             t = r * ov - ov
             sys = ModelEye(assembly, pupil_radius = pupil_radius, detpixels = resolution, transform = eye_transform * RigidBodyTransform(r, t))
             # Vis.draw(sys)
@@ -1009,7 +1009,7 @@ function eyebox_eval_planar(assembly::LensAssembly{T}, raygen::OpticalRayGenerat
             if focal_plane_hit isa EmptyInterval
                 continue
             end
-            px, py = Opticks.uvtopix(det, uv(Opticks.halfspaceintersection(focal_plane_hit)), (resolution, resolution))
+            px, py = OpticSim.uvtopix(det, uv(OpticSim.halfspaceintersection(focal_plane_hit)), (resolution, resolution))
 
             hsu = eyebox.halfsizeu - pupil_radius
             hsv = eyebox.halfsizev - pupil_radius

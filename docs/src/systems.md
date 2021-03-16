@@ -14,8 +14,8 @@ The detector image is stored within the system as a `HierarchicalImage` for memo
 
 ```@docs
 HierarchicalImage
-Opticks.reset!
-Opticks.sum!
+OpticSim.reset!
+OpticSim.sum!
 ```
 
 ## Systems
@@ -43,5 +43,5 @@ trace
 traceMT
 tracehits
 tracehitsMT
-Opticks.LensTrace
+OpticSim.LensTrace
 ```

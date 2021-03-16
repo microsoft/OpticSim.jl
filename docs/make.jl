@@ -1,13 +1,13 @@
 using Documenter
-using Opticks
+using OpticSim
 
 makedocs(
-    sitename = "Opticks.jl",
+    sitename = "OpticSim.jl",
     format = Documenter.HTML(
         prettyurls = get(ENV, "CI", nothing) == "true",
         assets = [asset("assets/logo.svg", class = :ico, islocal = true)],
     ),
-    modules = [Opticks],
+    modules = [OpticSim],
     pages = [
         "Home" => "index.md",
         "Glass Functions" => "glasscat.md",
@@ -31,7 +31,7 @@ makedocs(
     expandfirst = ["systems.md", "vis.md"])
 
 deploydocs(
-    repo = "github.com/microsoft/Opticks.jl.git",
+    repo = "github.com/microsoft/OpticSim.jl.git",
     devbranch = "main",
 )
 
@@ -43,7 +43,7 @@ deploydocs(
 #         try
 #             x = Core.eval(m, n)
 #             if x isa Module
-#                 if(x != Opticks.GlassCat)
+#                 if(x != OpticSim.GlassCat)
 #                 println("x $x")
 #                 push!(ms, x)
 #             end
@@ -58,7 +58,7 @@ deploydocs(
 
 # # write a code file for the catalog with docstrings
 # io = open(joinpath(@__DIR__, "../src/AGFGlassCatDocs.jl"), "w")
-# catalogs = children(Opticks.GlassCat)
+# catalogs = children(OpticSim.GlassCat)
 # cat_pages = []
 # for catname in catalogs
 #     println(catalogs)
@@ -82,7 +82,7 @@ deploydocs(
 # println("type of glass $temp")
 
 #             let io = IOBuffer()
-#                 Opticks.GlassCat.docstring(io, glass)
+#                 OpticSim.GlassCat.docstring(io, glass)
 #                 infostr = String(take!(io))
 #                 push!(eval_string, "\"\"\"\n$infostr\n\"\"\"")
 #             end
@@ -99,7 +99,7 @@ deploydocs(
 # close(io)
 
 # # include source with docstrings
-# Opticks.GlassCat.include(joinpath(@__DIR__, "../src/AGFGlassCatDocs.jl"))
+# OpticSim.GlassCat.include(joinpath(@__DIR__, "../src/AGFGlassCatDocs.jl"))
 
 # clean up
 # rm(joinpath(@__DIR__, "../src/AGFGlassCatDocs.jl"))

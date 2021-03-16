@@ -6,20 +6,20 @@ using Suppressor
 using Random
 using Unitful
 
-using Opticks
+using OpticSim
 # curve/surface imports
-using Opticks: findspan, makemesh, knotstoinsert, coefficients, inside, quadraticroots, tobeziersegments, evalcsg, makiemesh
+using OpticSim: findspan, makemesh, knotstoinsert, coefficients, inside, quadraticroots, tobeziersegments, evalcsg, makiemesh
 # interval imports
-using Opticks: α, halfspaceintersection, positivehalfspace, lower, upper, EmptyInterval, rayorigininterval, intervalcomplement, intervalintersection, intervalunion, RayOrigin, Infinity, Intersection
-using Opticks.TestData: intersectionat
+using OpticSim: α, halfspaceintersection, positivehalfspace, lower, upper, EmptyInterval, rayorigininterval, intervalcomplement, intervalintersection, intervalunion, RayOrigin, Infinity, Intersection
+using OpticSim.TestData: intersectionat
 # bounding box imports
-using Opticks: doesintersect
+using OpticSim: doesintersect
 # RBT imports
-using Opticks: rotmat, rotmatd
+using OpticSim: rotmat, rotmatd
 # lens imports
-using Opticks: reflectedray, snell, refractedray, trace, intersection, pathlength, power
+using OpticSim: reflectedray, snell, refractedray, trace, intersection, pathlength, power
 #Bounding volume hierarchy imports
-# using Opticks: partition!
+# using OpticSim: partition!
 
 ######################################################################################################
 
@@ -82,25 +82,25 @@ end
 The set will contain something like this:
     MultiHologramInterface(interfaces::Vararg{HologramInterface{T}, N}) where {T<:Real, N}
 To get the signature run:
-    methods(Opticks.MultiHologramInterface).ms[I].sig            where I is typically 1 or 2 depending on the number of methods
+    methods(OpticSim.MultiHologramInterface).ms[I].sig            where I is typically 1 or 2 depending on the number of methods
 This gives:
     Tuple{Type{MultiHologramInterface}, Vararg{HologramInterface{T}, N}} where N where T<:Real
 We then have to use which to find the method:
-    which(Opticks.MultiHologramInterface, Tuple{Vararg{HologramInterface{T}, N}} where N where T<:Real)
+    which(OpticSim.MultiHologramInterface, Tuple{Vararg{HologramInterface{T}, N}} where N where T<:Real)
 and pop it from the set
 =#
 
 @otestset "JuliaLang" begin
     # ensure there aren't any ambiguities or unbound args
-    let unbound = Set{Method}(detect_unbound_args(Opticks))
+    let unbound = Set{Method}(detect_unbound_args(OpticSim))
         # Pretty hacky way to ignore specific methods, for some weird reason the unbound args check seems to fail for some (seemingly random) methods with Vararg arguments
         # here we ignore the specific methods which we know are ok but are still failing
         if VERSION >= v"1.6.0-DEV"
-            pop!(unbound, which(Opticks.LensAssembly, Tuple{Vararg{Union{CSGTree{T},LensAssembly{T},Surface{T}},N} where N} where {T<:Real}))
-            pop!(unbound, which(Opticks.RayListSource, Tuple{Vararg{OpticalRay{T,3},N} where N} where {T<:Real}))
-            pop!(unbound, which(Opticks.OpticalSourceGroup, Tuple{Vararg{OpticalRayGenerator{T},N} where N} where {T<:Real}))
-            pop!(unbound, which(Opticks.PixelSource, Tuple{Vararg{P,N} where N} where {P<:OpticalRayGenerator{T}} where {T<:Real}))
-            pop!(unbound, which(Opticks.MultiHologramInterface, Tuple{Vararg{HologramInterface{T},N}} where {N} where {T<:Real}))
+            pop!(unbound, which(OpticSim.LensAssembly, Tuple{Vararg{Union{CSGTree{T},LensAssembly{T},Surface{T}},N} where N} where {T<:Real}))
+            pop!(unbound, which(OpticSim.RayListSource, Tuple{Vararg{OpticalRay{T,3},N} where N} where {T<:Real}))
+            pop!(unbound, which(OpticSim.OpticalSourceGroup, Tuple{Vararg{OpticalRayGenerator{T},N} where N} where {T<:Real}))
+            pop!(unbound, which(OpticSim.PixelSource, Tuple{Vararg{P,N} where N} where {P<:OpticalRayGenerator{T}} where {T<:Real}))
+            pop!(unbound, which(OpticSim.MultiHologramInterface, Tuple{Vararg{HologramInterface{T},N}} where {N} where {T<:Real}))
         end
         # and ignore any generate methods created due to default or keyword arguments
         for m in unbound
@@ -110,27 +110,27 @@ and pop it from the set
         end
         @test unbound == Set()
     end
-    let ambiguous = Set{Method}(detect_ambiguities(Opticks))
+    let ambiguous = Set{Method}(detect_ambiguities(OpticSim))
         @test ambiguous == Set()
     end
-    let unbound = Set{Method}(detect_unbound_args(Opticks.Zernike))
+    let unbound = Set{Method}(detect_unbound_args(OpticSim.Zernike))
         @test unbound == Set()
     end
-    let ambiguous = Set{Method}(detect_ambiguities(Opticks.Zernike))
+    let ambiguous = Set{Method}(detect_ambiguities(OpticSim.Zernike))
         @test ambiguous == Set()
     end
-    let unbound = Set{Method}(detect_unbound_args(Opticks.QType))
+    let unbound = Set{Method}(detect_unbound_args(OpticSim.QType))
         @test unbound == Set()
     end
-    let ambiguous = Set{Method}(detect_ambiguities(Opticks.QType))
+    let ambiguous = Set{Method}(detect_ambiguities(OpticSim.QType))
         @test ambiguous == Set()
     end
-    let unbound = Set{Method}(detect_unbound_args(Opticks.Vis))
+    let unbound = Set{Method}(detect_unbound_args(OpticSim.Vis))
         # Pretty hacky way to ignore specific methods, for some weird reason the unbound args check seems to fail for some (seemingly random) methods with Vararg arguments
         # here we ignore the specific methods which we know are ok but are still failing
-        pop!(unbound, which(Opticks.Vis.drawcurves, Tuple{Vararg{Spline{P,S,N,M},N1} where N1} where {M} where {N} where {S} where {P}))
-        pop!(unbound, which(Opticks.Vis.draw, Tuple{Vararg{S,N} where N} where {S<:Union{Opticks.Surface{T},Opticks.TriangleMesh{T}}} where {T<:Real}))
-        pop!(unbound, which(Opticks.Vis.draw!, Tuple{Opticks.Vis.MakieLayout.LScene,Vararg{S,N} where N} where {S<:Union{Opticks.Surface{T},Opticks.TriangleMesh{T}}} where {T<:Real}))
+        pop!(unbound, which(OpticSim.Vis.drawcurves, Tuple{Vararg{Spline{P,S,N,M},N1} where N1} where {M} where {N} where {S} where {P}))
+        pop!(unbound, which(OpticSim.Vis.draw, Tuple{Vararg{S,N} where N} where {S<:Union{OpticSim.Surface{T},OpticSim.TriangleMesh{T}}} where {T<:Real}))
+        pop!(unbound, which(OpticSim.Vis.draw!, Tuple{OpticSim.Vis.MakieLayout.LScene,Vararg{S,N} where N} where {S<:Union{OpticSim.Surface{T},OpticSim.TriangleMesh{T}}} where {T<:Real}))
         # and ignore any generate methods created due to default or keyword arguments
         for m in unbound
             if occursin("#", string(m.name))
@@ -139,13 +139,13 @@ and pop it from the set
         end
         @test unbound == Set()
     end
-    let ambiguous = Set{Method}(detect_ambiguities(Opticks.Vis))
+    let ambiguous = Set{Method}(detect_ambiguities(OpticSim.Vis))
         @test ambiguous == Set()
     end
-    let unbound = Set{Method}(detect_unbound_args(Opticks.TestData))
+    let unbound = Set{Method}(detect_unbound_args(OpticSim.TestData))
         @test unbound == Set()
     end
-    let ambiguous = Set{Method}(detect_ambiguities(Opticks.TestData))
+    let ambiguous = Set{Method}(detect_ambiguities(OpticSim.TestData))
         @test ambiguous == Set()
     end
 end # testset JuliaLang
@@ -474,7 +474,7 @@ end # testset General
     @testset "PowerBasis" begin
         # polynomial is 3x^2 + 2x + 1
         coeff = [1.0 2.0 3.0]
-        curve = PowerBasisCurve{Opticks.Euclidean,Float64,1,2}(coeff)
+        curve = PowerBasisCurve{OpticSim.Euclidean,Float64,1,2}(coeff)
         @test !all(isapprox.(coeff, coefficients(curve, 1), rtol = RTOLERANCE, atol = ATOLERANCE)) # TODO not sure if this is correct/what this is testing?
         correct = true
         for x in -10.0:0.1:10
@@ -516,69 +516,69 @@ end # testset General
 
     @testset "QTypeSurface" begin
         # test predefined values against papers
-        # Forbes, G. W. "Robust, efficient computational methods for axially symmetric optical aspheres." Opticks express 18.19 (2010): 19700-19712.
-        # Forbes, G. W. "Characterizing the shape of freeform optics." Opticks express 20.3 (2012): 2483-2499.
+        # Forbes, G. W. "Robust, efficient computational methods for axially symmetric optical aspheres." OpticSim express 18.19 (2010): 19700-19712.
+        # Forbes, G. W. "Characterizing the shape of freeform optics." OpticSim express 20.3 (2012): 2483-2499.
 
         f0_true = [2, sqrt(19 / 4), 4 * sqrt(10 / 19), 1 / 2 * sqrt(509 / 10), 6 * sqrt(259 / 509), 1 / 2 * sqrt(25607 / 259)]
         for i in 1:length(f0_true)
-            @test isapprox(Opticks.QType.f0(i - 1), f0_true[i], rtol = 2 * eps(Float64))
+            @test isapprox(OpticSim.QType.f0(i - 1), f0_true[i], rtol = 2 * eps(Float64))
         end
         g0_true = [-1 / 2, -5 / (2 * sqrt(19)), -17 / (2 * sqrt(190)), -91 / (2 * sqrt(5090)), -473 / (2 * sqrt(131831))]
         for i in 1:length(g0_true)
-            @test isapprox(Opticks.QType.g0(i - 1), g0_true[i], rtol = 2 * eps(Float64))
+            @test isapprox(OpticSim.QType.g0(i - 1), g0_true[i], rtol = 2 * eps(Float64))
         end
         h0_true = [-1 / 2, -6 / sqrt(19), -3 / 2 * sqrt(19 / 10), -20 * sqrt(10 / 509)]
         for i in 1:length(h0_true)
-            @test isapprox(Opticks.QType.h0(i - 1), h0_true[i], rtol = 2 * eps(Float64))
+            @test isapprox(OpticSim.QType.h0(i - 1), h0_true[i], rtol = 2 * eps(Float64))
         end
 
         F_true = [1/4 1/2 27/32 5/4; 15/32 7/8 35/16 511/128; 17/72 35/36 35/16 23/6; 29/40 67/40 243/80 12287/2560]
         N, M = size(F_true)
         for m in 1:M
             for n in 0:(N - 1)
-                @test isapprox(Opticks.QType.F(m, n), F_true[n + 1, m], rtol = 2 * eps(Float64))
+                @test isapprox(OpticSim.QType.F(m, n), F_true[n + 1, m], rtol = 2 * eps(Float64))
             end
         end
         G_true = [1/4 3/8 15/32 35/64; -1/24 -5/48 -7/32 -21/64; -7/40 -7/16 -117/160 -33/32]
         N, M = size(G_true)
         for m in 1:M
             for n in 0:(N - 1)
-                @test isapprox(Opticks.QType.G(m, n), G_true[n + 1, m], rtol = 2 * eps(Float64))
+                @test isapprox(OpticSim.QType.G(m, n), G_true[n + 1, m], rtol = 2 * eps(Float64))
             end
         end
         f_true = [1/2 1/sqrt(2) 3 / 4*sqrt(3 / 2) sqrt(5)/2; 1 / 4*sqrt(7 / 2) 1 / 4*sqrt(19 / 2) 1 / 4*sqrt(185 / 6) 3 / 32*sqrt(427); 1 / 6*sqrt(115 / 14) 1 / 2*sqrt(145 / 38) 1 / 4*sqrt(12803 / 370) 1 / 2*sqrt(2785 / 183); 1 / 5*sqrt(3397 / 230) 1 / 4*sqrt(6841 / 290) 9 / 4*sqrt(14113 / 25606) 1 / 16*sqrt(1289057 / 1114)]
         N, M = size(f_true)
         for m in 1:M
             for n in 0:(N - 1)
-                @test isapprox(Opticks.QType.f(m, n), f_true[n + 1, m], rtol = 2 * eps(Float64))
+                @test isapprox(OpticSim.QType.f(m, n), f_true[n + 1, m], rtol = 2 * eps(Float64))
             end
         end
         g_true = [1/2 3/(4 * sqrt(2)) 5/(4 * sqrt(6)) 7 * sqrt(5)/32; -1/(3 * sqrt(14)) -5/(6 * sqrt(38)) -7 / 4*sqrt(3 / 370) -1 / 2*sqrt(7 / 61); -21 / 10*sqrt(7 / 230) -7 / 4*sqrt(19 / 290) -117 / 4*sqrt(37 / 128030) -33 / 16*sqrt(183 / 2785)]
         N, M = size(g_true)
         for m in 1:M
             for n in 0:(N - 1)
-                @test isapprox(Opticks.QType.g(m, n), g_true[n + 1, m], rtol = 2 * eps(Float64))
+                @test isapprox(OpticSim.QType.g(m, n), g_true[n + 1, m], rtol = 2 * eps(Float64))
             end
         end
         A_true = [2 3 5 7 9 11; -4/3 2/3 2 76/27 85/24 106/25; 9/5 26/15 2 117/50 203/75 108/35; 55/28 66/35 2 536/245 135/56 130/49; 161/81 122/63 2 515/243 143/63 161/66]
         N, M = size(A_true)
         for m in 1:M
             for n in 0:(N - 1)
-                @test isapprox(Opticks.QType.A(m, n), A_true[n + 1, m], rtol = 2 * eps(Float64))
+                @test isapprox(OpticSim.QType.A(m, n), A_true[n + 1, m], rtol = 2 * eps(Float64))
             end
         end
         B_true = [-1 -2 -4 -6 -8 -10; -8/3 -4 -4 -40/9 -5 -28/5; -24/5 -4 -4 -21/5 -112/25 -24/5; -30/7 -4 -4 -144/35 -30/7 -220/49; -112/27 -4 -4 -110/27 -88/21 -13/3]
         N, M = size(B_true)
         for m in 1:M
             for n in 0:(N - 1)
-                @test isapprox(Opticks.QType.B(m, n), B_true[n + 1, m], rtol = 2 * eps(Float64))
+                @test isapprox(OpticSim.QType.B(m, n), B_true[n + 1, m], rtol = 2 * eps(Float64))
             end
         end
         C_true = [NaN NaN NaN NaN NaN NaN; -11/3 -3 -5/3 -35/27 -9/8 -77/75; 0 5/9 7/15 21/50 88/225 13/35; 27/28 21/25 27/35 891/1225 39/56 33/49; 80/81 45/49 55/63 1430/1701 40/49 1105/1386]
         N, M = size(C_true)
         for m in 1:M
             for n in 0:(N - 1)
-                @test isapprox(Opticks.QType.C(m, n), C_true[n + 1, m], rtol = 2 * eps(Float64)) || (isnan(Opticks.QType.C(m, n)) && isnan(C_true[n + 1, m]))
+                @test isapprox(OpticSim.QType.C(m, n), C_true[n + 1, m], rtol = 2 * eps(Float64)) || (isnan(OpticSim.QType.C(m, n)) && isnan(C_true[n + 1, m]))
             end
         end
 
@@ -1273,7 +1273,7 @@ end # testset SurfaceDefs
                     else
                         # closest point should be on the surface, furthest should be on bounding prism
                         @test isapprox(point(lower(intsct)), pt, rtol = RTOLERANCE, atol = ATOLERANCE)
-                        @test isa(upper(intsct), Intersection{Float64,3}) || (Opticks.direction(r)[3] == -1 && isa(upper(intsct), Infinity{Float64}))
+                        @test isa(upper(intsct), Intersection{Float64,3}) || (OpticSim.direction(r)[3] == -1 && isa(upper(intsct), Infinity{Float64}))
                     end
                 end
             end
@@ -1389,7 +1389,7 @@ end # testset SurfaceDefs
                     else
                         # closest point should be on the surface, furthest should be on bounding prism
                         @test isapprox(point(lower(intsct)), pt, rtol = RTOLERANCE, atol = ATOLERANCE)
-                        @test isa(upper(intsct), Intersection{Float64,3}) || (Opticks.direction(r)[3] == -1 && isa(upper(intsct), Infinity{Float64}))
+                        @test isa(upper(intsct), Intersection{Float64,3}) || (OpticSim.direction(r)[3] == -1 && isa(upper(intsct), Infinity{Float64}))
                     end
                 end
             end
@@ -1544,81 +1544,81 @@ end # testset SurfaceDefs
 
         # test simple rays for intersection, union and difference operations
         # INTERSECTION
-        intersection_obj = csgintersection(leaf(Cylinder(0.5, 3.0), Opticks.rotationd(90.0, 0.0, 0.0)), (leaf(Sphere(1.0))))()
+        intersection_obj = csgintersection(leaf(Cylinder(0.5, 3.0), OpticSim.rotationd(90.0, 0.0, 0.0)), (leaf(Sphere(1.0))))()
         r = Ray([0.7, 0.0, 0.0], [-1.0, 0.0, 0.0])
-        int = Opticks.evalcsg(intersection_obj, r)
+        int = OpticSim.evalcsg(intersection_obj, r)
         @test isapprox(point(lower(int)), [0.5, 0.0, 0.0], rtol = RTOLERANCE, atol = ATOLERANCE) && isapprox(point(upper(int)), [-0.5, 0.0, 0.0], rtol = RTOLERANCE, atol = ATOLERANCE)
 
         r = Ray([5.0, 0.0, 0.0], [-1.0, 0.0, 0.0])
-        int = Opticks.evalcsg(intersection_obj, r)
+        int = OpticSim.evalcsg(intersection_obj, r)
         @test isapprox(point(lower(int)), [0.5, 0.0, 0.0], rtol = RTOLERANCE, atol = ATOLERANCE) && isapprox(point(upper(int)), [-0.5, 0.0, 0.0], rtol = RTOLERANCE, atol = ATOLERANCE)
 
         r = Ray([0.7, 0.0, 0.0], [1.0, 0.0, 0.0])
-        int = Opticks.evalcsg(intersection_obj, r)
+        int = OpticSim.evalcsg(intersection_obj, r)
         @test (int isa EmptyInterval)
 
         r = Ray([0.0, 0.0, 0.0], [1.0, 0.0, 0.0])
-        int = Opticks.evalcsg(intersection_obj, r)
+        int = OpticSim.evalcsg(intersection_obj, r)
         @test (lower(int) isa RayOrigin) && isapprox(point(upper(int)), [0.5, 0.0, 0.0], rtol = RTOLERANCE, atol = ATOLERANCE)
 
         r = Ray([0.0, 0.0, 0.0], [0.0, 1.0, 0.0])
-        int = Opticks.evalcsg(intersection_obj, r)
+        int = OpticSim.evalcsg(intersection_obj, r)
         @test (lower(int) isa RayOrigin) && isapprox(point(upper(int)), [0.0, 1.0, 0.0], rtol = RTOLERANCE, atol = ATOLERANCE)
 
         r = Ray([0.0, 2.0, 0.0], [0.0, -1.0, 0.0])
-        int = Opticks.evalcsg(intersection_obj, r)
+        int = OpticSim.evalcsg(intersection_obj, r)
         @test isapprox(point(lower(int)), [0.0, 1.0, 0.0], rtol = RTOLERANCE, atol = ATOLERANCE) && isapprox(point(upper(int)), [0.0, -1.0, 0.0], rtol = RTOLERANCE, atol = ATOLERANCE)
 
         # UNION
-        union_obj = csgunion(leaf(Cylinder(0.5, 3.0)), (leaf(Sphere(1.0))))(Opticks.translation(1.0, 0.0, 0.0))
+        union_obj = csgunion(leaf(Cylinder(0.5, 3.0)), (leaf(Sphere(1.0))))(OpticSim.translation(1.0, 0.0, 0.0))
         r = Ray([1.0, 0.0, 0.0], [0.0, 0.0, 1.0])
-        int = Opticks.evalcsg(union_obj, r)
+        int = OpticSim.evalcsg(union_obj, r)
         @test (lower(int) isa RayOrigin) && (upper(int) isa Infinity)
 
         r = Ray([1.0, 0.0, 0.0], [1.0, 0.0, 0.0])
-        int = Opticks.evalcsg(union_obj, r)
+        int = OpticSim.evalcsg(union_obj, r)
         @test (lower(int) isa RayOrigin) && isapprox(point(upper(int)), [2.0, 0.0, 0.0], rtol = RTOLERANCE, atol = ATOLERANCE)
 
         r = Ray([1.6, 0.0, 0.0], [1.0, 0.0, 0.0])
-        int = Opticks.evalcsg(union_obj, r)
+        int = OpticSim.evalcsg(union_obj, r)
         @test (lower(int) isa RayOrigin) && isapprox(point(upper(int)), [2.0, 0.0, 0.0], rtol = RTOLERANCE, atol = ATOLERANCE)
 
         r = Ray([1.6, 0.0, 0.0], [-1.0, 0.0, 0.0])
-        int = Opticks.evalcsg(union_obj, r)
+        int = OpticSim.evalcsg(union_obj, r)
         @test (lower(int) isa RayOrigin) && isapprox(point(upper(int)), [0.0, 0.0, 0.0], rtol = RTOLERANCE, atol = ATOLERANCE)
 
         r = Ray([-1.0, 0.0, 0.0], [1.0, 0.0, 0.0])
-        int = Opticks.evalcsg(union_obj, r)
+        int = OpticSim.evalcsg(union_obj, r)
         @test isapprox(point(lower(int)), [0.0, 0.0, 0.0], rtol = RTOLERANCE, atol = ATOLERANCE) && isapprox(point(upper(int)), [2.0, 0.0, 0.0], rtol = RTOLERANCE, atol = ATOLERANCE)
 
         r = Ray([-1.0, 0.0, 4.0], [1.0, 0.0, 0.0])
-        int = Opticks.evalcsg(union_obj, r)
+        int = OpticSim.evalcsg(union_obj, r)
         @test isapprox(point(lower(int)), [0.5, 0.0, 4.0], rtol = RTOLERANCE, atol = ATOLERANCE) && isapprox(point(upper(int)), [1.5, 0.0, 4.0], rtol = RTOLERANCE, atol = ATOLERANCE)
 
         # DIFFERENCE
-        difference_obj = csgdifference(leaf(Cylinder(0.5, 3.0)), leaf(Sphere(1.0), Opticks.translation(0.75, 0.0, 0.2)))()
+        difference_obj = csgdifference(leaf(Cylinder(0.5, 3.0)), leaf(Sphere(1.0), OpticSim.translation(0.75, 0.0, 0.2)))()
         r = Ray([0.25, 0.0, 0.0], [-1.0, 0.0, 0.0])
-        int = Opticks.evalcsg(difference_obj, r)
+        int = OpticSim.evalcsg(difference_obj, r)
         @test isapprox(point(lower(int)), [-0.2297958971132712, 0.0, 0.0], rtol = RTOLERANCE, atol = ATOLERANCE) && isapprox(point(upper(int)), [-0.5, 0.0, 0.0], rtol = RTOLERANCE, atol = ATOLERANCE)
 
         r = Ray([0.25, 0.0, 0.0], [1.0, 0.0, 0.0])
-        int = Opticks.evalcsg(difference_obj, r)
+        int = OpticSim.evalcsg(difference_obj, r)
         @test int isa EmptyInterval
 
         r = Ray([0.25, 0.0, 0.0], [0.0, 0.0, 1.0])
-        int = Opticks.evalcsg(difference_obj, r)
+        int = OpticSim.evalcsg(difference_obj, r)
         @test isapprox(point(lower(int)), [0.25, 0.0, 1.0660254037844386], rtol = RTOLERANCE, atol = ATOLERANCE) && (upper(int) isa Infinity)
 
         r = Ray([0.25, 0.0, 1.5], [0.0, 0.0, -1.0])
-        int = Opticks.evalcsg(difference_obj, r)
+        int = OpticSim.evalcsg(difference_obj, r)
         @test (lower(int[1]) isa RayOrigin) && isapprox(point(upper(int[1])), [0.25, 0.0, 1.0660254037844386], rtol = RTOLERANCE, atol = ATOLERANCE) && isapprox(point(lower(int[2])), [0.25, 0.0, -0.6660254037844386], rtol = RTOLERANCE, atol = ATOLERANCE) && (upper(int[2]) isa Infinity)
 
         r = Ray([0.25, 0.0, 1.5], [1.0, 0.0, 0.0])
-        int = Opticks.evalcsg(difference_obj, r)
+        int = OpticSim.evalcsg(difference_obj, r)
         @test (lower(int) isa RayOrigin) && isapprox(point(upper(int)), [0.5, 0.0, 1.5], rtol = RTOLERANCE, atol = ATOLERANCE)
 
         r = Ray([0.25, 0.0, 1.5], [0.0, 0.0, 1.0])
-        int = Opticks.evalcsg(difference_obj, r)
+        int = OpticSim.evalcsg(difference_obj, r)
         @test (lower(int) isa RayOrigin) && (upper(int) isa Infinity)
 
         # DisjointUnion result on CSG
@@ -1651,7 +1651,7 @@ end # testset SurfaceDefs
             for θi in [-5.0, 0.0, 5.0, 10.0]
                 for λ in [0.35, 0.55, 1.0]
                     ray = OpticalRay(SVector(0.0, 0.0, 2.0), SVector(0.0, sind(θi), -cosd(θi)), 1.0, λ)
-                    raydir, _, _ = Opticks.processintersection(int, SVector(0.0, 0.0, 0.0), SVector(0.0, 0.0, 1.0), ray, 20.0, 1.0, true, true)
+                    raydir, _, _ = OpticSim.processintersection(int, SVector(0.0, 0.0, 0.0), SVector(0.0, 0.0, 1.0), ray, 20.0, 1.0, true, true)
                     # order is random so just check that it is correct for one of them
                     @test any([isapprox(x, angle_from_ray(raydir), rtol = RTOLERANCE, atol = ATOLERANCE) for x in [true_diff(m, λ, period, θi) for m in -2:2]])
                 end
@@ -1695,7 +1695,7 @@ end # testset SurfaceDefs
                     else
                         # closest point should be on the surface, furthest should be on bounding prism
                         @test isapprox(point(lower(intsct)), pt, rtol = RTOLERANCE, atol = ATOLERANCE)
-                        @test isa(upper(intsct), Intersection{Float64,3}) || (Opticks.direction(r)[3] == -1 && isa(upper(intsct), Infinity{Float64}))
+                        @test isa(upper(intsct), Intersection{Float64,3}) || (OpticSim.direction(r)[3] == -1 && isa(upper(intsct), Infinity{Float64}))
                     end
                 end
             end
@@ -1788,7 +1788,7 @@ end # testset SurfaceDefs
                     else
                         # closest point should be on the surface, furthest should be on bounding prism
                         @test isapprox(point(lower(intsct)), pt, rtol = RTOLERANCE, atol = ATOLERANCE)
-                        @test isa(upper(intsct), Intersection{Float64,3}) || (Opticks.direction(r)[3] == -1 && isa(upper(intsct), Infinity{Float64}))
+                        @test isa(upper(intsct), Intersection{Float64,3}) || (OpticSim.direction(r)[3] == -1 && isa(upper(intsct), Infinity{Float64}))
                     end
                 end
             end
@@ -1818,7 +1818,7 @@ end # testset SurfaceDefs
                     else
                         # closest point should be on the surface, furthest should be on bounding prism
                         @test isapprox(point(lower(intsct)), pt, rtol = RTOLERANCE, atol = ATOLERANCE)
-                        @test isa(upper(intsct), Intersection{Float64,3}) || (Opticks.direction(r)[3] == -1 && isa(upper(intsct), Infinity{Float64}))
+                        @test isa(upper(intsct), Intersection{Float64,3}) || (OpticSim.direction(r)[3] == -1 && isa(upper(intsct), Infinity{Float64}))
                     end
                 end
             end
@@ -1933,14 +1933,14 @@ end # testset intersection
         l = ParaxialLensEllipse(100.0, 10.0, 10.0, [1.0, 1.0, 0.0], [3.0, 3.0, 3.0])
         r = OpticalRay([2.0, 2.0, 3.0], [1.0, 1.0, 0.0], 1.0, 0.55)
         intsct = halfspaceintersection(surfaceintersection(l, r))
-        ref, _, _ = Opticks.processintersection(Opticks.interface(intsct), Opticks.point(intsct), Opticks.normal(intsct), r, 20.0, 1.0, true, true)
+        ref, _, _ = OpticSim.processintersection(OpticSim.interface(intsct), OpticSim.point(intsct), OpticSim.normal(intsct), r, 20.0, 1.0, true, true)
         @test isapprox(ref, normalize([1.0, 1.0, 0.0]), rtol = RTOLERANCE, atol = ATOLERANCE)
         l = ParaxialLensRect(100.0, 10.0, 10.0, [1.0, 1.0, 0.0], [3.0, 3.0, 3.0])
         r = OpticalRay([2.3, 2.4, 3.1], [1.0, 1.0, 0.0], 1.0, 0.55)
         intsct = halfspaceintersection(surfaceintersection(l, r))
         fp = [3.0, 3.0, 3.0] + 100 * normalize([1.0, 1.0, 0.0])
-        ref, _, _ = Opticks.processintersection(Opticks.interface(intsct), Opticks.point(intsct), Opticks.normal(intsct), r, 20.0, 1.0, true, true)
-        @test isapprox(ref, normalize(fp - Opticks.point(intsct)), rtol = RTOLERANCE, atol = ATOLERANCE)
+        ref, _, _ = OpticSim.processintersection(OpticSim.interface(intsct), OpticSim.point(intsct), OpticSim.normal(intsct), r, 20.0, 1.0, true, true)
+        @test isapprox(ref, normalize(fp - OpticSim.point(intsct)), rtol = RTOLERANCE, atol = ATOLERANCE)
     end # testset Paraxial
 end # testset lenses
 
@@ -2127,7 +2127,7 @@ end # testset Emitters
         res = trace(a, r2, test = true)
         @test isapprox(point(res), [0.0735282671574837, 0.0735282671574837, -67.8], rtol = COMP_TOLERANCE)
         @test isapprox(pathlength(res), 74.0161411455851, rtol = COMP_TOLERANCE)
-        track = Vector{Opticks.LensTrace{Float64,3}}(undef, 0)
+        track = Vector{OpticSim.LensTrace{Float64,3}}(undef, 0)
         res = trace(a, r3, test = true, trackrays = track)
         @test (res === nothing) # TIR
         @test isapprox(point(track[end]), [-5.0, -5.0, 0.0], rtol = COMP_TOLERANCE)
@@ -2135,7 +2135,7 @@ end # testset Emitters
         res = trace(a, r4, test = true)
         @test isapprox(point(res), [0.0, 11.9748998399885, -67.8], rtol = COMP_TOLERANCE)
         @test isapprox(pathlength(res), 76.0760286320348, rtol = COMP_TOLERANCE)
-        track = Vector{Opticks.LensTrace{Float64,3}}(undef, 0)
+        track = Vector{OpticSim.LensTrace{Float64,3}}(undef, 0)
         res = trace(a, r5, test = true, trackrays = track)
         @test (res === nothing) # TIR
         @test isapprox(point(track[end]), [5.49905367197174, 5.66882664623822, 0.0], rtol = COMP_TOLERANCE)

@@ -1,6 +1,6 @@
 # Roadmap
 
-Opticks.jl is still under active development. Here are things we are considering:
+OpticSim.jl is still under active development. Here are things we are considering:
 
 ## User Interface
 

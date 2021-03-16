@@ -17,7 +17,7 @@ This way you can have `Float64` geometry, where high precision is essential, but
 The detector can be any [`Surface`](@ref) which implements [`uv`](@ref), [`uvtopix`](@ref) and [`onsurface`](@ref), typically this is one of [`Rectangle`](@ref), [`Ellipse`](@ref) or [`SphericalCap`](@ref).
 
 ```julia
-CSGOpticalSystem(assembly::LensAssembly, detector::Surface, detectorpixelsx = 1000, detectorpixelsy = 1000, ::Type{D} = Float32; temperature = Opticks.GlassCat.TEMP_REF, pressure = Opticks.GlassCat.PRESSURE_REF)
+CSGOpticalSystem(assembly::LensAssembly, detector::Surface, detectorpixelsx = 1000, detectorpixelsy = 1000, ::Type{D} = Float32; temperature = OpticSim.GlassCat.TEMP_REF, pressure = OpticSim.GlassCat.PRESSURE_REF)
 ```
 """
 struct CSGOpticalSystem{T,D<:Number,S<:Surface{T},L<:LensAssembly{T}} <: OpticalSystem{T}
@@ -26,7 +26,7 @@ struct CSGOpticalSystem{T,D<:Number,S<:Surface{T},L<:LensAssembly{T}} <: Optical
     detectorimage::HierarchicalImage{D}
     temperature::T
     pressure::T
-    function CSGOpticalSystem(assembly::L, detector::S, detectorpixelsx::Int = 1000, detectorpixelsy::Int = 1000, ::Type{D} = Float32; temperature::Union{T,Unitful.Temperature} = T(Opticks.GlassCat.TEMP_REF), pressure::T = T(Opticks.GlassCat.PRESSURE_REF)) where {T<:Real,S<:Surface{T},L<:LensAssembly{T},D<:Number}
+    function CSGOpticalSystem(assembly::L, detector::S, detectorpixelsx::Int = 1000, detectorpixelsy::Int = 1000, ::Type{D} = Float32; temperature::Union{T,Unitful.Temperature} = T(OpticSim.GlassCat.TEMP_REF), pressure::T = T(OpticSim.GlassCat.PRESSURE_REF)) where {T<:Real,S<:Surface{T},L<:LensAssembly{T},D<:Number}
         @assert hasmethod(uv, (S, SVector{3,T})) "Detector must implement uv()"
         @assert hasmethod(uvtopix, (S, SVector{2,T}, Tuple{Int,Int})) "Detector must implement uvtopix()"
         @assert hasmethod(onsurface, (S, SVector{3,T})) "Detector must implement onsurface()"
@@ -131,7 +131,7 @@ function trace(system::CSGOpticalSystem{T,D}, r::OpticalRay{T,N}; trackrays::Uni
             # compute updated power based on absorption coefficient of material using Beer's law
             # this will almost always not apply as the detector will be in air, but it's possible that the detector is not in air, in which case this is necessary
             if !isair(m)
-                mat = glassforid(m)::Opticks.GlassCat.Glass
+                mat = glassforid(m)::OpticSim.GlassCat.Glass
                 nᵢ = index(mat, λ, temperature = temperature(system), pressure = pressure(system))::T
                 α = absorption(mat, λ, temperature = temperature(system), pressure = pressure(system))::T
                 if α > zero(T)
@@ -174,7 +174,7 @@ Assumes the `:Image` row will be the last row in the `DataFrame`.
 In practice a [`CSGOpticalSystem`](@ref) is generated automatically and stored within this system.
 
 ```julia
-AxisymmetricOpticalSystem{T}(prescription::DataFrame, detectorpixelsx = 1000, detectorpixelsy:: = 1000, ::Type{D} = Float32; temperature = Opticks.GlassCat.TEMP_REF, pressure = Opticks.GlassCat.PRESSURE_REF)
+AxisymmetricOpticalSystem{T}(prescription::DataFrame, detectorpixelsx = 1000, detectorpixelsy:: = 1000, ::Type{D} = Float32; temperature = OpticSim.GlassCat.TEMP_REF, pressure = OpticSim.GlassCat.PRESSURE_REF)
 ```
 """
 struct AxisymmetricOpticalSystem{T,C<:CSGOpticalSystem{T}} <: OpticalSystem{T}
@@ -182,7 +182,7 @@ struct AxisymmetricOpticalSystem{T,C<:CSGOpticalSystem{T}} <: OpticalSystem{T}
     prescription::DataFrame
     semidiameter::T
 
-    function AxisymmetricOpticalSystem{T}(prescription::DataFrame, detectorpixelsx::Int = 1000, detectorpixelsy::Int = 1000, ::Type{D} = Float32; temperature::Union{T,Unitful.Temperature} = T(Opticks.GlassCat.TEMP_REF), pressure::T = T(Opticks.GlassCat.PRESSURE_REF)) where {T<:Real,D<:Number}
+    function AxisymmetricOpticalSystem{T}(prescription::DataFrame, detectorpixelsx::Int = 1000, detectorpixelsy::Int = 1000, ::Type{D} = Float32; temperature::Union{T,Unitful.Temperature} = T(OpticSim.GlassCat.TEMP_REF), pressure::T = T(OpticSim.GlassCat.PRESSURE_REF)) where {T<:Real,D<:Number}
         pr = prescription
         elements = Array{Union{Surface{T},CSGTree{T}},1}(undef, 0)
         (rows, cols) = size(pr)
@@ -206,7 +206,7 @@ struct AxisymmetricOpticalSystem{T,C<:CSGOpticalSystem{T}} <: OpticalSystem{T}
                     backconic = zero(T)
                     frontaspherics = nothing
                     backaspherics = nothing
-                    if material != Opticks.GlassCat.Air && !isequal(material, missing)
+                    if material != OpticSim.GlassCat.Air && !isequal(material, missing)
                         semidiameter::T = max(pr[i, :SemiDiameter], pr[i + 1, :SemiDiameter])
                         if firstelement
                             systemsemidiameter = semidiameter
@@ -276,7 +276,7 @@ struct AxisymmetricOpticalSystem{T,C<:CSGOpticalSystem{T}} <: OpticalSystem{T}
                 det = Rectangle(T(imagesize), T(imagesize), SVector{3,T}(0, 0, 1), SVector{3,T}(0, 0, vertextoimage), interface = opaqueinterface(T))
             end
 
-            system = CSGOpticalSystem(Opticks.LensAssembly(elements...), det, detectorpixelsx, detectorpixelsy, D, temperature = temperature, pressure = pressure)
+            system = CSGOpticalSystem(OpticSim.LensAssembly(elements...), det, detectorpixelsx, detectorpixelsy, D, temperature = temperature, pressure = pressure)
 
             return new{T,typeof(system)}(system, prescription, systemsemidiameter)
         end
@@ -438,10 +438,10 @@ function traceMT(system::CSGOpticalSystem{T,S}, raygenerator::OpticalRayGenerato
         println("\rAccumulating images...                                                                       ")
     end
 
-    det = Opticks.detectorimage(copies[1][1])
+    det = OpticSim.detectorimage(copies[1][1])
     # sum all the copies
     @inbounds for i in 2:N
-        Opticks.sum!(det, Opticks.detectorimage(copies[i][1]))
+        OpticSim.sum!(det, OpticSim.detectorimage(copies[i][1]))
     end
 
     numrays = length(raygenerator)

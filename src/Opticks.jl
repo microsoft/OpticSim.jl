@@ -1,4 +1,4 @@
-module Opticks
+module OpticSim
 
 import Unitful
 using LinearAlgebra: eigen, svd, I, qr, dot, cross, norm, det, normalize, inv
@@ -14,7 +14,7 @@ using StringEncodings
 unzip(a) = map(x -> getfield.(a, x), fieldnames(eltype(a)))
 
 include("GlassCat/GlassCat.jl")
-import Opticks.GlassCat: plot_indices, index, polyfit_indices, absairindex, absorption, info, glassid, glassname, glassforid, isair, findglass, modelglass, glassfromMIL, GlassID
+import OpticSim.GlassCat: plot_indices, index, polyfit_indices, absairindex, absorption, info, glassid, glassname, glassforid, isair, findglass, modelglass, glassfromMIL, GlassID
 
 include("Matrix.jl")
 include("Constants.jl")
