@@ -1,6 +1,6 @@
 # Complete Reference
 
-This page contains what should be a complete list of all docstrings in the Optics module, and its submodule.
+This page contains what should be a complete list of all docstrings in the Opticks module, and its submodule.
 
 ## Index
 
@@ -8,32 +8,32 @@ This page contains what should be a complete list of all docstrings in the Optic
 Pages   = ["ref.md"]
 ```
 
-## Optics
+## Opticks
 
 ```@autodocs
-Modules = [Optics]
+Modules = [Opticks]
 ```
 
 ## Zernike
 
 ```@autodocs
-Modules = [Optics.Zernike]
+Modules = [Opticks.Zernike]
 ```
 
 ## QType
 
 ```@autodocs
-Modules = [Optics.QType]
+Modules = [Opticks.QType]
 ```
 
 ## Chebyshev
 
 ```@autodocs
-Modules = [Optics.Chebyshev]
+Modules = [Opticks.Chebyshev]
 ```
 
 ## Examples
 
 ```@autodocs
-Modules = [Optics.Examples]
+Modules = [Opticks.Examples]
 ```

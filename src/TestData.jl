@@ -3,8 +3,8 @@ Contains all complex data used for testing and benchmarking.
 """
 module TestData
 
-using ..Optics
-using ..Optics: tobeziersegments # try to use only exported functions so this list should stay short
+using ..Opticks
+using ..Opticks: tobeziersegments # try to use only exported functions so this list should stay short
 using StaticArrays
 using DataFrames
 using Unitful
@@ -17,26 +17,26 @@ using LinearAlgebra
 function bsplinecurve()
     knots = KnotVector{Float64}([0.0, 0.0, 0.0, 0.0, 0.3, 0.6, 1.0, 1.0, 1.0, 1.0])
     points = Array{MVector{2,Float64},1}([(0.05, 0.05), (0.05, 0.8), (0.6, 0.0), (0.7, 0.5), (0.5, 0.95), (0.95, 0.5)])
-    curve = BSplineCurve{Optics.Euclidean,Float64,2,3}(knots, points)
+    curve = BSplineCurve{Opticks.Euclidean,Float64,2,3}(knots, points)
     return curve
 end
 
 function homogeneousbsplinecurve()
     knots = KnotVector{Float64}([0.0, 0.0, 0.0, 0.0, 0.3, 0.6, 1.0, 1.0, 1.0, 1.0])
     points = Array{MVector{3,Float64},1}([(0.05, 0.0, 1.0), (0.05, 0.8, 1.0), (0.6, 0.0, 1.0), (0.7, 0.5, 1.0), (0.5, 0.95, 1.0), (0.95, 0.5, 1.0)])
-    curve = BSplineCurve{Optics.Rational,Float64,3,3}(knots, points)
+    curve = BSplineCurve{Opticks.Rational,Float64,3,3}(knots, points)
     return curve
 end
 
 function beziercurve()
     orig = onespanspline()
-    return BezierCurve{Optics.Euclidean,Float64,2,3}(tobeziersegments(orig)[1])
+    return BezierCurve{Opticks.Euclidean,Float64,2,3}(tobeziersegments(orig)[1])
 end
 
 function onespanspline()
     knots = KnotVector{Float64}([0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0])
     points = Array{MVector{2,Float64},1}([(0.05, 0.05), (0.05, 0.95), (0.5, 0.95), (0.95, 0.5)])
-    curve = BSplineCurve{Optics.Euclidean,Float64,2,3}(knots, points)
+    curve = BSplineCurve{Opticks.Euclidean,Float64,2,3}(knots, points)
     return curve
 end
 
@@ -54,7 +54,7 @@ function bsplinesurface()
             (0.0, 1.0, 0.0) (0.33, 1.0, 0.0) (0.66, 1.0, 0.0) (1.0, 1.0, 0.0) (1.33, 1.0, 0.0)
         ],
     )
-    return BSplineSurface{Optics.Euclidean,Float64,3,3}(uknots, vknots, points)
+    return BSplineSurface{Opticks.Euclidean,Float64,3,3}(uknots, vknots, points)
 end
 
 function beziersurface()
@@ -69,7 +69,7 @@ function beziersurface()
             (1.0, 0.0, 0.0) (1.0, 0.33, 0.0) (1.0, 0.66, 0.0) (1.0, 1.0, 0.0)
         ],
     )
-    return BezierSurface{Optics.Euclidean,Float64,3,3}(points)
+    return BezierSurface{Opticks.Euclidean,Float64,3,3}(points)
 end
 
 function upsidedownbeziersurface()
@@ -82,7 +82,7 @@ function upsidedownbeziersurface()
             (0.0, 1.0, 0.0) (0.33, 1.0, 0.0) (0.66, 1.0, 0.0) (1.0, 1.0, 0.0)
         ],
     )
-    return BezierSurface{Optics.Euclidean,Float64,3,3}(points)
+    return BezierSurface{Opticks.Euclidean,Float64,3,3}(points)
 end
 
 function wavybeziersurface()
@@ -95,7 +95,7 @@ function wavybeziersurface()
             (1.0, 0.0, -0.3) (1.0, 0.33, 1.0) (1.0, 0.66, -1.0) (1.0, 1.0, 0.3)
         ],
     )
-    return BezierSurface{Optics.Euclidean,Float64,3,3}(points)
+    return BezierSurface{Opticks.Euclidean,Float64,3,3}(points)
 end
 
 function verywavybeziersurface()
@@ -110,7 +110,7 @@ function verywavybeziersurface()
             (1.0, 0.0, -0.5) (1.0, 0.2, 1.0) (1.0, 0.4, -3.0) (1.0, 0.6, 3.0) (1.0, 0.8, -1.0) (1.0, 1.0, 0.5)
         ],
     )
-    return BezierSurface{Optics.Euclidean,Float64,3,5}(points)
+    return BezierSurface{Opticks.Euclidean,Float64,3,5}(points)
 end
 
 qtypesurface1() = QTypeSurface(1.5, radius = 5.0, conic = 1.0, αcoeffs = [(0, 1, -0.3), (5, 4, 0.1)], βcoeffs = [(3, 7, 0.1)], normradius = 1.6)
@@ -153,51 +153,51 @@ chebyshevsurface2() = ChebyshevSurface(2.0, 2.0, [(1, 1, 0.1), (0, 2, 0.3), (4, 
 ### LENSES
 
 function zernikelens()
-    topsurface = leaf(AcceleratedParametricSurface(ZernikeSurface(9.5, zcoeff = [(1, 0.0), (4, -1.0), (7, 0.5)]), interface = FresnelInterface{Float64}(Optics.GlassCat.SCHOTT.N_BK7, Optics.GlassCat.Air)), translation(0.0, 0.0, 5.0))
-    botsurface = leaf(Plane(0.0, 0.0, -1.0, 0.0, 0.0, -5.0, vishalfsizeu = 9.5, vishalfsizev = 9.5, interface = FresnelInterface{Float64}(Optics.GlassCat.SCHOTT.N_BK7, Optics.GlassCat.Air)))
-    barrel = leaf(Cylinder(9.0, 20.0, interface = FresnelInterface{Float64}(Optics.GlassCat.SCHOTT.N_BK7, Optics.GlassCat.Air, reflectance = zero(Float64), transmission = zero(Float64))))
+    topsurface = leaf(AcceleratedParametricSurface(ZernikeSurface(9.5, zcoeff = [(1, 0.0), (4, -1.0), (7, 0.5)]), interface = FresnelInterface{Float64}(Opticks.GlassCat.SCHOTT.N_BK7, Opticks.GlassCat.Air)), translation(0.0, 0.0, 5.0))
+    botsurface = leaf(Plane(0.0, 0.0, -1.0, 0.0, 0.0, -5.0, vishalfsizeu = 9.5, vishalfsizev = 9.5, interface = FresnelInterface{Float64}(Opticks.GlassCat.SCHOTT.N_BK7, Opticks.GlassCat.Air)))
+    barrel = leaf(Cylinder(9.0, 20.0, interface = FresnelInterface{Float64}(Opticks.GlassCat.SCHOTT.N_BK7, Opticks.GlassCat.Air, reflectance = zero(Float64), transmission = zero(Float64))))
     return csgintersection(barrel, csgintersection(topsurface, botsurface))(RigidBodyTransform{Float64}(0.0, Float64(π), 0.0, 0.0, 0.0, -5.0))
 end
 
 function asphericlens()
-    topsurface = leaf(AcceleratedParametricSurface(ZernikeSurface(9.5, aspherics = [(2, 0.0), (4, -0.001)]), interface = FresnelInterface{Float64}(Optics.GlassCat.SCHOTT.N_BK7, Optics.GlassCat.Air)), translation(0.0, 0.0, 5.0))
-    botsurface = leaf(Plane(0.0, 0.0, -1.0, 0.0, 0.0, -5.0, vishalfsizeu = 9.5, vishalfsizev = 9.5, interface = FresnelInterface{Float64}(Optics.GlassCat.SCHOTT.N_BK7, Optics.GlassCat.Air)))
-    barrel = leaf(Cylinder(9.0, 20.0, interface = FresnelInterface{Float64}(Optics.GlassCat.SCHOTT.N_BK7, Optics.GlassCat.Air, reflectance = zero(Float64), transmission = zero(Float64))))
+    topsurface = leaf(AcceleratedParametricSurface(ZernikeSurface(9.5, aspherics = [(2, 0.0), (4, -0.001)]), interface = FresnelInterface{Float64}(Opticks.GlassCat.SCHOTT.N_BK7, Opticks.GlassCat.Air)), translation(0.0, 0.0, 5.0))
+    botsurface = leaf(Plane(0.0, 0.0, -1.0, 0.0, 0.0, -5.0, vishalfsizeu = 9.5, vishalfsizev = 9.5, interface = FresnelInterface{Float64}(Opticks.GlassCat.SCHOTT.N_BK7, Opticks.GlassCat.Air)))
+    barrel = leaf(Cylinder(9.0, 20.0, interface = FresnelInterface{Float64}(Opticks.GlassCat.SCHOTT.N_BK7, Opticks.GlassCat.Air, reflectance = zero(Float64), transmission = zero(Float64))))
     return csgintersection(barrel, csgintersection(topsurface, botsurface))(RigidBodyTransform{Float64}(0.0, Float64(π), 0.0, 0.0, 0.0, -5.0))
 end
 
 function coniclensZ()
-    topsurface = leaf(AcceleratedParametricSurface(ZernikeSurface(9.5, radius = -15.0, conic = -5.0), interface = FresnelInterface{Float64}(Optics.GlassCat.SCHOTT.N_BK7, Optics.GlassCat.Air)), translation(0.0, 0.0, 5.0))
-    botsurface = leaf(Plane(0.0, 0.0, -1.0, 0.0, 0.0, -5.0, vishalfsizeu = 9.5, vishalfsizev = 9.5, interface = FresnelInterface{Float64}(Optics.GlassCat.SCHOTT.N_BK7, Optics.GlassCat.Air)))
-    barrel = leaf(Cylinder(9.0, 20.0, interface = FresnelInterface{Float64}(Optics.GlassCat.SCHOTT.N_BK7, Optics.GlassCat.Air, reflectance = zero(Float64), transmission = zero(Float64))))
+    topsurface = leaf(AcceleratedParametricSurface(ZernikeSurface(9.5, radius = -15.0, conic = -5.0), interface = FresnelInterface{Float64}(Opticks.GlassCat.SCHOTT.N_BK7, Opticks.GlassCat.Air)), translation(0.0, 0.0, 5.0))
+    botsurface = leaf(Plane(0.0, 0.0, -1.0, 0.0, 0.0, -5.0, vishalfsizeu = 9.5, vishalfsizev = 9.5, interface = FresnelInterface{Float64}(Opticks.GlassCat.SCHOTT.N_BK7, Opticks.GlassCat.Air)))
+    barrel = leaf(Cylinder(9.0, 20.0, interface = FresnelInterface{Float64}(Opticks.GlassCat.SCHOTT.N_BK7, Opticks.GlassCat.Air, reflectance = zero(Float64), transmission = zero(Float64))))
     return csgintersection(barrel, csgintersection(topsurface, botsurface))(RigidBodyTransform{Float64}(0.0, Float64(π), 0.0, 0.0, 0.0, -5.0))
 end
 
 function coniclensQ()
-    topsurface = leaf(AcceleratedParametricSurface(QTypeSurface(9.5, radius = -15.0, conic = -5.0), interface = FresnelInterface{Float64}(Optics.GlassCat.SCHOTT.N_BK7, Optics.GlassCat.Air)), translation(0.0, 0.0, 5.0))
-    botsurface = leaf(Plane(0.0, 0.0, -1.0, 0.0, 0.0, -5.0, vishalfsizeu = 9.5, vishalfsizev = 9.5, interface = FresnelInterface{Float64}(Optics.GlassCat.SCHOTT.N_BK7, Optics.GlassCat.Air)))
-    barrel = leaf(Cylinder(9.0, 20.0, interface = FresnelInterface{Float64}(Optics.GlassCat.SCHOTT.N_BK7, Optics.GlassCat.Air, reflectance = zero(Float64), transmission = zero(Float64))))
+    topsurface = leaf(AcceleratedParametricSurface(QTypeSurface(9.5, radius = -15.0, conic = -5.0), interface = FresnelInterface{Float64}(Opticks.GlassCat.SCHOTT.N_BK7, Opticks.GlassCat.Air)), translation(0.0, 0.0, 5.0))
+    botsurface = leaf(Plane(0.0, 0.0, -1.0, 0.0, 0.0, -5.0, vishalfsizeu = 9.5, vishalfsizev = 9.5, interface = FresnelInterface{Float64}(Opticks.GlassCat.SCHOTT.N_BK7, Opticks.GlassCat.Air)))
+    barrel = leaf(Cylinder(9.0, 20.0, interface = FresnelInterface{Float64}(Opticks.GlassCat.SCHOTT.N_BK7, Opticks.GlassCat.Air, reflectance = zero(Float64), transmission = zero(Float64))))
     return csgintersection(barrel, csgintersection(topsurface, botsurface))(RigidBodyTransform{Float64}(0.0, Float64(π), 0.0, 0.0, 0.0, -5.0))
 end
 
 function qtypelens()
-    topsurface = leaf(AcceleratedParametricSurface(QTypeSurface(9.0, radius = -25.0, conic = 0.3, αcoeffs = [(1, 0, 0.3), (1, 1, 1.0)], βcoeffs = [(1, 0, -0.1), (2, 0, 0.4), (3, 0, -0.6)], normradius = 9.5), interface = FresnelInterface{Float64}(Optics.GlassCat.SCHOTT.N_BK7, Optics.GlassCat.Air)), translation(0.0, 0.0, 5.0))
-    botsurface = leaf(Plane(0.0, 0.0, -1.0, 0.0, 0.0, -5.0, vishalfsizeu = 9.5, vishalfsizev = 9.5, interface = FresnelInterface{Float64}(Optics.GlassCat.SCHOTT.N_BK7, Optics.GlassCat.Air)))
-    barrel = leaf(Cylinder(9.0, 20.0, interface = FresnelInterface{Float64}(Optics.GlassCat.SCHOTT.N_BK7, Optics.GlassCat.Air, reflectance = zero(Float64), transmission = zero(Float64))))
+    topsurface = leaf(AcceleratedParametricSurface(QTypeSurface(9.0, radius = -25.0, conic = 0.3, αcoeffs = [(1, 0, 0.3), (1, 1, 1.0)], βcoeffs = [(1, 0, -0.1), (2, 0, 0.4), (3, 0, -0.6)], normradius = 9.5), interface = FresnelInterface{Float64}(Opticks.GlassCat.SCHOTT.N_BK7, Opticks.GlassCat.Air)), translation(0.0, 0.0, 5.0))
+    botsurface = leaf(Plane(0.0, 0.0, -1.0, 0.0, 0.0, -5.0, vishalfsizeu = 9.5, vishalfsizev = 9.5, interface = FresnelInterface{Float64}(Opticks.GlassCat.SCHOTT.N_BK7, Opticks.GlassCat.Air)))
+    barrel = leaf(Cylinder(9.0, 20.0, interface = FresnelInterface{Float64}(Opticks.GlassCat.SCHOTT.N_BK7, Opticks.GlassCat.Air, reflectance = zero(Float64), transmission = zero(Float64))))
     return csgintersection(barrel, csgintersection(topsurface, botsurface))(RigidBodyTransform{Float64}(0.0, Float64(π), 0.0, 0.0, 0.0, -5.0))
 end
 
 function chebyshevlens()
-    topsurface = leaf(AcceleratedParametricSurface(ChebyshevSurface(9.0, 9.0, [(1, 0, -0.081), (2, 0, -0.162), (0, 1, 0.243), (1, 1, 0.486), (2, 1, 0.081), (0, 2, -0.324), (1, 2, -0.405), (2, 2, -0.81)], radius = -25.0), interface = FresnelInterface{Float64}(Optics.GlassCat.SCHOTT.N_BK7, Optics.GlassCat.Air)), translation(0.0, 0.0, 5.0))
-    botsurface = leaf(Plane(0.0, 0.0, -1.0, 0.0, 0.0, -5.0, vishalfsizeu = 9.5, vishalfsizev = 9.5, interface = FresnelInterface{Float64}(Optics.GlassCat.SCHOTT.N_BK7, Optics.GlassCat.Air)))
-    barrel = leaf(Cylinder(9.0, 20.0, interface = FresnelInterface{Float64}(Optics.GlassCat.SCHOTT.N_BK7, Optics.GlassCat.Air, reflectance = zero(Float64), transmission = zero(Float64))))
+    topsurface = leaf(AcceleratedParametricSurface(ChebyshevSurface(9.0, 9.0, [(1, 0, -0.081), (2, 0, -0.162), (0, 1, 0.243), (1, 1, 0.486), (2, 1, 0.081), (0, 2, -0.324), (1, 2, -0.405), (2, 2, -0.81)], radius = -25.0), interface = FresnelInterface{Float64}(Opticks.GlassCat.SCHOTT.N_BK7, Opticks.GlassCat.Air)), translation(0.0, 0.0, 5.0))
+    botsurface = leaf(Plane(0.0, 0.0, -1.0, 0.0, 0.0, -5.0, vishalfsizeu = 9.5, vishalfsizev = 9.5, interface = FresnelInterface{Float64}(Opticks.GlassCat.SCHOTT.N_BK7, Opticks.GlassCat.Air)))
+    barrel = leaf(Cylinder(9.0, 20.0, interface = FresnelInterface{Float64}(Opticks.GlassCat.SCHOTT.N_BK7, Opticks.GlassCat.Air, reflectance = zero(Float64), transmission = zero(Float64))))
     return csgintersection(barrel, csgintersection(topsurface, botsurface))(RigidBodyTransform{Float64}(0.0, Float64(π), 0.0, 0.0, 0.0, -5.0))
 end
 
 function gridsaglens()
-    topsurface = leaf(AcceleratedParametricSurface(GridSagSurface{Float64}(joinpath(@__DIR__, "../test/test.GRD"), radius = -25.0, conic = 0.4, interpolation = GridSagBicubic), interface = FresnelInterface{Float64}(Optics.GlassCat.SCHOTT.N_BK7, Optics.GlassCat.Air)), translation(0.0, 0.0, 5.0))
-    botsurface = leaf(Plane(0.0, 0.0, -1.0, 0.0, 0.0, -5.0, vishalfsizeu = 9.5, vishalfsizev = 9.5, interface = FresnelInterface{Float64}(Optics.GlassCat.SCHOTT.N_BK7, Optics.GlassCat.Air)))
-    barrel = leaf(Cylinder(9.0, 20.0, interface = FresnelInterface{Float64}(Optics.GlassCat.SCHOTT.N_BK7, Optics.GlassCat.Air, reflectance = zero(Float64), transmission = zero(Float64))))
+    topsurface = leaf(AcceleratedParametricSurface(GridSagSurface{Float64}(joinpath(@__DIR__, "../test/test.GRD"), radius = -25.0, conic = 0.4, interpolation = GridSagBicubic), interface = FresnelInterface{Float64}(Opticks.GlassCat.SCHOTT.N_BK7, Opticks.GlassCat.Air)), translation(0.0, 0.0, 5.0))
+    botsurface = leaf(Plane(0.0, 0.0, -1.0, 0.0, 0.0, -5.0, vishalfsizeu = 9.5, vishalfsizev = 9.5, interface = FresnelInterface{Float64}(Opticks.GlassCat.SCHOTT.N_BK7, Opticks.GlassCat.Air)))
+    barrel = leaf(Cylinder(9.0, 20.0, interface = FresnelInterface{Float64}(Opticks.GlassCat.SCHOTT.N_BK7, Opticks.GlassCat.Air, reflectance = zero(Float64), transmission = zero(Float64))))
     return csgintersection(barrel, csgintersection(topsurface, botsurface))(RigidBodyTransform{Float64}(0.0, Float64(π), 0.0, 0.0, 0.0, -5.0))
 end
 
@@ -209,21 +209,21 @@ cooketriplet(::Type{T} = Float64) where {T<:Real} = AxisymmetricOpticalSystem{T}
     DataFrame(Surface = [:Object, 1, 2, 3, :Stop, 5, 6, :Image],
               Radius = [Inf, 26.777, 66.604, -35.571, 35.571, 35.571, -26.777, Inf],
               Thickness = [Inf, 4.0, 2.0, 4.0, 2.0, 4.0, 44.748, missing],
-              Material = [Optics.GlassCat.Air, Optics.GlassCat.SCHOTT.N_SK16, Optics.GlassCat.Air, Optics.GlassCat.SCHOTT.N_SF2, Optics.GlassCat.Air, Optics.GlassCat.SCHOTT.N_SK16, Optics.GlassCat.Air, missing],
+              Material = [Opticks.GlassCat.Air, Opticks.GlassCat.SCHOTT.N_SK16, Opticks.GlassCat.Air, Opticks.GlassCat.SCHOTT.N_SF2, Opticks.GlassCat.Air, Opticks.GlassCat.SCHOTT.N_SK16, Opticks.GlassCat.Air, missing],
               SemiDiameter = [Inf, 8.580, 7.513, 7.054, 6.033, 7.003, 7.506, 15.0]))
 
 cooketripletfirstelement(::Type{T} = Float64) where {T<:Real} = AxisymmetricOpticalSystem(
     DataFrame(Surface = [:Object, 1, 2, :Image],
               Radius = [Inf, -35.571, 35.571, Inf],
               Thickness = [Inf, 4.0, 44.748, missing],
-              Material = [Optics.GlassCat.Air, Optics.GlassCat.SCHOTT.N_SK16, Optics.GlassCat.Air, missing],
+              Material = [Opticks.GlassCat.Air, Opticks.GlassCat.SCHOTT.N_SK16, Opticks.GlassCat.Air, missing],
               SemiDiameter = [Inf, 7.054, 6.033, 15.0]))
 
 convexplano(::Type{T} = Float64) where {T<:Real} = AxisymmetricOpticalSystem{T}(
     DataFrame(Surface = [:Object, 1, 2, :Image],
               Radius = [Inf, 60.0, Inf, Inf],
               Thickness = [Inf, 10.0, 57.8, missing],
-              Material = [Optics.GlassCat.Air, Optics.GlassCat.SCHOTT.N_BK7, Optics.GlassCat.Air, missing],
+              Material = [Opticks.GlassCat.Air, Opticks.GlassCat.SCHOTT.N_BK7, Opticks.GlassCat.Air, missing],
               SemiDiameter = [Inf, 9.0, 9.0, 15.0]))
 
 doubleconvex(frontradius::T,rearradius::T) where{T<:Real} =
@@ -231,16 +231,16 @@ AxisymmetricOpticalSystem{T}(
     DataFrame(Surface = [:Object, 1, 2, :Image],
               Radius = [T(Inf64), frontradius, rearradius, T(Inf64)],
               Thickness = [T(Inf64), T(10.0), T(57.8), missing],
-              Material = [Optics.GlassCat.Air, Optics.GlassCat.SCHOTT.N_BK7, Optics.GlassCat.Air, missing],
+              Material = [Opticks.GlassCat.Air, Opticks.GlassCat.SCHOTT.N_BK7, Opticks.GlassCat.Air, missing],
               SemiDiameter = [T(Inf64), T(9.0), T(9.0), T(15.0)]),
-              temperature = Optics.GlassCat.TEMP_REF_UNITFUL, pressure = T(Optics.GlassCat.PRESSURE_REF))
+              temperature = Opticks.GlassCat.TEMP_REF_UNITFUL, pressure = T(Opticks.GlassCat.PRESSURE_REF))
 
-doubleconvex(::Type{T} = Float64; temperature::Unitful.Temperature = Optics.GlassCat.TEMP_REF_UNITFUL, pressure::Float64 = Optics.GlassCat.PRESSURE_REF) where {T<:Real} =
+doubleconvex(::Type{T} = Float64; temperature::Unitful.Temperature = Opticks.GlassCat.TEMP_REF_UNITFUL, pressure::Float64 = Opticks.GlassCat.PRESSURE_REF) where {T<:Real} =
 AxisymmetricOpticalSystem{T}(
     DataFrame(Surface = [:Object, 1, 2, :Image],
               Radius = [Inf64, 60, -60, Inf64],
               Thickness = [Inf64, 10.0, 57.8, missing],
-              Material = [Optics.GlassCat.Air, Optics.GlassCat.SCHOTT.N_BK7, Optics.GlassCat.Air, missing],
+              Material = [Opticks.GlassCat.Air, Opticks.GlassCat.SCHOTT.N_BK7, Opticks.GlassCat.Air, missing],
               SemiDiameter = [Inf64, 9.0, 9.0, 15.0]),
               temperature = temperature, pressure = T(pressure))
 
@@ -248,14 +248,14 @@ doubleconcave(::Type{T} = Float64) where {T<:Real} = AxisymmetricOpticalSystem{T
     DataFrame(Surface = [:Object, 1, 2, :Image],
               Radius = [Inf64, -41.0, 41.0, Inf64],
               Thickness = [Inf64, 10.0, 57.8, missing],
-              Material = [Optics.GlassCat.Air, Optics.GlassCat.SCHOTT.N_BK7, Optics.GlassCat.Air, missing],
+              Material = [Opticks.GlassCat.Air, Opticks.GlassCat.SCHOTT.N_BK7, Opticks.GlassCat.Air, missing],
               SemiDiameter = [Inf64, 9.0, 9.0, 15.0]))
 
 planoconcaverefl(::Type{T} = Float64) where {T<:Real} = AxisymmetricOpticalSystem{T}(
     DataFrame(Surface = [:Object, 1, 2, :Image],
               Radius = [Inf64, Inf64, -41.0, Inf64],
               Thickness = [Inf64, 10.0, -57.8, missing],
-              Material = [Optics.GlassCat.Air, Optics.GlassCat.SCHOTT.N_BK7, Optics.GlassCat.Air, missing],
+              Material = [Opticks.GlassCat.Air, Opticks.GlassCat.SCHOTT.N_BK7, Opticks.GlassCat.Air, missing],
               SemiDiameter = [Inf64, 9.0, 9.0, 25.0],
               Reflectance = [missing, missing, 1.0, missing]))
 
@@ -263,14 +263,14 @@ concaveplano(::Type{T} = Float64) where {T<:Real} = AxisymmetricOpticalSystem{T}
     DataFrame(Surface = [:Object, 1, 2, :Image],
               Radius = [Inf64, -41.0, Inf64, Inf64],
               Thickness = [Inf64, 10.0, 57.8, missing],
-              Material = [Optics.GlassCat.Air, Optics.GlassCat.SCHOTT.N_BK7, Optics.GlassCat.Air, missing],
+              Material = [Opticks.GlassCat.Air, Opticks.GlassCat.SCHOTT.N_BK7, Opticks.GlassCat.Air, missing],
               SemiDiameter = [Inf64, 9.0, 9.0, 15.0]))
 
 planoplano(::Type{T} = Float64) where {T<:Real} = AxisymmetricOpticalSystem{T}(
     DataFrame(Surface = [:Object, 1, 2, :Image],
               Radius = [Inf64, Inf64, Inf64, Inf64],
               Thickness = [Inf64, 10.0, 57.8, missing],
-              Material = [Optics.GlassCat.Air, Optics.GlassCat.SCHOTT.N_BK7, Optics.GlassCat.Air, missing],
+              Material = [Opticks.GlassCat.Air, Opticks.GlassCat.SCHOTT.N_BK7, Opticks.GlassCat.Air, missing],
               SemiDiameter = [Inf64, 9.0, 9.0, 15.0]))
 
 #! format: on
@@ -292,14 +292,14 @@ const redwavelength = Unitful.u"650nm"
 const bluewavelength = Unitful.u"450nm"
 const roomtemperature = 20 * Unitful.u"°C"
 
-transmissivethingrating(period, orders) = ThinGratingInterface(SVector(0.0, 1.0, 0.0), period, Optics.GlassCat.Air, Optics.GlassCat.Air, minorder = -orders, maxorder = orders, reflectance = [0.0 for _ in (-orders):orders], transmission = [0.2 for _ in (-orders):orders])
-reflectivethingrating(period, orders) = ThinGratingInterface(SVector(0.0, 1.0, 0.0), period, Optics.GlassCat.Air, Optics.GlassCat.Air, minorder = -orders, maxorder = orders, transmission = [0.0 for _ in (-orders):orders], reflectance = [0.2 for _ in (-orders):orders])
+transmissivethingrating(period, orders) = ThinGratingInterface(SVector(0.0, 1.0, 0.0), period, Opticks.GlassCat.Air, Opticks.GlassCat.Air, minorder = -orders, maxorder = orders, reflectance = [0.0 for _ in (-orders):orders], transmission = [0.2 for _ in (-orders):orders])
+reflectivethingrating(period, orders) = ThinGratingInterface(SVector(0.0, 1.0, 0.0), period, Opticks.GlassCat.Air, Opticks.GlassCat.Air, minorder = -orders, maxorder = orders, transmission = [0.0 for _ in (-orders):orders], reflectance = [0.2 for _ in (-orders):orders])
 
 function multiHOE()
     rect = Rectangle(5.0, 5.0, SVector(0.0, 0.0, 1.0), SVector(0.0, 0.0, 0.0))
     inbeam = SVector(0.0, 0.0, -1.0), CollimatedBeam
-    int1 = HologramInterface(SVector(-5.0, 0.0, -20.0), ConvergingBeam, SVector(0.0, -1.0, -1.0), CollimatedBeam, 0.55, 100.0, Optics.GlassCat.Air, Optics.GlassCat.SCHOTT.N_BK7, Optics.GlassCat.Air, Optics.GlassCat.Air, Optics.GlassCat.Air, 0.05, false)
-    int2 = HologramInterface(SVector(5.0, 0.0, -20.0), ConvergingBeam, SVector(0.0, 1.0, -1.0), CollimatedBeam, 0.55, 100.0, Optics.GlassCat.Air, Optics.GlassCat.SCHOTT.N_BK7, Optics.GlassCat.Air, Optics.GlassCat.Air, Optics.GlassCat.Air, 0.05, false)
+    int1 = HologramInterface(SVector(-5.0, 0.0, -20.0), ConvergingBeam, SVector(0.0, -1.0, -1.0), CollimatedBeam, 0.55, 100.0, Opticks.GlassCat.Air, Opticks.GlassCat.SCHOTT.N_BK7, Opticks.GlassCat.Air, Opticks.GlassCat.Air, Opticks.GlassCat.Air, 0.05, false)
+    int2 = HologramInterface(SVector(5.0, 0.0, -20.0), ConvergingBeam, SVector(0.0, 1.0, -1.0), CollimatedBeam, 0.55, 100.0, Opticks.GlassCat.Air, Opticks.GlassCat.SCHOTT.N_BK7, Opticks.GlassCat.Air, Opticks.GlassCat.Air, Opticks.GlassCat.Air, 0.05, false)
     mint = MultiHologramInterface(int1, int2)
     obj = MultiHologramSurface(rect, mint)
     sys = CSGOpticalSystem(LensAssembly(obj), Rectangle(50.0, 50.0, SVector(0.0, 0.0, 1.0), SVector(0.0, 0.0, -20.0), interface = opaqueinterface()))

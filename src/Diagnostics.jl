@@ -1,10 +1,10 @@
 # Programs used to visualize output, profile code or perform debugging tasks, as opposed to unit testing
 module Diagnostics
 
-using ..Optics
-using ..Optics: replprint
-using ..Optics.Vis
-using ..Optics.Optimizable
+using ..Opticks
+using ..Opticks: replprint
+using ..Opticks.Vis
+using ..Opticks.Optimizable
 using LinearAlgebra
 using StaticArrays
 
@@ -27,7 +27,7 @@ function testbigfloat()
 
         a = TestData.doubleconvex(T, temperature = temp)
         for r in (r1, r2, r3, r4, r5)
-            println(point(Optics.intersection(Optics.trace(a, r, test = true))))
+            println(point(Opticks.intersection(Opticks.trace(a, r, test = true))))
         end
         println()
     end
@@ -40,10 +40,10 @@ function testbigfloat()
     r3 = OpticalRay(Vector{BigFloat}([5.0, 5.0, 1.0]), Vector{BigFloat}([0.0, 0.0, -1.0]), one(BigFloat), BigFloat(0.55))
     r4 = OpticalRay(Vector{BigFloat}([0.0, -5.0, 1.0]), Vector{BigFloat}([0.0, sind(5.0), -cosd(5.0)]), one(BigFloat), BigFloat(0.55))
     r5 = OpticalRay(Vector{BigFloat}([-5.0, -5.0, 1.0]), Vector{BigFloat}([sind(5.0), sind(2.0), -cosd(2.0) * cosd(5.0)]), one(BigFloat), BigFloat(0.55))
-    @assert isapprox(point(Optics.intersection(Optics.trace(a, r2, test = true))), [-0.06191521590711035, -0.06191521590711035, -67.8], atol = TOLERANCE)
-    @assert isapprox(point(Optics.intersection(Optics.trace(a, r3, test = true))), [-0.2491105067897657, -0.2491105067897657, -67.8], atol = TOLERANCE)
-    @assert isapprox(point(Optics.intersection(Optics.trace(a, r4, test = true))), [0.0, 5.639876913179362, -67.8], atol = TOLERANCE)
-    @assert isapprox(point(Optics.intersection(Optics.trace(a, r5, test = true))), [5.75170097290395, 2.504152441922817, -67.8], atol = TOLERANCE)
+    @assert isapprox(point(Opticks.intersection(Opticks.trace(a, r2, test = true))), [-0.06191521590711035, -0.06191521590711035, -67.8], atol = TOLERANCE)
+    @assert isapprox(point(Opticks.intersection(Opticks.trace(a, r3, test = true))), [-0.2491105067897657, -0.2491105067897657, -67.8], atol = TOLERANCE)
+    @assert isapprox(point(Opticks.intersection(Opticks.trace(a, r4, test = true))), [0.0, 5.639876913179362, -67.8], atol = TOLERANCE)
+    @assert isapprox(point(Opticks.intersection(Opticks.trace(a, r5, test = true))), [5.75170097290395, 2.504152441922817, -67.8], atol = TOLERANCE)
 end
 
 function vistest(sys::OpticalSystem{Float64}; kwargs...)
@@ -56,11 +56,11 @@ function vistest(sys::OpticalSystem{Float64}; kwargs...)
     raygen = RayListSource(r1, r2, r3, r4, r5)
     Vis.drawtracerays(sys, raygenerator = raygen, trackallrays = true, test = true; kwargs...)
     for (i, r) in enumerate(raygen)
-        t = Optics.trace(sys, r, test = true)
+        t = Opticks.trace(sys, r, test = true)
         if t !== nothing
             println("=== RAY $i ===")
-            println(Optics.point(t))
-            println(Optics.pathlength(t))
+            println(Opticks.point(t))
+            println(Opticks.pathlength(t))
             println()
         end
     end
@@ -70,16 +70,16 @@ function visualizerefraction()
     nₛ = SVector{3,Float64}([0.0, 0.0, 1.0])
     c = 1 / sqrt(2.0)
     r = Ray([0.0, c, c], [0.0, -c, -c])
-    rray = Optics.refractedray(1.0, 1.5, nₛ, direction(r))
+    rray = Opticks.refractedray(1.0, 1.5, nₛ, direction(r))
     Vis.draw(Ray([0.0, 0.0, 0.0], Array{Float64,1}(nₛ)), color = :black)
     Vis.draw!(r, color = :green)
     Vis.draw!(Ray([0.0, 0.0, 0.0], Array{Float64,1}(rray)), color = :red)
     Vis.draw!(Ray([0.0, 0.0, 0.0], Array{Float64,1}(-nₛ)), color = :yellow)
 
-    temp = Optics.refractedray(1.0, 1.5, nₛ, direction(r))
+    temp = Opticks.refractedray(1.0, 1.5, nₛ, direction(r))
     temp = [0.0, temp[2], -temp[3]]
     r = Ray([0.0, -temp[2], -temp[3]], temp)
-    rray = Optics.refractedray(1.5, 1.0, nₛ, direction(r))
+    rray = Opticks.refractedray(1.5, 1.0, nₛ, direction(r))
     Vis.draw!(Ray([0.0, 0.0, 0.0], Array{Float64,1}(nₛ)), color = :black)
     Vis.draw!(r, color = :green)
     Vis.draw!(Ray([0.0, 0.0, 0.0], Array{Float64,1}(rray)), color = :red)
@@ -87,31 +87,31 @@ function visualizerefraction()
 end
 
 function plotreflectedvsrefractedpower()
-    lens = Optics.SphericalLens(Optics.GlassCat.SCHOTT.BAK50, 0.0, Inf64, Inf64, 5.0, 10.0)
+    lens = Opticks.SphericalLens(Opticks.GlassCat.SCHOTT.BAK50, 0.0, Inf64, Inf64, 5.0, 10.0)
     reflectpow = Array{Float64,1}(undef, 0)
     refractpow = Array{Float64,1}(undef, 0)
     green = 500 * Unitful.u"nm"
-    glass = Optics.GlassCat.SCHOTT.BAK50
+    glass = Opticks.GlassCat.SCHOTT.BAK50
 
-    incidentindex = Optics.GlassCat.index(glass, green)
-    transmittedindex = Optics.GlassCat.index(Optics.GlassCat.Air, green)
+    incidentindex = Opticks.GlassCat.index(glass, green)
+    transmittedindex = Opticks.GlassCat.index(Opticks.GlassCat.Air, green)
 
     for θ in 0.0:0.01:(π / 2.0)
         origin = [0.0, tan(θ), 1.0]
         dir = -origin
         r = Ray(origin, dir)
 
-        intsct = Optics.closestintersection(Optics.surfaceintersection(lens(), r))
+        intsct = Opticks.closestintersection(Opticks.surfaceintersection(lens(), r))
 
         nml = SVector{3,Float64}(0.0, 0.0, 1.0)
 
         rdir = direction(r)
-        (nᵢ, nₜ) = Optics.mᵢandmₜ(incidentindex, transmittedindex, nml, r)
-        reflected = Optics.reflectedray(nml, rdir)
-        refracted = Optics.refractedray(nᵢ, nₜ, nml, rdir)
+        (nᵢ, nₜ) = Opticks.mᵢandmₜ(incidentindex, transmittedindex, nml, r)
+        reflected = Opticks.reflectedray(nml, rdir)
+        refracted = Opticks.refractedray(nᵢ, nₜ, nml, rdir)
 
-        (sinθᵢ, sinθₜ) = Optics.snell(nml, direction(r), nᵢ, nₜ)
-        (powᵣ, powₜ) = Optics.fresnel(nᵢ, nₜ, sinθᵢ, sinθₜ)
+        (sinθᵢ, sinθₜ) = Opticks.snell(nml, direction(r), nᵢ, nₜ)
+        (powᵣ, powₜ) = Opticks.fresnel(nᵢ, nₜ, sinθᵢ, sinθₜ)
         push!(reflectpow, powᵣ)
         push!(refractpow, powₜ)
     end
@@ -130,7 +130,7 @@ using Ipopt
 using Zygote
 using NLopt
 
-doubleconvexprescription() = DataFrame(Surface = [:Object, 1, 2, :Image], Radius = [(Inf64), 60.0, -60.0, (Inf64)], Thickness = [(Inf64), (10.0), (77.8), missing], Material = [Optics.GlassCat.Air, Optics.GlassCat.SCHOTT.N_BK7, Optics.GlassCat.Air, missing], SemiDiameter = [(Inf64), (9.0), (9.0), (15.0)])
+doubleconvexprescription() = DataFrame(Surface = [:Object, 1, 2, :Image], Radius = [(Inf64), 60.0, -60.0, (Inf64)], Thickness = [(Inf64), (10.0), (77.8), missing], Material = [Opticks.GlassCat.Air, Opticks.GlassCat.SCHOTT.N_BK7, Opticks.GlassCat.Air, missing], SemiDiameter = [(Inf64), (9.0), (9.0), (15.0)])
 
 function doubleconvex(a::AbstractVector{T}; detpix::Int = 100) where {T<:Real}
     frontradius = a[1]
@@ -141,9 +141,9 @@ function doubleconvex(a::AbstractVector{T}; detpix::Int = 100) where {T<:Real}
         Radius = [T(Inf64), frontradius, rearradius, T(Inf64)],
         Conic = [missing, -1.0, 1.0, missing],
         Thickness = [T(Inf64), T(10.0), T(77.8), missing],
-        Material = [Optics.GlassCat.Air, Optics.GlassCat.SCHOTT.N_BK7, Optics.GlassCat.Air, missing],
+        Material = [Opticks.GlassCat.Air, Opticks.GlassCat.SCHOTT.N_BK7, Opticks.GlassCat.Air, missing],
         SemiDiameter = [T(Inf64), T(9.0), T(9.0), T(15.0)],
-    ), detpix, detpix, T, temperature = Optics.GlassCat.TEMP_REF_UNITFUL, pressure = Optics.GlassCat.PRESSURE_REF)
+    ), detpix, detpix, T, temperature = Opticks.GlassCat.TEMP_REF_UNITFUL, pressure = Opticks.GlassCat.PRESSURE_REF)
     #! format: on
 end
 
@@ -154,7 +154,7 @@ function RMS_spot_size(a::AbstractVector{T}, b::AxisymmetricOpticalSystem{T}, sa
     error = zero(T)
     hits = 0
     for r in field
-        traceres = Optics.trace(lens, r, test = true)
+        traceres = Opticks.trace(lens, r, test = true)
         if traceres !== nothing
             hitpoint = point(traceres)
             if abs(hitpoint[1]) > eps(T) && abs(hitpoint[2]) > eps(T)
@@ -249,7 +249,7 @@ function testnlopt()
     # lens = Examples.doubleconvex()
     # lens = Examples.telephoto(6,.5)
     # Vis.drawtraceimage(lens)
-    start = Optics.optimizationvariables(lens)
+    start = Opticks.optimizationvariables(lens)
 
     optimobjective = (arg) -> RMS_spot_size(arg, lens)
     println("starting objective function $(optimobjective(start))")
@@ -276,7 +276,7 @@ function testJuMP()
         error = zero(T)
         hits = 0
         for r in field
-            traceres = Optics.trace(lens, r, test = true)
+            traceres = Opticks.trace(lens, r, test = true)
 
             if !(nothing === traceres)
                 hitpoint = point(traceres)
@@ -335,7 +335,7 @@ function RMS_spot_size(lens, x::T...) where {T}
     error = zero(T)
     hits = 0
     for r in field
-        traceres = Optics.trace(lens, r, test = true)
+        traceres = Opticks.trace(lens, r, test = true)
 
         if !(nothing === traceres)
             hitpoint = point(traceres)
@@ -424,15 +424,15 @@ end
 
 function testtypesignature()
     println("here")
-    a = Optics.Sphere(1.0)
+    a = Opticks.Sphere(1.0)
     b = csgintersection(csgunion(a, a), csgunion(a, a))
 end
 
 function testoptimizationvariables()
     lens = Examples.cooketriplet()
-    vars = Optics.optimizationvariables(lens)
+    vars = Opticks.optimizationvariables(lens)
     vars .= [Float64(i) for i in 1:length(vars)]
-    newlens = Optics.updateoptimizationvariables(lens, vars)
+    newlens = Opticks.updateoptimizationvariables(lens, vars)
     println("original lens")
     show(lens)
     println("updated lens")

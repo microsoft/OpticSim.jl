@@ -11,8 +11,8 @@ See documentation for [`processintersection`](@ref) for details.
 
 These methods are also commonly implemented, but not essential:
 ```julia
-insidematerialid(i::OpticalInterface{T}) -> Optics.GlassCat.AbstractGlass
-outsidematerialid(i::OpticalInterface{T}) -> Optics.GlassCat.AbstractGlass
+insidematerialid(i::OpticalInterface{T}) -> Opticks.GlassCat.AbstractGlass
+outsidematerialid(i::OpticalInterface{T}) -> Opticks.GlassCat.AbstractGlass
 reflectance(i::OpticalInterface{T}) -> T
 transmission(i::OpticalInterface{T}) -> T
 ```
@@ -37,8 +37,8 @@ struct NullInterface{T} <: OpticalInterface{T}
     NullInterface{T}() where {T<:Real} = new{T}()
 end
 
-insidematerialid(::NullInterface{T}) where {T<:Real} = glassid(Optics.GlassCat.Air)
-outsidematerialid(::NullInterface{T}) where {T<:Real} = glassid(Optics.GlassCat.Air)
+insidematerialid(::NullInterface{T}) where {T<:Real} = glassid(Opticks.GlassCat.Air)
+outsidematerialid(::NullInterface{T}) where {T<:Real} = glassid(Opticks.GlassCat.Air)
 reflectance(::NullInterface{T}) where {T<:Real} = zero(T)
 transmission(::NullInterface{T}) where {T<:Real} = one(T)
 
@@ -61,7 +61,7 @@ struct ParaxialInterface{T} <: OpticalInterface{T}
     focallength::T
     outsidematerial::GlassID
     centroid::SVector{3,T}
-    function ParaxialInterface(focallength::T, centroid::SVector{3,T}, outsidematerial::Y) where {Y<:Optics.GlassCat.AbstractGlass,T<:Real}
+    function ParaxialInterface(focallength::T, centroid::SVector{3,T}, outsidematerial::Y) where {Y<:Opticks.GlassCat.AbstractGlass,T<:Real}
         return new{T}(focallength, glassid(outsidematerial), centroid)
     end
 end
@@ -95,7 +95,7 @@ struct FresnelInterface{T} <: OpticalInterface{T}
     reflectance::T
     transmission::T
 
-    function FresnelInterface{T}(insidematerial::Z, outsidematerial::Y; reflectance::T = zero(T), transmission::T = one(T)) where {Z<:Optics.GlassCat.AbstractGlass,Y<:Optics.GlassCat.AbstractGlass,T<:Real}
+    function FresnelInterface{T}(insidematerial::Z, outsidematerial::Y; reflectance::T = zero(T), transmission::T = one(T)) where {Z<:Opticks.GlassCat.AbstractGlass,Y<:Opticks.GlassCat.AbstractGlass,T<:Real}
         return FresnelInterface{T}(glassid(insidematerial), glassid(outsidematerial), reflectance = reflectance, transmission = transmission)
     end
 
@@ -117,9 +117,9 @@ outsidematerialid(a::FresnelInterface{T}) where {T<:Real} = a.outsidematerial
 reflectance(a::FresnelInterface{T}) where {T<:Real} = a.reflectance
 transmission(a::FresnelInterface{T}) where {T<:Real} = a.transmission
 
-transmissiveinterface(::Type{T}, insidematerial::X, outsidematerial::Y) where {T<:Real,X<:Optics.GlassCat.AbstractGlass,Y<:Optics.GlassCat.AbstractGlass} = FresnelInterface{T}(insidematerial, outsidematerial, reflectance = zero(T), transmission = one(T))
-reflectiveinterface(::Type{T}, insidematerial::X, outsidematerial::Y) where {T<:Real,X<:Optics.GlassCat.AbstractGlass,Y<:Optics.GlassCat.AbstractGlass} = FresnelInterface{T}(insidematerial, outsidematerial, reflectance = one(T), transmission = zero(T))
-opaqueinterface(::Type{T} = Float64) where {T<:Real} = FresnelInterface{T}(Optics.GlassCat.Air, Optics.GlassCat.Air, reflectance = zero(T), transmission = zero(T))
+transmissiveinterface(::Type{T}, insidematerial::X, outsidematerial::Y) where {T<:Real,X<:Opticks.GlassCat.AbstractGlass,Y<:Opticks.GlassCat.AbstractGlass} = FresnelInterface{T}(insidematerial, outsidematerial, reflectance = zero(T), transmission = one(T))
+reflectiveinterface(::Type{T}, insidematerial::X, outsidematerial::Y) where {T<:Real,X<:Opticks.GlassCat.AbstractGlass,Y<:Opticks.GlassCat.AbstractGlass} = FresnelInterface{T}(insidematerial, outsidematerial, reflectance = one(T), transmission = zero(T))
+opaqueinterface(::Type{T} = Float64) where {T<:Real} = FresnelInterface{T}(Opticks.GlassCat.Air, Opticks.GlassCat.Air, reflectance = zero(T), transmission = zero(T))
 export opaqueinterface
 
 ######################################################################
@@ -145,7 +145,7 @@ struct ThinGratingInterface{T} <: OpticalInterface{T}
     transmission::SVector{GRATING_MAX_ORDERS,T}
     reflectance::SVector{GRATING_MAX_ORDERS,T}
 
-    function ThinGratingInterface(vector::SVector{3,T}, period::T, insidematerial::Z, outsidematerial::Y; maxorder::Int = 1, minorder::Int = -1, reflectance::Union{Nothing,AbstractVector{T}} = nothing, transmission::Union{Nothing,AbstractVector{T}} = nothing) where {T<:Real,Z<:Optics.GlassCat.AbstractGlass,Y<:Optics.GlassCat.AbstractGlass}
+    function ThinGratingInterface(vector::SVector{3,T}, period::T, insidematerial::Z, outsidematerial::Y; maxorder::Int = 1, minorder::Int = -1, reflectance::Union{Nothing,AbstractVector{T}} = nothing, transmission::Union{Nothing,AbstractVector{T}} = nothing) where {T<:Real,Z<:Opticks.GlassCat.AbstractGlass,Y<:Opticks.GlassCat.AbstractGlass}
         @assert maxorder >= minorder
         norders = maxorder - minorder + 1
         @assert norders <= GRATING_MAX_ORDERS "Thin grating is limited to $GRATING_MAX_ORDERS orders"
@@ -218,8 +218,8 @@ struct HologramInterface{T} <: OpticalInterface{T}
     RImodulation::T
     include0order::Bool
 
-    function HologramInterface(signalpointordir::SVector{3,T}, signalbeamstate::BeamState, referencepointordir::SVector{3,T}, referencebeamstate::BeamState, recordingλ::T, thickness::T, beforematerial::Z, substratematerial::X, aftermaterial::Y, signalrecordingmaterial::P, referencerecordingmaterial::Q, RImodulation::T, include0order::Bool = false) where {T<:Real,X<:Optics.GlassCat.AbstractGlass,Z<:Optics.GlassCat.AbstractGlass,Y<:Optics.GlassCat.AbstractGlass,P<:Optics.GlassCat.AbstractGlass,Q<:Optics.GlassCat.AbstractGlass}
-        @assert substratematerial !== Optics.GlassCat.Air "Substrate can't be air"
+    function HologramInterface(signalpointordir::SVector{3,T}, signalbeamstate::BeamState, referencepointordir::SVector{3,T}, referencebeamstate::BeamState, recordingλ::T, thickness::T, beforematerial::Z, substratematerial::X, aftermaterial::Y, signalrecordingmaterial::P, referencerecordingmaterial::Q, RImodulation::T, include0order::Bool = false) where {T<:Real,X<:Opticks.GlassCat.AbstractGlass,Z<:Opticks.GlassCat.AbstractGlass,Y<:Opticks.GlassCat.AbstractGlass,P<:Opticks.GlassCat.AbstractGlass,Q<:Opticks.GlassCat.AbstractGlass}
+        @assert substratematerial !== Opticks.GlassCat.Air "Substrate can't be air"
         if signalbeamstate === CollimatedBeam
             signalpointordir = normalize(signalpointordir)
         end

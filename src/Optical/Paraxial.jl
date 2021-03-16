@@ -6,9 +6,9 @@ Paraxial lens cannot act as the interface between two materials, hence only a si
 
 Create with the following functions
 ```julia
-ParaxialLensEllipse(focaldistance, halfsizeu, halfsizev, surfacenormal, centrepoint; rotationvec = [0.0, 1.0, 0.0], outsidematerial = Optics.GlassCat.Air, decenteruv = (0.0, 0.0))
-ParaxialLensRect(focaldistance, halfsizeu, halfsizev, surfacenormal, centrepoint; rotationvec = [0.0, 1.0, 0.0], outsidematerial = Optics.GlassCat.Air, decenteruv = (0.0, 0.0))
-ParaxialLensHex(focaldistance, side_length, surfacenormal, centrepoint; rotationvec = [0.0, 1.0, 0.0], outsidematerial = Optics.GlassCat.Air, decenteruv = (0.0, 0.0))
+ParaxialLensEllipse(focaldistance, halfsizeu, halfsizev, surfacenormal, centrepoint; rotationvec = [0.0, 1.0, 0.0], outsidematerial = Opticks.GlassCat.Air, decenteruv = (0.0, 0.0))
+ParaxialLensRect(focaldistance, halfsizeu, halfsizev, surfacenormal, centrepoint; rotationvec = [0.0, 1.0, 0.0], outsidematerial = Opticks.GlassCat.Air, decenteruv = (0.0, 0.0))
+ParaxialLensHex(focaldistance, side_length, surfacenormal, centrepoint; rotationvec = [0.0, 1.0, 0.0], outsidematerial = Opticks.GlassCat.Air, decenteruv = (0.0, 0.0))
 ```
 """
 struct ParaxialLens{T} <: Surface{T}
@@ -20,34 +20,34 @@ struct ParaxialLens{T} <: Surface{T}
     end
 end
 
-function ParaxialLensRect(focaldistance::T, halfsizeu::T, halfsizev::T, surfacenormal::AbstractArray{T,1}, centrepoint::AbstractArray{T,1}; rotationvec::AbstractArray{T,1} = SVector{3,T}(0.0, 1.0, 0.0), outsidematerial::Optics.GlassCat.AbstractGlass = Optics.GlassCat.Air, decenteruv::Tuple{T,T} = (zero(T), zero(T))) where {T<:Real}
+function ParaxialLensRect(focaldistance::T, halfsizeu::T, halfsizev::T, surfacenormal::AbstractArray{T,1}, centrepoint::AbstractArray{T,1}; rotationvec::AbstractArray{T,1} = SVector{3,T}(0.0, 1.0, 0.0), outsidematerial::Opticks.GlassCat.AbstractGlass = Opticks.GlassCat.Air, decenteruv::Tuple{T,T} = (zero(T), zero(T))) where {T<:Real}
     @assert length(surfacenormal) == 3 && length(centrepoint) == 3
     return ParaxialLensRect(focaldistance, halfsizeu, halfsizev, SVector{3,T}(surfacenormal), SVector{3,T}(centrepoint), rotationvec = SVector{3,T}(rotationvec), outsidematerial = outsidematerial, decenteruv = decenteruv)
 end
 
-function ParaxialLensRect(focaldistance::T, halfsizeu::T, halfsizev::T, surfacenormal::SVector{3,T}, centrepoint::SVector{3,T}; rotationvec::SVector{3,T} = SVector{3,T}(0.0, 1.0, 0.0), outsidematerial::Optics.GlassCat.AbstractGlass = Optics.GlassCat.Air, decenteruv::Tuple{T,T} = (zero(T), zero(T))) where {T<:Real}
+function ParaxialLensRect(focaldistance::T, halfsizeu::T, halfsizev::T, surfacenormal::SVector{3,T}, centrepoint::SVector{3,T}; rotationvec::SVector{3,T} = SVector{3,T}(0.0, 1.0, 0.0), outsidematerial::Opticks.GlassCat.AbstractGlass = Opticks.GlassCat.Air, decenteruv::Tuple{T,T} = (zero(T), zero(T))) where {T<:Real}
     r = Rectangle(halfsizeu, halfsizev, surfacenormal, centrepoint)
     centrepoint = centrepoint + decenteruv[1] * r.uvec + decenteruv[2] * r.vvec
     return ParaxialLens(r, ParaxialInterface(focaldistance, centrepoint, outsidematerial))
 end
 
-function ParaxialLensHex(focaldistance::T, side_length::T, surfacenormal::AbstractArray{T,1}, centrepoint::AbstractArray{T,1}; rotationvec::AbstractArray{T,1} = SVector{3,T}(0.0, 1.0, 0.0), outsidematerial::Optics.GlassCat.AbstractGlass = Optics.GlassCat.Air, decenteruv::Tuple{T,T} = (zero(T), zero(T))) where {T<:Real}
+function ParaxialLensHex(focaldistance::T, side_length::T, surfacenormal::AbstractArray{T,1}, centrepoint::AbstractArray{T,1}; rotationvec::AbstractArray{T,1} = SVector{3,T}(0.0, 1.0, 0.0), outsidematerial::Opticks.GlassCat.AbstractGlass = Opticks.GlassCat.Air, decenteruv::Tuple{T,T} = (zero(T), zero(T))) where {T<:Real}
     @assert length(surfacenormal) == 3 && length(centrepoint) == 3
     return ParaxialLensHex(focaldistance, side_length, SVector{3,T}(surfacenormal), SVector{3,T}(centrepoint), rotationvec = SVector{3,T}(rotationvec), outsidematerial = outsidematerial, decenteruv = decenteruv)
 end
 
-function ParaxialLensHex(focaldistance::T, side_length::T, surfacenormal::SVector{3,T}, centrepoint::SVector{3,T}; rotationvec::SVector{3,T} = SVector{3,T}(0.0, 1.0, 0.0), outsidematerial::Optics.GlassCat.AbstractGlass = Optics.GlassCat.Air, decenteruv::Tuple{T,T} = (zero(T), zero(T))) where {T<:Real}
+function ParaxialLensHex(focaldistance::T, side_length::T, surfacenormal::SVector{3,T}, centrepoint::SVector{3,T}; rotationvec::SVector{3,T} = SVector{3,T}(0.0, 1.0, 0.0), outsidematerial::Opticks.GlassCat.AbstractGlass = Opticks.GlassCat.Air, decenteruv::Tuple{T,T} = (zero(T), zero(T))) where {T<:Real}
     h = Hexagon(side_length, surfacenormal, centrepoint)
     centrepoint = centrepoint + decenteruv[1] * h.uvec + decenteruv[2] * h.vvec
     return ParaxialLens(h, ParaxialInterface(focaldistance, centrepoint, outsidematerial))
 end
 
-function ParaxialLensEllipse(focaldistance::T, halfsizeu::T, halfsizev::T, surfacenormal::AbstractArray{T,1}, centrepoint::AbstractArray{T,1}; rotationvec::AbstractArray{T,1} = SVector{3,T}(0.0, 1.0, 0.0), outsidematerial::Optics.GlassCat.AbstractGlass = Optics.GlassCat.Air, decenteruv::Tuple{T,T} = (zero(T), zero(T))) where {T<:Real}
+function ParaxialLensEllipse(focaldistance::T, halfsizeu::T, halfsizev::T, surfacenormal::AbstractArray{T,1}, centrepoint::AbstractArray{T,1}; rotationvec::AbstractArray{T,1} = SVector{3,T}(0.0, 1.0, 0.0), outsidematerial::Opticks.GlassCat.AbstractGlass = Opticks.GlassCat.Air, decenteruv::Tuple{T,T} = (zero(T), zero(T))) where {T<:Real}
     @assert length(surfacenormal) == 3 && length(centrepoint) == 3
     return ParaxialLensEllipse(focaldistance, halfsizeu, halfsizev, SVector{3,T}(surfacenormal), SVector{3,T}(centrepoint), rotationvec = SVector{3,T}(rotationvec), outsidematerial = outsidematerial, decenteruv = decenteruv)
 end
 
-function ParaxialLensEllipse(focaldistance::T, halfsizeu::T, halfsizev::T, surfacenormal::SVector{3,T}, centrepoint::SVector{3,T}; rotationvec::SVector{3,T} = SVector{3,T}(0.0, 1.0, 0.0), outsidematerial::Optics.GlassCat.AbstractGlass = Optics.GlassCat.Air, decenteruv::Tuple{T,T} = (zero(T), zero(T))) where {T<:Real}
+function ParaxialLensEllipse(focaldistance::T, halfsizeu::T, halfsizev::T, surfacenormal::SVector{3,T}, centrepoint::SVector{3,T}; rotationvec::SVector{3,T} = SVector{3,T}(0.0, 1.0, 0.0), outsidematerial::Opticks.GlassCat.AbstractGlass = Opticks.GlassCat.Air, decenteruv::Tuple{T,T} = (zero(T), zero(T))) where {T<:Real}
     e = Ellipse(halfsizeu, halfsizev, surfacenormal, centrepoint)
     centrepoint = centrepoint + decenteruv[1] * e.uvec + decenteruv[2] * e.vvec
     return ParaxialLens(e, ParaxialInterface(focaldistance, centrepoint, outsidematerial))
@@ -82,7 +82,7 @@ function processintersection(opticalinterface::ParaxialInterface{T}, point::SVec
     m = outsidematerialid(opticalinterface) # necessarily both the same
     n = one(T)
     if !isair(m)
-        mat = glassforid(m)::Optics.GlassCat.Glass
+        mat = glassforid(m)::Opticks.GlassCat.Glass
         n = index(mat, wavelength(incidentray), temperature = temperature, pressure = pressure)::T
     end
     geometricpathlength = norm(point - origin(incidentray)) + (firstray ? zero(T) : T(RAY_OFFSET))

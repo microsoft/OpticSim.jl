@@ -2,7 +2,7 @@
 Module to enclose [Chebyshev polynomial](https://en.wikipedia.org/wiki/Chebyshev_polynomials) specific functionality.
 """
 module Chebyshev
-using Optics: NaNsafeacos
+using Opticks: NaNsafeacos
 
 """
     T(n::Int, q::R, fast::Bool = true) -> R

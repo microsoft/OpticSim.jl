@@ -327,7 +327,7 @@ end
 
 function emptytrianglepool!(::Type{T} = Float64, tid::Int = Threads.threadid()) where {T}
     if T ∈ keys(threadedtrianglepool[tid])
-        Optics.empty!(threadedtrianglepool[tid][T])
+        Opticks.empty!(threadedtrianglepool[tid][T])
     end
 end
 

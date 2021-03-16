@@ -15,7 +15,7 @@ function compile(sysimage_path = "JuliaSysimage.$(Libdl.dlext)")
         # recently the build leaves a corrupt dll if we include these rather than the error in the issue above
         used_packages = filter(x -> x ∉ [:Makie, :ImageView], used_packages)
     end
-    @info "Building a custom sysimage for Optics.jl."
+    @info "Building a custom sysimage for Opticks.jl."
     PackageCompiler.create_sysimage(used_packages, sysimage_path = sysimage_path, project = env_to_precompile, precompile_execution_file = precompile_execution_file)
 end
 

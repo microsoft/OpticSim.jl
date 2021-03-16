@@ -4,10 +4,10 @@ using BenchmarkTools
 using Unitful
 using StaticArrays
 
-using ..Optics
-using ..Optics: Sphere, Ray, replprint, trace, Cylinder, AcceleratedParametricSurface, newton, Infinity, RayOrigin, NullInterface, IntervalPoint, intervalintersection, LensTrace, FresnelInterface, wavelength, mᵢandmₜ, refractedray, direction, origin, pathlength, LensAssembly, NoPower, power, snell, fresnel, reflectedray, BoundingBox
-using ..Optics.TestData
-using ..Optics.Examples
+using ..Opticks
+using ..Opticks: Sphere, Ray, replprint, trace, Cylinder, AcceleratedParametricSurface, newton, Infinity, RayOrigin, NullInterface, IntervalPoint, intervalintersection, LensTrace, FresnelInterface, wavelength, mᵢandmₜ, refractedray, direction, origin, pathlength, LensAssembly, NoPower, power, snell, fresnel, reflectedray, BoundingBox
+using ..Opticks.TestData
+using ..Opticks.Examples
 
 rayz() = Ray([0.0, 0.0, 10.0], [0.0, 0.0, -1.0])
 perturbrayz() = Ray([0.0, 0.0, 10.0], [0.001, 0.001, -1.0])
@@ -71,7 +71,7 @@ function runbenchmark(b; kwargs...)
     if f === trace
         return @eval (@benchmark($f(($args)..., test = true), $(qkwargs...)))
     else
-        return @eval (@benchmark($f(($args)...), setup = (Optics.emptyintervalpool!()), $(qkwargs...)))
+        return @eval (@benchmark($f(($args)...), setup = (Opticks.emptyintervalpool!()), $(qkwargs...)))
     end
 end
 

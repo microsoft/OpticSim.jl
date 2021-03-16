@@ -9,7 +9,7 @@ Vis.drawtracerays(Examples.cooketriplet(), trackallrays=true, test=true, numdivi
 ```
 
 ```@eval
-using Optics
+using Opticks
 Vis.drawtracerays(Examples.cooketriplet(), trackallrays=true, test=true, numdivisions=100)
 Vis.save("assets/vis_ex_3d.png")
 Vis.drawtracerays(Examples.cooketriplet(), trackallrays=true, test=true, numdivisions=100, drawsys=true, resolution = (1000, 700))
@@ -28,7 +28,7 @@ Vis.drawtraceimage(Examples.cooketriplet(), test=true)
 ```
 
 ```@eval
-using Optics
+using Opticks
 using Images
 im = Vis.drawtraceimage(Examples.cooketriplet(Float64, 400), test=true)
 save("assets/vis_ex_im.png", colorview(Gray, real.(im ./ maximum(im))))
@@ -43,7 +43,7 @@ These methods are all you need to build up a visualization piece by piece.
 For example:
 
 ```@example
-using Optics # hide
+using Opticks # hide
 obj = csgintersection(Sphere(0.5), Plane(0.0, 1.0, 0.0, 0.0, 0.1, 0.0))()
 ray1 = Ray([0.0, -0.1, 1.0], [0.0, 0.0, -1.0])
 ray2 = Ray([0.8, 0.0, 0.0], [-1.0, 0.0, 0.0])
@@ -59,10 +59,10 @@ nothing # hide
 ![basic drawing example](assets/vis_ex_3d_parts.png)
 
 ```@docs
-Optics.Vis.scene
-Optics.Vis.draw
-Optics.Vis.draw!(::Any; kwargs...)
-Optics.Vis.save
+Opticks.Vis.scene
+Opticks.Vis.draw
+Opticks.Vis.draw!(::Any; kwargs...)
+Opticks.Vis.save
 ```
 
 ## Helper Methods
@@ -74,7 +74,7 @@ Vis.surfacesag(AcceleratedParametricSurface(TestData.zernikesurface2()), (256, 2
 ```
 
 ```@eval
-using Optics
+using Opticks
 using Plots
 Vis.surfacesag(AcceleratedParametricSurface(TestData.zernikesurface2()), (256, 256), (1.55, 1.55))
 p = Vis.surfacesag(AcceleratedParametricSurface(TestData.zernikesurface2()), (256, 256), (1.55, 1.55)) # hide
@@ -85,12 +85,12 @@ nothing
 ![surface sag example](assets/surface_sag.svg)
 
 ```@docs
-Optics.Vis.drawtracerays
-Optics.Vis.drawtraceimage
-Optics.Vis.spotdiag
-Optics.Vis.surfacesag
-Optics.Vis.eyebox_eval_eye
-Optics.Vis.eyebox_eval_planar
+Opticks.Vis.drawtracerays
+Opticks.Vis.drawtraceimage
+Opticks.Vis.spotdiag
+Opticks.Vis.surfacesag
+Opticks.Vis.eyebox_eval_eye
+Opticks.Vis.eyebox_eval_planar
 ```
 
 ## Complete Drawing Functions
@@ -99,9 +99,9 @@ As mentioned above, `Vis.draw!` can be used to draw a large variety of objects, 
 Here is a full list of the available drawing function and their associated options.
 
 ```@docs
-Optics.Vis.draw!
+Opticks.Vis.draw!
 ```
 
 ## Known Issues
 
-If the Makie plot is printing to the console rather than showing properly in a separate window then call `Vis.AbstractPlotting.__init__()`. This will only occur when using a system image including the Optics package.
+If the Makie plot is printing to the console rather than showing properly in a separate window then call `Vis.AbstractPlotting.__init__()`. This will only occur when using a system image including the Opticks package.

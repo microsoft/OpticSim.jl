@@ -7,7 +7,7 @@ Module to enclose QType polynomial specific functionality. For reference see:
 module QType
 using StaticArrays
 using Plots
-using ..Optics: QTYPE_PRECOMP
+using ..Opticks: QTYPE_PRECOMP
 
 function F(m::Int, n::Int)::Float64
     @assert m > 0

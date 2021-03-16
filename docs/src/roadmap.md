@@ -1,6 +1,6 @@
 # Roadmap
 
-Optics.jl is still under active development. Here are things we are considering:
+Opticks.jl is still under active development. Here are things we are considering:
 
 ## User Interface
 

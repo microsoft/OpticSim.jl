@@ -1,7 +1,7 @@
-name = "Optics"
+name = "Opticks"
 uuid = "24114763-4efb-45e7-af0e-cde916beb153"
 authors = ["Brian Guenter", "Charlie Hewitt", "Ran Gal", "Alfred Wong"]
-repository = "https://github.com/microsoft/OpticsSimulation"
+repository = "https://github.com/microsoft/Opticks.jl"
 version = "0.2.8"
 
 [deps]
