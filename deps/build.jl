@@ -22,7 +22,7 @@
 
 const GLASSCAT_ROOT = joinpath(@__DIR__, "..", "src", "GlassCat")
 const GLASS_JL_FILE = "AGFGlassCat.jl"
-const GLASS_JL_PATH = GLASS_JL_FILE
+const GLASS_JL_PATH = joinpath(GLASSCAT_ROOT, GLASS_JL_FILE)
 const DOWNLOAD_DIR = mktempdir()
 
 include(joinpath(GLASSCAT_ROOT, "GlassTypes.jl"))
@@ -43,6 +43,8 @@ push!(glasspaths, GLASS_JL_PATH)
 # write a deps/deps.jl file that points to the generated glass cat source files
 open("deps.jl", "w") do io
     for glasspath in glasspaths
-        println(io, "include(raw\"$(joinpath(pwd(), glasspath))\")")
+        line = "include(raw\"$glasspath\")"
+        @info "$line > deps.jl"
+        println(io, line)
     end
 end
