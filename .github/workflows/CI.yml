@@ -15,7 +15,7 @@ jobs:
         os: [ubuntu-18.04, windows-latest]
         arch: [x64]
         include:
-          - os: ubuntu-latest
+          - os: ubuntu-18.04
             prefix: xvfb-run
     steps:
       - uses: actions/checkout@v2
