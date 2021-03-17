@@ -1,6 +1,8 @@
 # OpticSim.jl
 
-[![](https://img.shields.io/badge/docs-dev-blue.svg)](https://vigilant-giggle-6a673aa5.pages.github.io/dev/)
+[![Github Action CI](https://github.com/microsoft/OpticSim.jl/workflows/CI/badge.svg)](https://github.com/microsoft/OpticSim.jl/actions/workflows/CI.yml)
+[![Code Coverage](https://codecov.io/gh/microsoft/OpticSim.jl/branch/main/graph/badge.svg?token=9QxvIHt5F5)](https://codecov.io/gh/microsoft/OpticSim.jl)
+[![Docs (dev)](https://img.shields.io/badge/docs-dev-blue.svg)](https://microsoft.github.io/OpticSim.jl/dev/)
 
 OpticSim.jl is a [Julia](https://julialang.org/) package for simulation and optimization of complex optical systems developed by the Microsoft Research Interactive Media Group and the Microsoft HART group.
 
