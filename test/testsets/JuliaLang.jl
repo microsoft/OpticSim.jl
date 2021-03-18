@@ -29,7 +29,10 @@ and pop it from the set
             (OpticSim.Vis.draw, Tuple{Vararg{S,N} where N} where {S<:Union{OpticSim.Surface{T},OpticSim.TriangleMesh{T}}} where {T<:Real}),
             (OpticSim.Vis.draw!, Tuple{OpticSim.Vis.MakieLayout.LScene,Vararg{S,N} where N} where {S<:Union{OpticSim.Surface{T},OpticSim.TriangleMesh{T}}} where {T<:Real})
         ],
-        OpticSim.TestData => [],
+        OpticSim.Examples => [],
+        OpticSim.Chebyshev => [],
+        OpticSim.GlassCat => [],
+        OpticSim.Optimizable => [],
     )
 
     for (mod, ignore_list) in methods_to_ignore

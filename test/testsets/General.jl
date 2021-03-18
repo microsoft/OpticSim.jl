@@ -48,6 +48,7 @@
         @test α(halfspaceintersection(intvl2)) == α(pt1)
 
         ### interval intersection
+        intersectionat = TestData.intersectionat
         ## interval/interval
         # one in another
         a = Interval(intersectionat(0.1), intersectionat(0.2))

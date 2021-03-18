@@ -33,7 +33,7 @@ using OpticSim
 using OpticSim: findspan, makemesh, knotstoinsert, coefficients, inside, quadraticroots, tobeziersegments, evalcsg, makiemesh
 # interval imports
 using OpticSim: α, halfspaceintersection, positivehalfspace, lower, upper, EmptyInterval, rayorigininterval, intervalcomplement, intervalintersection, intervalunion, RayOrigin, Infinity, Intersection
-using OpticSim.TestData: intersectionat
+include("TestData.jl")
 # bounding box imports
 using OpticSim: doesintersect
 # RBT imports
@@ -59,16 +59,6 @@ macro otestset(name, expr)
                 $expr
             end
         end
-    end
-end
-
-"""Creates a 3D vector uniformly distributed on the sphere by rejection sampling, i.e., discarding all points with norm > 1.0"""
-function randunit()
-    let v = rand(3)
-        while (norm(v) > 1.0)
-            v = rand(3)
-        end
-        return normalize(v)
     end
 end
 
@@ -107,4 +97,6 @@ include("testsets/Lenses.jl")
 include("testsets/Emitters.jl")  # TODO
 include("testsets/Comparison.jl")
 include("testsets/Visualization.jl")
+
+include("Benchmarks.jl")
 include("testsets/Allocations.jl")

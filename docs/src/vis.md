@@ -76,6 +76,7 @@ Vis.surfacesag(AcceleratedParametricSurface(TestData.zernikesurface2()), (256, 2
 ```@eval
 using OpticSim
 using Plots
+include("../../test/TestData.jl")
 Vis.surfacesag(AcceleratedParametricSurface(TestData.zernikesurface2()), (256, 256), (1.55, 1.55))
 p = Vis.surfacesag(AcceleratedParametricSurface(TestData.zernikesurface2()), (256, 256), (1.55, 1.55)) # hide
 Plots.savefig(p, "assets/surface_sag.svg")

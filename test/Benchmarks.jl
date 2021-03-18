@@ -26,10 +26,11 @@ using BenchmarkTools
 using Unitful
 using StaticArrays
 
-using ..OpticSim
-using ..OpticSim: Sphere, Ray, replprint, trace, Cylinder, AcceleratedParametricSurface, newton, Infinity, RayOrigin, NullInterface, IntervalPoint, intervalintersection, LensTrace, FresnelInterface, wavelength, mᵢandmₜ, refractedray, direction, origin, pathlength, LensAssembly, NoPower, power, snell, fresnel, reflectedray, BoundingBox
-using ..OpticSim.TestData
-using ..OpticSim.Examples
+using OpticSim
+using OpticSim: Sphere, Ray, replprint, trace, Cylinder, AcceleratedParametricSurface, newton, Infinity, RayOrigin, NullInterface, IntervalPoint, intervalintersection, LensTrace, FresnelInterface, wavelength, mᵢandmₜ, refractedray, direction, origin, pathlength, LensAssembly, NoPower, power, snell, fresnel, reflectedray, BoundingBox
+using OpticSim.Examples
+
+include("TestData.jl")
 
 rayz() = Ray([0.0, 0.0, 10.0], [0.0, 0.0, -1.0])
 perturbrayz() = Ray([0.0, 0.0, 10.0], [0.001, 0.001, -1.0])

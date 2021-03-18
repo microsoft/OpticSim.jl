@@ -1,6 +1,16 @@
 @otestset "Lenses" begin
     test_n = 5000
 
+    """Creates a 3D vector uniformly distributed on the sphere by rejection sampling, i.e., discarding all points with norm > 1.0"""
+    function randunit()
+        let v = rand(3)
+            while (norm(v) > 1.0)
+                v = rand(3)
+            end
+            return normalize(v)
+        end
+    end
+
     @testset "Refraction" begin
         Random.seed!(SEED)
         ηᵢ = 1.4
