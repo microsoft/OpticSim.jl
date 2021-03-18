@@ -8,14 +8,16 @@ There are a number of helper methods, as well as the ability to draw objects, su
 Vis.drawtracerays(Examples.cooketriplet(), trackallrays=true, test=true, numdivisions=100)
 ```
 
-```@eval
+```@setup base
 using OpticSim
+```
+
+```@example base
 Vis.drawtracerays(Examples.cooketriplet(), trackallrays=true, test=true, numdivisions=100)
-Vis.save("assets/vis_ex_3d.png")
+Vis.save("assets/vis_ex_3d.png") # hide
 Vis.drawtracerays(Examples.cooketriplet(), trackallrays=true, test=true, numdivisions=100, drawsys=true, resolution = (1000, 700))
 Vis.make2dy()
-Vis.save("assets/vis_ex_2d.png")
-nothing
+Vis.save("assets/vis_ex_2d.png"); nothing #hide
 ```
 
 ![3D visualization example](assets/vis_ex_3d.png)
@@ -27,12 +29,10 @@ And the image on the detector for a trace of a system:
 Vis.drawtraceimage(Examples.cooketriplet(), test=true)
 ```
 
-```@eval
-using OpticSim
-using Images
+```@example base
+using Images # hide
 im = Vis.drawtraceimage(Examples.cooketriplet(Float64, 400), test=true)
-save("assets/vis_ex_im.png", colorview(Gray, real.(im ./ maximum(im))))
-nothing
+save("assets/vis_ex_im.png", colorview(Gray, real.(im ./ maximum(im)))); nothing # hide
 ```
 
 ![detector image example](assets/vis_ex_im.png)
@@ -42,8 +42,7 @@ nothing
 These methods are all you need to build up a visualization piece by piece.
 For example:
 
-```@example
-using OpticSim # hide
+```@example base
 obj = csgintersection(Sphere(0.5), Plane(0.0, 1.0, 0.0, 0.0, 0.1, 0.0))()
 ray1 = Ray([0.0, -0.1, 1.0], [0.0, 0.0, -1.0])
 ray2 = Ray([0.8, 0.0, 0.0], [-1.0, 0.0, 0.0])
@@ -52,8 +51,7 @@ Vis.draw!(ray1, rayscale=0.2)
 Vis.draw!(ray2, rayscale=0.2, color=:blue)
 Vis.draw!(surfaceintersection(obj, ray1), color=:red)
 Vis.draw!(surfaceintersection(obj, ray2), color=:green)
-Vis.save("assets/vis_ex_3d_parts.png") # hide
-nothing # hide
+Vis.save("assets/vis_ex_3d_parts.png"); nothing # hide
 ```
 
 ![basic drawing example](assets/vis_ex_3d_parts.png)
@@ -73,14 +71,10 @@ These are the helper methods to provide common visualizations more easily, as us
 Vis.surfacesag(AcceleratedParametricSurface(TestData.zernikesurface2()), (256, 256), (1.55, 1.55))
 ```
 
-```@eval
-using OpticSim
-using Plots
-include("../../test/TestData.jl")
-Vis.surfacesag(AcceleratedParametricSurface(TestData.zernikesurface2()), (256, 256), (1.55, 1.55))
-p = Vis.surfacesag(AcceleratedParametricSurface(TestData.zernikesurface2()), (256, 256), (1.55, 1.55)) # hide
-Plots.savefig(p, "assets/surface_sag.svg")
-nothing
+```@example base
+using Plots; include("../../test/TestData.jl") # hide
+p = Vis.surfacesag(AcceleratedParametricSurface(TestData.zernikesurface2()), (256, 256), (1.55, 1.55))
+Plots.savefig(p, "assets/surface_sag.svg"); nothing # hide
 ```
 
 ![surface sag example](assets/surface_sag.svg)
