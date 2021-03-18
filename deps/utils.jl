@@ -39,6 +39,7 @@ optional string is used to specify data to be sent in a POST request. This allow
 sources (e.g. SUMITA).
 """
 function buildsourcedir(sources::AbstractVector{<:AbstractVector{<:AbstractString}}, source_dir::AbstractString)
+    mkpath(SOURCE_DIR)
     for source in sources
         name, sha256 = source[1:2]
         source_file = joinpath(@__DIR__, source_dir, "$(name).agf")
