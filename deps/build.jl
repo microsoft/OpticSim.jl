@@ -20,31 +20,23 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE
 
-const GLASSCAT_ROOT = joinpath(@__DIR__, "..", "src", "GlassCat")
-const GLASS_JL_FILE = "AGFGlassCat.jl"
-const GLASS_JL_PATH = joinpath(GLASSCAT_ROOT, GLASS_JL_FILE)
-const DOWNLOAD_DIR = mktempdir()
+const GLASSCAT_ROOT_DIR = joinpath(@__DIR__, "..", "src", "GlassCat")
+const GLASSCAT_DATA_DIR = joinpath(GLASSCAT_ROOT_DIR, "data")
+const SOURCE_DIR = joinpath("downloads", "glasscat")
 
-include(joinpath(GLASSCAT_ROOT, "GlassTypes.jl"))
+const SOURCES_FILE = "sources.txt"
+const GLASS_JL_FILE = "AGFGlassCat.jl"
+const GLASS_JL_PATH = joinpath(GLASSCAT_DATA_DIR, GLASS_JL_FILE)
+
+include(joinpath(GLASSCAT_ROOT_DIR, "GlassTypes.jl"))
 include("utils.jl")
 
-glasspaths = [joinpath(GLASSCAT_ROOT, "OtherGlassCat.jl")]
+mkpath(SOURCE_DIR)
 
-# load all AGF files to dictionary and
-# for each catalog create a module with structs containing the default values
-# this is done as a string then written to a file which is then included
-# download glassfiles that are easily accessed from the web so user will have some glasses to start with
-downloadcatalogs(DOWNLOAD_DIR)
+# Build a source list from SOURCES_FILE
+sources = [split(line, " ") for line in readlines(SOURCES_FILE)]
 
-@info "Generating $GLASS_JL_PATH\n"
-generate_cat_jl(load_glass_db(DOWNLOAD_DIR), GLASS_JL_PATH)
-push!(glasspaths, GLASS_JL_PATH)
+buildsourcedir(sources, SOURCE_DIR)
 
-# write a deps/deps.jl file that points to the generated glass cat source files
-open("deps.jl", "w") do io
-    for glasspath in glasspaths
-        line = "include(raw\"$glasspath\")"
-        @info "$line > deps.jl"
-        println(io, line)
-    end
-end
+@info "$(isfile(GLASS_JL_PATH) ? "Re-g" : "G")enerating $GLASS_JL_PATH\n"
+generate_cat_jl(load_glass_db(SOURCE_DIR), GLASS_JL_PATH)

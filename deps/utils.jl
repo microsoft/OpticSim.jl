@@ -20,12 +20,68 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE
 
+import HTTP
+import SHA
+import ZipFile
+
 using StringEncodings
-using UrlDownload
 using Unitful
 using StaticArrays
 import Unitful: Length, Temperature, Quantity, Units
-import ZipFile
+
+const Maybe{T} = Union{T, Nothing}
+
+"""
+Build a verified source directory of AGF files according to a specification given by `sources`.
+
+Each `source ∈ sources` is a collection of strings in the format `name, sha256, url [, POST_body]`, where the last
+optional string is used to specify data to be sent in a POST request. This allows us to download a greater range of
+sources (e.g. SUMITA).
+"""
+function buildsourcedir(sources::AbstractVector{<:AbstractVector{<:AbstractString}}, source_dir::AbstractString)
+    for source in sources
+        name, sha256 = source[1:2]
+        source_file = joinpath(@__DIR__, source_dir, "$(name).agf")
+        if !verifysource(source_file, sha256) && length(source) >= 3
+            downloadsource(source_file, source[3:end]...)
+            verifysource(source_file, sha256)
+        end
+    end
+end
+
+"""
+Verify a source file using SHA256, returning true if successful. Otherwise, remove the file and return false.
+
+Note: this isn't a security measure - it's possible to add a file back in after verification.
+"""
+function verifysource(source_file::AbstractString, sha256::AbstractString)
+    if !isfile(source_file)
+        @info "[-] Missing file at $source_file"
+    elseif sha256 == SHA.bytes2hex(SHA.sha256(read(source_file)))
+        @info "[✓] Verified file at $source_file"
+        return true
+    else
+        @info "[x] Removing unverified file at $source_file"
+        rm(source_file)
+    end
+    return false
+end
+
+"""
+Download and unzip an AGF glass catalog from a publicly available source. Supports POST requests for interactive downloads.
+"""
+function downloadsource(source_file::AbstractString, url::AbstractString, POST_data::Maybe{AbstractString} = nothing)
+    @info "Downloading source file from $url"
+    try
+        resp = isnothing(POST_data) ? HTTP.get(url) : HTTP.post(url, ["Content-Type" => "application/x-www-form-urlencoded"], POST_data)
+        reader = ZipFile.Reader(IOBuffer(resp.body))
+        write(source_file, read(reader.files[1]))
+    catch e
+        @error e
+    end
+end
+
+########
 
 function load_glass_db(directory::String)
     glass_catalog = Dict{String,Dict}()
@@ -100,43 +156,6 @@ function generate_cat_jl(cat, jlpath)
     write(io, "const AGF_GLASS_NAMES = [$(join(repr.(glassnames), ", "))]\n")
     write(io, "const AGF_GLASSES = [$(join(glassnames, ", "))]\n")
     close(io)
-end
-
-"""This function will download glass catalogs from publicly available sources and extract them to glassdirectory.  You can execute this in the Julia repl or run it as a Julia script from the command line. If you do the latter then cd to the GlassCat directory and enter this at the command line: julia "src/DownloadGlasses.jl" "path to the directory where you want your glass files stored". Schott, Sumita, and NHG have publicly available glass catalogs but you will have to manually download them and extract them to the GlassFiles directory."""
-function downloadcatalogs(glassdirectory::String)
-    catalogs = ("https://www.nikon.com/products/optical-glass/assets/pdf/nikon_zemax_data.zip", 
-   # "http://hbnhg.com/down/data/nhgagp.zip", #this zip file has invalid UTF-8 characters in one of the files contained within it which causes ZipFile to crash. There are two files in the zip, one of which has wacky characters in its filename (perhaps Chinese) so you will have to manually extract just the one with the non-wacky characters to the GlassFiles directory.
-    "https://www.oharacorp.com/xls/OHARA_201130_CATALOG.zip", 
-    "https://hoyaoptics.com/wp-content/uploads/2019/10/HOYA20170401.zip",
-    "https://www.schott.com/d/advanced_optics/6959f9a4-0e4f-4ef2-a302-2347468a82f5/1.31/schott-optical-glass-overview-zemax-format.zip")
-    # can't download directly have to click on box https://www.sumita-opt.co.jp/en/download/
-    # can't download directly have to click on selection https://www.schott.com/advanced_optics/english/download/index.html
-
-    getzip(url)  = urldownload(url,compress = :zip, parser = identity)
-
-    function writeglassfile(url,filename::String)
-        try
-            zipcat = getzip(url)
-            # filename = replace(zipcat.name, r"""[ ,.:;?!()&-]""" => "_")
-            # filename = replace(filename, "_agf" => ".agf")
-            # filename = replace(filename, "_AGF" => ".agf")
-            catname = joinpath(glassdirectory,filename)
-
-            @info "reading $filename from web"
-            temp = ZipFile.read(zipcat,String)
-
-            @info "writing $filename to $catname"
-            write(joinpath(glassdirectory,filename),temp)
-        catch err
-            @info "Couldn't download $url"
-        end
-    end
-
-    #write the glass files with standard names so the examples in OpticSim.jl will work
-    writeglassfile(catalogs[1],"NIKON.agf")
-    writeglassfile(catalogs[2],"OHARA.agf")
-    writeglassfile(catalogs[3],"HOYA.agf")
-    writeglassfile(catalogs[4],"SCHOTT.agf")
 end
 
 function string_list_to_float_list(x)
