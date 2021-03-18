@@ -45,8 +45,6 @@ include("Visualization.jl")
 include("Examples.jl")
 include("Optimization/Optimizable.jl")
 
-include("Data/Spectra.jl")
-
 include("Sysimage.jl")
 
 ################################################
