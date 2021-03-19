@@ -51,7 +51,7 @@ function build_source_dir(sources::AbstractVector{<:AbstractVector{<:AbsStr}}, s
         verified = verify_source(source_file, sha256)
         if !verified && length(source) >= 3
             download_source(source_file, source[3:end]...)
-            verify_source(source_file, sha256)
+            verified = verify_source(source_file, sha256)
         end
         if !verified
             push!(missing_sources, i)
