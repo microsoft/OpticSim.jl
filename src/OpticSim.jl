@@ -22,6 +22,11 @@ include("Utilities.jl")
 include("Geometry/Geometry.jl")
 include("Optical/Optical.jl")
 include("Visualization.jl")
+
+# TODO: RG: the following include is seperated from the Optical include dur to the new approach of putting the visualazation
+# part with the logic. We need to come up with a better approch to how and where visualization code should reside.
+include("Optical/Emitter4.jl")
+
 include("TestData.jl")
 include("Examples.jl")
 include("Optimization/Optimizable.jl")
