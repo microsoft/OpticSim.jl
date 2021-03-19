@@ -1,5 +1,10 @@
-# Don't track the AGF glass cat file. This can't be shipped with the release
+# Don't track the AGF glass cat files. These can't be shipped with the release.
 AGFGlassCat.jl
+HOYA.jl
+NIKON.jl
+OHARA.jl
+SCHOTT.jl
+SUMITA.jl
 
 # Don't track sysimage file: dll on windows, so on linux
 *.dll

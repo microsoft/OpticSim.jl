@@ -30,6 +30,7 @@ using StaticArrays
 import Unitful: Length, Temperature, Quantity, Units
 
 const Maybe{T} = Union{T, Nothing}
+const AbsStr = AbstractString
 
 """
 Build a verified source directory of AGF files according to a specification given by `sources`.
@@ -40,7 +41,7 @@ sources (e.g. SUMITA).
 
 Modifies `sources` in-place such that only verified sources remain.
 """
-function build_source_dir(sources::AbstractVector{<:AbstractVector{<:AbstractString}}, source_dir::AbstractString)
+function build_source_dir(sources::AbstractVector{<:AbstractVector{<:AbsStr}}, source_dir::AbsStr)
     mkpath(SOURCE_DIR)
 
     missing_sources = []
@@ -65,7 +66,7 @@ Verify a source file using SHA256, returning true if successful. Otherwise, remo
 
 Note: this isn't a security measure - it's possible to add a file back in after verification.
 """
-function verify_source(source_file::AbstractString, sha256::AbstractString)
+function verify_source(source_file::AbsStr, sha256::AbsStr)
     if !isfile(source_file)
         @info "[-] Missing file at $source_file"
     elseif sha256 == SHA.bytes2hex(SHA.sha256(read(source_file)))
@@ -79,99 +80,151 @@ function verify_source(source_file::AbstractString, sha256::AbstractString)
 end
 
 """
-Download and unzip an AGF glass catalog from a publicly available source. Supports POST requests for interactive downloads.
+Download and unzip an AGF glass catalog from a publicly available source. Supports POST requests.
 """
-function download_source(source_file::AbstractString, url::AbstractString, POST_data::Maybe{AbstractString} = nothing)
+function download_source(sourcefile::AbsStr, url::AbsStr, POST_data::Maybe{AbsStr} = nothing)
     @info "Downloading source file from $url"
     try
         resp = isnothing(POST_data) ? HTTP.get(url) : HTTP.post(url, ["Content-Type" => "application/x-www-form-urlencoded"], POST_data)
         reader = ZipFile.Reader(IOBuffer(resp.body))
-        write(source_file, read(reader.files[1]))
+        write(sourcefile, read(reader.files[end]))  # todo detect .agf file(s)
     catch e
         @error e
     end
 end
 
-########
+"""
+Generates .jl files: a main `agffile` and several catalog files which are included in the `agffile`. Each catalog file
+is a module representing a distinct glass catalog (e.g. NIKON, SCHOTT).
 
+The `agffile` exports each of
+these submodules, making it possible to call `using GlassCat` followed by `SCHOTT.N_BK7`, for example.
 """
-Returns a nested dict where each kvp represents a module (e.g. SCHOTT, NIKON), loaded from verified sources.
-"""
-function load_verified_sources(verified_source_names::Vector{<:AbstractString}, source_dir::AbstractString)
-    return Dict(
-        name => parse_source_file(joinpath(source_dir, "$(name).agf"))
-        for name in verified_source_names
-    )
+function generate_agffiles(sourcenames::Vector{<:AbsStr}, sourcedir::AbsStr, catalogdir::AbsStr, agffile::AbsStr)
+    id = 1
+    catalogfiles = []
+    glassnames = []
+
+    # generate several catalog files (.jl)
+    for catalogname in sourcenames
+        # parse the sourcefile (.agf) into a catalog (native Julia dictionary)
+        sourcefile = joinpath(sourcedir, "$(catalogname).agf")
+        catalog = sourcefile_to_catalog(sourcefile)
+
+        # parse the catalog into a module string and write it to a catalog file (.jl)
+        id, modstring = catalog_to_modstring(id, catalogname, catalog)
+        push!(catalogfiles, joinpath(catalogdir, "$(catalogname).jl"))
+        open(catalogfiles[end], "w") do io
+            write(io, modstring)
+        end
+
+        # track glass names for lookup purposes
+        append!(glassnames, ["$(catalogname).$(glassname)" for glassname in keys(catalog)])
+    end
+
+    # generate the parent AGFGlassCat file (.jl)
+    agfstrings = [
+        "export $(join(sourcenames, ", "))",
+        "",
+        ["include(raw\"$(catalogfile)\")" for catalogfile in catalogfiles]...,
+        "",
+        "const AGF_GLASS_NAMES = [$(join(repr.(glassnames), ", "))]",
+        "const AGF_GLASSES = [$(join(glassnames, ", "))]",
+        ""
+    ]
+    open(agffile, "w") do io
+        write(io, join(agfstrings, "\n"))
+    end
 end
 
-function generate_cat_jl(cat::Dict{<:AbstractString,<:Dict}, jlpath::AbstractString)
-    catalogs = []
-    io = open(jlpath, "w")
-    idnum = 1
-    glassnames = []
-    for (catalog_name, catalog) in cat
-        push!(catalogs, catalog_name)
-        eval_string = ["module $catalog_name"]
-        push!(eval_string, "using ..GlassCat: Glass, GlassID, AGF")
-        push!(eval_string, "using StaticArrays: SVector")
-        for x in catalog
-            let N = 0
-                glass_name, glass_info = x
-                push!(glassnames, "$catalog_name.$glass_name")
-                vals = []
-                for fn in string.(fieldnames(Glass))
-                    if fn == "ID"
-                        push!(vals, "GlassID(AGF, $idnum)")
-                    elseif fn in ["D₀", "D₁", "D₂", "E₀", "E₁", "λₜₖ"]
-                        push!(vals, repr(get(glass_info, fn, 0.0)))
-                    elseif fn == "temp"
-                        push!(vals, repr(get(glass_info, fn, 20.0)))
-                    elseif fn == "transmission"
-                        v = get(glass_info, "transmission", nothing)
-                        if isnothing(v)
-                            push!(vals, repr(nothing))
-                        else
-                            str = join(["($(join(a, ", ")))" for a in v], ", ")
-                            push!(vals, "[$str]")
-                        end
-                    elseif fn == "transmissionN"
-                        continue
-                    else
-                        push!(vals, repr(get(glass_info, fn, NaN)))
-                    end
-                end
-                # skip docstrings for CI builds - this prevents a lot of missing docstring warnings in makedocs
-                if isnothing(get(ENV, "CI", nothing))
-                    raw_name = glass_info["raw_name"] == glass_name ? "" : " ($(glass_info["raw_name"]))"
-                    doc_string = "\"\"\"    $catalog_name.$glass_name$raw_name\n"
-                    doc_string *= "```\n$(rpad("ID:", 25))AGF:$idnum\n"
-                    doc_string *= "$(rpad("RI @ 587nm:", 25))$(get(glass_info, "Nd", 0.0))\n"
-                    doc_string *= "$(rpad("Abbe Number:", 25))$(get(glass_info, "Vd", 0.0))\n"
-                    doc_string *= "$(rpad("ΔPgF:", 25))$(get(glass_info, "ΔPgF", 0.0))\n"
-                    doc_string *= "$(rpad("TCE (÷1e-6):", 25))$(get(glass_info, "TCE", 0.0))\n"
-                    doc_string *= "$(rpad("Density:", 25))$(get(glass_info, "p", 0.0))g/m³\n"
-                    doc_string *= "$(rpad("Valid wavelengths:", 25))$(get(glass_info, "λmin", 0.0))μm to $(get(glass_info, "λmax", 0.0))μm\n"
-                    doc_string *= "$(rpad("Reference Temp:", 25))$(get(glass_info, "temp", 20.0))°C\n"
-                    doc_string *= "```\n\"\"\""
-                    push!(eval_string, doc_string)
-                end
-                push!(eval_string, "const $glass_name = Glass($(join(vals, ", ")))\nexport $glass_name")
+"""
+Convert a `glassinfo` dict into an `argstring` to be passed into a `Glass` constructor.
+"""
+function glassinfo_to_argstring(id::Integer, glassinfo::Dict{<:AbsStr})
+    argstrings = []
+    for fn in string.(fieldnames(Glass))
+        if fn == "ID"
+            push!(argstrings, "GlassID(AGF, $id)")
+        elseif fn in ["D₀", "D₁", "D₂", "E₀", "E₁", "λₜₖ"]
+            push!(argstrings, repr(get(glassinfo, fn, 0.0)))
+        elseif fn == "temp"
+            push!(argstrings, repr(get(glassinfo, fn, 20.0)))
+        elseif fn == "transmission"
+            v = get(glassinfo, "transmission", nothing)
+            if isnothing(v)
+                push!(argstrings, repr(nothing))
+            else
+                str = join(["($(join(a, ", ")))" for a in v], ", ")
+                push!(argstrings, "[$str]")
             end
-            idnum += 1
+        elseif fn == "transmissionN"
+            continue
+        else
+            push!(argstrings, repr(get(glassinfo, fn, NaN)))
         end
-        push!(eval_string, "end #module \n export $catalog_name \n") # module
-        eval_string = join(eval_string, "\n")
-        write(io, eval_string * "\n")
     end
-    write(io, "const AGF_GLASS_NAMES = [$(join(repr.(glassnames), ", "))]\n")
-    write(io, "const AGF_GLASSES = [$(join(glassnames, ", "))]\n")
-    close(io)
+    return join(argstrings, ", ")
+end
+
+"""
+Convert a `glassinfo` dict into a `docstring` to be prepended to a `Glass` const.
+"""
+function glassinfo_to_docstring(id::Integer, catalogname::AbsStr, glassname::AbsStr, glassinfo::Dict{<:AbsStr}, padding::Integer = 25)
+    raw_name = glassinfo["raw_name"] == glassname ? "" : " ($(glassinfo["raw_name"]))"
+    pad(str) = rpad(str, padding)
+    getinfo(key, default=0.0) = get(glassinfo, key, default)
+
+    return join([
+        "\"\"\"    $catalogname.$glassname$raw_name",
+        "```",
+        "$(pad("ID:"))AGF:$id",
+        "$(pad("RI @ 587nm:"))$(getinfo("Nd"))",
+        "$(pad("Abbe Number:"))$(getinfo("Vd"))",
+        "$(pad("ΔPgF:"))$(getinfo("ΔPgF"))",
+        "$(pad("TCE (÷1e-6):"))$(getinfo("TCE"))",
+        "$(pad("Density:"))$(getinfo("p"))g/m³",
+        "$(pad("Valid wavelengths:"))$(getinfo("λmin"))μm to $(getinfo("λmax"))μm",
+        "$(pad("Reference Temp:"))$(getinfo("temp", 20.0))°C",
+        "```",
+        "\"\"\""
+    ], "\n")
+end
+
+"""
+Convert a `catalog` dict into a `modstring` which can be written to a Julia source file.
+"""
+function catalog_to_modstring(start_id::Integer, catalogname::AbsStr, catalog::Dict{<:AbsStr})
+    id = start_id
+    isCI = haskey(ENV, "CI")
+
+    modstrings = [
+        "module $catalogname",
+        "using ..GlassCat: Glass, GlassID, AGF",
+        # "using StaticArrays: SVector",
+        "export $(join(keys(catalog), ", "))",
+        ""
+    ]
+
+    for (glassname, glassinfo) in catalog
+        # skip docstrings for CI builds to avoid 'missing docstring' warnings in makedocs
+        docstring = isCI ? "" : glassinfo_to_docstring(id, catalogname, glassname, glassinfo)
+        argstring = glassinfo_to_argstring(id, glassinfo)
+        append!(modstrings, [
+            docstring,
+            "const $glassname = Glass($argstring)",
+            ""
+        ])
+        id += 1
+    end
+    append!(modstrings, ["end #module", ""]) # last "" is for \n at EOF
+
+    return id, join(modstrings, "\n")
 end
 
 """
 Make a valid Julia variable name from an arbitrary string.
 """
-function make_valid_name(name::AbstractString)
+function make_valid_name(name::AbsStr)
     # remove invalid characters
     name = replace(name, "*" => "_STAR")
     name = replace(name, r"""[ ,.:;?!()&-]""" => "_")
@@ -182,7 +235,7 @@ function make_valid_name(name::AbstractString)
     return name
 end
 
-function string_list_to_float_list(x)
+function stringlist_to_floatlist(x::Vector{<:AbsStr})
     npts = length(x)
     if (npts == 0) || ((npts == 1) && (strip(x[1]) == "-"))
         return (repeat([-1.0], 10))
@@ -203,10 +256,10 @@ function string_list_to_float_list(x)
 end
 
 """
-Parse an AGF source file into a native Julia dictionary, where each kvp is a glass in the AGF catalog.
+Parse a `sourcefile` (.agf) into a native dictionary, where each `kvp = (glassname, glassinfo)` is a glass.
 """
-function parse_source_file(source_file::AbstractString)
-    catalog_dict = Dict{String,Any}()
+function sourcefile_to_catalog(source_file::AbsStr)
+    catalog_dict = Dict{String,Dict{String}}()
 
     # check whether the file is UTF8 or UTF16 encoded
     is_utf8 = isvalid(readuntil(source_file, " "))
@@ -263,7 +316,7 @@ function parse_source_file(source_file::AbstractString)
             catalog_dict[glass_name]["λₜₖ"] = get(td, 6, 0.0)
             catalog_dict[glass_name]["temp"] = get(td, 7, 20.0)
         elseif startswith(line, "OD ")
-            od = string_list_to_float_list(split(line)[2:end])
+            od = stringlist_to_floatlist(split(line)[2:end])
             catalog_dict[glass_name]["relcost"] = get(od, 1, -1)
             catalog_dict[glass_name]["CR"] = get(od, 2, -1)
             catalog_dict[glass_name]["FR"] = get(od, 3, -1)
@@ -277,7 +330,7 @@ function parse_source_file(source_file::AbstractString)
         elseif startswith(line, "IT ")
             it_row = parse.(Float64, split(line)[2:end])
             if length(it_row) == 3 && it_row[1] != 0.0
-                entry = SVector{3,Float64}(it_row[1], it_row[2], it_row[3])
+                entry = SVector(it_row[1], it_row[2], it_row[3])
                 push!(transmission_data, entry)
             end
             catalog_dict[glass_name]["transmission"] = transmission_data

@@ -38,4 +38,4 @@ build_source_dir(sources, SOURCE_DIR)
 verified_source_names = [source[1] for source in sources]
 @info "$(isfile(GLASS_JL_PATH) ? "Re-g" : "G")enerating $GLASS_JL_PATH"
 @info "Using sources: $(join(verified_source_names, ", ", " and "))"
-generate_cat_jl(load_verified_sources(verified_source_names, SOURCE_DIR), GLASS_JL_PATH)
+generate_agffiles(verified_source_names, SOURCE_DIR, GLASSCAT_DATA_DIR, GLASS_JL_PATH)
