@@ -1,20 +1,29 @@
 # GlassCat
 
-Julia module to import and use AGF glass specifications.
+Julia module for importing and using AGF glass specifications.
 
-The AGF glass catalog is stored in a Julia source file `AGFGlassCat.jl`. If the source file isn't already present then it will be generated automatically when `using OpticSim` is called.
-Any AGF file in the directory specified by environment variable `GLASS_CAT_DIR` will be parsed, or if this isn't specified the directory `~/Dev/AGFGlassCat` is used.
-If a new AGF file is added to this directory, manually delete `AGFGlassCat.jl` and execute `using OpticSim` in the Julia REPL to trigger the update of `AGFGlassCat.jl`.
+The entire AGF glass catalog is specified in `AGFGlassCat.jl`. This Julia source file is generated automatically when `] build OpticSim` is called. The build script downloads AGF files to `deps/downloads/glasscat/` and then uses these to generate corresponding Julia source files at `src/GlassCat/data/`. These steps are run automatically on setup when the package is first installed using `] add OpticSim`, creating a sufficient working environment for our example/test code.
 
-Optical systems in the examples file expect glass catalogs to have specific names. For example, if you download the Schott glass catalog from the Schott website and unzip the file it will have a name like this: schottzemax-20190109.agf. 
+Adding new AGF sources is done by editing `deps/sources.txt`. Minimally, you must provide a name (e.g. SCHOTT) and sha256sum for the AGF file, which can then be placed manually into `deps/downloads/glasscat/[NAME].agf`. Instead of manually sourcing the AGF file, you can also provide a download link for the build script. `deps/sources.txt` already contains examples of all possible use cases. After updating the file, execute `] build OpticSim` to rebuild `AGFGlassCat.jl`.
 
-By default the AGF parsing code gives the glass catalog in `AGFGlassCat.jl` the name associated with the file. But the examples expect the Schott glass catalog to be named SCHOTT. If you want these examples to run correctly you must rename this file to SCHOTT.agf Similarly these glass catalogs should be renamed: [NIKON](https://www.nikon.com/products/optical-glass/assets/pdf/nikon_zemax_data.zip),[OHARA](https://www.oharacorp.com/xls/OHARA_201130_CATALOG.zip),[HOYA](https://hoyaoptics.com/wp-content/uploads/2019/10/HOYA20170401.zip)
+Source names will be used as module names, so follow the standard convections: alphanumeric, no leading numbers, begin with an uppercase letter. Furthermore, optical systems in the examples file expect glass catalogs to have specific names. The default setup includes HOYA, NIKON, OHARA, SCHOTT and SUMITA; changing these names could break some examples.
 
 Glass types are accessed like so: `OpticSim.GlassCat.CATALOG_NAME.GLASS_NAME`, e.g.
 
 ```julia
 OpticSim.GlassCat.Sumita.LAK7
 OpticSim.GlassCat.SCHOTT.PK3
+```
+
+All glasses and catalogs are exported in their respective modules, so it is possible to invoke `using` calls for convenience, e.g.
+
+```julia
+using OpticSim
+GlassCat.Sumita.LAK7
+using OpticSim.GlassCat
+SCHOTT.PK3
+using OpticsSim.GlassCat.SCHOTT
+N_BK7
 ```
 
 Autocompletion can be used to see available catalogs and glasses. All catalog glasses are of type [`OpticSim.GlassCat.Glass`](@ref).
