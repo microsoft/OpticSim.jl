@@ -74,18 +74,21 @@ function generate_cat_jl(cat, jlpath)
                         push!(vals, repr(get(glass_info, fn, NaN)))
                     end
                 end
-                raw_name = glass_info["raw_name"] == glass_name ? "" : " ($(glass_info["raw_name"]))"
-                doc_string = "\"\"\"    $catalog_name.$glass_name$raw_name\n"
-                doc_string *= "```\n$(rpad("ID:", 25))AGF:$idnum\n"
-                doc_string *= "$(rpad("RI @ 587nm:", 25))$(get(glass_info, "Nd", 0.0))\n"
-                doc_string *= "$(rpad("Abbe Number:", 25))$(get(glass_info, "Vd", 0.0))\n"
-                doc_string *= "$(rpad("ΔPgF:", 25))$(get(glass_info, "ΔPgF", 0.0))\n"
-                doc_string *= "$(rpad("TCE (÷1e-6):", 25))$(get(glass_info, "TCE", 0.0))\n"
-                doc_string *= "$(rpad("Density:", 25))$(get(glass_info, "p", 0.0))g/m³\n"
-                doc_string *= "$(rpad("Valid wavelengths:", 25))$(get(glass_info, "λmin", 0.0))μm to $(get(glass_info, "λmax", 0.0))μm\n"
-                doc_string *= "$(rpad("Reference Temp:", 25))$(get(glass_info, "temp", 20.0))°C\n"
-                doc_string *= "```\n\"\"\""
-                push!(eval_string, doc_string)
+                # skip docstrings for CI builds - this prevents missing docstring warnings in makedocs
+                if isnothing(get(ENV, "CI", nothing))
+                    raw_name = glass_info["raw_name"] == glass_name ? "" : " ($(glass_info["raw_name"]))"
+                    doc_string = "\"\"\"    $catalog_name.$glass_name$raw_name\n"
+                    doc_string *= "```\n$(rpad("ID:", 25))AGF:$idnum\n"
+                    doc_string *= "$(rpad("RI @ 587nm:", 25))$(get(glass_info, "Nd", 0.0))\n"
+                    doc_string *= "$(rpad("Abbe Number:", 25))$(get(glass_info, "Vd", 0.0))\n"
+                    doc_string *= "$(rpad("ΔPgF:", 25))$(get(glass_info, "ΔPgF", 0.0))\n"
+                    doc_string *= "$(rpad("TCE (÷1e-6):", 25))$(get(glass_info, "TCE", 0.0))\n"
+                    doc_string *= "$(rpad("Density:", 25))$(get(glass_info, "p", 0.0))g/m³\n"
+                    doc_string *= "$(rpad("Valid wavelengths:", 25))$(get(glass_info, "λmin", 0.0))μm to $(get(glass_info, "λmax", 0.0))μm\n"
+                    doc_string *= "$(rpad("Reference Temp:", 25))$(get(glass_info, "temp", 20.0))°C\n"
+                    doc_string *= "```\n\"\"\""
+                    push!(eval_string, doc_string)
+                end
                 push!(eval_string, "const $glass_name = Glass($(join(vals, ", "))) \n export $glass_name")
             end
             idnum += 1

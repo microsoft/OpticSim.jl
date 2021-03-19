@@ -25,8 +25,6 @@ module OpticSim
 import Unitful
 using LinearAlgebra: eigen, svd, I, qr, dot, cross, norm, det, normalize, inv
 using StaticArrays
-using FiniteDifferences
-using BenchmarkTools
 using DataFrames: DataFrame
 using Images
 using Base: @.
@@ -44,13 +42,8 @@ include("Utilities.jl")
 include("Geometry/Geometry.jl")
 include("Optical/Optical.jl")
 include("Visualization.jl")
-include("TestData.jl")
 include("Examples.jl")
 include("Optimization/Optimizable.jl")
-include("Diagnostics.jl")
-
-include("Benchmarks.jl")
-include("Data/Spectra.jl")
 
 include("Sysimage.jl")
 

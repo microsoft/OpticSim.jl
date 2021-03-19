@@ -23,15 +23,17 @@
 # Programs used to visualize output, profile code or perform debugging tasks, as opposed to unit testing
 module Diagnostics
 
-using ..OpticSim
-using ..OpticSim: replprint
-using ..OpticSim.Vis
-using ..OpticSim.Optimizable
+using OpticSim
+using OpticSim: replprint
+using OpticSim.Vis
+using OpticSim.Optimizable
 using LinearAlgebra
 using StaticArrays
 
 import Unitful
 import Plots
+
+include("TestData.jl")
 
 function testbigfloat()
     λ = 550 * Unitful.u"nm"
