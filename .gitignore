@@ -4,7 +4,7 @@ HOYA.jl
 NIKON.jl
 OHARA.jl
 SCHOTT.jl
-SUMITA.jl
+Sumita.jl
 
 # Don't track sysimage file: dll on windows, so on linux
 *.dll

@@ -37,7 +37,7 @@ Build a verified source directory of AGF files according to a specification give
 
 Each `source ∈ sources` is a collection of strings in the format `name, sha256, url [, POST_body]`, where the last
 optional string is used to specify data to be sent in a POST request. This allows us to download a greater range of
-sources (e.g. SUMITA).
+sources (e.g. Sumita).
 
 Modifies `sources` in-place such that only verified sources remain.
 """

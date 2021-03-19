@@ -50,7 +50,7 @@ makedocs(
         "Reference" => "ref.md",
         "Roadmap" => "roadmap.md"
     ],
-    expandfirst = ["systems.md", "vis.md"])
+    expandfirst = ["glasscat.md", "systems.md", "vis.md"])
 
 deploydocs(
     repo = "github.com/microsoft/OpticSim.jl.git",

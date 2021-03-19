@@ -6,7 +6,7 @@ The entire AGF glass catalog is specified in `AGFGlassCat.jl`. This Julia source
 
 Adding new AGF sources is done by editing `deps/sources.txt`. Minimally, you must provide a name (e.g. SCHOTT) and sha256sum for the AGF file, which can then be placed manually into `deps/downloads/glasscat/[NAME].agf`. Instead of manually sourcing the AGF file, you can also provide a download link for the build script. `deps/sources.txt` already contains examples of all possible use cases. After updating the file, execute `] build OpticSim` to rebuild `AGFGlassCat.jl`.
 
-Source names will be used as module names, so follow the standard convections: alphanumeric, no leading numbers, begin with an uppercase letter. Furthermore, optical systems in the examples file expect glass catalogs to have specific names. The default setup includes HOYA, NIKON, OHARA, SCHOTT and SUMITA; changing these names could break some examples.
+Source names will be used as module names, so follow the standard convections: alphanumeric, no leading numbers, begin with an uppercase letter. Furthermore, optical systems in the examples file expect glass catalogs to have specific names. The default setup includes HOYA, NIKON, OHARA, SCHOTT and Sumita; changing these names could break some examples.
 
 Glass types are accessed like so: `OpticSim.GlassCat.CATALOG_NAME.GLASS_NAME`, e.g.
 

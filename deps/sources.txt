@@ -2,5 +2,5 @@ NIKON a49714470fa875ad4fd8d11cbc0edbf1adfe877f42926d7612c1649dd9441e75 https://w
 OHARA 0c9021bf11b8d4e660012191818685ad3110d4f9490699cabdc89aae1fd26d2e https://www.oharacorp.com/xls/OHARA_201130_CATALOG.zip
 HOYA 9ca6b2bda157ba18333607f07a2af2458d7b097b86651ebb0743644b0ee96823 https://hoyaoptics.com/wp-content/uploads/2019/10/HOYA20170401.zip
 SCHOTT e9aabbb8ebff116ba0c106a71afd86e72f2a397ac9bc447469129e325e795f4e https://www.schott.com/d/advanced_optics/6959f9a4-0e4f-4ef2-a302-2347468a82f5/1.31/schott-optical-glass-overview-zemax-format.zip
-SUMITA 6cbc566d451877e36aecd9e8be516962d8d120e70fba770c566811337aa4414d https://www.sumita-opt.co.jp/en/wp/wp-content/themes/sumita-opt-en/download-files.php files%5B%5D=zemax.agf&category=data
+Sumita 6cbc566d451877e36aecd9e8be516962d8d120e70fba770c566811337aa4414d https://www.sumita-opt.co.jp/en/wp/wp-content/themes/sumita-opt-en/download-files.php files%5B%5D=zemax.agf&category=data
 NHG b3db4c677b1ac67cd9cce5be2abff88d13bcf24e4349dc789b2da12fdfe1a280
