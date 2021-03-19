@@ -42,7 +42,7 @@ sources (e.g. SUMITA).
 Modifies `sources` in-place such that only verified sources remain.
 """
 function build_source_dir(sources::AbstractVector{<:AbstractVector{<:AbsStr}}, source_dir::AbsStr)
-    mkpath(SOURCE_DIR)
+    mkpath(source_dir)
 
     missing_sources = []
     for (i, source) in enumerate(sources)
@@ -101,6 +101,8 @@ The `agffile` exports each of
 these submodules, making it possible to call `using GlassCat` followed by `SCHOTT.N_BK7`, for example.
 """
 function generate_agffiles(sourcenames::Vector{<:AbsStr}, sourcedir::AbsStr, catalogdir::AbsStr, agffile::AbsStr)
+    mkpath(catalogdir)
+
     id = 1
     catalogfiles = []
     glassnames = []
