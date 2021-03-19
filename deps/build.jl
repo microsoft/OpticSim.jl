@@ -31,11 +31,11 @@ const GLASS_JL_PATH = joinpath(GLASSCAT_DATA_DIR, GLASS_JL_FILE)
 include(joinpath(GLASSCAT_ROOT_DIR, "GlassTypes.jl"))
 include("utils.jl")
 
-# Build a source list from SOURCES_FILE
+# Build a source directory using information from SOURCES_FILE
 sources = [split(line, " ") for line in readlines(SOURCES_FILE)]
-# TODO scan directory here and append to sources
+build_source_dir(sources, SOURCE_DIR)
 
-buildsourcedir(sources, SOURCE_DIR)
-
-@info "$(isfile(GLASS_JL_PATH) ? "Re-g" : "G")enerating $GLASS_JL_PATH\n"
-generate_cat_jl(load_glass_db(SOURCE_DIR), GLASS_JL_PATH) # TODO load from sources here instead of scanning directory
+verified_source_names = [source[1] for source in sources]
+@info "$(isfile(GLASS_JL_PATH) ? "Re-g" : "G")enerating $GLASS_JL_PATH"
+@info "Using sources: $(join(verified_source_names, ", ", " and "))"
+generate_cat_jl(load_glass_db(verified_source_names, SOURCE_DIR), GLASS_JL_PATH)

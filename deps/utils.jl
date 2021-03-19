@@ -37,17 +37,27 @@ Build a verified source directory of AGF files according to a specification give
 Each `source ∈ sources` is a collection of strings in the format `name, sha256, url [, POST_body]`, where the last
 optional string is used to specify data to be sent in a POST request. This allows us to download a greater range of
 sources (e.g. SUMITA).
+
+Modifies `sources` in-place such that only verified sources remain.
 """
-function buildsourcedir(sources::AbstractVector{<:AbstractVector{<:AbstractString}}, source_dir::AbstractString)
+function build_source_dir(sources::AbstractVector{<:AbstractVector{<:AbstractString}}, source_dir::AbstractString)
     mkpath(SOURCE_DIR)
-    for source in sources
+
+    missing_sources = []
+    for (i, source) in enumerate(sources)
         name, sha256 = source[1:2]
         source_file = joinpath(@__DIR__, source_dir, "$(name).agf")
-        if !verifysource(source_file, sha256) && length(source) >= 3
-            downloadsource(source_file, source[3:end]...)
-            verifysource(source_file, sha256)
+        verified = verify_source(source_file, sha256)
+        if !verified && length(source) >= 3
+            download_source(source_file, source[3:end]...)
+            verify_source(source_file, sha256)
+        end
+        if !verified
+            push!(missing_sources, i)
         end
     end
+
+    deleteat!(sources, missing_sources)
 end
 
 """
@@ -55,7 +65,7 @@ Verify a source file using SHA256, returning true if successful. Otherwise, remo
 
 Note: this isn't a security measure - it's possible to add a file back in after verification.
 """
-function verifysource(source_file::AbstractString, sha256::AbstractString)
+function verify_source(source_file::AbstractString, sha256::AbstractString)
     if !isfile(source_file)
         @info "[-] Missing file at $source_file"
     elseif sha256 == SHA.bytes2hex(SHA.sha256(read(source_file)))
@@ -71,7 +81,7 @@ end
 """
 Download and unzip an AGF glass catalog from a publicly available source. Supports POST requests for interactive downloads.
 """
-function downloadsource(source_file::AbstractString, url::AbstractString, POST_data::Maybe{AbstractString} = nothing)
+function download_source(source_file::AbstractString, url::AbstractString, POST_data::Maybe{AbstractString} = nothing)
     @info "Downloading source file from $url"
     try
         resp = isnothing(POST_data) ? HTTP.get(url) : HTTP.post(url, ["Content-Type" => "application/x-www-form-urlencoded"], POST_data)
@@ -84,23 +94,20 @@ end
 
 ########
 
-function load_glass_db(directory::String)
-    glass_catalog = Dict{String,Dict}()
-    for path in readdir(directory)
-        if uppercase(splitext(path)[2]) == ".AGF"
-            parse_glass_file!(glass_catalog, joinpath(directory, path))
-        end
-    end
-    return glass_catalog
+function load_glass_db(verified_source_names::Vector{<:AbstractString}, source_dir::AbstractString)
+    glass_catalogs = Dict(
+        name => parse_source_file(joinpath(source_dir, "$(name).agf"))
+        for name in verified_source_names
+    )
+    return glass_catalogs
 end
 
-function generate_cat_jl(cat, jlpath)
+function generate_cat_jl(cat::Dict{<:AbstractString,<:Dict}, jlpath::AbstractString)
     catalogs = []
     io = open(jlpath, "w")
     idnum = 1
     glassnames = []
-    for nameandcatalog in cat
-        catalog_name, catalog = nameandcatalog
+    for (catalog_name, catalog) in cat
         push!(catalogs, catalog_name)
         eval_string = ["module $catalog_name"]
         push!(eval_string, "using ..GlassCat: Glass, GlassID, AGF")
@@ -179,11 +186,8 @@ function string_list_to_float_list(x)
     return (res)
 end
 
-function parse_glass_file!(glass_catalog, filename::String)
-    if !isfile(filename)
-        throw(error("AGF file doesn't exist"))
-    end
-    catalog_name = splitext(basename(filename))[1]
+function parse_source_file(source_file::AbstractString)
+    catalog_name = splitext(basename(source_file))[1]
     # remove invalid characters
     catalog_name = replace(catalog_name, r"""[ ,.:;?!()&-]""" => "_")
     try
@@ -193,12 +197,12 @@ function parse_glass_file!(glass_catalog, filename::String)
     catch
         ()
     end
-    glass_catalog[catalog_name] = Dict{String,Any}()
+    catalog_dict = Dict{String,Any}()
     # check whether the file is UTF8 or UTF16 encoded
-    if !isvalid(readuntil(filename, " "))
-        fo = open(filename, enc"UTF-16LE", "r")
+    if !isvalid(readuntil(source_file, " "))
+        fo = open(source_file, enc"UTF-16LE", "r")
     else
-        fo = open(filename, "r")
+        fo = open(source_file, "r")
     end
     # read the file
     glass_name = ""
@@ -222,77 +226,78 @@ function parse_glass_file!(glass_catalog, filename::String)
                 catch
                     ()
                 end
-                glass_catalog[catalog_name][glass_name] = Dict{String,Any}()
-                glass_catalog[catalog_name][glass_name]["raw_name"] = original_glass_name
-                glass_catalog[catalog_name][glass_name]["dispform"] = Int(parse(Float64, nm[3]))
-                glass_catalog[catalog_name][glass_name]["Nd"] = parse(Float64, nm[5])
-                glass_catalog[catalog_name][glass_name]["Vd"] = parse(Float64, nm[6])
+                catalog_dict[glass_name] = Dict{String,Any}()
+                catalog_dict[glass_name]["raw_name"] = original_glass_name
+                catalog_dict[glass_name]["dispform"] = Int(parse(Float64, nm[3]))
+                catalog_dict[glass_name]["Nd"] = parse(Float64, nm[5])
+                catalog_dict[glass_name]["Vd"] = parse(Float64, nm[6])
                 if length(nm) < 7
-                    glass_catalog[catalog_name][glass_name]["exclude_sub"] = 0
+                    catalog_dict[glass_name]["exclude_sub"] = 0
                 else
-                    glass_catalog[catalog_name][glass_name]["exclude_sub"] = Int(parse(Float64, nm[7]))
+                    catalog_dict[glass_name]["exclude_sub"] = Int(parse(Float64, nm[7]))
                 end
                 if length(nm) < 8
-                    glass_catalog[catalog_name][glass_name]["status"] = 0
+                    catalog_dict[glass_name]["status"] = 0
                 else
-                    glass_catalog[catalog_name][glass_name]["status"] = Int(parse(Float64, nm[8]))
+                    catalog_dict[glass_name]["status"] = Int(parse(Float64, nm[8]))
                 end
                 if length(nm) < 9 || "-" ∈ nm
-                    glass_catalog[catalog_name][glass_name]["meltfreq"] = 0
+                    catalog_dict[glass_name]["meltfreq"] = 0
                 else
-                    glass_catalog[catalog_name][glass_name]["meltfreq"] = Int(parse(Float64, nm[9]))
+                    catalog_dict[glass_name]["meltfreq"] = Int(parse(Float64, nm[9]))
                 end
             elseif startswith(line, "ED ")
                 ed = split(line)
-                glass_catalog[catalog_name][glass_name]["TCE"] = parse(Float64, ed[2])
-                glass_catalog[catalog_name][glass_name]["p"] = parse(Float64, ed[4])
-                glass_catalog[catalog_name][glass_name]["ΔPgF"] = parse(Float64, ed[5])
+                catalog_dict[glass_name]["TCE"] = parse(Float64, ed[2])
+                catalog_dict[glass_name]["p"] = parse(Float64, ed[4])
+                catalog_dict[glass_name]["ΔPgF"] = parse(Float64, ed[5])
                 if (length(ed) < 6)
-                    glass_catalog[catalog_name][glass_name]["ignore_thermal_exp"] = 0
+                    catalog_dict[glass_name]["ignore_thermal_exp"] = 0
                 else
-                    glass_catalog[catalog_name][glass_name]["ignore_thermal_exp"] = Int(parse(Float64, ed[6]))
+                    catalog_dict[glass_name]["ignore_thermal_exp"] = Int(parse(Float64, ed[6]))
                 end
             elseif startswith(line, "CD ")
                 cd = parse.(Float64, split(line)[2:end])
-                glass_catalog[catalog_name][glass_name]["C1"] = get(cd, 1, NaN)
-                glass_catalog[catalog_name][glass_name]["C2"] = get(cd, 2, NaN)
-                glass_catalog[catalog_name][glass_name]["C3"] = get(cd, 3, NaN)
-                glass_catalog[catalog_name][glass_name]["C4"] = get(cd, 4, NaN)
-                glass_catalog[catalog_name][glass_name]["C5"] = get(cd, 5, NaN)
-                glass_catalog[catalog_name][glass_name]["C6"] = get(cd, 6, NaN)
-                glass_catalog[catalog_name][glass_name]["C7"] = get(cd, 7, NaN)
-                glass_catalog[catalog_name][glass_name]["C8"] = get(cd, 8, NaN)
-                glass_catalog[catalog_name][glass_name]["C9"] = get(cd, 9, NaN)
-                glass_catalog[catalog_name][glass_name]["C10"] = get(cd, 10, NaN)
+                catalog_dict[glass_name]["C1"] = get(cd, 1, NaN)
+                catalog_dict[glass_name]["C2"] = get(cd, 2, NaN)
+                catalog_dict[glass_name]["C3"] = get(cd, 3, NaN)
+                catalog_dict[glass_name]["C4"] = get(cd, 4, NaN)
+                catalog_dict[glass_name]["C5"] = get(cd, 5, NaN)
+                catalog_dict[glass_name]["C6"] = get(cd, 6, NaN)
+                catalog_dict[glass_name]["C7"] = get(cd, 7, NaN)
+                catalog_dict[glass_name]["C8"] = get(cd, 8, NaN)
+                catalog_dict[glass_name]["C9"] = get(cd, 9, NaN)
+                catalog_dict[glass_name]["C10"] = get(cd, 10, NaN)
             elseif startswith(line, "TD ")
                 td = parse.(Float64, split(line)[2:end])
-                glass_catalog[catalog_name][glass_name]["D₀"] = get(td, 1, 0.0)
-                glass_catalog[catalog_name][glass_name]["D₁"] = get(td, 2, 0.0)
-                glass_catalog[catalog_name][glass_name]["D₂"] = get(td, 3, 0.0)
-                glass_catalog[catalog_name][glass_name]["E₀"] = get(td, 4, 0.0)
-                glass_catalog[catalog_name][glass_name]["E₁"] = get(td, 5, 0.0)
-                glass_catalog[catalog_name][glass_name]["λₜₖ"] = get(td, 6, 0.0)
-                glass_catalog[catalog_name][glass_name]["temp"] = get(td, 7, 20.0)
+                catalog_dict[glass_name]["D₀"] = get(td, 1, 0.0)
+                catalog_dict[glass_name]["D₁"] = get(td, 2, 0.0)
+                catalog_dict[glass_name]["D₂"] = get(td, 3, 0.0)
+                catalog_dict[glass_name]["E₀"] = get(td, 4, 0.0)
+                catalog_dict[glass_name]["E₁"] = get(td, 5, 0.0)
+                catalog_dict[glass_name]["λₜₖ"] = get(td, 6, 0.0)
+                catalog_dict[glass_name]["temp"] = get(td, 7, 20.0)
             elseif startswith(line, "OD ")
                 od = string_list_to_float_list(split(line)[2:end])
-                glass_catalog[catalog_name][glass_name]["relcost"] = get(od, 1, -1)
-                glass_catalog[catalog_name][glass_name]["CR"] = get(od, 2, -1)
-                glass_catalog[catalog_name][glass_name]["FR"] = get(od, 3, -1)
-                glass_catalog[catalog_name][glass_name]["SR"] = get(od, 4, -1)
-                glass_catalog[catalog_name][glass_name]["AR"] = get(od, 5, -1)
-                glass_catalog[catalog_name][glass_name]["PR"] = get(od, 6, -1)
+                catalog_dict[glass_name]["relcost"] = get(od, 1, -1)
+                catalog_dict[glass_name]["CR"] = get(od, 2, -1)
+                catalog_dict[glass_name]["FR"] = get(od, 3, -1)
+                catalog_dict[glass_name]["SR"] = get(od, 4, -1)
+                catalog_dict[glass_name]["AR"] = get(od, 5, -1)
+                catalog_dict[glass_name]["PR"] = get(od, 6, -1)
             elseif startswith(line, "LD ")
                 ld = parse.(Float64, split(line)[2:end])
-                glass_catalog[catalog_name][glass_name]["λmin"] = ld[1]
-                glass_catalog[catalog_name][glass_name]["λmax"] = ld[2]
+                catalog_dict[glass_name]["λmin"] = ld[1]
+                catalog_dict[glass_name]["λmax"] = ld[2]
             elseif startswith(line, "IT ")
                 it_row = parse.(Float64, split(line)[2:end])
                 if length(it_row) == 3 && it_row[1] != 0.0
                     entry = SVector{3,Float64}(it_row[1], it_row[2], it_row[3])
                     push!(transmission_data, entry)
                 end
-                glass_catalog[catalog_name][glass_name]["transmission"] = transmission_data
+                catalog_dict[glass_name]["transmission"] = transmission_data
             end
         end
     end
+    return catalog_dict
 end
