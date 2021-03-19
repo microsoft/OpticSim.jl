@@ -32,7 +32,7 @@ makedocs(
     modules = [OpticSim],
     pages = [
         "Home" => "index.md",
-        "Glass Functions" => "glasscat.md",
+        "Examples" => "examples.md",      
         # "Glasses" => cat_pages,
         "Geometry" => [
             "Primitives" => "primitives.md",
@@ -45,7 +45,7 @@ makedocs(
             "Lenses" => "lenses.md"
         ],
         "Visualization" => "vis.md",
-        "Examples" => "examples.md",
+        "Glass Functions" => "glasscat.md",
         "Optimization" => "optimization.md",
         "Reference" => "ref.md",
         "Roadmap" => "roadmap.md"
