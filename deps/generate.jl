@@ -20,78 +20,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE
 
-import HTTP
-import SHA
-import ZipFile
 using StringEncodings
-using Unitful
 using StaticArrays
+using Unitful
 import Unitful: Length, Temperature, Quantity, Units
-
-const Maybe{T} = Union{T, Nothing}
-const AbsStr = AbstractString
-
-"""
-Verify a list of `sources` located in `source_dir`. If AGF files are missing or invalid, try to download them using the
-information provided in `sources`.
-
-Each `source ∈ sources` is a collection of strings in the format `name, sha256sum, url [, POST_data]`, where the last
-optional string is used to specify data to be sent in a POST request. This allows us to download a greater range of
-sources (e.g. Sumita).
-
-Modifies `sources` in-place such that only verified sources remain.
-"""
-function verify_sources!(sources::AbstractVector{<:AbstractVector{<:AbsStr}}, source_dir::AbsStr)
-    # track missing sources as we go and delete them afterwards to avoid modifying our iterator
-    missing_sources = []
-
-    for (i, source) in enumerate(sources)
-        name, sha256sum = source[1:2]
-        source_file = joinpath(source_dir, "$(name).agf")
-        verified = verify_source(source_file, sha256sum)
-        if !verified && length(source) >= 3
-            # try downloading and re-verifying the source if download information is provided (sources[3:end])
-            download_source(source_file, source[3:end]...)
-            verified = verify_source(source_file, sha256sum)
-        end
-        if !verified
-            push!(missing_sources, i)
-        end
-    end
-
-    deleteat!(sources, missing_sources)
-end
-
-"""
-Verify a source file using SHA256, returning true if successful. Otherwise, remove the file and return false.
-"""
-function verify_source(source_file::AbsStr, sha256sum::AbsStr)
-    if !isfile(source_file)
-        @info "[-] Missing file at $source_file"
-    elseif sha256sum == SHA.bytes2hex(SHA.sha256(read(source_file)))
-        @info "[✓] Verified file at $source_file"
-        return true
-    else
-        @info "[x] Removing unverified file at $source_file"
-        rm(source_file)
-    end
-    return false
-end
-
-"""
-Download and unzip an AGF glass catalog from a publicly available source. Supports POST requests.
-"""
-function download_source(sourcefile::AbsStr, url::AbsStr, POST_data::Maybe{AbsStr} = nothing)
-    @info "Downloading source file from $url"
-    try
-        headers = ["Content-Type" => "application/x-www-form-urlencoded"]
-        resp = isnothing(POST_data) ? HTTP.get(url) : HTTP.post(url, headers, POST_data)
-        reader = ZipFile.Reader(IOBuffer(resp.body))
-        write(sourcefile, read(reader.files[end]))  # todo detect .agf file(s)
-    catch e
-        @error e
-    end
-end
 
 """
 Generates .jl files: a `mainfile` and several catalog files.
@@ -99,7 +31,9 @@ Generates .jl files: a `mainfile` and several catalog files.
 Each catalog file is a module representing a distinct glass catalog (e.g. NIKON, SCHOTT), generated from corresponding
 AGF files in `sourcedir`. These are then included and exported in `mainfile`.
 """
-function generate_jls(sourcenames::Vector{<:AbsStr}, mainfile::AbsStr, sourcedir::AbsStr, jldir::AbsStr)
+function generate_jls(
+    sourcenames::Vector{<:AbstractString}, mainfile::AbstractString, sourcedir::AbstractString, jldir::AbstractString
+)
     id = 1
     catalogfiles = []
     glassnames = []
@@ -134,121 +68,6 @@ function generate_jls(sourcenames::Vector{<:AbsStr}, mainfile::AbsStr, sourcedir
     open(mainfile, "w") do io
         write(io, join(agfstrings, "\n"))
     end
-end
-
-"""
-Convert a `glassinfo` dict into an `argstring` to be passed into a `Glass` constructor.
-"""
-function glassinfo_to_argstring(glassinfo::Dict{<:AbsStr}, id::Integer)
-    argstrings = []
-    for fn in string.(fieldnames(Glass))
-        if fn == "ID"
-            push!(argstrings, "GlassID(AGF, $id)")
-        elseif fn in ["D₀", "D₁", "D₂", "E₀", "E₁", "λₜₖ"]
-            push!(argstrings, repr(get(glassinfo, fn, 0.0)))
-        elseif fn == "temp"
-            push!(argstrings, repr(get(glassinfo, fn, 20.0)))
-        elseif fn == "transmission"
-            v = get(glassinfo, "transmission", nothing)
-            if isnothing(v)
-                push!(argstrings, repr(nothing))
-            else
-                str = join(["($(join(a, ", ")))" for a in v], ", ")
-                push!(argstrings, "[$str]")
-            end
-        elseif fn == "transmissionN"
-            continue
-        else
-            push!(argstrings, repr(get(glassinfo, fn, NaN)))
-        end
-    end
-    return join(argstrings, ", ")
-end
-
-"""
-Convert a `glassinfo` dict into a `docstring` to be prepended to a `Glass` const.
-"""
-function glassinfo_to_docstring(
-    glassinfo::Dict{<:AbsStr}, id::Integer, catalogname::AbsStr, glassname::AbsStr, padding::Integer = 25
-)
-    raw_name = glassinfo["raw_name"] == glassname ? "" : " ($(glassinfo["raw_name"]))"
-    pad(str) = rpad(str, padding)
-    getinfo(key, default=0.0) = get(glassinfo, key, default)
-
-    return join([
-        "\"\"\"    $catalogname.$glassname$raw_name",
-        "```",
-        "$(pad("ID:"))AGF:$id",
-        "$(pad("RI @ 587nm:"))$(getinfo("Nd"))",
-        "$(pad("Abbe Number:"))$(getinfo("Vd"))",
-        "$(pad("ΔPgF:"))$(getinfo("ΔPgF"))",
-        "$(pad("TCE (÷1e-6):"))$(getinfo("TCE"))",
-        "$(pad("Density:"))$(getinfo("p"))g/m³",
-        "$(pad("Valid wavelengths:"))$(getinfo("λmin"))μm to $(getinfo("λmax"))μm",
-        "$(pad("Reference Temp:"))$(getinfo("temp", 20.0))°C",
-        "```",
-        "\"\"\""
-    ], "\n")
-end
-
-"""
-Convert a `catalog` dict into a `modstring` which can be written to a Julia source file.
-"""
-function catalog_to_modstring(start_id::Integer, catalogname::AbsStr, catalog::Dict{<:AbsStr})
-    id = start_id
-    isCI = haskey(ENV, "CI")
-
-    modstrings = [
-        "module $catalogname",
-        "using ..GlassCat: Glass, GlassID, AGF",
-        # "using StaticArrays: SVector",
-        "export $(join(keys(catalog), ", "))",
-        ""
-    ]
-    for (glassname, glassinfo) in catalog
-        # skip docstrings for CI builds to avoid 'missing docstring' warnings in makedocs
-        docstring = isCI ? "" : glassinfo_to_docstring(glassinfo, id, catalogname, glassname)
-        argstring = glassinfo_to_argstring(glassinfo, id)
-        append!(modstrings, [docstring, "const $glassname = Glass($argstring)", ""])
-        id += 1
-    end
-    append!(modstrings, ["end #module", ""]) # last "" is for \n at EOF
-
-    return id, join(modstrings, "\n")
-end
-
-"""
-Make a valid Julia variable name from an arbitrary string.
-"""
-function make_valid_name(name::AbsStr)
-    # remove invalid characters
-    name = replace(name, "*" => "_STAR")
-    name = replace(name, r"""[ ,.:;?!()&-]""" => "_")
-    # cant have module names which are just numbers so add a _ to the start
-    if tryparse(Int, "$(name[1])") !== nothing
-        name = "_" * name
-    end
-    return name
-end
-
-function stringlist_to_floatlist(x::Vector{<:AbsStr})
-    npts = length(x)
-    if (npts == 0) || ((npts == 1) && (strip(x[1]) == "-"))
-        return (repeat([-1.0], 10))
-    end
-    res = []
-    for a in x
-        if (strip(a) == "-")
-            push!(res, -1.0)
-        else
-            try
-                push!(res, parse(Float64, a))
-            catch
-                push!(res, NaN)
-            end
-        end
-    end
-    return (res)
 end
 
 """
@@ -333,4 +152,119 @@ function sourcefile_to_catalog(source_file::AbsStr)
         end
     end
     return catalog_dict
+end
+
+"""
+Make a valid Julia variable name from an arbitrary string.
+"""
+function make_valid_name(name::AbsStr)
+    # remove invalid characters
+    name = replace(name, "*" => "_STAR")
+    name = replace(name, r"""[ ,.:;?!()&-]""" => "_")
+    # cant have module names which are just numbers so add a _ to the start
+    if tryparse(Int, "$(name[1])") !== nothing
+        name = "_" * name
+    end
+    return name
+end
+
+function stringlist_to_floatlist(x::Vector{<:AbsStr})
+    npts = length(x)
+    if (npts == 0) || ((npts == 1) && (strip(x[1]) == "-"))
+        return (repeat([-1.0], 10))
+    end
+    res = []
+    for a in x
+        if (strip(a) == "-")
+            push!(res, -1.0)
+        else
+            try
+                push!(res, parse(Float64, a))
+            catch
+                push!(res, NaN)
+            end
+        end
+    end
+    return (res)
+end
+
+"""
+Convert a `catalog` dict into a `modstring` which can be written to a Julia source file.
+"""
+function catalog_to_modstring(start_id::Integer, catalogname::AbsStr, catalog::Dict{<:AbsStr})
+    id = start_id
+    isCI = haskey(ENV, "CI")
+
+    modstrings = [
+        "module $catalogname",
+        "using ..GlassCat: Glass, GlassID, AGF",
+        # "using StaticArrays: SVector",
+        "export $(join(keys(catalog), ", "))",
+        ""
+    ]
+    for (glassname, glassinfo) in catalog
+        # skip docstrings for CI builds to avoid 'missing docstring' warnings in makedocs
+        docstring = isCI ? "" : glassinfo_to_docstring(glassinfo, id, catalogname, glassname)
+        argstring = glassinfo_to_argstring(glassinfo, id)
+        append!(modstrings, [docstring, "const $glassname = Glass($argstring)", ""])
+        id += 1
+    end
+    append!(modstrings, ["end #module", ""]) # last "" is for \n at EOF
+
+    return id, join(modstrings, "\n")
+end
+
+"""
+Convert a `glassinfo` dict into a `docstring` to be prepended to a `Glass` const.
+"""
+function glassinfo_to_docstring(
+    glassinfo::Dict{<:AbsStr}, id::Integer, catalogname::AbsStr, glassname::AbsStr, padding::Integer = 25
+)
+    raw_name = glassinfo["raw_name"] == glassname ? "" : " ($(glassinfo["raw_name"]))"
+    pad(str) = rpad(str, padding)
+    getinfo(key, default=0.0) = get(glassinfo, key, default)
+
+    return join([
+        "\"\"\"    $catalogname.$glassname$raw_name",
+        "```",
+        "$(pad("ID:"))AGF:$id",
+        "$(pad("RI @ 587nm:"))$(getinfo("Nd"))",
+        "$(pad("Abbe Number:"))$(getinfo("Vd"))",
+        "$(pad("ΔPgF:"))$(getinfo("ΔPgF"))",
+        "$(pad("TCE (÷1e-6):"))$(getinfo("TCE"))",
+        "$(pad("Density:"))$(getinfo("p"))g/m³",
+        "$(pad("Valid wavelengths:"))$(getinfo("λmin"))μm to $(getinfo("λmax"))μm",
+        "$(pad("Reference Temp:"))$(getinfo("temp", 20.0))°C",
+        "```",
+        "\"\"\""
+    ], "\n")
+end
+
+"""
+Convert a `glassinfo` dict into an `argstring` to be passed into a `Glass` constructor.
+"""
+function glassinfo_to_argstring(glassinfo::Dict{<:AbsStr}, id::Integer)
+    argstrings = []
+    for fn in string.(fieldnames(Glass))
+        if fn == "ID"
+            push!(argstrings, "GlassID(AGF, $id)")
+        elseif fn in ["D₀", "D₁", "D₂", "E₀", "E₁", "λₜₖ"]
+            push!(argstrings, repr(get(glassinfo, fn, 0.0)))
+        elseif fn == "temp"
+            push!(argstrings, repr(get(glassinfo, fn, 20.0)))
+        elseif fn == "transmission"
+            v = get(glassinfo, "transmission", nothing)
+            if isnothing(v)
+                push!(argstrings, repr(nothing))
+            else
+                str = join(["($(join(a, ", ")))" for a in v], ", ")
+                push!(argstrings, "[$str]")
+            end
+        elseif fn == "transmissionN"
+            continue
+        else
+            push!(argstrings, repr(get(glassinfo, fn, NaN)))
+        end
+    end
+    return join(argstrings, ", ")
 end

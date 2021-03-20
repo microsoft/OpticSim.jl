@@ -24,20 +24,22 @@ const AGF_DIR = joinpath(@__DIR__, "downloads", "glasscat") # contains SCHOTT.ag
 const GLASSCAT_DIR = joinpath(@__DIR__, "..", "src", "GlassCat") # contains GlassCat.jl (pre-existing)
 const JL_DIR = joinpath(GLASSCAT_DIR, "data") # contains AGFGlasscat.jl, SCHOTT.jl, etc.
 
-mkpath(AGF_DIR)
-mkpath(JL_DIR)
-
 const SOURCES_PATH = joinpath(@__DIR__, "sources.txt")
 const AGFGLASSCAT_PATH = joinpath(JL_DIR, "AGFGlassCat.jl")
 
 include(joinpath(GLASSCAT_DIR, "GlassTypes.jl"))
-include("utils.jl")
+include("sources.jl")
+include("generate.jl")
 
-# Build a source directory using information from sources.txt
+mkpath(AGF_DIR)
+mkpath(JL_DIR)
+
+# Build/verify a source directory using information from sources.txt
 sources = [split(line, " ") for line in readlines(SOURCES_PATH)]
 verify_sources!(sources, AGF_DIR)
-
 verified_source_names = [source[1] for source in sources]
+
+# Use verified sources to generate required .jl files
 @info "$(isfile(AGFGLASSCAT_PATH) ? "Re-g" : "G")enerating $AGFGLASSCAT_PATH"
 @info "Using sources: $(join(verified_source_names, ", ", " and "))"
 generate_jls(verified_source_names, AGFGLASSCAT_PATH, AGF_DIR, JL_DIR)
