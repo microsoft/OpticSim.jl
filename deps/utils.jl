@@ -23,7 +23,6 @@
 import HTTP
 import SHA
 import ZipFile
-
 using StringEncodings
 using Unitful
 using StaticArrays
@@ -33,25 +32,27 @@ const Maybe{T} = Union{T, Nothing}
 const AbsStr = AbstractString
 
 """
-Build a verified source directory of AGF files according to a specification given by `sources`.
+Verify a list of `sources` located in `source_dir`. If AGF files are missing or invalid, try to download them using the
+information provided in `sources`.
 
-Each `source ∈ sources` is a collection of strings in the format `name, sha256, url [, POST_body]`, where the last
+Each `source ∈ sources` is a collection of strings in the format `name, sha256sum, url [, POST_data]`, where the last
 optional string is used to specify data to be sent in a POST request. This allows us to download a greater range of
 sources (e.g. Sumita).
 
 Modifies `sources` in-place such that only verified sources remain.
 """
-function build_source_dir(sources::AbstractVector{<:AbstractVector{<:AbsStr}}, source_dir::AbsStr)
-    mkpath(source_dir)
-
+function verify_sources!(sources::AbstractVector{<:AbstractVector{<:AbsStr}}, source_dir::AbsStr)
+    # track missing sources as we go and delete them afterwards to avoid modifying our iterator
     missing_sources = []
+
     for (i, source) in enumerate(sources)
-        name, sha256 = source[1:2]
-        source_file = joinpath(@__DIR__, source_dir, "$(name).agf")
-        verified = verify_source(source_file, sha256)
+        name, sha256sum = source[1:2]
+        source_file = joinpath(source_dir, "$(name).agf")
+        verified = verify_source(source_file, sha256sum)
         if !verified && length(source) >= 3
+            # try downloading and re-verifying the source if download information is provided (sources[3:end])
             download_source(source_file, source[3:end]...)
-            verified = verify_source(source_file, sha256)
+            verified = verify_source(source_file, sha256sum)
         end
         if !verified
             push!(missing_sources, i)
@@ -63,13 +64,11 @@ end
 
 """
 Verify a source file using SHA256, returning true if successful. Otherwise, remove the file and return false.
-
-Note: this isn't a security measure - it's possible to add a file back in after verification.
 """
-function verify_source(source_file::AbsStr, sha256::AbsStr)
+function verify_source(source_file::AbsStr, sha256sum::AbsStr)
     if !isfile(source_file)
         @info "[-] Missing file at $source_file"
-    elseif sha256 == SHA.bytes2hex(SHA.sha256(read(source_file)))
+    elseif sha256sum == SHA.bytes2hex(SHA.sha256(read(source_file)))
         @info "[✓] Verified file at $source_file"
         return true
     else
@@ -85,7 +84,8 @@ Download and unzip an AGF glass catalog from a publicly available source. Suppor
 function download_source(sourcefile::AbsStr, url::AbsStr, POST_data::Maybe{AbsStr} = nothing)
     @info "Downloading source file from $url"
     try
-        resp = isnothing(POST_data) ? HTTP.get(url) : HTTP.post(url, ["Content-Type" => "application/x-www-form-urlencoded"], POST_data)
+        headers = ["Content-Type" => "application/x-www-form-urlencoded"]
+        resp = isnothing(POST_data) ? HTTP.get(url) : HTTP.post(url, headers, POST_data)
         reader = ZipFile.Reader(IOBuffer(resp.body))
         write(sourcefile, read(reader.files[end]))  # todo detect .agf file(s)
     catch e
@@ -94,15 +94,12 @@ function download_source(sourcefile::AbsStr, url::AbsStr, POST_data::Maybe{AbsSt
 end
 
 """
-Generates .jl files: a main `agffile` and several catalog files which are included in the `agffile`. Each catalog file
-is a module representing a distinct glass catalog (e.g. NIKON, SCHOTT).
+Generates .jl files: a `mainfile` and several catalog files.
 
-The `agffile` exports each of
-these submodules, making it possible to call `using GlassCat` followed by `SCHOTT.N_BK7`, for example.
+Each catalog file is a module representing a distinct glass catalog (e.g. NIKON, SCHOTT), generated from corresponding
+AGF files in `sourcedir`. These are then included and exported in `mainfile`.
 """
-function generate_agffiles(sourcenames::Vector{<:AbsStr}, sourcedir::AbsStr, catalogdir::AbsStr, agffile::AbsStr)
-    mkpath(catalogdir)
-
+function generate_jls(sourcenames::Vector{<:AbsStr}, mainfile::AbsStr, sourcedir::AbsStr, jldir::AbsStr)
     id = 1
     catalogfiles = []
     glassnames = []
@@ -115,7 +112,7 @@ function generate_agffiles(sourcenames::Vector{<:AbsStr}, sourcedir::AbsStr, cat
 
         # parse the catalog into a module string and write it to a catalog file (.jl)
         id, modstring = catalog_to_modstring(id, catalogname, catalog)
-        push!(catalogfiles, joinpath(catalogdir, "$(catalogname).jl"))
+        push!(catalogfiles, joinpath(jldir, "$(catalogname).jl"))
         open(catalogfiles[end], "w") do io
             write(io, modstring)
         end
@@ -124,7 +121,7 @@ function generate_agffiles(sourcenames::Vector{<:AbsStr}, sourcedir::AbsStr, cat
         append!(glassnames, ["$(catalogname).$(glassname)" for glassname in keys(catalog)])
     end
 
-    # generate the parent AGFGlassCat file (.jl)
+    # generate the parent main file (.jl)
     agfstrings = [
         "export $(join(sourcenames, ", "))",
         "",
@@ -134,7 +131,7 @@ function generate_agffiles(sourcenames::Vector{<:AbsStr}, sourcedir::AbsStr, cat
         "const AGF_GLASSES = [$(join(glassnames, ", "))]",
         ""
     ]
-    open(agffile, "w") do io
+    open(mainfile, "w") do io
         write(io, join(agfstrings, "\n"))
     end
 end
@@ -142,7 +139,7 @@ end
 """
 Convert a `glassinfo` dict into an `argstring` to be passed into a `Glass` constructor.
 """
-function glassinfo_to_argstring(id::Integer, glassinfo::Dict{<:AbsStr})
+function glassinfo_to_argstring(glassinfo::Dict{<:AbsStr}, id::Integer)
     argstrings = []
     for fn in string.(fieldnames(Glass))
         if fn == "ID"
@@ -171,7 +168,9 @@ end
 """
 Convert a `glassinfo` dict into a `docstring` to be prepended to a `Glass` const.
 """
-function glassinfo_to_docstring(id::Integer, catalogname::AbsStr, glassname::AbsStr, glassinfo::Dict{<:AbsStr}, padding::Integer = 25)
+function glassinfo_to_docstring(
+    glassinfo::Dict{<:AbsStr}, id::Integer, catalogname::AbsStr, glassname::AbsStr, padding::Integer = 25
+)
     raw_name = glassinfo["raw_name"] == glassname ? "" : " ($(glassinfo["raw_name"]))"
     pad(str) = rpad(str, padding)
     getinfo(key, default=0.0) = get(glassinfo, key, default)
@@ -206,16 +205,11 @@ function catalog_to_modstring(start_id::Integer, catalogname::AbsStr, catalog::D
         "export $(join(keys(catalog), ", "))",
         ""
     ]
-
     for (glassname, glassinfo) in catalog
         # skip docstrings for CI builds to avoid 'missing docstring' warnings in makedocs
-        docstring = isCI ? "" : glassinfo_to_docstring(id, catalogname, glassname, glassinfo)
-        argstring = glassinfo_to_argstring(id, glassinfo)
-        append!(modstrings, [
-            docstring,
-            "const $glassname = Glass($argstring)",
-            ""
-        ])
+        docstring = isCI ? "" : glassinfo_to_docstring(glassinfo, id, catalogname, glassname)
+        argstring = glassinfo_to_argstring(glassinfo, id)
+        append!(modstrings, [docstring, "const $glassname = Glass($argstring)", ""])
         id += 1
     end
     append!(modstrings, ["end #module", ""]) # last "" is for \n at EOF
