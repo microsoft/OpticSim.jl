@@ -20,22 +20,26 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE
 
-const GLASSCAT_ROOT_DIR = joinpath(@__DIR__, "..", "src", "GlassCat")
-const GLASSCAT_DATA_DIR = joinpath(GLASSCAT_ROOT_DIR, "data")
-const SOURCE_DIR = joinpath("downloads", "glasscat")
+const AGF_DIR = joinpath(@__DIR__, "downloads", "glasscat") # contains SCHOTT.agf, Sumita.agf, etc.
+const GLASSCAT_DIR = joinpath(@__DIR__, "..", "src", "GlassCat") # contains GlassCat.jl (pre-existing)
+const JL_DIR = joinpath(GLASSCAT_DIR, "data") # contains AGFGlasscat.jl, SCHOTT.jl, etc.
 
-const SOURCES_FILE = "sources.txt"
-const GLASS_JL_FILE = "AGFGlassCat.jl"
-const GLASS_JL_PATH = joinpath(GLASSCAT_DATA_DIR, GLASS_JL_FILE)
+const SOURCES_PATH = joinpath(@__DIR__, "sources.txt")
+const AGFGLASSCAT_PATH = joinpath(JL_DIR, "AGFGlassCat.jl")
 
-include(joinpath(GLASSCAT_ROOT_DIR, "GlassTypes.jl"))
-include("utils.jl")
+include(joinpath(GLASSCAT_DIR, "GlassTypes.jl"))
+include("sources.jl")
+include("generate.jl")
 
-# Build a source directory using information from SOURCES_FILE
-sources = [split(line, " ") for line in readlines(SOURCES_FILE)]
-build_source_dir(sources, SOURCE_DIR)
+mkpath(AGF_DIR)
+mkpath(JL_DIR)
 
+# Build/verify a source directory using information from sources.txt
+sources = [split(line, " ") for line in readlines(SOURCES_PATH)]
+verify_sources!(sources, AGF_DIR)
 verified_source_names = [source[1] for source in sources]
-@info "$(isfile(GLASS_JL_PATH) ? "Re-g" : "G")enerating $GLASS_JL_PATH"
+
+# Use verified sources to generate required .jl files
+@info "$(isfile(AGFGLASSCAT_PATH) ? "Re-g" : "G")enerating $AGFGLASSCAT_PATH"
 @info "Using sources: $(join(verified_source_names, ", ", " and "))"
-generate_agffiles(verified_source_names, SOURCE_DIR, GLASSCAT_DATA_DIR, GLASS_JL_PATH)
+generate_jls(verified_source_names, AGFGLASSCAT_PATH, JL_DIR, AGF_DIR)
