@@ -73,7 +73,7 @@ end
 """
 Parse a `sourcefile` (.agf) into a native dictionary, where each `kvp = (glassname, glassinfo)` is a glass.
 """
-function sourcefile_to_catalog(source_file::AbsStr)
+function sourcefile_to_catalog(source_file::AbstractString)
     catalog_dict = Dict{String,Dict{String}}()
 
     # check whether the file is UTF8 or UTF16 encoded
@@ -157,7 +157,7 @@ end
 """
 Make a valid Julia variable name from an arbitrary string.
 """
-function make_valid_name(name::AbsStr)
+function make_valid_name(name::AbstractString)
     # remove invalid characters
     name = replace(name, "*" => "_STAR")
     name = replace(name, r"""[ ,.:;?!()&-]""" => "_")
@@ -168,7 +168,7 @@ function make_valid_name(name::AbsStr)
     return name
 end
 
-function stringlist_to_floatlist(x::Vector{<:AbsStr})
+function stringlist_to_floatlist(x::Vector{<:AbstractString})
     npts = length(x)
     if (npts == 0) || ((npts == 1) && (strip(x[1]) == "-"))
         return (repeat([-1.0], 10))
@@ -191,7 +191,7 @@ end
 """
 Convert a `catalog` dict into a `modstring` which can be written to a Julia source file.
 """
-function catalog_to_modstring(start_id::Integer, catalogname::AbsStr, catalog::Dict{<:AbsStr})
+function catalog_to_modstring(start_id::Integer, catalogname::AbstractString, catalog::Dict{<:AbstractString})
     id = start_id
     isCI = haskey(ENV, "CI")
 
@@ -218,10 +218,10 @@ end
 Convert a `glassinfo` dict into a `docstring` to be prepended to a `Glass` const.
 """
 function glassinfo_to_docstring(
-    glassinfo::Dict{<:AbsStr}, id::Integer, catalogname::AbsStr, glassname::AbsStr, padding::Integer = 25
+    glassinfo::Dict{<:AbstractString}, id::Integer, catalogname::AbstractString, glassname::AbstractString
 )
     raw_name = glassinfo["raw_name"] == glassname ? "" : " ($(glassinfo["raw_name"]))"
-    pad(str) = rpad(str, padding)
+    pad(str, padding=25) = rpad(str, padding)
     getinfo(key, default=0.0) = get(glassinfo, key, default)
 
     return join([
@@ -243,7 +243,7 @@ end
 """
 Convert a `glassinfo` dict into an `argstring` to be passed into a `Glass` constructor.
 """
-function glassinfo_to_argstring(glassinfo::Dict{<:AbsStr}, id::Integer)
+function glassinfo_to_argstring(glassinfo::Dict{<:AbstractString}, id::Integer)
     argstrings = []
     for fn in string.(fieldnames(Glass))
         if fn == "ID"
