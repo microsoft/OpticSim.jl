@@ -42,4 +42,4 @@ verified_source_names = [source[1] for source in sources]
 # Use verified sources to generate required .jl files
 @info "$(isfile(AGFGLASSCAT_PATH) ? "Re-g" : "G")enerating $AGFGLASSCAT_PATH"
 @info "Using sources: $(join(verified_source_names, ", ", " and "))"
-generate_jls(verified_source_names, AGFGLASSCAT_PATH, AGF_DIR, JL_DIR)
+generate_jls(verified_source_names, AGFGLASSCAT_PATH, JL_DIR, AGF_DIR)

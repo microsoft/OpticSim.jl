@@ -32,7 +32,7 @@ Each catalog file is a module representing a distinct glass catalog (e.g. NIKON,
 AGF files in `sourcedir`. These are then included and exported in `mainfile`.
 """
 function generate_jls(
-    sourcenames::Vector{<:AbstractString}, mainfile::AbstractString, sourcedir::AbstractString, jldir::AbstractString
+    sourcenames::Vector{<:AbstractString}, mainfile::AbstractString, jldir::AbstractString, sourcedir::AbstractString
 )
     id = 1
     catalogfiles = []
