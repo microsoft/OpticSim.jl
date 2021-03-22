@@ -38,7 +38,8 @@ include("GlassTypes.jl")
 include("Air.jl")
 
 include("constants.jl")
-include("search.jl")
+include("database.jl")
+export glasscatalogs, glasses, findglass
 include("utilities.jl")
 export plot_indices, index, polyfit_indices, absairindex, absorption, info, glassid, glassname, glassforid, isair, findglass, modelglass, glassfromMIL, GlassID
 
