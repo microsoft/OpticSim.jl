@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE
 
-using OpticSim
+using OpticSim # this will only work after the main build steps are completed
 @info "Running representative workload"
 # add stuff here #
 Examples.autodrawrays()
