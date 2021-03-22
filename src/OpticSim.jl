@@ -45,8 +45,6 @@ include("Visualization.jl")
 include("Examples.jl")
 include("Optimization/Optimizable.jl")
 
-include("Sysimage.jl")
-
 ################################################
 
 # This can be used to track NaN, particularly in ForwardDiff gradients, causing problems
