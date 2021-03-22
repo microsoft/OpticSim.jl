@@ -41,7 +41,6 @@ ismodel(a::GlassID) = a.type === MODEL
 isMIL(a::GlassID) = a.type === MIL
 isAGF(a::GlassID) = a.type === AGF
 isother(a::GlassID) = a.type === OTHER
-isair(a::GlassID) = a.type === AIR
 
 """
 Abstract type encapsulating all glasses.

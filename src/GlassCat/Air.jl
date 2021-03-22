@@ -3,13 +3,9 @@ Base.show(io::IO, ::AirType) = print(io, "Air")
 glassid(::AirType) = GlassID(AIR, 0)
 glassname(::AirType) = "GlassCat.Air"
 
-"""
-    isair(a) -> Bool
-
-Tests if `a` is Air.
-"""
 isair(::AirType) = true
 isair(::AbstractGlass) = false
+isair(a::GlassID) = a.type === AIR
 
 function info(io::IO, ::AirType)
     println(io, "GlassCat.Air")

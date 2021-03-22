@@ -35,13 +35,17 @@ include("data/AGFGlassCat.jl")
 include("data/CARGILLE.jl")
 
 include("GlassTypes.jl")
+export GlassID, info, glassid, glassname, glassforid
 include("Air.jl")
+export isair
 
 include("constants.jl")
+
 include("database.jl")
-export glasscatalogs, glasses, findglass
+export glasscatalogs, glassnames, findglass
+
 include("utilities.jl")
-export plot_indices, index, polyfit_indices, absairindex, absorption, info, glassid, glassname, glassforid, isair, findglass, modelglass, glassfromMIL, GlassID
+export plot_indices, index, polyfit_indices, absairindex, absorption, modelglass, glassfromMIL
 
 end # module
 export GlassCat
