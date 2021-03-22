@@ -16,9 +16,6 @@
 <tbody>
   <tr>
     <td>
-      <a href="https://microsoft.github.io/OpticSim.jl/stable/">
-        <img src="https://img.shields.io/badge/docs-stable-blue.svg" alt="docs stable">
-      </a>
       <a href="https://microsoft.github.io/OpticSim.jl/dev/">
         <img src="https://img.shields.io/badge/docs-dev-blue.svg" alt="docs dev">
       </a>
