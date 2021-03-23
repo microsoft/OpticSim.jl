@@ -159,11 +159,6 @@ planoplano(::Type{T} = Float64) where {T<:Real} = AxisymmetricOpticalSystem{T}(
 
 #! format: on
 
-end #module SphericalLenses
-
-
-
-
 function autodrawrays(lens::AxisymmetricOpticalSystem = cooketriplet(), angle = 10; kwargs...)
     f1 = HexapolarField(lens, collimated = true, wavelength = 0.45, sourcenum = 1)
     Vis.drawtracerays(lens, raygenerator = f1, test = true, trackallrays = true, colorbysourcenum = true; kwargs...)
@@ -408,4 +403,6 @@ function multiHOE(; kwargs...)
     Vis.drawtracerays!(sys; raygenerator = s2, trackallrays = true, colorbysourcenum = true, rayfilter = nothing, drawgen = true, kwargs...)
     Vis.drawtracerays!(sys; raygenerator = s3, trackallrays = true, colorbysourcenum = true, rayfilter = nothing, drawgen = true, kwargs...)
 end
+
+end #module Examples
 export Examples

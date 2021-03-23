@@ -123,4 +123,4 @@ function updateoptimizationvariables(a::AxisymmetricOpticalSystem{T}, optimizati
 end
 
 end #module
-export Optimization
+export Optimizable
