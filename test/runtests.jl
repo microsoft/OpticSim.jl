@@ -85,7 +85,6 @@ macro test_all_no_arg_functions(m)
     end
 end
 
-include("testsets/GlassCat.jl")
 include("testsets/JuliaLang.jl")
 # include("testsets/BVH.jl")
 include("testsets/TestData.jl")
@@ -100,3 +99,5 @@ include("testsets/Visualization.jl")
 
 include("Benchmarks.jl")
 include("testsets/Allocations.jl")
+
+include("testsets/GlassCat.jl")
