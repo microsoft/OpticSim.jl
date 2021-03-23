@@ -27,6 +27,8 @@ include("Visualization.jl")
 # part with the logic. We need to come up with a better approch to how and where visualization code should reside.
 include("Optical/Emitter4.jl")
 
+include("Misc/Misc.jl")
+
 include("TestData.jl")
 include("Examples.jl")
 include("Optimization/Optimizable.jl")
