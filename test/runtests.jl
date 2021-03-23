@@ -27,6 +27,7 @@ using LinearAlgebra
 using Suppressor
 using Random
 using Unitful
+using Plots
 
 using OpticSim
 # curve/surface imports
@@ -42,8 +43,6 @@ using OpticSim: rotmat, rotmatd
 using OpticSim: reflectedray, snell, refractedray, trace, intersection, pathlength, power
 #Bounding volume hierarchy imports
 # using OpticSim: partition!
-
-######################################################################################################
 
 const COMP_TOLERANCE = 25 * eps(Float64)
 const RTOLERANCE = 1e-10
@@ -86,7 +85,7 @@ macro test_all_no_arg_functions(m)
     end
 end
 
-# include("testsets/GlassCat.jl")
+include("testsets/GlassCat.jl")
 include("testsets/JuliaLang.jl")
 # include("testsets/BVH.jl")
 include("testsets/TestData.jl")

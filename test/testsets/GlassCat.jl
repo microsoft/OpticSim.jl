@@ -34,7 +34,7 @@
     tmpdir = mktempdir()
     MAIN_FILE = joinpath(tmpdir, "AGF_TEST_CAT.jl")
     JL_DIR = tmpdir
-    
+
     cat = Dict()
 
     @testset "Parsing Tests" begin
