@@ -20,95 +20,76 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE
 
-function _child_modules(m::Module)
-    ns = names(m, imported = false, all = true)
-    ms = []
-    for n in ns
-        if n != nameof(m)
-            try
-                x = Core.eval(m, n)
-                if x isa Module
-                    push!(ms, x)
-                end
-            catch
-            end
-        end
-    end
-    return ms
-end
-
 """
     glasscatalogs()
 
-Prints the complete list of glass catalogs available from GlassCat.
+Returns the complete list of glass catalogs available from GlassCat.
 
 ## Example
 ```julia-repl
 julia> glasscatalogs()
-41 glass catalogs:
-GlassCat.AMTIR
-GlassCat.ANGSTROMLINK
-GlassCat.APEL
-GlassCat.ARCHER
-GlassCat.ARTON
-GlassCat.AUER_LIGHTING
-GlassCat.BIREFRINGENT
-...
+41-element Array{Any,1}:
+ OpticSim.GlassCat.AMTIR
+ OpticSim.GlassCat.ANGSTROMLINK
+ OpticSim.GlassCat.APEL
+ OpticSim.GlassCat.ARCHER
+ OpticSim.GlassCat.ARTON
+ OpticSim.GlassCat.AUER_LIGHTING
+ OpticSim.GlassCat.BIREFRINGENT
+ ⋮
 ```
 """
-function glasscatalogs()
-    println("$(length(_child_modules(GlassCat))) glass catalogs:")
-    for c in _child_modules(GlassCat)
-        println("$c")
-    end
-end
-export glasscatalogs
+glasscatalogs() = _child_modules(GlassCat)
 
 """
-    glasses(catalog::Union{Module,Nothing} = nothing)
+    glassnames(catalog::Module)
 
-Prints the glasses available from a given catalog, or if none if specified from all catalogs.
+Returns the glass names available from a given catalog.
 
 # Example
 ```julia-repl
 julia> glasses(GlassCat.CARGILLE)
-GlassCat.CARGILLE - 3 glasses:
-	OG0607
-	OG0608
-	OG081160
+3-element Array{Any,1}:
+ "OG0607"
+ "OG0608"
+ "OG081160"
 ```
 """
-function glasses(catalog::Union{Module,Nothing} = nothing)
-    function printforcat(cat::Module)
-        glass_names = names(cat, all = true, imported = false)
-        glasses = []
-        for glass_name in glass_names
-            glass_name_str = string(glass_name)
-            if !occursin("#", glass_name_str) && glass_name_str != "eval" && glass_name_str != "include" && glass_name != nameof(cat)
-                push!(glasses, "$glass_name_str")
-            end
-        end
-        println("$cat - $(length(glasses)) glasses:")
-        for g in glasses
-            println("\t$g")
+function glassnames(catalog::Module)
+    glass_names = names(catalog, all = true, imported = false)
+    glasses = []
+    for glass_name in glass_names
+        glass_name_str = string(glass_name)
+        if !occursin("#", glass_name_str) && glass_name_str != "eval" && glass_name_str != "include" && glass_name != nameof(catalog)
+            push!(glasses, glass_name)
         end
     end
-    if catalog === nothing
-        for c in _child_modules(GlassCat)
-            printforcat(c)
-        end
-    else
-        printforcat(catalog)
-    end
+    return glasses
 end
-export glasses
+
+"""
+    glassnames()
+
+Returns the glass names available from all catalogs.
+
+# Example
+```julia-repl
+julia> glasses()
+6-element Array{Pair{Module,Array{Any,1}},1}:
+ OpticSim.GlassCat.CARGILLE => ["OG0607", "OG0608", "OG081160"]
+     OpticSim.GlassCat.HOYA => ["BAC4", "BACD11"  …  "TAFD65"]
+    OpticSim.GlassCat.NIKON => ["BAF10", "BAF11"  …  "_7054"]
+    OpticSim.GlassCat.OHARA => ["L_BAL35", "L_BAL35P"  …  "S_TIM8"]
+   OpticSim.GlassCat.SCHOTT => ["AF32ECO", "BAFN6"  …  "SFL6"]
+   OpticSim.GlassCat.Sumita => ["BAF1", "BAF10"  …  "ZNSF8"]
+```
+"""
+glassnames() = [m => glassnames(m) for m in _child_modules(GlassCat)]
 
 """
     findglass(condition::Function) -> Vector{Glass}
 
 Returns the list of glasses which satisfy `condition` where `condition::(Glass -> Bool)`.
-
-TODO - make the condition easier to specify (accessor functions for fields?)
 
 # Example
 ```julia-repl
@@ -125,6 +106,7 @@ julia> findglass(x -> (x.Nd > 2.3 && x.λmin < 0.5 && x.λmax > 0.9))
 ```
 """
 function findglass(condition::Function)
+    # TODO - make the condition easier to specify (accessor functions for fields?)
     out = Vector{Glass}(undef, 0)
     for g in AGF_GLASSES
         if condition(g)
@@ -137,4 +119,21 @@ function findglass(condition::Function)
         end
     end
     return out
+end
+
+function _child_modules(m::Module)
+    ns = names(m, imported = false, all = true)
+    ms = []
+    for n in ns
+        if n != nameof(m)
+            try
+                x = Core.eval(m, n)
+                if x isa Module
+                    push!(ms, x)
+                end
+            catch
+            end
+        end
+    end
+    return ms
 end

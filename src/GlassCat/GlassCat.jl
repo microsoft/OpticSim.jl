@@ -30,15 +30,27 @@ using StaticArrays
 using Base: @.
 import Unitful: Length, Temperature, Quantity, Units
 
-include("GlassTypes.jl")
 include("constants.jl")
-include("search.jl")
-include("utilities.jl")
-export plot_indices, index, polyfit_indices, absairindex, absorption, info, glassid, glassname, glassforid, isair, findglass, modelglass, glassfromMIL, GlassID
 
-# import built glass cat source files via deps/deps.jl
+include("GlassTypes.jl")
+export GlassID, info, glassid, glassname, glassforid
+include("Air.jl")
+export Air, isair
+
+# include built glass cat source files
 include("data/AGFGlassCat.jl")
 include("data/CARGILLE.jl")
+
+# include functionality for managing runtime (dynamic) glass cats: MIL_GLASSES and MODEL_GLASSES
+include("runtime.jl")
+export glassfromMIL, modelglass
+
+# include functions for searching the glass cats
+include("search.jl")
+export glasscatalogs, glassnames, findglass
+
+include("utilities.jl")
+export plot_indices, index, polyfit_indices, absairindex, absorption
 
 end # module
 export GlassCat

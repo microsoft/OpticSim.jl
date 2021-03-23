@@ -41,7 +41,6 @@ ismodel(a::GlassID) = a.type === MODEL
 isMIL(a::GlassID) = a.type === MIL
 isAGF(a::GlassID) = a.type === AGF
 isother(a::GlassID) = a.type === OTHER
-isair(a::GlassID) = a.type === AIR
 
 """
 Abstract type encapsulating all glasses.
@@ -115,6 +114,7 @@ end
 Get the ID of the glass, see [`GlassID`](@ref).
 """
 glassid(g::Glass) = g.ID
+
 """
     glassname(g::Union{AbstractGlass,GlassID})
 
@@ -138,19 +138,6 @@ end
 function Base.show(io::IO, g::Glass)
     print(io, glassname(g))
 end
-
-struct AirType <: AbstractGlass end
-Base.show(io::IO, ::AirType) = print(io, "Air")
-glassid(::AirType) = GlassID(AIR, 0)
-glassname(::AirType) = "GlassCat.Air"
-
-"""
-    isair(a) -> Bool
-
-Tests if `a` is Air.
-"""
-isair(::AirType) = true
-isair(::AbstractGlass) = false
 
 """
     glassforid(ID::GlassID)
@@ -363,11 +350,6 @@ function info(io::IO, glass::Glass)
             println(io, "$(lpad("$(λ)μm", 15))$(lpad(t, 15))$(lpad("$(τ)mm", 15))")
         end
     end
-end
-
-function info(io::IO, ::AirType)
-    println(io, "GlassCat.Air")
-    println(io, "Material representing air, RI is always 1.0 at system temperature and pressure, absorption is always 0.0.")
 end
 
 info(g::AbstractGlass) = info(stdout, g)
