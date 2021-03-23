@@ -48,6 +48,8 @@ include("Optimization/Optimization.jl")
 # part with the logic. We need to come up with a better approch to how and where visualization code should reside.
 include("Optical/Emitter4.jl")
 
+include("Misc/Misc.jl")
+
 ################################################
 
 # This can be used to track NaN, particularly in ForwardDiff gradients, causing problems
