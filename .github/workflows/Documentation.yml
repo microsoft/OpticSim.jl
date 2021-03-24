@@ -1,7 +1,7 @@
 name: Documentation
 on:
   push:
-    branches: [main]
+    branches: [main, 'docs/**', 'tnd/**']
     tags: ['*']
   pull_request:
 jobs:

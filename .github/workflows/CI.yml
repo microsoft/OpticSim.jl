@@ -1,7 +1,7 @@
 name: CI
 on:
   push:
-    branches: [main]
+    branches: [main, 'test/**', 'tnd/**']
     tags: ['*']
   pull_request:
 jobs:
