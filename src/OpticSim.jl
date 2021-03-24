@@ -36,7 +36,6 @@ unzip(a) = map(x -> getfield.(a, x), fieldnames(eltype(a)))
 include("GlassCat/GlassCat.jl")
 import OpticSim.GlassCat: plot_indices, index, polyfit_indices, absairindex, absorption, info, glassid, glassname, glassforid, isair, findglass, modelglass, glassfromMIL, GlassID
 
-include("matrix.jl")
 include("constants.jl")
 include("utilities.jl")
 include("Geometry/Geometry.jl")
