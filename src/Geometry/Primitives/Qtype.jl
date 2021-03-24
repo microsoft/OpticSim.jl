@@ -1,7 +1,29 @@
+# MIT License
+
+# Copyright (c) Microsoft Corporation.
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE
+
 """
 Module to enclose QType polynomial specific functionality. For reference see:
-- [_Robust, efficient computational methods for axially symmetric optical aspheres_ - G. W. Forbes, 2010](https://www.osapublishing.org/viewmedia.cfm?uri=oe-18-19-19700&seq=0)
-- [_Characterizing the shape of freeform optics_ - G. W. Forbes, 2012](https://www.osapublishing.org/viewmedia.cfm?uri=oe-20-3-2483&seq=0)
+1. [_Robust, efficient computational methods for axially symmetric optical aspheres_ - G. W. Forbes, 2010](https://www.osapublishing.org/viewmedia.cfm?uri=oe-18-19-19700&seq=0)
+2. [_Characterizing the shape of freeform optics_ - G. W. Forbes, 2012](https://www.osapublishing.org/viewmedia.cfm?uri=oe-20-3-2483&seq=0)
 
 """
 module QType
@@ -10,6 +32,7 @@ using Plots
 using ..OpticSim: QTYPE_PRECOMP
 
 function F(m::Int, n::Int)::Float64
+    # 2 eq A.13
     @assert m > 0
     if n === 0
         return Float64((m^2 * factorial2(big(2m - 3))) / (2^(m + 1) * factorial(big(m - 1))))
@@ -23,9 +46,11 @@ function F(m::Int, n::Int)::Float64
     end
 end
 
+# 2 eq A.14
 γ(a::Int, b::Int) = (factorial(big(b)) * factorial2(big(2a + 2b - 3))) / (2^(a + 1) * factorial(big(a + b - 3)) * factorial2(big(2b - 1)))
 
 function G(m::Int, n::Int)::Float64
+    # 2 eq A.15
     @assert m > 0
     if n === 0
         return Float64(factorial2(big(2m - 1)) / (2^(m + 1) * factorial(big(m - 1))))
@@ -39,6 +64,7 @@ function G(m::Int, n::Int)::Float64
 end
 
 function factorial2(n::I)::I where {I<:Signed}
+    # Defined in 2 appendix A
     @assert n <= 21 || n isa BigInt # not sure what number is the limit but this should do it...
     if n <= 0
         return I(1)
@@ -48,6 +74,7 @@ function factorial2(n::I)::I where {I<:Signed}
 end
 
 function f(m::Int, n::Int, force::Bool = false)::Float64
+    # 2 eq A.18b
     @assert m > 0
     if m <= QTYPE_PRECOMP && n < QTYPE_PRECOMP && !force
         return @inbounds PRECOMP_f[m, n + 1]
@@ -61,6 +88,7 @@ function f(m::Int, n::Int, force::Bool = false)::Float64
 end
 
 function g(m::Int, n::Int, force::Bool = false)::Float64
+    # 2 eq A.18a
     @assert m > 0
     if m <= QTYPE_PRECOMP && n < QTYPE_PRECOMP && !force
         return @inbounds PRECOMP_g[m, n + 1]
@@ -70,6 +98,7 @@ function g(m::Int, n::Int, force::Bool = false)::Float64
 end
 
 @inline function A(m::Int, n::Int, force::Bool = false)::Float64
+    # 2 eq A.3a
     @assert m > 0
     if m <= QTYPE_PRECOMP && n < QTYPE_PRECOMP && !force
         return @inbounds PRECOMP_A[m, n + 1]
@@ -87,6 +116,7 @@ end
 end
 
 @inline function B(m::Int, n::Int, force::Bool = false)::Float64
+    # 2 eq A.3b
     @assert m > 0
     if m <= QTYPE_PRECOMP && n < QTYPE_PRECOMP && !force
         return @inbounds PRECOMP_B[m, n + 1]
@@ -106,6 +136,7 @@ end
 end
 
 @inline function C(m::Int, n::Int, force::Bool = false)::Float64
+    # 2 eq A.3c
     @assert m > 0
     if n === 0
         return NaN
@@ -123,6 +154,7 @@ end
 end
 
 @inline function D(m::Int, n::Int)::Float64
+    # 2 eq A.3d
     @assert m > 0
     return Float64((4n^2 - 1) * (m + n - 2) * (m + 2n - 3))
 end
@@ -151,12 +183,14 @@ function S(coeffs::SVector{NP1,T}, m::Int, x::T)::T where {T<:Real,NP1}
     αₙ₊₁ = zero(T)
     αₙ = zero(T)
     @inbounds for n in N:-1:0
+        # 2 eq B.6
         αₙ = coeffs[n + 1] + (A(m, n) + B(m, n) * x) * αₙ₊₁ - C(m, n + 1) * αₙ₊₂
         if n > 0
             αₙ₊₂ = αₙ₊₁
             αₙ₊₁ = αₙ
         end
     end
+    # 2 eq B.9
     if m === 1 && N > 2
         return αₙ / 2 - 2 / 5 * αₙ₊₂
     else
@@ -189,6 +223,7 @@ function dSdx(coeffs::SVector{NP1,T}, m::Int, x::T)::T where {T<:Real,NP1}
         k = (A(m, n) + Bmn * x)
         Cmnp1 = C(m, n + 1)
         if n < N # derivative calcualted from N-1 to 0, so ignore first iteration
+            # 2 eq B.11
             dαₙ = Bmn * αₙ₊₁ + k * dαₙ₊₁ - Cmnp1 * dαₙ₊₂
             if n > 0
                 dαₙ₊₂ = dαₙ₊₁
@@ -196,10 +231,12 @@ function dSdx(coeffs::SVector{NP1,T}, m::Int, x::T)::T where {T<:Real,NP1}
             end
         end
         # calculate height for use in next iter deriv
+        # 2 eq B.6
         αₙ = coeffs[n + 1] + k * αₙ₊₁ - Cmnp1 * αₙ₊₂
         αₙ₊₂ = αₙ₊₁
         αₙ₊₁ = αₙ
     end
+    # 2 eq B.10
     if m === 1 && N > 2
         return dαₙ / 2 - 2 / 5 * dαₙ₊₂
     else
@@ -217,6 +254,7 @@ function f0(n::Int, force::Bool = false)::Float64
     elseif n === 1
         return sqrt(19) / 2
     else
+        # 1 eq A.16
         return sqrt(n * (n + 1) + 3.0 - g0(n - 1, force)^2 - h0(n - 2, force)^2)
     end
 end
@@ -227,6 +265,7 @@ function g0(n::Int, force::Bool = false)::Float64
     elseif n === 0
         return -0.5
     else
+        # 1 eq A.15
         return -(1 + g0(n - 1, force) * h0(n - 1, force)) / f0(n, force)
     end
 end
@@ -235,6 +274,7 @@ function h0(n::Int, force::Bool = false)::Float64
     if n < QTYPE_PRECOMP && !force
         return @inbounds PRECOMP_h0[n + 1]
     else
+        # 1 eq A.14
         return -(n + 2) * (n + 1) / (2 * f0(n, force))
     end
 end
@@ -257,13 +297,17 @@ function S0(coeffs::SVector{NP1,T}, x::T)::T where {T<:Real,NP1}
         return coeffs[1]
     end
     k = T(2) - 4 * x
+    # 1 eq 3.7a
     αₙ₊₂ = coeffs[N + 1]
+    # 1 eq 3.7b
     αₙ₊₁ = coeffs[N] + k * αₙ₊₂
     for n in (N - 2):-1:0
+        # 1 eq 3.8
         αₙ = coeffs[n + 1] + k * αₙ₊₁ - αₙ₊₂
         αₙ₊₂ = αₙ₊₁
         αₙ₊₁ = αₙ
     end
+    # 1 eq 3.9
     return 2 * (αₙ₊₁ + αₙ₊₂) # a0 and a1
 end
 
@@ -283,9 +327,12 @@ function dS0dx(coeffs::SVector{NP1,T}, x::T)::T where {T<:Real,NP1}
     k = T(2) - 4 * x
     αₙ₊₂ = coeffs[N + 1]
     αₙ₊₁ = coeffs[N] + k * αₙ₊₂
+    # 1 eq 3.10a
     dαₙ₊₂ = zero(T)
+    # 1 eq 3.10b
     dαₙ₊₁ = -4 * αₙ₊₂
     for n in (N - 2):-1:0
+        # 1 eq 3.11
         dαₙ = k * dαₙ₊₁ - dαₙ₊₂ - 4 * αₙ₊₁
         dαₙ₊₂ = dαₙ₊₁
         dαₙ₊₁ = dαₙ
@@ -293,6 +340,7 @@ function dS0dx(coeffs::SVector{NP1,T}, x::T)::T where {T<:Real,NP1}
         αₙ₊₂ = αₙ₊₁
         αₙ₊₁ = αₙ
     end
+    # 1 eq 3.12
     return 2 * (dαₙ₊₁ + dαₙ₊₂) # a0 and a1
 end
 
@@ -306,6 +354,7 @@ function P(m::Int, n::Int, x::T)::T where {T<:Real}
         elseif n === 1
             return T(6) - 8 * x
         else
+            # 1 eq 2.6
             return (T(2) - 4 * x) * P(0, n - 1, x) - P(0, n - 2, x)
         end
     else
@@ -313,11 +362,14 @@ function P(m::Int, n::Int, x::T)::T where {T<:Real}
             return one(T) / 2
         elseif n === 1
             if m === 1
+                # 2 eq A.5a
                 return one(T) - x / 2
             else
+                # 2 eq A.5b
                 return m - 1 / 2 - (m - 1) * x
             end
         else
+            # 2 eq A.2
             return (A(m, n - 1) + B(m, n - 1) * x) * P(m, n - 1, x) - C(m, n - 1) * P(m, n - 2, x)
         end
     end
@@ -330,12 +382,14 @@ function Q(m::Int, n::Int, x::T)::T where {T<:Real}
         elseif n === 1
             return (T(13) - 16x) / sqrt(19)
         else
+            # 1 eq 2.7
             return (P(0, n, x) - g0(n - 1) * Q(0, n - 1, x) - h0(n - 2) * Q(0, n - 2, x)) / f0(n)
         end
     else
         if n === 0
             return 1 / (2 * f(m, 0))
         else
+            # 2 eq A.22
             return (P(m, n, x) - g(m, n - 1) * Q(m, n - 1, x)) / f(m, n)
         end
     end
@@ -352,7 +406,7 @@ function plot!(m::Int, n::Int)
             push!(vs, u^m * Q(m, n, u^2))
         end
     end
-    Plots.plot!(us, vs, label = m === 0 ? "u^2 * (1-u^2) * Q($m, $n, u^2)" : "u^m * Q($m, $n, u^2)")
+    Plots.plot!(us, vs, label = m === 0 ? "\$u^2(1-u^2)Q^{$m}_{$n}(u^2)\$" : "\$u^mQ^{$m}_{$n}(u^2)\$")
 end
 
 end # module QType
@@ -452,13 +506,16 @@ struct QTypeSurface{T,D,M,N} <: ParametricSurface{T,D}
         # calculate the α term coefficients for m = 0
         b0coeffs = zeros(MVector{N + 1,T})
         if N >= 0
+            # 1 eq 3.4a
             bₙp2 = α0coeffs[N + 1] / QType.f0(N)
             b0coeffs[N + 1] = bₙp2
             if N > 0
+                #1 eq 3.4b
                 bₙp1 = (α0coeffs[N] - QType.g0(N - 1) * bₙp2) / QType.f0(N - 1)
                 b0coeffs[N] = bₙp1
                 if N > 1
                     for n in (N - 2):-1:0
+                        # 1 eq 3.5
                         bₙ = (α0coeffs[n + 1] - QType.g0(n) * bₙp1 - QType.h0(n) * bₙp2) / QType.f0(n)
                         b0coeffs[n + 1] = bₙ
                         bₙp2 = bₙp1
@@ -490,6 +547,7 @@ struct QTypeSurface{T,D,M,N} <: ParametricSurface{T,D}
                 for n in (N - 1):-1:0
                     gmn = QType.g(m, n)
                     fmn = QType.f(m, n)
+                    # 2 eq B.4
                     dαₙ = (αcoeffsproc[m, n + 1] - gmn * lastdαₙ) / fmn
                     dβₙ = (βcoeffsproc[m, n + 1] - gmn * lastdβₙ) / fmn
                     lastdαₙ = dαₙ
@@ -526,6 +584,7 @@ function point(z::QTypeSurface{T,3,M,N}, ρ::T, θ::T)::SVector{3,T} where {T<:R
     sqrtq = sqrt(one(T) - q)
     h = z.curvature * r2 / (one(T) + sqrtq)
     if N > 0
+        # 2 eq B.1
         p = one(T) + z.conic * c2 * r2
         if p < zero(T)
             return SVector{3,T}(NaN, NaN, NaN)

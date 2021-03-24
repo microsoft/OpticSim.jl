@@ -1,3 +1,25 @@
+# MIT License
+
+# Copyright (c) Microsoft Corporation.
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE
+
 using StaticArrays
 
 @enum GlassType MODEL MIL AGF OTHER AIR
@@ -19,7 +41,6 @@ ismodel(a::GlassID) = a.type === MODEL
 isMIL(a::GlassID) = a.type === MIL
 isAGF(a::GlassID) = a.type === AGF
 isother(a::GlassID) = a.type === OTHER
-isair(a::GlassID) = a.type === AIR
 
 """
 Abstract type encapsulating all glasses.
@@ -93,6 +114,7 @@ end
 Get the ID of the glass, see [`GlassID`](@ref).
 """
 glassid(g::Glass) = g.ID
+
 """
     glassname(g::Union{AbstractGlass,GlassID})
 
@@ -116,19 +138,6 @@ end
 function Base.show(io::IO, g::Glass)
     print(io, glassname(g))
 end
-
-struct AirType <: AbstractGlass end
-Base.show(io::IO, ::AirType) = print(io, "Air")
-glassid(::AirType) = GlassID(AIR, 0)
-glassname(::AirType) = "GlassCat.Air"
-
-"""
-    isair(a) -> Bool
-
-Tests if `a` is Air.
-"""
-isair(::AirType) = true
-isair(::AbstractGlass) = false
 
 """
     glassforid(ID::GlassID)
@@ -341,11 +350,6 @@ function info(io::IO, glass::Glass)
             println(io, "$(lpad("$(λ)μm", 15))$(lpad(t, 15))$(lpad("$(τ)mm", 15))")
         end
     end
-end
-
-function info(io::IO, ::AirType)
-    println(io, "GlassCat.Air")
-    println(io, "Material representing air, RI is always 1.0 at system temperature and pressure, absorption is always 0.0.")
 end
 
 info(g::AbstractGlass) = info(stdout, g)

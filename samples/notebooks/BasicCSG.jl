@@ -83,9 +83,21 @@ end
 
 # ╔═╡ 5cc45e60-8c1f-11eb-3e4a-17c26a3214f6
 begin
+	function beziersurface()
+		points = map(
+			x -> collect(x),
+			[
+				(0.0, 0.0, 0.0) (0.0, 0.33, 0.0) (0.0, 0.66, 0.0) (0.0, 1.0, 0.0)
+				(0.33, 0.0, 0.0) (0.33, 0.33, 1.0) (0.33, 0.66, 1.0) (0.33, 1.0, 0.0)
+				(0.66, 0.0, 0.0) (0.66, 0.33, 1.0) (0.66, 0.66, 1.0) (0.66, 1.0, 0.0)
+				(1.0, 0.0, 0.0) (1.0, 0.33, 0.0) (1.0, 0.66, 0.0) (1.0, 1.0, 0.0)
+			],
+		)
+		return BezierSurface{OpticSim.Euclidean,Float64,3,3}(points)
+	end	
 	
 	# canonic bezier surface
-	csg1_surf1 = AcceleratedParametricSurface(TestData.beziersurface(), 25);
+	csg1_surf1 = AcceleratedParametricSurface(beziersurface(), 25);
 	
 	# two transformed copies of the canonic bezier surface
 	csg1_surf2 = leaf(csg1_surf1, OpticSim.translation(-0.5, -0.5, 0.0))
@@ -101,9 +113,6 @@ begin
 	md"## Define Surfaces and Perform CSG Optrations (code)"
 end
 
-
-# ╔═╡ ea18cd10-8c23-11eb-23c7-25079c4d0d84
-(cyl_rot_x, cyl_rot_y, cyl_rot_z)
 
 # ╔═╡ 5f77cfd0-8854-11eb-377c-ef975f9abf63
 md"## Initialization Stuff - Can be ignored"
@@ -245,7 +254,6 @@ end
 # ╟─576fb1c0-8ba3-11eb-1c10-fdb51172e2c9
 # ╟─5cc45e60-8c1f-11eb-3e4a-17c26a3214f6
 # ╟─aa47f750-8c1f-11eb-21d7-d3a969fb1f6d
-# ╠═ea18cd10-8c23-11eb-23c7-25079c4d0d84
 # ╟─8ba2f700-8c1f-11eb-209f-b76b9713b576
 # ╟─5f77cfd0-8854-11eb-377c-ef975f9abf63
 # ╟─d6c83680-879e-11eb-31d4-7dbda7e93e48

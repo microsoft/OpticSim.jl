@@ -1,8 +1,38 @@
+<p align="center">
+  <a href="https://microsoft.github.io/OpticSim.jl/dev/">
+    <img src=docs/src/assets/logo.svg height=128px style="text-align:center">
+  </a>
+</p>
+
 # OpticSim.jl
 
-[![](https://img.shields.io/badge/docs-dev-blue.svg)](https://vigilant-giggle-6a673aa5.pages.github.io/dev/)
+<table>
+<thead>
+  <tr>
+    <th>Documentation</th>
+    <th>Build Status</th>
+  </tr>
+</thead>
+<tbody>
+  <tr>
+    <td>
+      <a href="https://microsoft.github.io/OpticSim.jl/dev/">
+        <img src="https://img.shields.io/badge/docs-dev-blue.svg" alt="docs dev">
+      </a>
+    </td>
+    <td>
+      <a href="https://github.com/microsoft/OpticSim.jl/actions/workflows/CI.yml">
+        <img src="https://github.com/microsoft/OpticSim.jl/workflows/CI/badge.svg" alt="CI action">
+      </a>
+      <a href="https://codecov.io/gh/microsoft/OpticSim.jl">
+        <img src="https://codecov.io/gh/microsoft/OpticSim.jl/branch/main/graph/badge.svg?token=9QxvIHt5F5" alt="codecov">
+      </a>
+    </td>
+  </tr>
+</tbody>
+</table>
 
-OpticSim.jl is a [Julia](https://julialang.org/) package for simulation and optimization of complex optical systems developed by the Microsoft Research Interactive Media Group and the Microsoft HART group.
+OpticSim.jl is a [Julia](https://julialang.org/) geometric optics (ray tracing) package for simulation and optimization of complex optical systems developed by the Microsoft Research Interactive Media Group and the Microsoft HART group.
 
 It is designed to allow optical engineers to create optical systems procedurally and then to simulate and optimize them. Unlike Zemax, Code V, or other interactive optical design systems OpticSim.jl has limited support for interactivity, primarily in the tools for visualizing optical systems.
 
