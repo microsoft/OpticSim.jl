@@ -43,7 +43,7 @@ include("Geometry/Geometry.jl")
 include("Optical/Optical.jl")
 include("Visualization.jl")
 include("Examples.jl")
-include("Optimization/Optimizable.jl")
+include("Optimization/Optimization.jl")
 
 ################################################
 

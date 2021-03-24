@@ -11,9 +11,9 @@ Merit functions must currently be implemented by the user, this is quite straigh
 There are some helper functions implemented for [`AxisymmetricOpticalSystem`](@ref)s which can make optimization of basic systems much easier:
 
 ```@docs
-OpticSim.Optimizable
-OpticSim.Optimizable.optimizationvariables
-OpticSim.Optimizable.updateoptimizationvariables
+OpticSim.Optimization
+OpticSim.Optimization.optimizationvariables
+OpticSim.Optimization.updateoptimizationvariables
 ```
 
 It is of course possible to write your own optimization loop for more complex (i.e. non-AxisymmetricOpticalSystem) systems and this _should_ work without issue.
@@ -27,7 +27,7 @@ using Optim
 
 function objective(a::AbstractVector{T}, b::AxisymmetricOpticalSystem{T}, samples::Int = 3) where {T}
     # RMSE spot size
-    system = Optimizable.updateoptimizationvariables(b, a)
+    system = Optimization.updateoptimizationvariables(b, a)
     # distribute rays evenly across entrance pupil using HexapolarField
     field = HexapolarField(system, collimated = true, samples = samples)
     error = zero(T)
@@ -50,7 +50,7 @@ function objective(a::AbstractVector{T}, b::AxisymmetricOpticalSystem{T}, sample
     return error
 end
 
-start, lower, upper = Optimizable.optimizationvariables(system)
+start, lower, upper = Optimization.optimizationvariables(system)
 optimobjective = arg -> objective(arg, system)
 gcfg = ForwardDiff.GradientConfig(optimobjective, start, ForwardDiff.Chunk{1}()) # speed up ForwardDiff significantly
 hcfg = ForwardDiff.HessianConfig(optimobjective, start, ForwardDiff.Chunk{1}())
@@ -60,5 +60,5 @@ df = TwiceDifferentiable(optimobjective, g!, h!, start)
 dfc = TwiceDifferentiableConstraints(lower, upper) # constrain the optimization to avoid e.g. thickness < 0
 res = optimize(df, dfc, start, algo, Optim.Options(show_trace = true, iterations = 100, allow_f_increases = true))
 final = Optim.minimizer(res)
-new_system = Optimizable.updateoptimizationvariables(system, final)
+new_system = Optimization.updateoptimizationvariables(system, final)
 ```
