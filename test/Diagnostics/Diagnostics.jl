@@ -33,7 +33,7 @@ using StaticArrays
 import Unitful
 import Plots
 
-include("TestData.jl")
+include("../TestData/TestData.jl")
 
 function testbigfloat()
     λ = 550 * Unitful.u"nm"

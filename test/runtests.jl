@@ -34,7 +34,7 @@ using OpticSim
 using OpticSim: findspan, makemesh, knotstoinsert, coefficients, inside, quadraticroots, tobeziersegments, evalcsg, makiemesh
 # interval imports
 using OpticSim: α, halfspaceintersection, positivehalfspace, lower, upper, EmptyInterval, rayorigininterval, intervalcomplement, intervalintersection, intervalunion, RayOrigin, Infinity, Intersection
-include("TestData.jl")
+include("TestData/TestData.jl")
 # bounding box imports
 using OpticSim: doesintersect
 # RBT imports
@@ -97,7 +97,7 @@ include("testsets/Emitters.jl")  # TODO
 include("testsets/Comparison.jl")
 include("testsets/Visualization.jl")
 
-include("Benchmarks.jl")
+include("Benchmarks/Benchmarks.jl")
 include("testsets/Allocations.jl")
 
 include("testsets/GlassCat.jl")
