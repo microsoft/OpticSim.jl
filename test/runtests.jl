@@ -51,17 +51,7 @@ const RTOLERANCE = 1e-10
 const ATOLERANCE = 10 * eps(Float64)
 const SEED = 12312487
 const ALL_TESTS = isempty(ARGS) || "all" in ARGS || "All" in ARGS || "ALL" in ARGS
-
-"""Optional testset: if the name of the testset is passed as an arg then it will be executed. If none are specified, or "all" is given as an arg then all optional testsets will be executed """
-macro otestset(name, expr)
-    quote
-        if ALL_TESTS || $name in ARGS
-            @testset $name begin
-                $expr
-            end
-        end
-    end
-end
+const TESTSET_DIR = "testsets"
 
 """Evalute all functions not requiring arguments in a given module and test they don't throw anything"""
 macro test_all_no_arg_functions(m)
@@ -87,20 +77,24 @@ macro test_all_no_arg_functions(m)
     end
 end
 
-include("testsets/JuliaLang.jl")
-# include("testsets/BVH.jl")
-include("testsets/TestData.jl")
-# include("testsets/Examples.jl")  # slow
-include("testsets/General.jl")
-include("testsets/SurfaceDefs.jl")
-include("testsets/Intersection.jl")
-include("testsets/Lenses.jl")
-include("testsets/OpticalSystem.jl")
-include("testsets/Emitters.jl")  # TODO
-include("testsets/Comparison.jl")
-include("testsets/Visualization.jl")
-
 include("Benchmarks/Benchmarks.jl")
-include("testsets/Allocations.jl")
 
-include("testsets/GlassCat.jl")
+alltestsets = [
+    "JuliaLang",
+    # "BVH",
+    "TestData",
+    # "Examples", # slow
+    "General",
+    "SurfaceDefs",
+    "Intersection",
+    "Lenses",
+    "OpticalSystem",
+    "Emitters", # TODO
+    "Comparison",
+    "Visualization",
+    "Allocations",
+    "GlassCat",
+]
+
+runtestsets = ALL_TESTS ? alltestsets : intersect(alltestsets, ARGS)
+include.([joinpath(TESTSET_DIR, "$(testset).jl") for testset in runtestsets])

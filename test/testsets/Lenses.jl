@@ -1,4 +1,4 @@
-@otestset "Lenses" begin
+@testset "Lenses" begin
     test_n = 5000
 
     """Creates a 3D vector uniformly distributed on the sphere by rejection sampling, i.e., discarding all points with norm > 1.0"""
