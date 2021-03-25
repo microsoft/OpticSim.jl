@@ -33,6 +33,9 @@ jobs:
           "C:\Program Files\7-Zip\7z.exe" x mesa.7z
           mklink opengl32.dll "x64\opengl32.dll"
           mklink libglapi.dll "x64\libglapi.dll"
+      - name: Install GR dependencies (Linux only)
+        if: runner.os == 'Linux'
+        run: sudo apt install libxt6 libxrender1 libxext6 libgl1-mesa-glx libqt5widgets5
       - uses: actions/cache@v2
         env:
           cache-name: cache-artifacts
