@@ -25,7 +25,7 @@ Optimization interface consists of two functions `optimizationvariables` and `up
 `optimizationvariables` packs variables to be optimized into a vector.
 `updateoptimizationvariables` receives a vector of variables and creates a new optical system with the variable values.
 """
-module Optimizable
+module Optimization
 
 using ..OpticSim
 using ..OpticSim: detectorsize, temperature, pressure
@@ -123,4 +123,4 @@ function updateoptimizationvariables(a::AxisymmetricOpticalSystem{T}, optimizati
 end
 
 end #module
-export Optimizable
+export Optimization

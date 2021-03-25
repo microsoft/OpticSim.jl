@@ -72,7 +72,7 @@ Vis.surfacesag(AcceleratedParametricSurface(TestData.zernikesurface2()), (256, 2
 ```
 
 ```@example base
-using Plots; include("../../test/TestData.jl") # hide
+using Plots; include("../../test/TestData/TestData.jl") # hide
 p = Vis.surfacesag(AcceleratedParametricSurface(TestData.zernikesurface2()), (256, 256), (1.55, 1.55))
 Plots.savefig(p, "assets/surface_sag.svg"); nothing # hide
 ```

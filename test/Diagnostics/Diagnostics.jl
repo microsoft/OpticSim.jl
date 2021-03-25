@@ -26,14 +26,14 @@ module Diagnostics
 using OpticSim
 using OpticSim: replprint
 using OpticSim.Vis
-using OpticSim.Optimizable
+using OpticSim.Optimization
 using LinearAlgebra
 using StaticArrays
 
 import Unitful
 import Plots
 
-include("TestData.jl")
+include("../TestData/TestData.jl")
 
 function testbigfloat()
     λ = 550 * Unitful.u"nm"
@@ -173,7 +173,7 @@ end
 
 function RMS_spot_size(a::AbstractVector{T}, b::AxisymmetricOpticalSystem{T}, samples::Int = 3) where {T}
     # RMSE spot size
-    lens = Optimizable.updateoptimizationvariables(b, a)
+    lens = Optimization.updateoptimizationvariables(b, a)
     field = HexapolarField(lens, collimated = true, samples = samples)
     error = zero(T)
     hits = 0
@@ -196,7 +196,7 @@ end
 
 function testfinitedifferences()
     lens = Examples.doubleconvex(60.0, -60.0)
-    start = Optimizable.optimizationvariables(lens)
+    start = Optimization.optimizationvariables(lens)
 
     u = 60.0
     println("time to compute objective function $(@time RMS_spot_size([u,-60.0],lens))")
@@ -213,7 +213,7 @@ export testfinitedifferences
 function testoptimization(; lens = Examples.cooketriplet(), constrained = false, algo = constrained ? IPNewton() : LBFGS(), chunk_size = 1, samples = 3)
     @info "NaN safe: $(ForwardDiff.NANSAFE_MODE_ENABLED)"
 
-    start, lower, upper = Optimizable.optimizationvariables(lens)
+    start, lower, upper = Optimization.optimizationvariables(lens)
     optimobjective = (arg) -> RMS_spot_size(arg, lens, samples)
 
     if chunk_size == 0
@@ -260,7 +260,7 @@ function testoptimization(; lens = Examples.cooketriplet(), constrained = false,
     # println()
 
     final = Optim.minimizer(res)
-    newlens = Optimizable.updateoptimizationvariables(lens, final)
+    newlens = Optimization.updateoptimizationvariables(lens, final)
     @info "Result: $final"
 
     field = HexapolarField(newlens, collimated = true, samples = samples)
@@ -354,7 +354,7 @@ function simpletest()
 end
 
 function RMS_spot_size(lens, x::T...) where {T}
-    lens = Optimizable.updateoptimizationvariables(lens, collect(x))
+    lens = Optimization.updateoptimizationvariables(lens, collect(x))
     field = HexapolarField(lens, collimated = true, samples = 10)
     error = zero(T)
     hits = 0
@@ -377,13 +377,13 @@ function RMS_spot_size(lens, x::T...) where {T}
 end
 
 function testZygoteGradient(lens::S, objective::Function) where {S<:OpticalSystem}
-    vars = Optimizable.optimizationvariables(lens)
+    vars = Optimization.optimizationvariables(lens)
     gradient = objective'(vars)
     println(gradient)
 end
 
 function testgenericoptimization(lens::S, objective::Function) where {S<:OpticalSystem}
-    vars = Optimizable.optimizationvariables(lens)
+    vars = Optimization.optimizationvariables(lens)
     function newobjective(a)
         objective(lens, a...)
     end
@@ -420,7 +420,7 @@ function testgenericoptimization(lens::S, objective::Function) where {S<:Optical
     # replprint( @benchmark(FiniteDifferences.grad($fdm,$newobjective,$vars...)))
     # println("finite difference gradient $(FiniteDifferences.grad(fdm,newobjective,vars...))")
     # optimize!(model)
-    lens = Optimizable.updateoptimizationvariables(lens, value.(x))
+    lens = Optimization.updateoptimizationvariables(lens, value.(x))
 
     Vis.drawtracerays(lens, trackallrays = true, test = true)
 end

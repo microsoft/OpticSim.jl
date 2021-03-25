@@ -217,7 +217,7 @@ function chebyshevlens()
 end
 
 function gridsaglens()
-    topsurface = leaf(AcceleratedParametricSurface(GridSagSurface{Float64}(joinpath(@__DIR__, "../test/test.GRD"), radius = -25.0, conic = 0.4, interpolation = GridSagBicubic), interface = FresnelInterface{Float64}(OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air)), translation(0.0, 0.0, 5.0))
+    topsurface = leaf(AcceleratedParametricSurface(GridSagSurface{Float64}(joinpath(@__DIR__, "../../test/test.GRD"), radius = -25.0, conic = 0.4, interpolation = GridSagBicubic), interface = FresnelInterface{Float64}(OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air)), translation(0.0, 0.0, 5.0))
     botsurface = leaf(Plane(0.0, 0.0, -1.0, 0.0, 0.0, -5.0, vishalfsizeu = 9.5, vishalfsizev = 9.5, interface = FresnelInterface{Float64}(OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air)))
     barrel = leaf(Cylinder(9.0, 20.0, interface = FresnelInterface{Float64}(OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air, reflectance = zero(Float64), transmission = zero(Float64))))
     return csgintersection(barrel, csgintersection(topsurface, botsurface))(RigidBodyTransform{Float64}(0.0, Float64(π), 0.0, 0.0, 0.0, -5.0))

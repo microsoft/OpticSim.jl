@@ -32,7 +32,7 @@ and pop it from the set
         OpticSim.Examples => [],
         OpticSim.Chebyshev => [],
         OpticSim.GlassCat => [],
-        OpticSim.Optimizable => [],
+        OpticSim.Optimization => [],
     )
 
     for (mod, ignore_list) in methods_to_ignore
