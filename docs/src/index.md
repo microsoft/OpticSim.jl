@@ -1,6 +1,6 @@
 # OpticSim.jl
 
-OpticSim.jl is a [Julia](https://julialang.org/) package for geometric optics (ray tracing) simulation and optimization of complex optical systems developed by the Microsoft Research Interactive Media Group and the Microsoft Hardware Architecture incubation Team (HART) group.
+OpticSim.jl is a [Julia](https://julialang.org/) package for geometric optics (ray tracing) simulation and optimization of complex optical systems developed by the Microsoft Research Interactive Media Group and the Microsoft Hardware Architecture Incubation Team (HART).
 
 It is designed to allow optical engineers to create optical systems procedurally and then to simulate and optimize them. Unlike Zemax, Code V, or other interactive optical design systems OpticSim.jl has limited support for interactivity, primarily in the tools for visualizing optical systems.
 
@@ -16,12 +16,13 @@ OpticSim.jl is optimized for use with Julia 1.5.2-1.6.0; using other versions ma
 The system will automatically download glass catalog (.agf) files from some manufacturers when the package is built for the first time. These files are in an industry standard format and can be downloaded from many optical glass manufacturers.
 
 Here are links to several publicly available glass files:
-*   [NIKON](https://www.nikon.com/products/optical-glass/assets/pdf/nikon_zemax_data.zip) (automatically downloaded)
-*   [NHG](http://hbnhg.com/down/data/nhgagp.zip) (you have to manually download)
-*   [OHARA](https://www.oharacorp.com/xls/OHARA_201130_CATALOG.zip) (automatically downloaded)
-*   [HOYA](https://hoyaoptics.com/wp-content/uploads/2019/10/HOYA20170401.zip) (automatically downloaded)
-*   [Sumita](https://www.sumita-opt.co.jp/en/download/) (automatically downloaded)
-*   [SCHOTT](https://www.schott.com/advanced_optics/english/download/index.html) (automatically downloaded)
+
+* [NIKON](https://www.nikon.com/products/optical-glass/assets/pdf/nikon_zemax_data.zip) (automatically downloaded)
+* [NHG](http://hbnhg.com/down/data/nhgagp.zip) (you have to manually download)
+* [OHARA](https://www.oharacorp.com/xls/OHARA_201130_CATALOG.zip) (automatically downloaded)
+* [HOYA](https://hoyaoptics.com/wp-content/uploads/2019/10/HOYA20170401.zip) (automatically downloaded)
+* [Sumita](https://www.sumita-opt.co.jp/en/download/) (automatically downloaded)
+* [SCHOTT](https://www.schott.com/advanced_optics/english/download/index.html) (automatically downloaded)
 
 OpticSim.jl will generate a glass database from the available files in `deps/downloads/glasscat/` and store it in the file `AGFClassCat.jl`. See [GlassCat](@ref) for a detailed description, including instructions on how to add more catalogs.
 
@@ -56,4 +57,3 @@ julia --project=[your_project] --sysimage=[path_to_sysimage]
 ```
 
 If OpticSim.jl is installed in the base project then there is no need for the `--project` flag in the above commands.
-

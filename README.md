@@ -32,7 +32,7 @@
 </tbody>
 </table>
 
-OpticSim.jl is a [Julia](https://julialang.org/) geometric optics (ray tracing) package for simulation and optimization of complex optical systems developed by the Microsoft Research Interactive Media Group and the Microsoft Hardware Architecture incubation Team (HART) group.
+OpticSim.jl is a [Julia](https://julialang.org/) package for geometric optics (ray tracing) simulation and optimization of complex optical systems developed by the Microsoft Research Interactive Media Group and the Microsoft Hardware Architecture Incubation Team (HART).
 
 It is designed to allow optical engineers to create optical systems procedurally and then to simulate and optimize them. Unlike Zemax, Code V, or other interactive optical design systems OpticSim.jl has limited support for interactivity, primarily in the tools for visualizing optical systems.
 
@@ -48,11 +48,11 @@ Before you can use the software you will need to download glass files. See the d
 
 This project welcomes contributions and suggestions.  Most contributions require you to agree to a
 Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
-the rights to use your contribution. For details, visit https://cla.opensource.microsoft.com.
+the rights to use your contribution. For details, visit <https://cla.opensource.microsoft.com>.
 
 When you submit a pull request, a CLA bot will automatically determine whether you need to provide
 a CLA and decorate the PR appropriately (e.g., status check, comment). Simply follow the instructions
-provided by the bot. You will only need to do this once across all repos using our CLA.
+provided by the bot. You will only need to do this once across all repositories using our CLA.
 
 This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
 For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
