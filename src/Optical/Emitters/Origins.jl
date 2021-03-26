@@ -1,11 +1,12 @@
 module Origins
 
-import OpticSim
+import ...OpticSim
+
+using ..Emitters
+using .Geometry
+
 using LinearAlgebra
 using Distributions
-using ..Emitters
-using ..Geometry
-
 
 abstract type AbstractOriginDistribution{T<:Real} end
 

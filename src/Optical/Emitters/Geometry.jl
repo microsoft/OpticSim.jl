@@ -1,9 +1,9 @@
 module Geometry     
 
-import OpticSim
+import ...OpticSim
+
 using LinearAlgebra
 using StaticArrays
-
 
 struct Vec3D{T} <: FieldVector{3, T}
     x::T

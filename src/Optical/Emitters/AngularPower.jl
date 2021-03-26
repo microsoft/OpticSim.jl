@@ -1,9 +1,10 @@
 module AngularPower
 
-import OpticSim
-using LinearAlgebra
+import ...OpticSim
 using ..Emitters
-using ..Geometry
+using .Geometry
+
+using LinearAlgebra
 
 abstract type AbstractAngularPowerDistribution{T<:Real} end
 

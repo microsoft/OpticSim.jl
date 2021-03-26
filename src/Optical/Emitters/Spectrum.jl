@@ -1,10 +1,10 @@
 module Spectrum     
 
-import OpticSim
+import ...OpticSim
+using ..Emitters
+
 using DataFrames
 using Distributions
-
-using ..Emitters
 
 abstract type AbstractSpectrum{T<:Real} end
 

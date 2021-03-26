@@ -1,6 +1,14 @@
 module Visualization
 
-import OpticSim
+import ...OpticSim
+using ..Emitters
+using .Geometry
+using .Spectrum
+using .Directions
+using .Origins
+using .AngularPower
+using .Sources
+
 using LinearAlgebra
 using Distributions
 using StaticArrays
@@ -8,14 +16,6 @@ using StaticArrays
 import Makie
 import Makie.AbstractPlotting
 import Makie.AbstractPlotting.MakieLayout
-
-using ..Emitters
-using ..Geometry
-using ..Spectrum
-using ..Directions
-using ..Origins
-using ..AngularPower
-using ..Sources
 
 const ARRROW_LENGTH = 0.5
 const ARRROW_SIZE = 0.01

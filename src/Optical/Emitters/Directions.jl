@@ -1,9 +1,10 @@
 module Directions
 
-import OpticSim
-using LinearAlgebra
+import ...OpticSim
 using ..Emitters
-using ..Geometry
+using .Geometry
+
+using LinearAlgebra
 
 abstract type AbstractDirectionDistribution{T<:Real} end
 

@@ -1,14 +1,15 @@
 module Sources
 
-import OpticSim
+import ...OpticSim
+using ..Emitters
+using .Geometry
+using .Spectrum
+using .Directions
+using .Origins
+using .AngularPower
+
 using LinearAlgebra
 using Distributions
-using ..Emitters
-using ..Geometry
-using ..Spectrum
-using ..Directions
-using ..Origins
-using ..AngularPower
 
 abstract type AbstractSource{T<:Real} <: OpticSim.OpticalRayGenerator{T} end
 
