@@ -44,11 +44,7 @@ include("Visualization/Vis.jl")
 include("Examples/Examples.jl")
 include("Optimization/Optimization.jl")
 
-# TODO: RG: the following include is seperated from the Optical include dur to the new approach of putting the visualazation
-# part with the logic. We need to come up with a better approch to how and where visualization code should reside.
-#include("Optical/Emitters/Emitters.jl")
-
-include("Misc/Misc.jl")
+include("NotebooksUtils/NotebooksUtils.jl")
 
 ################################################
 
