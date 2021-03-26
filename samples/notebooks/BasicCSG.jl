@@ -24,7 +24,9 @@ begin
 	using OpticSim
 	using OpticSim.Emitters
 	using OpticSim.Emitters.Geometry
-	
+
+	include(joinpath(@__DIR__, "../../test/TestData/TestData.jl"))
+
 	defs = NB.Defs("ran")
 
 	NB.DefsClearHTML(defs)
