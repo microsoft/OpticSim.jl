@@ -11,7 +11,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        version: ['1.5']
+        version: ['1.5', '1.6', 'nightly']
         os: [ubuntu-18.04, windows-latest]
         arch: [x64]
         include:
