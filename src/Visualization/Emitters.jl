@@ -1,13 +1,11 @@
-module Visualization
-
-import ...OpticSim
-using ..Emitters
-using .Geometry
-using .Spectrum
-using .Directions
-using .Origins
-using .AngularPower
-using .Sources
+import ..OpticSim
+using ..OpticSim.Emitters
+using ..OpticSim.Emitters.Geometry
+using ..OpticSim.Emitters.Spectrum
+using ..OpticSim.Emitters.Directions
+using ..OpticSim.Emitters.Origins
+using ..OpticSim.Emitters.AngularPower
+using ..OpticSim.Emitters.Sources
 
 using LinearAlgebra
 using Distributions
@@ -176,6 +174,3 @@ function OpticSim.Vis.draw!(scene::MakieLayout.LScene, s::Sources.CompositeSourc
     # #     OpticSim.Vis.draw!(scene, ray)
     # # end
 end
-
-
-end # module Visualization

@@ -44,6 +44,5 @@ include("Directions.jl")
 include("Origins.jl")
 include("AngularPower.jl")
 include("Sources.jl")
-include("Visualization.jl")
 
 end # module Emitters
