@@ -1,4 +1,6 @@
 @otestset "Visualization" begin
+    using GLMakie
+    GLMakie.activate!()
     # test that this all at least runs
     surf1 = AcceleratedParametricSurface(TestData.beziersurface(), 15)
     surf2 = AcceleratedParametricSurface(TestData.upsidedownbeziersurface(), 15)

@@ -11,10 +11,6 @@ using LinearAlgebra
 using Distributions
 using StaticArrays
 
-import Makie
-import Makie.AbstractPlotting
-import Makie.AbstractPlotting.MakieLayout
-
 const ARRROW_LENGTH = 0.5
 const ARRROW_SIZE = 0.01
 const MARKER_SIZE = 15

@@ -40,7 +40,7 @@ include("constants.jl")
 include("utilities.jl")
 include("Geometry/Geometry.jl")
 include("Optical/Optical.jl")
-include("Visualization/Vis.jl")
+include("Vis/Vis.jl")
 include("Examples/Examples.jl")
 include("Optimization/Optimization.jl")
 
