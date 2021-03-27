@@ -19,8 +19,8 @@ begin
 
 	import JSServe
 	using Makie
-	using AbstractPlotting
-	using AbstractPlotting.MakieLayout
+	using Makie.AbstractPlotting
+	using Makie.AbstractPlotting.MakieLayout
 	using OpticSim
 	using OpticSim.Emitters
 	using OpticSim.Emitters.Geometry
