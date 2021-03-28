@@ -82,7 +82,6 @@ include("Benchmarks/Benchmarks.jl")
 alltestsets = [
     "JuliaLang",
     # "BVH",
-    "TestData",
     # "Examples", # slow
     "General",
     "SurfaceDefs",
