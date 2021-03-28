@@ -44,6 +44,15 @@ include("Visualization/Visualization.jl")
 include("Examples/Examples.jl")
 include("Optimization/Optimization.jl")
 
+#initialize these caches here so they will get the correct number of threads from the load time environment, rather than the precompile environment. The latter happens if the initialization happens in the const definition. If the precompile and load environments have different numbers of threads this will cause an error.
+function __init__()
+    for _ in 1:Threads.nthreads()
+        push!(threadedtrianglepool,Dict{DataType,TrianglePool}((Float64 => TrianglePool{Float64}())))
+        push!(threadedintervalpool,Dict{DataType,IntervalPool}((Float64 => IntervalPool{Float64}())))
+    end
+end
+
+
 ################################################
 
 # This can be used to track NaN, particularly in ForwardDiff gradients, causing problems
