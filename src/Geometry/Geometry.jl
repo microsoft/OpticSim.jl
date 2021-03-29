@@ -20,6 +20,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE
 
+include("Transform.jl")
+using .Geometry
+
 include("Ray.jl")
 
 include("Surface.jl")
@@ -33,6 +36,9 @@ include("CSG/Interval.jl")
 include("Primitives/NonCSG/Triangle.jl")
 
 include("CSG/RigidBodyTransform.jl")
+
+# this should move to the begining of the file after we move the over-riding type-specific functions from it.
+include("Transform2.jl")
 
 include("BoundingBox.jl")
 
