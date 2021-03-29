@@ -350,9 +350,9 @@ function trace(system::CSGOpticalSystem{T}, raygenerator::OpticalRayGenerator{T}
         if k % update_timesteps == 0
             total_traced += update_timesteps
             dif = round(time() - start_time, digits = 1)
-            left = round((time() - start_time) * (length(sources) / total_traced - 1), digits = 1)
+            left = round((time() - start_time) * (length(raygenerator) / total_traced - 1), digits = 1)
             if printprog
-                print("\rTraced: ~ $t / $(length(sources))        Elapsed: $(dif)s        Left: $(left)s           ")
+                print("\rTraced: ~ $t / $(length(raygenerator))        Elapsed: $(dif)s        Left: $(left)s           ")
             end
         end
         trace(system, r, test = test)
@@ -409,9 +409,9 @@ function traceMT(system::CSGOpticalSystem{T,S}, raygenerator::OpticalRayGenerato
     total_traced = Threads.Atomic{Int}(0)
     update_timesteps = 1000
     Threads.@threads for sys in copies
-        (system, sources) = sys
+        (system, raygenerator) = sys
         i = Threads.threadid()
-        len, rem = divrem(length(sources), N)
+        len, rem = divrem(length(raygenerator), N)
         # not enough iterations for all the threads
         if len == 0
             if i > rem
@@ -420,7 +420,7 @@ function traceMT(system::CSGOpticalSystem{T,S}, raygenerator::OpticalRayGenerato
             len, rem = 1, 0
         end
         # compute this thread's iterations
-        f = firstindex(sources) + ((i - 1) * len)
+        f = firstindex(raygenerator) + ((i - 1) * len)
         l = f + len - 1
         # distribute remaining iterations evenly
         if rem > 0
@@ -439,19 +439,19 @@ function traceMT(system::CSGOpticalSystem{T,S}, raygenerator::OpticalRayGenerato
                     Threads.atomic_add!(total_traced, update_timesteps)
                     dif = round(time() - start_time, digits = 1)
                     t = total_traced[]
-                    left = round((time() - start_time) * (length(sources) / t - 1), digits = 1)
+                    left = round((time() - start_time) * (length(raygenerator) / t - 1), digits = 1)
                     if printprog
-                        print("\rTraced: ~ $t / $(length(sources))        Elapsed: $(dif)s        Left: $(left)s           ")
+                        print("\rTraced: ~ $t / $(length(raygenerator))        Elapsed: $(dif)s        Left: $(left)s           ")
                     end
                 end
-                trace(system, generateray(sources, k), test = test)
+                trace(system, generateray(raygenerator, k), test = test)
             end
         else
             for k in f:l
                 if k % update_timesteps == 0
                     Threads.atomic_add!(total_traced, update_timesteps)
                 end
-                trace(system, generateray(sources, k), test = test)
+                trace(system, generateray(raygenerator, k), test = test)
             end
         end
     end
@@ -516,9 +516,9 @@ function tracehitsMT(system::CSGOpticalSystem{T}, raygenerator::OpticalRayGenera
     total_traced = Threads.Atomic{Int}(0)
     update_timesteps = 1000
     Threads.@threads for sys in copies
-        (system, sources) = sys
+        (system, raygenerator) = sys
         i = Threads.threadid()
-        len, rem = divrem(length(sources), N)
+        len, rem = divrem(length(raygenerator), N)
         # not enough iterations for all the threads
         if len == 0
             if i > rem
@@ -527,7 +527,7 @@ function tracehitsMT(system::CSGOpticalSystem{T}, raygenerator::OpticalRayGenera
             len, rem = 1, 0
         end
         # compute this thread's iterations
-        f = firstindex(sources) + ((i - 1) * len)
+        f = firstindex(raygenerator) + ((i - 1) * len)
         l = f + len - 1
         # distribute remaining iterations evenly
         if rem > 0
@@ -546,12 +546,12 @@ function tracehitsMT(system::CSGOpticalSystem{T}, raygenerator::OpticalRayGenera
                     Threads.atomic_add!(total_traced, update_timesteps)
                     dif = round(time() - start_time, digits = 1)
                     t = total_traced[]
-                    left = round((time() - start_time) * (length(sources) / t - 1), digits = 1)
+                    left = round((time() - start_time) * (length(raygenerator) / t - 1), digits = 1)
                     if printprog
-                        print("\rTraced: ~ $t / $(length(sources))        Elapsed: $(dif)s        Left: $(left)s           ")
+                        print("\rTraced: ~ $t / $(length(raygenerator))        Elapsed: $(dif)s        Left: $(left)s           ")
                     end
                 end
-                lt = trace(system, generateray(sources, k), test = test)
+                lt = trace(system, generateray(raygenerator, k), test = test)
                 if lt !== nothing
                     push!(results[i], lt)
                 end
@@ -561,7 +561,7 @@ function tracehitsMT(system::CSGOpticalSystem{T}, raygenerator::OpticalRayGenera
                 if k % update_timesteps == 0
                     Threads.atomic_add!(total_traced, update_timesteps)
                 end
-                lt = trace(system, generateray(sources, k), test = test)
+                lt = trace(system, generateray(raygenerator, k), test = test)
                 if lt !== nothing
                     push!(results[i], lt)
                 end
@@ -613,9 +613,9 @@ function tracehits(system::CSGOpticalSystem{T}, raygenerator::OpticalRayGenerato
         if k % update_timesteps == 0
             total_traced += update_timesteps
             dif = round(time() - start_time, digits = 1)
-            left = round((time() - start_time) * (length(sources) / total_traced - 1), digits = 1)
+            left = round((time() - start_time) * (length(raygenerator) / total_traced - 1), digits = 1)
             if printprog
-                print("\rTraced: ~ $t / $(length(sources))        Elapsed: $(dif)s        Left: $(left)s           ")
+                print("\rTraced: ~ $t / $(length(raygenerator))        Elapsed: $(dif)s        Left: $(left)s           ")
             end
         end
         lt = trace(system, r, test = test)
