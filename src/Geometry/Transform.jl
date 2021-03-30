@@ -180,12 +180,20 @@ function Transform{S}(θ::T, ϕ::T, ψ::T, x::T, y::T, z::T; type::Type{S} = Flo
 end
 
 function Transform(rotation::SMatrix{3,3,T}, translation::SVector{3,T}) where {T<:Real} 
-    return Transform(rotation[1:3,1]..., zero(T), rotation[1:3,2]..., zero(T), rotation[1:3,3]..., zero(T), translation[1:3]..., one(T))
+    return Transform(
+        rotation[1,1], rotation[2,1], rotation[3,1], zero(T), 
+        rotation[1,2], rotation[2,2], rotation[3,2], zero(T), 
+        rotation[1,3], rotation[2,3], rotation[3,3], zero(T), 
+        translation[1], translation[2], translation[3], one(T))
 end
 
 function Transform(rotation::AbstractArray{T,2}, translation::AbstractArray{T,1}) where {T<:Real}
     @assert size(rotation)[1] == size(rotation)[2] == length(translation) == 3
-    return Transform(rotation[1:3,1]..., zero(T), rotation[1:3,2]..., zero(T), rotation[1:3,3]..., zero(T), translation[1:3]..., one(T))
+    return Transform(
+        rotation[1,1], rotation[2,1], rotation[3,1], zero(T), 
+        rotation[1,2], rotation[2,2], rotation[3,2], zero(T), 
+        rotation[1,3], rotation[2,3], rotation[3,3], zero(T), 
+        translation[1], translation[2], translation[3], one(T))
 end
 
 
@@ -253,7 +261,11 @@ end
 export rotationZ
 
 function rotation(t::Transform{T}) where {T<:Real}
-    return Transform(t[1:3, 1:3], zero3(T))
+    rot = SMatrix{3, 3, T}(
+        t[1, 1], t[2, 1], t[3, 1], 
+        t[1, 2], t[2, 2], t[3, 2],
+        t[1, 3], t[2, 3], t[3, 3])
+    return Transform(rot, zero3(T))
 end
 
 rotate(a::Transform{T}, vector::Union{Vec3{T}, SVector{3,T}}) where {T<:Real} = rotation(a) * vector
@@ -392,10 +404,10 @@ end
 return a touple containing the rotation matrix, the translation vector and the scale vecto represnting the transform.
 """
 function decomposeRTS(tr::Transform{T}) where {T<:Real}
-    t = Vec3(tr[1:3,4])
-    sx = norm(tr[1:3,1])
-    sy = norm(tr[1:3,2])
-    sz = norm(tr[1:3,3])
+    t = Vec3(tr[1,4], tr[2,4], tr[3,4])
+    sx = norm(Vec3(tr[1,1], tr[2,1], tr[3,1]))
+    sy = norm(Vec3(tr[1,2], tr[2,2], tr[3,2]))
+    sz = norm(Vec3(tr[1,3], tr[2,3], tr[3,3]))
     s = Vec3(sx, sy, sz)
     rot = SMatrix{4, 4, T}(tr[1,1]/sx, tr[2, 1]/sx, tr[3,1]/sx, 0, tr[1,2]/sy, tr[2, 2]/sy, tr[3,2]/sy, 0, tr[1,3]/sz, tr[2, 3]/sz, tr[3,3]/sz, 0, 0, 0, 0, 1)
 
