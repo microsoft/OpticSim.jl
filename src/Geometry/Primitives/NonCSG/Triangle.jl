@@ -160,3 +160,20 @@ function makiemesh(tmesh::TriangleMesh{T}) where {T<:Real}
     end
     return (points, indices)
 end
+
+
+"""
+Apply a Transform to a TriangleMesh object
+"""
+function Base.:*(a::Transform{T}, tmesh::TriangleMesh{T})::TriangleMesh{T} where {T<:Real}
+    newT = Vector{Triangle{T}}(undef, length(tmesh.triangles))
+    @inbounds @simd for i in 1:length(tmesh.triangles)
+        newT[i] = a * tmesh.triangles[i]
+    end
+    return TriangleMesh(newT)
+end
+
+"""
+Apply a Transform to a Triangle object
+"""
+Base.:*(a::Transform{T}, t::Triangle{T}) where {T<:Real} = Triangle(a * vertex(t, 1), a * vertex(t, 2), a * vertex(t, 3))

@@ -35,8 +35,6 @@ include("CSG/Interval.jl")
 
 include("Primitives/NonCSG/Triangle.jl")
 
-include("CSG/RigidBodyTransform.jl")
-
 # this should move to the begining of the file after we move the over-riding type-specific functions from it.
 include("Transform2.jl")
 

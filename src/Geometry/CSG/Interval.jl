@@ -573,3 +573,30 @@ function intervalcomplement(a::Interval{T}) where {T<:Real}
 end
 
 difference(a::DisjointUnion, b::DisjointUnion) = intervalintersection(a, intervalcomplement(b))
+
+
+"""
+Apply a Transform to an Interval object
+"""
+function Base.:*(transformation::Transform{T}, a::Interval{T}) where {T<:Real}
+    # looks ridiculous but necessary to dissambiguate the elements of the interval
+    u = upper(a)
+    l = lower(a)
+    if l isa RayOrigin{T}
+        if u isa Infinity{T}
+            return Interval(l, u)
+        else
+            u = transformation * u
+            return Interval(l, u)
+        end
+    else
+        l = transformation * l
+        if u isa Infinity{T}
+            return Interval(l, u)
+
+        else
+            u = transformation * u
+            return Interval(l, u)
+        end
+    end
+end
