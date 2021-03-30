@@ -93,6 +93,7 @@ include("testsets/General.jl")
 include("testsets/SurfaceDefs.jl")
 include("testsets/Intersection.jl")
 include("testsets/Lenses.jl")
+include("testsets/OpticalSystem.jl")
 include("testsets/Emitters.jl")  # TODO
 include("testsets/Comparison.jl")
 include("testsets/Visualization.jl")
