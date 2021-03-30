@@ -19,7 +19,28 @@
         @test similarroots(-1, -1, x1, x2)
     end # testset QuadraticRoots
 
-    @testset "RigidBodyTransform" begin
+    # @testset "RigidBodyTransform" begin
+    #     Random.seed!(SEED)
+    #     @test isapprox(rotmatd(180, 0, 0), [1.0 0.0 0.0; 0.0 -1.0 0.0; 0.0 0.0 -1.0], rtol = RTOLERANCE, atol = ATOLERANCE)
+    #     @test isapprox(rotmatd(0.0, 180.0, 0.0), [-1.0 0.0 0.0; 0.0 1.0 0.0; 0.0 0.0 -1.0], rtol = RTOLERANCE, atol = ATOLERANCE)
+    #     @test isapprox(rotmatd(0, 0, 180), [-1.0 0.0 0.0; 0.0 -1.0 0.0; 0.0 0.0 1.0], rtol = RTOLERANCE, atol = ATOLERANCE)
+    #     @test isapprox(rotmatd(0, 90, 0), [0.0 0.0 1.0; 0.0 1.0 0.0; -1.0 0.0 0.0], rtol = RTOLERANCE, atol = ATOLERANCE)
+    #     @test isapprox(rotmatd(45, -45, 45), [0.5 -0.8535533905932737 0.1464466094067261; 0.5 0.14644660940672644 -0.8535533905932737; 0.7071067811865475 0.5 0.5], rtol = RTOLERANCE, atol = ATOLERANCE)
+    #     x, y, z = rand(3)
+    #     @test isapprox(rotmatd(x * 180 / π, y * 180 / π, z * 180 / π), rotmat(x, y, z), rtol = RTOLERANCE, atol = ATOLERANCE)
+
+    #     @test isapprox(RigidBodyTransform(rotmatd(0, 90, 0), SVector(0.0, 0.0, 1.0)) * SVector(1.0, 0.0, 0.0), [0.0, 0.0, 0.0], rtol = RTOLERANCE, atol = ATOLERANCE)
+
+    #     ta = RigidBodyTransform(rotmatd(0, 90, 0), SVector(0.0, 0.0, 1.0))
+    #     tb = RigidBodyTransform(rotmatd(90, 0, 0), SVector(1.0, 0.0, 0.0))
+    #     @test isapprox(collect(ta * tb), collect(RigidBodyTransform(rotmatd(90, 90, 0), SVector(0.0, 0.0, 0.0))), rtol = RTOLERANCE, atol = ATOLERANCE)
+
+    #     @test isapprox(collect(ta * inv(ta)), collect(identitytransform()), rtol = RTOLERANCE, atol = ATOLERANCE)
+    #     @test isapprox(collect(tb * inv(tb)), collect(identitytransform()), rtol = RTOLERANCE, atol = ATOLERANCE)
+    #     @test isapprox(collect(inv(ta)), collect(RigidBodyTransform(rotmatd(0, -90, 0), SVector(1.0, 0.0, 0.0))), rtol = RTOLERANCE, atol = ATOLERANCE)
+    # end # testset RigidBodyTransform
+
+    @testset "Transform" begin
         Random.seed!(SEED)
         @test isapprox(rotmatd(180, 0, 0), [1.0 0.0 0.0; 0.0 -1.0 0.0; 0.0 0.0 -1.0], rtol = RTOLERANCE, atol = ATOLERANCE)
         @test isapprox(rotmatd(0.0, 180.0, 0.0), [-1.0 0.0 0.0; 0.0 1.0 0.0; 0.0 0.0 -1.0], rtol = RTOLERANCE, atol = ATOLERANCE)
@@ -29,16 +50,16 @@
         x, y, z = rand(3)
         @test isapprox(rotmatd(x * 180 / π, y * 180 / π, z * 180 / π), rotmat(x, y, z), rtol = RTOLERANCE, atol = ATOLERANCE)
 
-        @test isapprox(RigidBodyTransform(rotmatd(0, 90, 0), SVector(0.0, 0.0, 1.0)) * SVector(1.0, 0.0, 0.0), [0.0, 0.0, 0.0], rtol = RTOLERANCE, atol = ATOLERANCE)
+        @test isapprox(Transform(rotmatd(0, 90, 0), SVector(0.0, 0.0, 1.0)) * SVector(1.0, 0.0, 0.0), [0.0, 0.0, 0.0], rtol = RTOLERANCE, atol = ATOLERANCE)
 
-        ta = RigidBodyTransform(rotmatd(0, 90, 0), SVector(0.0, 0.0, 1.0))
-        tb = RigidBodyTransform(rotmatd(90, 0, 0), SVector(1.0, 0.0, 0.0))
-        @test isapprox(collect(ta * tb), collect(RigidBodyTransform(rotmatd(90, 90, 0), SVector(0.0, 0.0, 0.0))), rtol = RTOLERANCE, atol = ATOLERANCE)
+        ta = Transform(rotmatd(0, 90, 0), SVector(0.0, 0.0, 1.0))
+        tb = Transform(rotmatd(90, 0, 0), SVector(1.0, 0.0, 0.0))
+        @test isapprox(collect(ta * tb), collect(Transform(rotmatd(90, 90, 0), SVector(0.0, 0.0, 0.0))), rtol = RTOLERANCE, atol = ATOLERANCE)
 
         @test isapprox(collect(ta * inv(ta)), collect(identitytransform()), rtol = RTOLERANCE, atol = ATOLERANCE)
         @test isapprox(collect(tb * inv(tb)), collect(identitytransform()), rtol = RTOLERANCE, atol = ATOLERANCE)
-        @test isapprox(collect(inv(ta)), collect(RigidBodyTransform(rotmatd(0, -90, 0), SVector(1.0, 0.0, 0.0))), rtol = RTOLERANCE, atol = ATOLERANCE)
-    end # testset RigidBodyTransform
+        @test isapprox(collect(inv(ta)), collect(Transform(rotmatd(0, -90, 0), SVector(1.0, 0.0, 0.0))), rtol = RTOLERANCE, atol = ATOLERANCE)
+    end # testset Transform
 
     @testset "Interval" begin
         pt1 = Intersection(0.3, [4.0, 5.0, 6.0], normalize(rand(3)), 0.4, 0.5, NullInterface())

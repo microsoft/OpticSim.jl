@@ -97,6 +97,6 @@ function Base.print(io::IO, a::OpticalRay{T,N}) where {T,N}
     end
 end
 
-function Base.:*(a::RigidBodyTransform{T}, r::OpticalRay{T,N}) where {T,N}
+function Base.:*(a::Transform{T}, r::OpticalRay{T,N}) where {T,N}
     return OpticalRay(a * ray(r), power(r), wavelength(r), opl = pathlength(r), nhits = nhits(r), sourcenum = sourcenum(r), sourcepower = sourcepower(r))
 end

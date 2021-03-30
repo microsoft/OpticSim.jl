@@ -131,6 +131,10 @@ identityT(::Type{T} = Float64) where {T<:Real} = Transform{T}(
 )
 export identityT
 
+# for compatability ith the "old" RigidBodyTransform
+identitytransform(::Type{T} = Float64) where {T<:Real} = identityT(T)
+export identitytransform
+
 
 """
     Transform([S::Type]) -> Transform{S}
@@ -350,12 +354,21 @@ function world2local(t::Transform{T}) where {T<:Real}
 end
 export world2local
 
-function Base.:*(t::Transform{T}, v::Union{Vec3{T}, SVector{3,T}}) where {T<:Real}
+function Base.:*(t::Transform{T}, v::Vec3{T}) where {T<:Real}
     res = t * Vec4(v)
     if (t[4,4] == one(T))
         return Vec3(res[1], res[2], res[3])
     else    
         return Vec3(res[1]/res[4], res[2]/res[4], res[3]/res[4])
+    end
+end
+
+function Base.:*(t::Transform{T}, v::SVector{3,T}) where {T<:Real}
+    res = t * Vec4(v)
+    if (t[4,4] == one(T))
+        return SVector(res[1], res[2], res[3])
+    else    
+        return SVector(res[1]/res[4], res[2]/res[4], res[3]/res[4])
     end
 end
 
