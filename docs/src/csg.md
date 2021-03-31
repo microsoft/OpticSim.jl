@@ -46,20 +46,6 @@ TriangularPrism
 Spider
 ```
 
-## Transforms
-
-Transforms are used to position does within the CSG tree.
-
-```@docs
-RigidBodyTransform
-OpticSim.rotation
-OpticSim.rotationd
-OpticSim.translation
-OpticSim.rotmat
-OpticSim.rotmatd
-OpticSim.rotmatbetween
-```
-
 ## CSG Types
 
 These are the types of the primary CSG elements, i.e. the nodes in the CSG tree.
