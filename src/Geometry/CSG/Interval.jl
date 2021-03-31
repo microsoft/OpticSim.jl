@@ -120,7 +120,9 @@ function empty!(a::IntervalPool{T}) where {T<:Real}
     end
 end
 
-const threadedintervalpool = [Dict{DataType,IntervalPool}([Float64 => IntervalPool{Float64}()]) for _ in 1:Threads.nthreads()]
+# Allocate a zero length array which will be filled with Threads.nthreads() entries by the __init__ method for OpticSim module. Have to do this in the __init__ method because this captures the load time environment. const values are evaluated at precompile time and the number of threads in these two environments can be different.
+const threadedintervalpool = Vector{Dict{DataType,IntervalPool}}()
+#const threadedintervalpool = [Dict{DataType,IntervalPool}([Float64 => IntervalPool{Float64}()]) for _ in 1:Threads.nthreads()]
 
 function newinintervalpool!(::Type{T} = Float64, tid::Int = Threads.threadid())::Vector{Interval{T}} where {T<:Real}
     if T ∉ keys(threadedintervalpool[tid])

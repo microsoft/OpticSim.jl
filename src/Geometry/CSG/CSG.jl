@@ -337,7 +337,9 @@ function empty!(a::TrianglePool{T}) where {T<:Real}
     end
 end
 
-const threadedtrianglepool = [Dict{DataType,TrianglePool}([Float64 => TrianglePool{Float64}()]) for _ in 1:Threads.nthreads()]
+# Allocate a zero length array which will be filled with Threads.nthreads() entries by the __init__ method for OpticSim module. Have to do this in the __init__ method because this captures the load time environment. const values are evaluated at precompile time and the number of threads in these two environments can be different.
+const threadedtrianglepool = Vector{Dict{DataType,TrianglePool}}()
+#const threadedtrianglepool = [Dict{DataType,TrianglePool}([Float64 => TrianglePool{Float64}()]) for _ in 1:Threads.nthreads()]
 
 function newintrianglepool!(::Type{T} = Float64, tid::Int = Threads.threadid())::Vector{Triangle{T}} where {T<:Real}
     if T ∉ keys(threadedtrianglepool[tid])
