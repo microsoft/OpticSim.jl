@@ -20,7 +20,12 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE
 
+# declaring the Geometry module. in the future we might add or move existing code to it. currently it contains the basic types: Vec3, Vec4 and Transform
+module Geometry
+
 include("Transform.jl")
+
+end # module Geometry
 using .Geometry
 
 include("Ray.jl")

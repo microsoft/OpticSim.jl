@@ -1,8 +1,6 @@
 # -----------------------------------------------------------------------------------------------
 # GEOMETRY
 # -----------------------------------------------------------------------------------------------
-module Geometry
-
 using StaticArrays
 using LinearAlgebra
 
@@ -569,7 +567,6 @@ export rotmat
 
 #endregion Transform
 
-end # module Geometry
 
 
 
