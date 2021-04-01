@@ -1,0 +1,10 @@
+docs/
+test/
+.git/
+.github/
+.vscode/
+*.md
+LICENSE
+Manifest.toml
+.gitignore
+src/Cloud/amlconf
