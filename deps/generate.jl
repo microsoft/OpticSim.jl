@@ -65,7 +65,7 @@ function generate_jls(
         "const AGF_GLASSES = [$(join(glassnames, ", "))]",
         ""
     ]
-    open(mainfile, "w") do io
+    open(joinpath(jldir, mainfile), "w") do io
         write(io, join(agfstrings, "\n"))
     end
 end
