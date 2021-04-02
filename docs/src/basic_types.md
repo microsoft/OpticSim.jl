@@ -15,7 +15,6 @@ Geometry.Vec3
 Geometry.unitX3
 Geometry.unitY3
 Geometry.unitZ3
-Geometry.origin3
 Geometry.zero3
 Geometry.one3
 ```
@@ -30,7 +29,6 @@ Geometry.unitX4
 Geometry.unitY4
 Geometry.unitZ4
 Geometry.unitW4
-Geometry.origin4
 Geometry.zero4
 Geometry.one4
 ```
@@ -42,7 +40,6 @@ Transforms are used to position surfaces within the CSG tree, position emitters 
 
 ```@docs
 Geometry.Transform
-Geometry.identityT
 Geometry.identitytransform
 Geometry.rotationX
 Geometry.rotationY

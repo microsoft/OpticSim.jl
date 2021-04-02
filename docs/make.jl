@@ -35,6 +35,7 @@ makedocs(
         "Examples" => "examples.md",      
         # "Glasses" => cat_pages,
         "Geometry" => [
+            "Basic Types" => "basic_types.md",
             "Primitives" => "primitives.md",
             "CSG" => "csg.md"
         ],
