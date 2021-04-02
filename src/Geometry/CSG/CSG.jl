@@ -87,11 +87,11 @@ As such, transforming points from the geometry using this transform puts them in
 """
 struct LeafNode{T,S<:ParametricSurface{T,3}} <: CSGTree{T}
     geometry::S
-    transform::RigidBodyTransform{T}
-    invtransform::RigidBodyTransform{T}
+    transform::Transform{T}
+    invtransform::Transform{T}
     bbox::BoundingBox{T}
 
-    function LeafNode(a::S, transform::RigidBodyTransform{T}) where {T<:Real,S<:ParametricSurface{T,3}}
+    function LeafNode(a::S, transform::Transform{T}) where {T<:Real,S<:ParametricSurface{T,3}}
         # store the transformed bounding box so nodes higher in the tree have correct global space bounding boxes
         return new{T,S}(a, transform, inv(transform), BoundingBox(a, transform))
     end
@@ -113,7 +113,7 @@ a = Cylinder(1.0,1.0)
 b = Plane([0.0,0.0,1.0], [0.0,0.0,0.0])
 generator = csgintersection(a,b)
 # now make a csg object that can be ray traced
-csgobj = generator(RigidBodyTransform(1.0,1.0,2.0))
+csgobj = generator(Transform(1.0,1.0,2.0))
 ```
 """
 struct CSGGenerator{T<:Real}
@@ -121,7 +121,7 @@ struct CSGGenerator{T<:Real}
 end
 export CSGGenerator
 
-function (a::CSGGenerator{T})(transform::RigidBodyTransform{T})::CSGTree{T} where {T<:Real}
+function (a::CSGGenerator{T})(transform::Transform{T})::CSGTree{T} where {T<:Real}
     a.f(transform)
 end
 function (a::CSGGenerator{T})()::CSGTree{T} where {T<:Real}
@@ -129,19 +129,19 @@ function (a::CSGGenerator{T})()::CSGTree{T} where {T<:Real}
 end
 
 """
-    leaf(surf::ParametricSurface{T}, transform::RigidBodyTransform{T} = identitytransform(T)) -> CSGGenerator{T}
+    leaf(surf::ParametricSurface{T}, transform::Transform{T} = identitytransform(T)) -> CSGGenerator{T}
 
 Create a leaf node from a parametric surface with a given transform.
 """
-function leaf(surf::S, transform::RigidBodyTransform{T} = identitytransform(T))::CSGGenerator{T} where {T<:Real,S<:ParametricSurface{T}}
+function leaf(surf::S, transform::Transform{T} = identitytransform(T))::CSGGenerator{T} where {T<:Real,S<:ParametricSurface{T}}
     return CSGGenerator{T}((parenttransform) -> LeafNode(surf, parenttransform * transform))
 end
 """
-    leaf(surf::CSGGenerator{T}, transform::RigidBodyTransform{T} = identitytransform(T)) -> CSGGenerator{T}
+    leaf(surf::CSGGenerator{T}, transform::Transform{T} = identitytransform(T)) -> CSGGenerator{T}
 
 Create a (pseudo) leaf node from another CSGGenerator, this is useful if you want multiple copies of a premade CSG structure with different transforms, for example in an MLA.
 """
-function leaf(n::CSGGenerator{T}, transform::RigidBodyTransform{T} = identitytransform(T))::CSGGenerator{T} where {T<:Real}
+function leaf(n::CSGGenerator{T}, transform::Transform{T} = identitytransform(T))::CSGGenerator{T} where {T<:Real}
     return CSGGenerator{T}((parenttransform) -> n(parenttransform * transform))
 end
 export leaf
@@ -151,47 +151,47 @@ export leaf
 # Wrap the csg operations in function that delays evaluation until the transform has been computed.
 
 """
-    csgintersection(a::CSGGenerator{T} b::CSGGenerator{T}, transform::RigidBodyTransform{T} = identitytransform(T)) -> CSGGenerator{T}
+    csgintersection(a::CSGGenerator{T} b::CSGGenerator{T}, transform::Transform{T} = identitytransform(T)) -> CSGGenerator{T}
 
 Create a binary node in the CSG tree representing an intersection between a and b.
 A shortcut method for `a` and `b` as [`ParametricSurface`](@ref)s is also available.
 
 ![Intersect Image](https://upload.wikimedia.org/wikipedia/commons/0/0b/Boolean_intersect.PNG)
 """
-csgintersection(a::CSGGenerator{T}, b::CSGGenerator{T}, transform::RigidBodyTransform{T} = identitytransform(T)) where {T<:Real} = CSGGenerator{T}((parenttransform) -> IntersectionNode(a(parenttransform * transform), b(parenttransform * transform)))
-csgintersection(a::ParametricSurface{T}, b::ParametricSurface{T}, transform::RigidBodyTransform{T} = identitytransform(T)) where {T<:Real} = csgintersection(leaf(a), leaf(b), transform)
-csgintersection(a::ParametricSurface{T}, b::CSGGenerator{T}, transform::RigidBodyTransform{T} = identitytransform(T)) where {T<:Real} = csgintersection(leaf(a), b, transform)
-csgintersection(a::CSGGenerator{T}, b::ParametricSurface{T}, transform::RigidBodyTransform{T} = identitytransform(T)) where {T<:Real} = csgintersection(a, leaf(b), transform)
+csgintersection(a::CSGGenerator{T}, b::CSGGenerator{T}, transform::Transform{T} = identitytransform(T)) where {T<:Real} = CSGGenerator{T}((parenttransform) -> IntersectionNode(a(parenttransform * transform), b(parenttransform * transform)))
+csgintersection(a::ParametricSurface{T}, b::ParametricSurface{T}, transform::Transform{T} = identitytransform(T)) where {T<:Real} = csgintersection(leaf(a), leaf(b), transform)
+csgintersection(a::ParametricSurface{T}, b::CSGGenerator{T}, transform::Transform{T} = identitytransform(T)) where {T<:Real} = csgintersection(leaf(a), b, transform)
+csgintersection(a::CSGGenerator{T}, b::ParametricSurface{T}, transform::Transform{T} = identitytransform(T)) where {T<:Real} = csgintersection(a, leaf(b), transform)
 
 export csgintersection
 
 """
-    csgunion(a::CSGGenerator{T}, b::CSGGenerator{T}, transform::RigidBodyTransform{T} = identitytransform(T)) -> CSGGenerator{T}
+    csgunion(a::CSGGenerator{T}, b::CSGGenerator{T}, transform::Transform{T} = identitytransform(T)) -> CSGGenerator{T}
 
 Create a binary node in the CSG tree representing a union between a and b.
 A shortcut method for `a` and `b` as [`ParametricSurface`](@ref)s is also available.
 
 ![Union Image](https://upload.wikimedia.org/wikipedia/commons/4/4a/Boolean_union.PNG)
 """
-csgunion(a::CSGGenerator{T}, b::CSGGenerator{T}, transform::RigidBodyTransform{T} = identitytransform(T)) where {T<:Real} = CSGGenerator{T}((parenttransform) -> UnionNode(a(parenttransform * transform), b(parenttransform * transform)))
-csgunion(a::ParametricSurface{T}, b::ParametricSurface{T}, transform::RigidBodyTransform{T} = identitytransform(T)) where {T<:Real} = csgunion(leaf(a), leaf(b), transform)
-csgunion(a::ParametricSurface{T}, b::CSGGenerator{T}, transform::RigidBodyTransform{T} = identitytransform(T)) where {T<:Real} = ccsgunion(leaf(a), b, transform)
-csgunion(a::CSGGenerator{T}, b::ParametricSurface{T}, transform::RigidBodyTransform{T} = identitytransform(T)) where {T<:Real} = csgunion(a, leaf(b), transform)
+csgunion(a::CSGGenerator{T}, b::CSGGenerator{T}, transform::Transform{T} = identitytransform(T)) where {T<:Real} = CSGGenerator{T}((parenttransform) -> UnionNode(a(parenttransform * transform), b(parenttransform * transform)))
+csgunion(a::ParametricSurface{T}, b::ParametricSurface{T}, transform::Transform{T} = identitytransform(T)) where {T<:Real} = csgunion(leaf(a), leaf(b), transform)
+csgunion(a::ParametricSurface{T}, b::CSGGenerator{T}, transform::Transform{T} = identitytransform(T)) where {T<:Real} = ccsgunion(leaf(a), b, transform)
+csgunion(a::CSGGenerator{T}, b::ParametricSurface{T}, transform::Transform{T} = identitytransform(T)) where {T<:Real} = csgunion(a, leaf(b), transform)
 
 export csgunion
 
 """
-    csgdifference(a::CSGGenerator{T}, b::CSGGenerator{T}, transform::RigidBodyTransform{T} = identitytransform(T)) -> CSGGenerator{T}
+    csgdifference(a::CSGGenerator{T}, b::CSGGenerator{T}, transform::Transform{T} = identitytransform(T)) -> CSGGenerator{T}
 
 Create a binary node in the CSG tree representing the difference of a and b, essentially a - b.
 A shortcut method for `a` and `b` as [`ParametricSurface`](@ref)s is also available.
 
 ![Difference Image](https://upload.wikimedia.org/wikipedia/commons/8/86/Boolean_difference.PNG)
 """
-csgdifference(a::CSGGenerator{T}, b::CSGGenerator{T}, transform::RigidBodyTransform{T} = identitytransform(T)) where {T<:Real} = CSGGenerator{T}((parenttransform) -> IntersectionNode(a(parenttransform * transform), ComplementNode(b(parenttransform * transform))))
-csgdifference(a::CSGGenerator{T}, b::ParametricSurface{T}, transform::RigidBodyTransform{T} = identitytransform(T)) where {T<:Real} = csgdifference(a, leaf(b), transform)
-csgdifference(a::ParametricSurface{T}, b::CSGGenerator{T}, transform::RigidBodyTransform{T} = identitytransform(T)) where {T<:Real} = csgdifference(leaf(a), b, transform)
-csgdifference(a::ParametricSurface{T}, b::ParametricSurface{T}, transform::RigidBodyTransform{T} = identitytransform(T)) where {T<:Real} = csgdifference(leaf(a), leaf(b), transform)
+csgdifference(a::CSGGenerator{T}, b::CSGGenerator{T}, transform::Transform{T} = identitytransform(T)) where {T<:Real} = CSGGenerator{T}((parenttransform) -> IntersectionNode(a(parenttransform * transform), ComplementNode(b(parenttransform * transform))))
+csgdifference(a::CSGGenerator{T}, b::ParametricSurface{T}, transform::Transform{T} = identitytransform(T)) where {T<:Real} = csgdifference(a, leaf(b), transform)
+csgdifference(a::ParametricSurface{T}, b::CSGGenerator{T}, transform::Transform{T} = identitytransform(T)) where {T<:Real} = csgdifference(leaf(a), b, transform)
+csgdifference(a::ParametricSurface{T}, b::ParametricSurface{T}, transform::Transform{T} = identitytransform(T)) where {T<:Real} = csgdifference(leaf(a), leaf(b), transform)
 
 export csgdifference
 
