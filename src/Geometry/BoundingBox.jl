@@ -28,7 +28,7 @@ Axis-aligned three-dimensional bounding box.
 ```julia
 BoundingBox(xmin::T, xmax::T, ymin::T, ymax::T, zmin::T, zmax::T)
 BoundingBox(s::Surface{T})
-BoundingBox(s::ParametricSurface{T,3}, transform::RigidBodyTransform{T} = identitytransform(T))
+BoundingBox(s::ParametricSurface{T,3}, transform::Transform{T} = identitytransform(T))
 BoundingBox(c::CSGTree{T})
 BoundingBox(tri::Triangle{T})
 BoundingBox(triangles::AbstractVector{Triangle{T}})
@@ -63,7 +63,7 @@ struct BoundingBox{T<:Real}
 end
 export BoundingBox
 
-function BoundingBox(s::ParametricSurface{T,3}, transform::RigidBodyTransform{T} = identitytransform(T)) where {T<:Real}
+function BoundingBox(s::ParametricSurface{T,3}, transform::Transform{T} = identitytransform(T)) where {T<:Real}
     # get the bounding box of a transformed bounding box
     bbox = BoundingBox(s)
     if transform == identitytransform(T)
