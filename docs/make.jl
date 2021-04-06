@@ -23,6 +23,9 @@
 using Documenter
 using OpticSim, OpticSim.Geometry, OpticSim.Emitters
 
+import GLMakie
+GLMakie.activate!()
+
 makedocs(
     sitename = "OpticSim.jl",
     format = Documenter.HTML(
@@ -42,6 +45,7 @@ makedocs(
         "Optical" => [
             "Systems" => "systems.md",
             "Emitters" => "emitters.md",
+            "Emitters (NEW)" => "emitters_new.md",
             "Interfaces" => "interfaces.md",
             "Lenses" => "lenses.md"
         ],
