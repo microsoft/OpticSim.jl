@@ -32,8 +32,7 @@ makedocs(
     modules = [OpticSim],
     pages = [
         "Home" => "index.md",
-        "Examples" => "examples.md",      
-        # "Glasses" => cat_pages,
+        "Examples" => "examples.md",
         "Geometry" => [
             "Basic Types" => "basic_types.md",
             "Primitives" => "primitives.md",
@@ -48,6 +47,7 @@ makedocs(
         "Visualization" => "vis.md",
         "Glass Functions" => "glasscat.md",
         "Optimization" => "optimization.md",
+        "Cloud Execution" => "cloud.md",
         "Reference" => "ref.md",
         "Roadmap" => "roadmap.md"
     ],
@@ -56,12 +56,12 @@ makedocs(
 deploydocs(
     repo = "github.com/microsoft/OpticSim.jl.git",
     devbranch = "main",
+    push_preview = true,
 )
 
 # function children(m::Module)
 #     ns = names(m, imported = false, all = true)
 #     ms = []
- 
 #     for n in ns
 #         try
 #             x = Core.eval(m, n)

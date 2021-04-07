@@ -1,0 +1,15 @@
+FROM mcr.microsoft.com/azureml/openmpi3.1.2-ubuntu18.04
+
+ENV JULIA_VERSION_MAJOR 1.6
+ENV JULIA_VERSION_MINOR 0
+
+# install stuff for xvfb-run
+RUN apt install -y libxt6 libxrender1 libxext6 libgl1-mesa-glx libqt5widgets5 xvfb
+
+# install julia
+ENV JULIA_VERSION $JULIA_VERSION_MAJOR.$JULIA_VERSION_MINOR
+
+RUN wget https://julialang-s3.julialang.org/bin/linux/x64/$JULIA_VERSION_MAJOR/julia-$JULIA_VERSION-linux-x86_64.tar.gz -O julia-$JULIA_VERSION-linux-x86_64.tar.gz
+RUN tar -xvzf julia-$JULIA_VERSION-linux-x86_64.tar.gz
+RUN mv julia-$JULIA_VERSION/ /opt/
+RUN ln -s /opt/julia-$JULIA_VERSION/bin/julia /usr/local/bin/julia
