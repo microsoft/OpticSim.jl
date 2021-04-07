@@ -23,7 +23,10 @@ OpticSim.Cloud.get_cached_run_config
 
 You should also include an `.amlignore` file in the root of your project.
 This is similar to a `.gitignore` file and should include any files which should not be uploaded to AML as part of your source snapshot, for examples `test/`.
-**`Manifest.toml` must be listed in your `.amlignore` file.**
+
+!!! note
+    **`Manifest.toml` must be listed in your `.amlignore` file.**
+
 If an `.amlignore` doesn't already exist then one will be created on the first submission of a run to AML.
 
 Once everything is configured, you can submit a run:
