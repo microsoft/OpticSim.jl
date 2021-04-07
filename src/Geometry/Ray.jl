@@ -120,3 +120,11 @@ end
 Computes the alpha corresponding to the closest position on the ray to point
 """
 α(ray::AbstractRay{T,N}, point::SVector{N,T}) where {T<:Real,N} = dot(direction(ray), (point .- origin(ray)))
+
+
+"""
+Apply a Transform to a Ray object
+"""
+function Base.:*(a::Transform{T}, r::Ray{T,3})::Ray{T,3} where {T}
+    return Ray(a * origin(r), Geometry.rotate(a, direction(r)))
+end

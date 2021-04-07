@@ -30,6 +30,8 @@ using Unitful
 using Plots
 
 using OpticSim
+# Geometry Module
+using OpticSim.Geometry
 # curve/surface imports
 using OpticSim: findspan, makemesh, knotstoinsert, coefficients, inside, quadraticroots, tobeziersegments, evalcsg, makiemesh
 # interval imports
@@ -93,6 +95,7 @@ include("testsets/General.jl")
 include("testsets/SurfaceDefs.jl")
 include("testsets/Intersection.jl")
 include("testsets/Lenses.jl")
+include("testsets/OpticalSystem.jl")
 include("testsets/Emitters.jl")  # TODO
 include("testsets/Comparison.jl")
 include("testsets/Visualization.jl")

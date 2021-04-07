@@ -350,15 +350,15 @@ function trace(system::CSGOpticalSystem{T}, raygenerator::OpticalRayGenerator{T}
         if k % update_timesteps == 0
             total_traced += update_timesteps
             dif = round(time() - start_time, digits = 1)
-            left = round((time() - start_time) * (length(sources) / total_traced - 1), digits = 1)
+            left = round((time() - start_time) * (length(raygenerator) / total_traced - 1), digits = 1)
             if printprog
-                print("\rTraced: ~ $t / $(length(sources))        Elapsed: $(dif)s        Left: $(left)s           ")
+                print("\rTraced: ~ $t / $(length(raygenerator))        Elapsed: $(dif)s        Left: $(left)s           ")
             end
         end
         trace(system, r, test = test)
     end
     numrays = length(raygenerator)
-    tracetime = round(time() - all_start_time)
+    tracetime = round(time() - start_time)
     if printprog
         print("\rFinished tracing $numrays rays in $(tracetime)s")
         if tracetime != 0.0

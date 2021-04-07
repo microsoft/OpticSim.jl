@@ -63,7 +63,7 @@ struct OpticalRay{T,N} <: AbstractRay{T,N}
     end
 
     function OpticalRay(origin::AbstractArray{T,1}, direction::AbstractArray{T,1}, power::T, wavelength::T; opl::T = zero(T), nhits::Int = 0, sourcenum::Int = 0, sourcepower::T = power) where {T<:Real}
-        @assert length(origin) == length(direction)
+        @assert length(origin) == length(direction) "origin (dimension $(length(origin))) and direction (dimension $(length(direction))) vectors do not have the same dimension"
         N = length(origin)
         return new{T,N}(Ray(SVector{N,T}(origin), normalize(SVector{N,T}(direction))), power, wavelength, opl, nhits, sourcepower, sourcenum)
     end
@@ -97,6 +97,6 @@ function Base.print(io::IO, a::OpticalRay{T,N}) where {T,N}
     end
 end
 
-function Base.:*(a::RigidBodyTransform{T}, r::OpticalRay{T,N}) where {T,N}
+function Base.:*(a::Transform{T}, r::OpticalRay{T,N}) where {T,N}
     return OpticalRay(a * ray(r), power(r), wavelength(r), opl = pathlength(r), nhits = nhits(r), sourcenum = sourcenum(r), sourcepower = sourcepower(r))
 end
