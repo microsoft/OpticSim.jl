@@ -17,8 +17,8 @@ To use this functionally you'll first need to set up an AML workspace with a com
 This information can be cached either to a specific file, or globally:
 
 ```@docs
-Optics.Cloud.cache_run_config
-Optics.Cloud.get_cached_run_config
+OpticSim.Cloud.cache_run_config
+OpticSim.Cloud.get_cached_run_config
 ```
 
 You should also include an `.amlignore` file in the root of your project.
@@ -29,7 +29,7 @@ If an `.amlignore` doesn't already exist then one will be created on the first s
 Once everything is configured, you can submit a run:
 
 ```@docs
-Optics.Cloud.submit_run_to_AML
+OpticSim.Cloud.submit_run_to_AML
 ```
 
 To retrieve outputs from your run simply write files to the `outputs/` directory and the files will automatically appear as part of the AML run.
@@ -37,7 +37,7 @@ To retrieve outputs from your run simply write files to the `outputs/` directory
 ### Examples
 
 ```julia
-using Optics.Cloud
+using OpticSim.Cloud
 
 cache_run_config([subscription_id], [resource_group_name], [workspace_name], [compute_name], [path_to_config])
 
