@@ -21,7 +21,7 @@
 # SOFTWARE
 
 using Documenter
-using OpticSim
+using OpticSim, OpticSim.Geometry
 
 makedocs(
     sitename = "OpticSim.jl",
@@ -34,6 +34,7 @@ makedocs(
         "Home" => "index.md",
         "Examples" => "examples.md",
         "Geometry" => [
+            "Basic Types" => "basic_types.md",
             "Primitives" => "primitives.md",
             "CSG" => "csg.md"
         ],

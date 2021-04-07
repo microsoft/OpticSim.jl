@@ -30,6 +30,8 @@ using Unitful
 using Plots
 
 using OpticSim
+# Geometry Module
+using OpticSim.Geometry
 # curve/surface imports
 using OpticSim: findspan, makemesh, knotstoinsert, coefficients, inside, quadraticroots, tobeziersegments, evalcsg, makiemesh
 # interval imports

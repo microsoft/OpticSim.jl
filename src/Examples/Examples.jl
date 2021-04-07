@@ -24,6 +24,7 @@
 module Examples
 using ..OpticSim
 using ..OpticSim.Vis
+using ..OpticSim.Geometry
 # using ..OpticSim.GlassCat use this if you want to type SCHOTT.N_BK7 rather than OpticSim.GlassCat.SCHOTT.N_BK7
 using StaticArrays
 using DataFrames
@@ -186,7 +187,7 @@ function SchmidtCassegrainTelescope()
     # glass entrance lens on telescope
     topsurf = Plane(SVector(0.0, 0.0, 1.0), SVector(0.0, 0.0, 0.0), interface = FresnelInterface{Float64}(OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air), vishalfsizeu = 12.00075, vishalfsizev = 12.00075)
     botsurf = AcceleratedParametricSurface(ZernikeSurface(12.00075, radius = -1.14659768e+4, aspherics = [(4, 3.68090959e-7), (6, 2.73643352e-11), (8, 3.20036892e-14)]), 17, interface = FresnelInterface{Float64}(OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air))
-    coverlens = csgintersection(leaf(Cylinder(12.00075, 1.4)), csgintersection(leaf(topsurf), leaf(botsurf, RigidBodyTransform(OpticSim.rotmatd(0, 180, 0), SVector(0.0, 0.0, -0.65)))))
+    coverlens = csgintersection(leaf(Cylinder(12.00075, 1.4)), csgintersection(leaf(topsurf), leaf(botsurf, Transform(OpticSim.rotmatd(0, 180, 0), Vec3(0.0, 0.0, -0.65)))))
     # big mirror with a hole in it
     bigmirror = ConicLens(OpticSim.GlassCat.SCHOTT.N_BK7, -72.65, -95.2773500000134, 0.077235, Inf, 0.0, 0.2, 12.18263, frontsurfacereflectance = 1.0)
     bigmirror = csgdifference(bigmirror, leaf(Cylinder(4.0, 0.3, interface = opaqueinterface()), translation(0.0, 0.0, -72.75)))
@@ -349,7 +350,7 @@ function eyetrackHOE(nrays = 5000, det = false, showhead = true, zeroorder = fal
     barreltop = Plane(camdir_norm, camloc)
     barrelbot = Plane(-camdir_norm, camloc - 3 * barrellength * camdir_norm)
     barrelrot = OpticSim.rotmatbetween(SVector(0.0, 0.0, 1.0), camdir_norm)
-    cambarrel = csgintersection(barrelbot, csgintersection(barreltop, leaf(Cylinder(camrad, barrellength, interface = opaqueinterface(Float64)), RigidBodyTransform(barrelrot, barrelloc))))()
+    cambarrel = csgintersection(barrelbot, csgintersection(barreltop, leaf(Cylinder(camrad, barrellength, interface = opaqueinterface(Float64)), Transform(barrelrot, barrelloc))))()
     camdet = Circle(sensorrad, camdir_norm, camloc - barrellength * camdir_norm, interface = opaqueinterface(Float64))
 
     # sourceleft = hoecenter[1] + hoehalfwidth - sourceloc[1]
@@ -382,8 +383,8 @@ function eyetrackHOE(nrays = 5000, det = false, showhead = true, zeroorder = fal
             Vis.draw!((corneavertex - 50 * d, corneavertex), color = :red)
         end
         if showhead
-            Vis.draw!(joinpath(@__DIR__, "../../OBJ/glasses.obj"), scale = 100.0, transform = RigidBodyTransform(OpticSim.rotmatd(90, 0, 0), [27.0, 45.0, -8.0]), color = :black)
-            Vis.draw!(joinpath(@__DIR__, "../../OBJ/femalehead.obj"), scale = 13.0, transform = RigidBodyTransform(OpticSim.rotmatd(0, 0, 180), [27.0, 105.0, -148.0]), color = :white)
+            Vis.draw!(joinpath(@__DIR__, "../../OBJ/glasses.obj"), scale = 100.0, transform = Transform(OpticSim.rotmatd(90, 0, 0), [27.0, 45.0, -8.0]), color = :black)
+            Vis.draw!(joinpath(@__DIR__, "../../OBJ/femalehead.obj"), scale = 13.0, transform = Transform(OpticSim.rotmatd(0, 0, 180), [27.0, 105.0, -148.0]), color = :white)
         end
         Vis.display()
     end

@@ -108,7 +108,7 @@ export BezierSurface
 
 # """this function transforms the control points of the Bezier patch before ray tracing. Probably a better idea to use transforms in CSG operators,
 # although this could be a little less computation at run time."""
-# function Base.:*(a::RigidBodyTransform{T}, surf::BezierSurface{P,T,N,M}) where {P,T,N,M}
+# function Base.:*(a::Transform{T}, surf::BezierSurface{P,T,N,M}) where {P,T,N,M}
 #     result = deepcopy(surf)
 #     for index in CartesianIndices(surf.controlpolygon)
 #         result.controlpolygon[index] = a * result.controlpolygon[index]

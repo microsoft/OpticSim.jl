@@ -25,7 +25,7 @@ const GLASSCAT_DIR = joinpath(@__DIR__, "..", "src", "GlassCat") # contains Glas
 const JL_DIR = joinpath(GLASSCAT_DIR, "data") # contains AGFGlasscat.jl, SCHOTT.jl, etc.
 
 const SOURCES_PATH = joinpath(@__DIR__, "sources.txt")
-const AGFGLASSCAT_PATH = joinpath(JL_DIR, "AGFGlassCat.jl")
+const AGFGLASSCAT_NAME = "AGFGlassCat.jl"
 
 include(joinpath(GLASSCAT_DIR, "GlassTypes.jl"))
 include("sources.jl")
@@ -40,6 +40,5 @@ verify_sources!(sources, AGF_DIR)
 verified_source_names = [source[1] for source in sources]
 
 # Use verified sources to generate required .jl files
-@info "$(isfile(AGFGLASSCAT_PATH) ? "Re-g" : "G")enerating $AGFGLASSCAT_PATH"
 @info "Using sources: $(join(verified_source_names, ", ", " and "))"
-generate_jls(verified_source_names, AGFGLASSCAT_PATH, JL_DIR, AGF_DIR)
+generate_jls(verified_source_names, AGFGLASSCAT_NAME, JL_DIR, AGF_DIR)

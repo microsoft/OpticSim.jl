@@ -183,3 +183,18 @@ israyorigin(::RayOrigin) = true
 
 α(::RayOrigin{T}) where {T<:Real} = zero(T)
 Base.eltype(::RayOrigin{T}) where {T<:Real} = T
+
+
+"""
+Apply a Transform to an Intersection object
+"""
+function Base.:*(a::Transform{T}, intsct::Intersection{T,3})::Intersection{T,3} where {T<:Real}
+    u, v = uv(intsct)
+    i = interface(intsct)
+    if VERSION < v"1.6.0-DEV"
+        # TODO REMOVE
+        return @unionsplit OpticalInterface T i Intersection(α(intsct), a * point(intsct), Geometry.rotate(a, normal(intsct)), u, v, i, flippednormal = flippednormal(intsct))
+    else
+        return Intersection(α(intsct), a * point(intsct), Geometry.rotate(a, normal(intsct)), u, v, interface(intsct), flippednormal = flippednormal(intsct))
+    end
+end
