@@ -23,9 +23,6 @@
 using Documenter
 using OpticSim, OpticSim.Geometry, OpticSim.Emitters
 
-import GLMakie
-GLMakie.activate!()
-
 makedocs(
     sitename = "OpticSim.jl",
     format = Documenter.HTML(

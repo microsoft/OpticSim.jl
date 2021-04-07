@@ -13,37 +13,13 @@ macro bind(def, element)
     end
 end
 
-# ╔═╡ d6c83680-879e-11eb-31d4-7dbda7e93e48
+# ╔═╡ 520e8300-9751-11eb-392f-65d015cad73d
 begin
-	import PlutoUI
-
-	import JSServe
-	using Makie
-	using AbstractPlotting
-	using AbstractPlotting.MakieLayout
+	init_notebook = true
 	using OpticSim, OpticSim.Geometry, OpticSim.Emitters
 	import OpticSim.NotebooksUtils as NB
 
-	defs = NB.Defs("ran")
-
-	NB.DefsClearHTML(defs)
-	
-	NB.DefsAddHTML(defs, 
-		NB.HTMLFromObj(
-			JSServe.Page()	
-		)
-	)
-	
-	# this function is needed to allow the visualization scene to be displayed inside a pluto notebook
-	function Makie.display(obj)
-		# @info "RG: $obj"
-		return obj
-	end
-	
-	#text of this cell to appear in the notebook
-	NB.DefsAddHTML(defs, NB.HTMLFromObj(md"Basic Initialization (code)"))
-
-	PlutoUI.Show(MIME"text/html"(), NB.DefsHTML(defs))	
+	NB.InitNotebook()
 end
 
 # ╔═╡ a891a210-87bc-11eb-311d-4d020986fe19
@@ -58,6 +34,32 @@ begin
 				  Material = [OpticSim.GlassCat.Air, OpticSim.GlassCat.SCHOTT.N_SK16, OpticSim.GlassCat.Air, OpticSim.GlassCat.SCHOTT.N_SF2, OpticSim.GlassCat.Air, OpticSim.GlassCat.SCHOTT.N_SK16, OpticSim.GlassCat.Air, missing],
 				  SemiDiameter = [Inf, 8.580, 7.513, 7.054, 6.033, 7.003, 7.506, 15.0]))
 	@show sys_cooke
+end
+
+# ╔═╡ d6c83680-879e-11eb-31d4-7dbda7e93e48
+begin
+	init_notebook
+
+	import PlutoUI
+
+	using Makie
+	using AbstractPlotting
+	using AbstractPlotting.MakieLayout
+
+	defs = OpticSim.NotebooksUtils.Defs("ran")
+
+	NB.DefsClearHTML(defs)
+	
+	# this function is needed to allow the visualization scene to be displayed inside a pluto notebook
+	function Makie.display(obj)
+		# @info "RG: $obj"
+		return obj
+	end
+	
+	#text of this cell to appear in the notebook
+	NB.DefsAddHTML(defs, NB.HTMLFromObj(md"Basic Initialization (code)"))
+
+	PlutoUI.Show(MIME"text/html"(), NB.DefsHTML(defs))	
 end
 
 # ╔═╡ 6ce01760-879e-11eb-2b13-4d3d07c4b4ce
@@ -232,6 +234,7 @@ end
 # ╟─a891a210-87bc-11eb-311d-4d020986fe19
 # ╠═def239f0-87bc-11eb-2edb-2f859ac41bee
 # ╟─5f77cfd0-8854-11eb-377c-ef975f9abf63
+# ╟─520e8300-9751-11eb-392f-65d015cad73d
 # ╟─d6c83680-879e-11eb-31d4-7dbda7e93e48
 # ╟─68e9b210-87ad-11eb-0f3a-5bb2dbf7d86c
 # ╟─3a5d3ba0-87ae-11eb-1717-93be0b802cab

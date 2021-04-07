@@ -13,26 +13,28 @@ macro bind(def, element)
     end
 end
 
+# ╔═╡ 3f2e9c20-974c-11eb-3e97-757b3e0255f4
+begin
+	init_notebook = true
+	using OpticSim, OpticSim.Geometry, OpticSim.Emitters
+	import OpticSim.NotebooksUtils as NB
+
+	NB.InitNotebook()
+end
+
 # ╔═╡ d6c83680-879e-11eb-31d4-7dbda7e93e48
 begin
+	init_notebook
+	
 	import PlutoUI
 
-	import JSServe
 	using Makie
 	using AbstractPlotting
 	using AbstractPlotting.MakieLayout
-	using OpticSim, OpticSim.Geometry, OpticSim.Emitters
-	import OpticSim.NotebooksUtils as NB
 	
-	defs = NB.Defs("ran")
+	defs = OpticSim.NotebooksUtils.Defs("ran")
 
 	NB.DefsClearHTML(defs)
-	
-	NB.DefsAddHTML(defs, 
-		NB.HTMLFromObj(
-			JSServe.Page()	
-		)
-	)
 	
 	# this function is needed to allow the visualization scene to be displayed inside a pluto notebook
 	function Makie.display(obj)
@@ -255,7 +257,8 @@ end
 # ╟─aa47f750-8c1f-11eb-21d7-d3a969fb1f6d
 # ╠═8ba2f700-8c1f-11eb-209f-b76b9713b576
 # ╟─5f77cfd0-8854-11eb-377c-ef975f9abf63
-# ╟─d6c83680-879e-11eb-31d4-7dbda7e93e48
+# ╠═3f2e9c20-974c-11eb-3e97-757b3e0255f4
+# ╠═d6c83680-879e-11eb-31d4-7dbda7e93e48
 # ╟─68e9b210-87ad-11eb-0f3a-5bb2dbf7d86c
 # ╟─3a5d3ba0-87ae-11eb-1717-93be0b802cab
 # ╟─96e423a0-885a-11eb-02a3-8704e8dbdab6

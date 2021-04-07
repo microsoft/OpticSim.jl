@@ -258,6 +258,26 @@ function SetBackend(defs::Defs, be::String)
 
 end
 
+"""
+    InitNotebook(; port=8449)
+
+initialize the JSServe package.
+"""
+function InitNotebook(; port=8449)
+    @eval begin
+        try
+            import JSServe
+            local port = 8449 # the port you want
+            JSServe.JSSERVE_CONFIGURATION.listen_port[] = port 
+            JSServe.JSSERVE_CONFIGURATION.external_url[] = "http://localhost:$(port)"
+            JSServe.JSSERVE_CONFIGURATION.content_delivery_url[] = "http://localhost:$(port)"
+            return JSServe.Page() # needs to get displayed by Pluto
+        catch e
+            @warn "Can't initialize the JSServe package\n$e"
+        end
+    end
+end
+
 function HTMLFromObj(obj)
     io = IOBuffer()
 	Base.show(io, MIME"text/html"(), obj)
