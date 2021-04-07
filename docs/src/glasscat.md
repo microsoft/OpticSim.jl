@@ -68,7 +68,7 @@ OpticSim.GlassCat.modelglass
 
 ```@docs
 OpticSim.GlassCat.glasscatalogs
-OpticSim.GlassCat.glasses
+OpticSim.GlassCat.glassnames
 OpticSim.GlassCat.info
 OpticSim.GlassCat.findglass
 OpticSim.GlassCat.isair
