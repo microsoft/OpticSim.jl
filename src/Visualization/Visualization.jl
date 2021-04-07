@@ -24,6 +24,7 @@ module Vis
 
 using ..OpticSim
 using ..OpticSim: euclideancontrolpoints, evalcsg, vertex, makiemesh, detector, centroid, origingen, lower, upper, intervals, α
+using ..Geometry
 
 using Unitful
 using ImageView
@@ -302,11 +303,11 @@ indexedcolor2(i::Int) = ColorSchemes.hsv[1.0 - rem(i / (2.1 * π), 1.0)] .* 0.5
 
 ## displaying imported meshes
 
-Base.:*(a::RigidBodyTransform, p::Makie.AbstractPlotting.GeometryBasics.PointMeta) = a * p.main
+Base.:*(a::Transform, p::Makie.AbstractPlotting.GeometryBasics.PointMeta) = a * p.main
 Base.:*(a::Real, p::Makie.AbstractPlotting.GeometryBasics.PointMeta{N,S}) where {S<:Real,N} = Makie.AbstractPlotting.GeometryBasics.Point{N,S}((a * SVector{N,S}(p))...)
-Base.:*(a::RigidBodyTransform, p::Makie.AbstractPlotting.GeometryBasics.Point{N,S}) where {S<:Real,N} = Makie.AbstractPlotting.GeometryBasics.Point{N,S}((a.rotation * SVector{N,S}(p) + a.translation)...)
+Base.:*(a::Transform, p::Makie.AbstractPlotting.GeometryBasics.Point{N,S}) where {S<:Real,N} = Makie.AbstractPlotting.GeometryBasics.Point{N,S}((a.rotation * SVector{N,S}(p) + a.translation)...)
 
-function draw!(scene::MakieLayout.LScene, ob::AbstractString; color = :gray, linewidth = 3, shaded::Bool = true, wireframe::Bool = false, transform::RigidBodyTransform{Float64} = identitytransform(Float64), scale::Float64 = 1.0, kwargs...)
+function draw!(scene::MakieLayout.LScene, ob::AbstractString; color = :gray, linewidth = 3, shaded::Bool = true, wireframe::Bool = false, transform::Transform{Float64} = identitytransform(Float64), scale::Float64 = 1.0, kwargs...)
     if any(endswith(lowercase(ob), x) for x in [".obj", "ply", ".2dm", ".off", ".stl"])
         meshdata = FileIO.load(ob)
         if transform != identitytransform(Float64) || scale != 1.0
@@ -964,7 +965,7 @@ function surfacesag(object::Union{CSGTree{T},Surface{T}}, resolution::Tuple{Int,
 end
 
 """
-    eyebox_eval_eye(assembly::LensAssembly{T}, raygen::OpticalRayGenerator{T}, eye_rotation_x::T, eye_rotation_y::T, sample_points_x::Int, sample_points_y::Int; pupil_radius::T = T(2.0), resolution::Int = 512, eye_transform::RigidBodyTransform{T} = identitytransform(T))
+    eyebox_eval_eye(assembly::LensAssembly{T}, raygen::OpticalRayGenerator{T}, eye_rotation_x::T, eye_rotation_y::T, sample_points_x::Int, sample_points_y::Int; pupil_radius::T = T(2.0), resolution::Int = 512, eye_transform::Transform{T} = identitytransform(T))
 
 Visualise the images formed when tracing `assembly` with a human eye for an evenly sampled `sample_points_x × sample_points_y` grid in the angular range of eyeball rotations `-eye_rotation_x:eye_rotation_x` and `-eye_rotation_y:eye_rotation_y` in each dimension respectively.
 `resolution` is the size of the detector image (necessarily square).
@@ -975,7 +976,7 @@ By default the eye is directed along the positive z-axis with the vertex of the 
 The result is displayed as a 4D image - the image seen by the eye is shown in 2D as normal with sliders to vary eye rotation in x and y.
 The idea being that the whole image should be visible for all rotations in the range.
 """
-function eyebox_eval_eye(assembly::LensAssembly{T}, raygen::OpticalRayGenerator{T}, eye_rotation_x::T, eye_rotation_y::T, sample_points_x::Int, sample_points_y::Int; pupil_radius::T = T(2.0), resolution::Int = 512, eye_transform::RigidBodyTransform{T} = identitytransform(T)) where {T<:Real}
+function eyebox_eval_eye(assembly::LensAssembly{T}, raygen::OpticalRayGenerator{T}, eye_rotation_x::T, eye_rotation_y::T, sample_points_x::Int, sample_points_y::Int; pupil_radius::T = T(2.0), resolution::Int = 512, eye_transform::Transform{T} = identitytransform(T)) where {T<:Real}
     out_image = zeros(Float32, resolution, resolution, sample_points_y, sample_points_x)
     xrange = sample_points_x > 1 ? range(-eye_rotation_x, stop = eye_rotation_x, length = sample_points_x) : [0.0]
     yrange = sample_points_y > 1 ? range(-eye_rotation_y, stop = eye_rotation_y, length = sample_points_y) : [0.0]
@@ -986,7 +987,7 @@ function eyebox_eval_eye(assembly::LensAssembly{T}, raygen::OpticalRayGenerator{
             r = OpticSim.rotmatd(T, ery, erx, 0.0)
             ov = OpticSim.rotate(eye_transform, SVector{3,T}(0.0, 0.0, 13.0))
             t = r * ov - ov
-            sys = ModelEye(assembly, pupil_radius = pupil_radius, detpixels = resolution, transform = eye_transform * RigidBodyTransform(r, t))
+            sys = ModelEye(assembly, pupil_radius = pupil_radius, detpixels = resolution, transform = eye_transform * Transform(r, t))
             # Vis.draw(sys)
             # Vis.draw!((eye_transform.translation - ov - SVector(0.0, 20.0, 0.0), eye_transform.translation - ov + SVector(0.0, 20.0, 0.0)))
             # Vis.draw!((eye_transform.translation - ov - SVector(20.0, 0.0, 0.0), eye_transform.translation - ov + SVector(20.0, 0.0, 0.0)))

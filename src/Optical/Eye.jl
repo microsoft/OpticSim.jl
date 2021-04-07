@@ -21,7 +21,7 @@
 # SOFTWARE
 
 """
-    ModelEye(assembly::LensAssembly{T}, nsamples::Int = 17; pupil_radius::T = 3.0, detpixels::Int = 1000, transform::RigidBodyTransform{T} = identitytransform(T))
+    ModelEye(assembly::LensAssembly{T}, nsamples::Int = 17; pupil_radius::T = 3.0, detpixels::Int = 1000, transform::Transform{T} = identitytransform(T))
 
 Geometrically accurate model of the human eye focussed at infinity with variable `pupil_radius`.
 The eye is added to the provided `assembly` to create a [`CSGOpticalSystem`](@ref) with the retina of the eye as the detector.
@@ -31,7 +31,7 @@ By default the eye is directed along the positive z-axis with the vertex of the 
 
 `nsamples` determines the resolution at which accelerated surfaces within the eye are triangulated.
 """
-function ModelEye(assembly::LensAssembly{T}; nsamples::Int = 17, pupil_radius::T = 3.0, detpixels::Int = 1000, transform::RigidBodyTransform{T} = identitytransform(T), detdatatype::Type{D} = Float32) where {T<:Real,D<:Real}
+function ModelEye(assembly::LensAssembly{T}; nsamples::Int = 17, pupil_radius::T = 3.0, detpixels::Int = 1000, transform::Transform{T} = identitytransform(T), detdatatype::Type{D} = Float32) where {T<:Real,D<:Real}
     cornea_front = AcceleratedParametricSurface(ZernikeSurface(6.9, radius = -7.8, conic = -0.5), nsamples, interface = FresnelInterface{T}(OpticSim.GlassCat.EYE.CORNEA, OpticSim.GlassCat.Air))
     cornea_rear = Plane(SVector{3,T}(0, 0, -1), SVector{3,T}(0, 0, -3.2))
     cornea_csg = csgintersection(cornea_front, cornea_rear)
