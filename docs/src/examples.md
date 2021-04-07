@@ -24,51 +24,6 @@ nothing # hide
 
 ![Cooke triplet visualization](assets/cooke.png)
 
-## Zoom Lens
-
-```@example
-using OpticSim
-
-using DataFrames
-function zoom_lens(pos = 1)
-    if pos == 0
-        stop = 2.89
-        zoom = 9.48
-        dist = 4.46970613
-    elseif pos == 1
-        stop = 3.99
-        zoom = 4.48
-        dist = 21.21
-    else
-        stop = 4.90
-        zoom = 2.00
-        dist = 43.81
-    end
-    return AxisymmetricOpticalSystem{Float64}(
-        DataFrame(Surface = [:Object, :Stop, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, :Image],
-                  Radius = [Inf64, Inf64, -1.6202203499676E+01, -4.8875855327468E+01, 1.5666614444619E+01, -4.2955326460481E+01, 1.0869565217391E+02, 2.3623907394283E+01, -1.6059097478722E+01, -4.2553191489362E+02, -3.5435861091425E+01, -1.4146272457208E+01, -2.5125628140704E+02, -2.2502250225023E+01, -1.0583130489999E+01, -4.4444444444444E+01, Inf64],
-                  Aspherics = [missing, missing, missing, missing, missing, [(4, 1.03860000000E-04), (6, 1.42090000000E-07), (8, -8.84950000000E-09), (10, 1.24770000000E-10), (12, -1.03670000000E-12), (14, 3.65560000000E-15)], missing, missing, [(4, 4.27210000000E-05), (6, 1.24840000000E-07), (8, 9.70790000000E-09), (10, -1.84440000000E-10), (12, 1.86440000000E-12), (14, -7.79750000000E-15)], [(4, 1.13390000000E-04), (6, 4.81650000000E-07), (8, 1.87780000000E-08), (10, -5.75710000000E-10), (12, 8.99940000000E-12), (14, -4.67680000000E-14)], missing, missing, missing, missing, missing, missing, missing],
-                  Thickness = [Inf64, 0.0, 5.18, 0.10, 4.40, 0.16, 1.0, 4.96, zoom, 4.04, 1.35, 1.0, 2.80, 3.0, 1.22, dist, missing],
-                  Material = [OpticSim.GlassCat.Air, OpticSim.GlassCat.Air, OpticSim.GlassCat.OHARA.S_LAH66, OpticSim.GlassCat.Air, OpticSim.GlassCat.NIKON.LLF6, OpticSim.GlassCat.Air, OpticSim.GlassCat.OHARA.S_TIH6, OpticSim.GlassCat.OHARA.S_FSL5, OpticSim.GlassCat.Air, OpticSim.GlassCat.OHARA.S_FSL5, OpticSim.GlassCat.Air, OpticSim.GlassCat.OHARA.S_LAL8, OpticSim.GlassCat.OHARA.S_FSL5, OpticSim.GlassCat.Air, OpticSim.GlassCat.OHARA.S_LAH66, OpticSim.GlassCat.Air, missing],
-                  SemiDiameter = [Inf64, stop, 3.85433218451, 3.85433218451, 4.36304692871, 4.36304692871, 4.72505505439, 4.72505505439, 4.72505505439, 4.45240784026, 4.45240784026, 4.50974054117, 4.50974054117, 4.50974054117, 4.76271114409, 4.76271114409, 15.0]))
-end
-@show zoom_lens(0)
-Vis.drawtracerays(zoom_lens(0), test = true, trackallrays = true, numdivisions = 50, resolution = (1200, 600))
-Vis.make2dy() # hide
-Vis.save("assets/zoom0.png") # hide
-Vis.drawtracerays(zoom_lens(1), test = true, trackallrays = true, numdivisions = 50, resolution = (1200, 600))
-Vis.make2dy() # hide
-Vis.save("assets/zoom1.png") # hide
-Vis.drawtracerays(zoom_lens(2), test = true, trackallrays = true, numdivisions = 50, resolution = (1200, 600))
-Vis.make2dy() # hide
-Vis.save("assets/zoom2.png") # hide
-nothing # hide
-```
-
-![Zoom position 1 visualization](assets/zoom0.png)
-![Zoom position 2 visualization](assets/zoom1.png)
-![Zoom position 3 visualization](assets/zoom2.png)
-
 ## Schmidt Cassegrain Telescope
 
 ```@example
