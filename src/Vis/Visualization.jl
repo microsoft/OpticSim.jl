@@ -20,11 +20,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE
 
-module Vis
-
 using ..OpticSim
 using ..OpticSim: euclideancontrolpoints, evalcsg, vertex, makiemesh, detector, centroid, origingen, lower, upper, intervals, α
-using ..Geometry
+using ..OpticSim.Geometry
 
 using Unitful
 using ImageView
@@ -39,11 +37,6 @@ import Makie.AbstractPlotting.MakieLayout
 import Plots
 import Luxor
 using FileIO
-
-# If using precompiled system image (which we always are) you have to run AbstractPlotting.__init__() after loading Makie
-# during precompilation, the display stack gets shuffled around such that the Makie display does not take priority.
-# See https://discourse.julialang.org/t/makie-doesnt-display-plot-when-using-a-custom-julia-sysimage/38515.
-__init__() = AbstractPlotting.__init__()
 
 #############################################################################
 
@@ -1051,6 +1044,3 @@ function eyebox_eval_planar(assembly::LensAssembly{T}, raygen::OpticalRayGenerat
         Vis.show(out_image)
     end
 end
-
-end # module Vis
-export Vis

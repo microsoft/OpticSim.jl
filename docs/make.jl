@@ -21,7 +21,7 @@
 # SOFTWARE
 
 using Documenter
-using OpticSim, OpticSim.Geometry, OpticSim.Emitters
+using OpticSim
 
 makedocs(
     sitename = "OpticSim.jl",
