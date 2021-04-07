@@ -56,6 +56,7 @@ makedocs(
 deploydocs(
     repo = "github.com/microsoft/OpticSim.jl.git",
     devbranch = "main",
+    push_preview = true,
 )
 
 # function children(m::Module)
