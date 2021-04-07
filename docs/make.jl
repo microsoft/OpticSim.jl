@@ -32,8 +32,7 @@ makedocs(
     modules = [OpticSim],
     pages = [
         "Home" => "index.md",
-        "Examples" => "examples.md",      
-        # "Glasses" => cat_pages,
+        "Examples" => "examples.md",
         "Geometry" => [
             "Primitives" => "primitives.md",
             "CSG" => "csg.md"
@@ -47,6 +46,7 @@ makedocs(
         "Visualization" => "vis.md",
         "Glass Functions" => "glasscat.md",
         "Optimization" => "optimization.md",
+        "Cloud Execution" => "cloud.md",
         "Reference" => "ref.md",
         "Roadmap" => "roadmap.md"
     ],
@@ -60,7 +60,6 @@ deploydocs(
 # function children(m::Module)
 #     ns = names(m, imported = false, all = true)
 #     ms = []
- 
 #     for n in ns
 #         try
 #             x = Core.eval(m, n)

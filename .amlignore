@@ -8,3 +8,4 @@ LICENSE
 Manifest.toml
 .gitignore
 src/Cloud/amlconf
+outputs/

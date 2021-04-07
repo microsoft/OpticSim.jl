@@ -5,6 +5,11 @@ using Conda
 using Pkg
 using Random
 
+"""
+    cache_run_config(subscription_id::String, resource_group::String, workspace_name::String, compute_name::String[, path::String])
+
+Writes the AML config information to a file at `path`. If `path` isn't set then the config will be used globally for that OpticSim install.
+"""
 function cache_run_config(subscription_id::String, resource_group::String, workspace_name::String, compute_name::String, path::String = joinpath(@__DIR__, "amlconf"))
     open(path, "w") do io
         write(io, subscription_id * "\n")
@@ -15,6 +20,11 @@ function cache_run_config(subscription_id::String, resource_group::String, works
    nothing
 end
 
+"""
+    get_cached_run_config([path::String])
+
+Reads the AML config information from a file at `path`. If not specified then the global config will be read.
+"""
 function get_cached_run_config(path::String = joinpath(@__DIR__, "amlconf"))
     open(path, "r") do io
         subscription_id = readline(io)
@@ -25,13 +35,30 @@ function get_cached_run_config(path::String = joinpath(@__DIR__, "amlconf"))
     end
 end
 
-function submit_run_to_AML(run_name::String, path_to_script::String, script_args::Union{Nothing,Vector{String}} = nothing, config_path::String = joinpath(@__DIR__, "amlconf"))
+"""
+    submit_run_to_AML(run_name::String, path_to_script::String, script_args::Vector{String} = nothing, sampled_args:Dict{String,Vector{String}} = nothing, config_path::String; hyperdrive_concurrent_runs::Int = 10)
+    submit_run_to_AML(run_name::String, path_to_script::String, subscription_id::String, resource_group::String, workspace_name::String, compute_name::String, script_args::Vector{String} = nothing, sampled_args::Dict{String, Vector{String}} = nothing; hyperdrive_concurrent_runs::Int = 10)
+
+Submit a run to AML, `path_to_script` is relative to your local package root (i.e. location of `Project.toml`).
+`script_args` are a series of arguments to your script as strings.
+`sampled_args` is a dictionary where keys are argument names and values are lists of values (as strings) that that argument will take.
+`config_path` is a path to a config file as written by [`cache_run_config`](@ref), if not specified the global config is used. Alternatively this information can be provided directly using the second method above.
+`hyperdrive_concurrent_runs` is the maximum number of concurrent runs that will execute on AML (limited by your compute cluster size).
+"""
+function submit_run_to_AML(run_name::String, path_to_script::String, script_args::Union{Nothing,Vector{String}} = nothing,
+                           sampled_args::Union{Nothing,Dict{String,Vector{String}}} = nothing;
+                           config_path::String = joinpath(@__DIR__, "amlconf"),
+                           hyperdrive_concurrent_runs::Int = 10)
     subscription_id, resource_group, workspace_name, compute_name = get_cached_run_config(config_path)
-    submit_run_to_AML(run_name, path_to_script, script_args, subscription_id, resource_group, workspace_name, compute_name)
+    submit_run_to_AML(run_name, path_to_script, subscription_id, resource_group, workspace_name, compute_name,
+                      script_args, sampled_args, hyperdrive_concurrent_runs=hyperdrive_concurrent_runs)
 end
 
-function submit_run_to_AML(run_name::String, path_to_script::String, script_args::Union{Nothing,Vector{String}},
-                           subscription_id::String, resource_group::String, workspace_name::String, compute_name::String)
+function submit_run_to_AML(run_name::String, path_to_script::String,
+                           subscription_id::String, resource_group::String, workspace_name::String, compute_name::String,
+                           script_args::Union{Nothing,Vector{String}} = nothing,
+                           sampled_args::Union{Nothing,Dict{String,Vector{String}}} = nothing;
+                           hyperdrive_concurrent_runs::Int = 10)
 
     dockerfile = open(joinpath(@__DIR__, "dockerfile")) do file
         read(file, String)
@@ -61,8 +88,11 @@ function submit_run_to_AML(run_name::String, path_to_script::String, script_args
 
     source_directory = joinpath(dirname(Base.active_project()))
 
-    if isfile(joinpath(source_directory, "Manifest.toml"))
-        println("WARNING: Manifest.toml must be included in .amlignore file.")
+    if isfile(joinpath(source_directory, "Manifest.toml")) && !isfile(joinpath(source_directory, ".amlignore"))
+        println("No .amlignore file found, creating one")
+        open(joinpath(source_directory, ".amlignore"), "w") do io
+            write(io, "Manifest.toml\n")
+        end
     end
 
     # set up env for python stuff
@@ -85,10 +115,20 @@ function submit_run_to_AML(run_name::String, path_to_script::String, script_args
     import os
     import webbrowser
     from azureml.core import Environment, Experiment, Run, Workspace, ScriptRunConfig
-    # import azureml.train.hyperdrive as hyperdrive
-    # from azureml.train.hyperdrive.parameter_expressions import choice
+    import azureml.train.hyperdrive as hyperdrive
+    from azureml.train.hyperdrive.parameter_expressions import choice
 
-    def submit_run(subscription_id, resource_group, workspace_name, compute_name, source_directory, julia_script, script_args, run_name, dockerfile, entry_script_path):
+    def get_hyperparam_dict(param_dict):
+        hyper_param_dict = {}
+        num_params = 1
+        for key, value in param_dict.items():
+            hyper_param_dict[key] = choice(value)
+            num_params = num_params * len(value)
+
+        return hyper_param_dict, num_params
+
+    def submit_run(subscription_id, resource_group, workspace_name, compute_name, source_directory, julia_script,
+                   script_args, sampled_args, run_name, dockerfile, entry_script_path, hyperdrive_concurrent_runs):
         workspace = Workspace(subscription_id, resource_group, workspace_name)
 
         compute_target = workspace.compute_targets[compute_name]
@@ -108,16 +148,27 @@ function submit_run_to_AML(run_name::String, path_to_script::String, script_args
                               environment=env)
         src.run_config.docker.use_docker = True
 
-        # TODO support hyperdrive
-
         exp_name = os.getlogin() + "-opticsim"
         experiment = Experiment(workspace, exp_name)
-        run_object = experiment.submit(src, tags={"run_name": run_name})
+
+        if sampled_args is not None:
+            sampling_params, num_params = get_hyperparam_dict(sampled_args)
+            param_sampling = hyperdrive.GridParameterSampling(sampling_params)
+            hyperdrive_run_config = hyperdrive.HyperDriveConfig(run_config=src,
+                                                                hyperparameter_sampling=param_sampling,
+                                                                max_concurrent_runs=hyperdrive_concurrent_runs,
+                                                                primary_metric_name="",
+                                                                primary_metric_goal=hyperdrive.PrimaryMetricGoal.MINIMIZE,
+                                                                max_total_runs=num_params)
+            run_object = experiment.submit(hyperdrive_run_config, tags={"run_name": run_name})
+        else:
+            run_object = experiment.submit(src, tags={"run_name": run_name})
 
         webbrowser.open_new(run_object.get_portal_url())
     """
 
-    py"submit_run"(subscription_id, resource_group, workspace_name, compute_name, source_directory, path_to_script, script_args, run_name, dockerfile, entry_script_path)
+    py"submit_run"(subscription_id, resource_group, workspace_name, compute_name, source_directory, path_to_script,
+                   script_args, sampled_args, run_name, dockerfile, entry_script_path, hyperdrive_concurrent_runs)
 
     # remove the entry script
     rm(joinpath(source_directory, entry_script_path))

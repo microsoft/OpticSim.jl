@@ -36,7 +36,7 @@ using ..OpticSim: detectorsize, temperature, pressure
 
 Pack variables that have been marked to be optimized into a vector in a form suitable for the optimizer.
 Variables are marked for optimization by having a true value in the `:OptimizeName` column, where `Name` can be `Radius`, `Thickness` or `Conic`.
-    """
+"""
 function optimizationvariables(a::AxisymmetricOpticalSystem{T}) where {T<:Real}
     prescription = a.prescription
 
