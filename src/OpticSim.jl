@@ -52,6 +52,7 @@ include("Optical/Emitters.jl")      # defines the Emitters module
 
 include("Examples/Examples.jl")
 include("Optimization/Optimization.jl")
+include("Cloud/Cloud.jl")
 
 # define the NotebooksUtils module
 include("NotebooksUtils/NotebooksUtils.jl")
