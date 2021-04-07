@@ -42,6 +42,8 @@ transmission(i::OpticalInterface{T}) -> T
 abstract type OpticalInterface{T<:Real} end
 export OpticalInterface
 
+@enum InterfaceMode Reflect Transmit ReflectOrTransmit
+
 ######################################################################
 
 """
@@ -116,28 +118,30 @@ struct FresnelInterface{T} <: OpticalInterface{T}
     outsidematerial::GlassID
     reflectance::T
     transmission::T
+    interfacemode::InterfaceMode
 
-    function FresnelInterface{T}(insidematerial::Z, outsidematerial::Y; reflectance::T = zero(T), transmission::T = one(T)) where {Z<:OpticSim.GlassCat.AbstractGlass,Y<:OpticSim.GlassCat.AbstractGlass,T<:Real}
-        return FresnelInterface{T}(glassid(insidematerial), glassid(outsidematerial), reflectance = reflectance, transmission = transmission)
+    function FresnelInterface{T}(insidematerial::Z, outsidematerial::Y; reflectance::T = zero(T), transmission::T = one(T), interfacemode = ReflectOrTransmit) where {Z<:OpticSim.GlassCat.AbstractGlass,Y<:OpticSim.GlassCat.AbstractGlass,T<:Real}
+        return FresnelInterface{T}(glassid(insidematerial), glassid(outsidematerial), reflectance = reflectance, transmission = transmission, interfacemode = interfacemode)
     end
 
-    function FresnelInterface{T}(insidematerialid::GlassID, outsidematerialid::GlassID; reflectance::T = zero(T), transmission::T = one(T)) where {T<:Real}
+    function FresnelInterface{T}(insidematerialid::GlassID, outsidematerialid::GlassID; reflectance::T = zero(T), transmission::T = one(T), interfacemode = ReflectOrTransmit) where {T<:Real}
         @assert zero(T) <= reflectance <= one(T)
         @assert zero(T) <= transmission <= one(T)
         @assert reflectance + transmission <= one(T)
-        return new{T}(insidematerialid, outsidematerialid, reflectance, transmission)
+        return new{T}(insidematerialid, outsidematerialid, reflectance, transmission, interfacemode)
     end
 end
 export FresnelInterface
 
 function Base.show(io::IO, a::FresnelInterface{R}) where {R<:Real}
-    print(io, "FresnelInterface($(glassname(a.insidematerial)), $(glassname(a.outsidematerial)), $(a.reflectance), $(a.transmission))")
+    print(io, "FresnelInterface($(glassname(a.insidematerial)), $(glassname(a.outsidematerial)), $(a.reflectance), $(a.transmission), $(a.interfacemode))")
 end
 
 insidematerialid(a::FresnelInterface{T}) where {T<:Real} = a.insidematerial
 outsidematerialid(a::FresnelInterface{T}) where {T<:Real} = a.outsidematerial
 reflectance(a::FresnelInterface{T}) where {T<:Real} = a.reflectance
 transmission(a::FresnelInterface{T}) where {T<:Real} = a.transmission
+interfacemode(a::FresnelInterface{T}) where {T<:Real} = a.interfacemode
 
 transmissiveinterface(::Type{T}, insidematerial::X, outsidematerial::Y) where {T<:Real,X<:OpticSim.GlassCat.AbstractGlass,Y<:OpticSim.GlassCat.AbstractGlass} = FresnelInterface{T}(insidematerial, outsidematerial, reflectance = zero(T), transmission = one(T))
 reflectiveinterface(::Type{T}, insidematerial::X, outsidematerial::Y) where {T<:Real,X<:OpticSim.GlassCat.AbstractGlass,Y<:OpticSim.GlassCat.AbstractGlass} = FresnelInterface{T}(insidematerial, outsidematerial, reflectance = one(T), transmission = zero(T))

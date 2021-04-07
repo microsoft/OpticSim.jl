@@ -20,18 +20,18 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE
 
-opticinterface(::Type{S}, insidematerial, outsidematerial, reflectance = zero(S)) where {S<:Real} = FresnelInterface{S}(insidematerial, outsidematerial, reflectance = reflectance, transmission = one(S) - reflectance)
+opticinterface(::Type{S}, insidematerial, outsidematerial, reflectance = zero(S), interfacemode = ReflectOrTransmit) where {S<:Real} = FresnelInterface{S}(insidematerial, outsidematerial, reflectance = reflectance, transmission = one(S) - reflectance, interfacemode = interfacemode)
 
 """
     SphericalLens(insidematerial, frontvertex, frontradius, backradius, thickness, semidiameter;  lastmaterial = OpticSim.GlassCat.Air, nextmaterial = OpticSim.GlassCat.Air, frontsurfacereflectance = 0.0, backsurfacereflectance = 0.0, frontdecenter = (0, 0), backdecenter = (0, 0))
 
 Constructs a simple cylindrical lens with spherical front and back surfaces. The side walls of the lens are absorbing.
 """
-function SphericalLens(insidematerial::T, frontvertex::S, frontradius::S, backradius::S, thickness::S, semidiameter::S; lastmaterial::Q = OpticSim.GlassCat.Air, nextmaterial::R = OpticSim.GlassCat.Air, frontsurfacereflectance::S = zero(S), backsurfacereflectance::S = zero(S), frontdecenter::Tuple{S,S} = (zero(S), zero(S)), backdecenter::Tuple{S,S} = (zero(S), zero(S))) where {R<:OpticSim.GlassCat.AbstractGlass,Q<:OpticSim.GlassCat.AbstractGlass,T<:OpticSim.GlassCat.AbstractGlass,S<:Real}
+function SphericalLens(insidematerial::T, frontvertex::S, frontradius::S, backradius::S, thickness::S, semidiameter::S; lastmaterial::Q = OpticSim.GlassCat.Air, nextmaterial::R = OpticSim.GlassCat.Air, frontsurfacereflectance::S = zero(S), backsurfacereflectance::S = zero(S), frontdecenter::Tuple{S,S} = (zero(S), zero(S)), backdecenter::Tuple{S,S} = (zero(S), zero(S)), interfacemode = ReflectOrTransmit) where {R<:OpticSim.GlassCat.AbstractGlass,Q<:OpticSim.GlassCat.AbstractGlass,T<:OpticSim.GlassCat.AbstractGlass,S<:Real}
     @assert !isnan(frontradius)
     @assert !isnan(backradius)
 
-    return ConicLens(insidematerial, frontvertex, frontradius, zero(S), backradius, zero(S), thickness, semidiameter, lastmaterial = lastmaterial, nextmaterial = nextmaterial, frontsurfacereflectance = frontsurfacereflectance, backsurfacereflectance = backsurfacereflectance, frontdecenter = frontdecenter, backdecenter = backdecenter)
+    return ConicLens(insidematerial, frontvertex, frontradius, zero(S), backradius, zero(S), thickness, semidiameter, lastmaterial = lastmaterial, nextmaterial = nextmaterial, frontsurfacereflectance = frontsurfacereflectance, backsurfacereflectance = backsurfacereflectance, frontdecenter = frontdecenter, backdecenter = backdecenter, interfacemode = interfacemode)
 end
 export SphericalLens
 
@@ -40,11 +40,11 @@ export SphericalLens
 
 Constructs a simple cylindrical lens with front and back surfaces with a radius and conic term. The side walls of the lens are absorbing.
 """
-function ConicLens(insidematerial::T, frontvertex::S, frontradius::S, frontconic::S, backradius::S, backconic::S, thickness::S, semidiameter::S; lastmaterial::Q = OpticSim.GlassCat.Air, nextmaterial::R = OpticSim.GlassCat.Air, frontsurfacereflectance::S = zero(S), backsurfacereflectance::S = zero(S), nsamples::Int = 17, frontdecenter::Tuple{S,S} = (zero(S), zero(S)), backdecenter::Tuple{S,S} = (zero(S), zero(S))) where {R<:OpticSim.GlassCat.AbstractGlass,Q<:OpticSim.GlassCat.AbstractGlass,T<:OpticSim.GlassCat.AbstractGlass,S<:Real}
+function ConicLens(insidematerial::T, frontvertex::S, frontradius::S, frontconic::S, backradius::S, backconic::S, thickness::S, semidiameter::S; lastmaterial::Q = OpticSim.GlassCat.Air, nextmaterial::R = OpticSim.GlassCat.Air, frontsurfacereflectance::S = zero(S), backsurfacereflectance::S = zero(S), nsamples::Int = 17, frontdecenter::Tuple{S,S} = (zero(S), zero(S)), backdecenter::Tuple{S,S} = (zero(S), zero(S)), interfacemode = ReflectOrTransmit) where {R<:OpticSim.GlassCat.AbstractGlass,Q<:OpticSim.GlassCat.AbstractGlass,T<:OpticSim.GlassCat.AbstractGlass,S<:Real}
     @assert !isnan(frontradius)
     @assert !isnan(frontconic)
 
-    return AsphericLens(insidematerial, frontvertex, frontradius, frontconic, nothing, backradius, backconic, nothing, thickness, semidiameter, lastmaterial = lastmaterial, nextmaterial = nextmaterial, frontsurfacereflectance = frontsurfacereflectance, backsurfacereflectance = backsurfacereflectance, nsamples = nsamples, frontdecenter = frontdecenter, backdecenter = backdecenter)
+    return AsphericLens(insidematerial, frontvertex, frontradius, frontconic, nothing, backradius, backconic, nothing, thickness, semidiameter, lastmaterial = lastmaterial, nextmaterial = nextmaterial, frontsurfacereflectance = frontsurfacereflectance, backsurfacereflectance = backsurfacereflectance, nsamples = nsamples, frontdecenter = frontdecenter, backdecenter = backdecenter, interfacemode = interfacemode)
 end
 export ConicLens
 
@@ -53,7 +53,7 @@ export ConicLens
 
 Cosntructs a simple cylindrical lens with front and back surfaces with a radius, conic and apsheric terms. The side walls of the lens are absorbing.
 """
-function AsphericLens(insidematerial::T, frontvertex::S, frontradius::S, frontconic::S, frontaspherics::Union{Nothing,Vector{Tuple{Int,S}}}, backradius::S, backconic::S, backaspherics::Union{Nothing,Vector{Tuple{Int,S}}}, thickness::S, semidiameter::S; lastmaterial::Q = OpticSim.GlassCat.Air, nextmaterial::R = OpticSim.GlassCat.Air, frontsurfacereflectance::S = zero(S), backsurfacereflectance::S = zero(S), nsamples::Int = 17, frontdecenter::Tuple{S,S} = (zero(S), zero(S)), backdecenter::Tuple{S,S} = (zero(S), zero(S))) where {R<:OpticSim.GlassCat.AbstractGlass,Q<:OpticSim.GlassCat.AbstractGlass,T<:OpticSim.GlassCat.AbstractGlass,S<:Real}
+function AsphericLens(insidematerial::T, frontvertex::S, frontradius::S, frontconic::S, frontaspherics::Union{Nothing,Vector{Tuple{Int,S}}}, backradius::S, backconic::S, backaspherics::Union{Nothing,Vector{Tuple{Int,S}}}, thickness::S, semidiameter::S; lastmaterial::Q = OpticSim.GlassCat.Air, nextmaterial::R = OpticSim.GlassCat.Air, frontsurfacereflectance::S = zero(S), backsurfacereflectance::S = zero(S), nsamples::Int = 17, frontdecenter::Tuple{S,S} = (zero(S), zero(S)), backdecenter::Tuple{S,S} = (zero(S), zero(S)), interfacemode = ReflectOrTransmit) where {R<:OpticSim.GlassCat.AbstractGlass,Q<:OpticSim.GlassCat.AbstractGlass,T<:OpticSim.GlassCat.AbstractGlass,S<:Real}
     @assert semidiameter > zero(S)
     @assert !isnan(frontradius)
 
@@ -62,20 +62,20 @@ function AsphericLens(insidematerial::T, frontvertex::S, frontradius::S, frontco
 
     if isinf(frontradius) && (frontaspherics === nothing)
         #planar
-        lens_front = leaf(Plane(SVector{3,S}(0, 0, 1), SVector{3,S}(0, 0, frontvertex), vishalfsizeu = semidiameter, vishalfsizev = semidiameter, interface = interface = opticinterface(S, insidematerial, lastmaterial, frontsurfacereflectance)))
+        lens_front = leaf(Plane(SVector{3,S}(0, 0, 1), SVector{3,S}(0, 0, frontvertex), vishalfsizeu = semidiameter, vishalfsizev = semidiameter, interface = interface = opticinterface(S, insidematerial, lastmaterial, frontsurfacereflectance, interfacemode)))
     elseif frontconic == zero(S) && (frontaspherics === nothing)
         #spherical
         if frontradius < zero(S)
             ϕmax = NaNsafeasin(min(abs((min(semidiameter, abs(frontradius)) + frontdecenter_l) / frontradius), one(S))) + S(π / 50)
-            lens_front = leaf(SphericalCap(abs(frontradius), ϕmax, SVector{3,S}(0, 0, 1), SVector{3,S}(frontdecenter[1], frontdecenter[2], frontvertex), interface = opticinterface(S, insidematerial, lastmaterial, frontsurfacereflectance)))
+            lens_front = leaf(SphericalCap(abs(frontradius), ϕmax, SVector{3,S}(0, 0, 1), SVector{3,S}(frontdecenter[1], frontdecenter[2], frontvertex), interface = opticinterface(S, insidematerial, lastmaterial, frontsurfacereflectance, interfacemode)))
         else
             offset = translation(S, frontdecenter[1], frontdecenter[2], frontvertex - frontradius)
-            surf = Sphere(abs(frontradius), interface = opticinterface(S, insidematerial, lastmaterial, frontsurfacereflectance))
+            surf = Sphere(abs(frontradius), interface = opticinterface(S, insidematerial, lastmaterial, frontsurfacereflectance, interfacemode))
             lens_front = leaf(surf, offset)
         end
         if abs(frontradius) - frontdecenter_l <= semidiameter
             # if optical surface is smaller than semidiameter then use a plane to fill the gap
-            plane = leaf(Plane(SVector{3,S}(0, 0, 1), SVector{3,S}(0, 0, frontvertex - frontradius), vishalfsizeu = semidiameter, vishalfsizev = semidiameter, interface = interface = opticinterface(S, insidematerial, lastmaterial, frontsurfacereflectance)))
+            plane = leaf(Plane(SVector{3,S}(0, 0, 1), SVector{3,S}(0, 0, frontvertex - frontradius), vishalfsizeu = semidiameter, vishalfsizev = semidiameter, interface = interface = opticinterface(S, insidematerial, lastmaterial, frontsurfacereflectance, interfacemode)))
             if frontradius > zero(S)
                 lens_front = csgunion(lens_front, plane)
             else
@@ -87,17 +87,17 @@ function AsphericLens(insidematerial::T, frontvertex::S, frontradius::S, frontco
         if frontaspherics !== nothing
             frontaspherics = [(i, -k) for (i, k) in frontaspherics]
         end
-        surf = AcceleratedParametricSurface(ZernikeSurface(semidiameter + frontdecenter_l + S(0.01), radius = -frontradius, conic = frontconic, aspherics = frontaspherics), nsamples, interface = opticinterface(S, insidematerial, lastmaterial, frontsurfacereflectance))
+        surf = AcceleratedParametricSurface(ZernikeSurface(semidiameter + frontdecenter_l + S(0.01), radius = -frontradius, conic = frontconic, aspherics = frontaspherics), nsamples, interface = opticinterface(S, insidematerial, lastmaterial, frontsurfacereflectance, interfacemode))
         lens_front = leaf(surf, translation(S, frontdecenter[1], frontdecenter[2], frontvertex))
     end
     if isinf(backradius) && (backaspherics === nothing)
         #planar
-        lens_rear = leaf(Plane(SVector{3,S}(0, 0, -1), SVector{3,S}(0, 0, frontvertex - thickness), vishalfsizeu = semidiameter, vishalfsizev = semidiameter, interface = interface = opticinterface(S, insidematerial, nextmaterial, backsurfacereflectance)))
+        lens_rear = leaf(Plane(SVector{3,S}(0, 0, -1), SVector{3,S}(0, 0, frontvertex - thickness), vishalfsizeu = semidiameter, vishalfsizev = semidiameter, interface = interface = opticinterface(S, insidematerial, nextmaterial, backsurfacereflectance, interfacemode)))
     elseif backconic == zero(S) && (backaspherics === nothing)
         #spherical
         if backradius < zero(S)
             offset = translation(S, backdecenter[1], backdecenter[2], (frontvertex - thickness) - backradius)
-            surf = Sphere(abs(backradius), interface = opticinterface(S, insidematerial, nextmaterial, backsurfacereflectance))
+            surf = Sphere(abs(backradius), interface = opticinterface(S, insidematerial, nextmaterial, backsurfacereflectance, interfacemode))
             lens_rear = leaf(surf, offset)
             if backradius == semidiameter
                 # in this case we need to clip the sphere
@@ -106,10 +106,10 @@ function AsphericLens(insidematerial::T, frontvertex::S, frontradius::S, frontco
             end
         else
             ϕmax = NaNsafeasin(min(abs((min(semidiameter, abs(backradius)) + backdecenter_l) / backradius), one(S))) + S(π / 50)
-            lens_rear = leaf(SphericalCap(abs(backradius), ϕmax, SVector{3,S}(0, 0, -1), SVector{3,S}(backdecenter[1], backdecenter[2], frontvertex - thickness), interface = opticinterface(S, insidematerial, nextmaterial, backsurfacereflectance)))
+            lens_rear = leaf(SphericalCap(abs(backradius), ϕmax, SVector{3,S}(0, 0, -1), SVector{3,S}(backdecenter[1], backdecenter[2], frontvertex - thickness), interface = opticinterface(S, insidematerial, nextmaterial, backsurfacereflectance, interfacemode)))
         end
         if abs(backradius) - backdecenter_l <= semidiameter
-            plane = leaf(Plane(SVector{3,S}(0, 0, -1), SVector{3,S}(0, 0, frontvertex - thickness - backradius), vishalfsizeu = semidiameter, vishalfsizev = semidiameter, interface = interface = opticinterface(S, insidematerial, lastmaterial, backsurfacereflectance)))
+            plane = leaf(Plane(SVector{3,S}(0, 0, -1), SVector{3,S}(0, 0, frontvertex - thickness - backradius), vishalfsizeu = semidiameter, vishalfsizev = semidiameter, interface = interface = opticinterface(S, insidematerial, lastmaterial, backsurfacereflectance, interfacemode)))
             if backradius < zero(S)
                 lens_rear = csgunion(lens_rear, plane)
             else
@@ -118,7 +118,7 @@ function AsphericLens(insidematerial::T, frontvertex::S, frontradius::S, frontco
         end
     else
         #conic or aspheric
-        surf = AcceleratedParametricSurface(ZernikeSurface(semidiameter + backdecenter_l + S(0.01), radius = backradius, conic = backconic, aspherics = backaspherics), nsamples, interface = opticinterface(S, insidematerial, nextmaterial, backsurfacereflectance))
+        surf = AcceleratedParametricSurface(ZernikeSurface(semidiameter + backdecenter_l + S(0.01), radius = backradius, conic = backconic, aspherics = backaspherics), nsamples, interface = opticinterface(S, insidematerial, nextmaterial, backsurfacereflectance, interfacemode))
         lens_rear = leaf(surf, RigidBodyTransform{S}(zero(S), S(π), zero(S), backdecenter[1], backdecenter[2], frontvertex - thickness))
     end
     extra_front = frontradius >= zero(S) || isinf(frontradius) ? zero(S) : abs(frontradius) - sqrt(frontradius^2 - semidiameter^2)
