@@ -14,6 +14,12 @@ Pages   = ["ref.md"]
 Modules = [OpticSim]
 ```
 
+## Emitters
+
+```@autodocs
+Modules = [OpticSim.Emitters]
+```
+
 ## Zernike
 
 ```@autodocs
