@@ -50,7 +50,7 @@ function run(; port=nothing, path=nothing, sysimage_file=nothing, auto_detect_sy
         local file_path = $path
         local sysimage_file_path = $sysimage_file
         
-        if (file_path==nothing)
+        if (file_path === nothing)
             @info "Launching Pluto"
         else
             file_path = fix_path(file_path)
