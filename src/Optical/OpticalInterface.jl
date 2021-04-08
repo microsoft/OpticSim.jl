@@ -43,6 +43,7 @@ abstract type OpticalInterface{T<:Real} end
 export OpticalInterface
 
 @enum InterfaceMode Reflect Transmit ReflectOrTransmit
+export InterfaceMode, Reflect, Transmit, ReflectOrTransmit
 
 ######################################################################
 
