@@ -1,5 +1,18 @@
 # Examples
 
+## Pluto Notebooks
+
+The [`OpticSim`](index.html) package comes with several [`Pluto`](https://github.com/fonsp/Pluto.jl) notebooks (code snippets are coming soon) that allow the user to change and run sample code and view the results in real-time. We highly recommend for you to try these out.
+The notebooks are located in the **samples** folder, and you can try them by running:
+
+```julia
+import OpticSim.NotebooksUtils as NB    # the **as** option was added in Julia v1.6
+
+NB.run_sample("EmittersIntro.jl")
+```
+
+The **run_sample** method will **copy** the notebook to your current folder (if it does not exist) and launch Pluto to run the notebook in the browser.
+
 ## Cooke Triplet
 
 ```@example
