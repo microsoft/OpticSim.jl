@@ -87,9 +87,9 @@ function download_source(sourcefile::AbstractString, url::AbstractString, POST_d
             agfdata = resp.body
         else
             reader = ZipFile.Reader(IOBuffer(resp.body))
-            agfdata = reader.files[findfirst(f -> endswith(f.name, ".agf"), reader.files)]
+            agfdata = read(reader.files[findfirst(f -> endswith(lowercase(f.name), ".agf"), reader.files)])
         end
-        write(sourcefile, read(agfdata))
+        write(sourcefile, agfdata)
     catch e
         @error e
     end
