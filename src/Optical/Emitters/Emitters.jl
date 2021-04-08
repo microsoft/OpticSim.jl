@@ -34,7 +34,7 @@ include("AngularPower.jl")
 include("Sources.jl")
 
 # exporting stuff from the Emitters module
-export Geometry, Spectrum, Directions, Origins, AngularPower, Sources
+export Spectrum, Directions, Origins, AngularPower, Sources
 
 end # module Emitters
 

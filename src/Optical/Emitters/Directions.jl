@@ -10,8 +10,6 @@ abstract type AbstractDirectionDistribution{T<:Real} end
 # Direction Distrubution Common Utilities
 #---------------------------------------
 
-export generate
-
 Base.iterate(a::AbstractDirectionDistribution, state = 1) = state > length(a) ? nothing : (generate(a, state - 1), state + 1)
 Base.getindex(a::AbstractDirectionDistribution, index) = generate(a, index)
 Base.firstindex(a::AbstractDirectionDistribution) = 0

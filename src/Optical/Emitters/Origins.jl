@@ -18,8 +18,6 @@ Base.firstindex(a::AbstractOriginDistribution) = 0
 Base.lastindex(a::AbstractOriginDistribution) = length(a) - 1
 Base.copy(a::AbstractOriginDistribution) = a # most don't have any heap allocated stuff so don't really need copying
 
-export generate
-
 #--------------------------------------
 # Point Origin
 #--------------------------------------
