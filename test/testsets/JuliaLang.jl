@@ -11,7 +11,7 @@ We then have to use which to find the method:
 and pop it from the set
 =#
 
-@otestset "JuliaLang" begin
+@testset "JuliaLang" begin
     # here we ignore the specific methods which we know are ok but are still failing
     # for some weird reason the unbound args check seems to fail for some (seemingly random) methods with Vararg arguments
     methods_to_ignore = Dict(

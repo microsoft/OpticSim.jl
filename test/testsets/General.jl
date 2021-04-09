@@ -1,4 +1,4 @@
-@otestset "General" begin
+@testset "General" begin
     @testset "QuadraticRoots" begin
         Random.seed!(SEED)
         similarroots(r1, r2, x1, x2) = isapprox([r1, r2], [x1, x2], rtol = 1e-9) || isapprox([r2, r1], [x1, x2], rtol = 1e-9)

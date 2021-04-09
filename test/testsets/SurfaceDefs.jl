@@ -1,4 +1,4 @@
-@otestset "SurfaceDefs" begin
+@testset "SurfaceDefs" begin
     @testset "Knots" begin
         # find span
         knots = KnotVector{Int64}([0, 0, 0, 1, 2, 3, 4, 4, 5, 5, 5])
