@@ -1,4 +1,4 @@
-@otestset "Intersection" begin
+@testset "Intersection" begin
     function samplepoints(numsamples, lowu, highu, lowv, highv)
         samples = Array{Tuple{Float64,Float64},1}(undef, 0)
 

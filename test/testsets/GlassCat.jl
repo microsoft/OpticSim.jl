@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE
 
-@otestset "GlassCat" begin
+@testset "GlassCat" begin
     # ensure there aren't any ambiguities
     @test isempty(detect_ambiguities(GlassCat))
     @test isempty(detect_unbound_args(GlassCat))
