@@ -38,9 +38,9 @@ jobs:
         run: sudo apt install libxt6 libxrender1 libxext6 libgl1-mesa-glx libqt5widgets5
       - uses: actions/cache@v2
         env:
-          cache-name: cache-julia
+          cache-name: cache-artifacts
         with:
-          path: ~/.julia/
+          path: ~/.julia/artifacts
           key: ${{ runner.os }}-${{ matrix.arch }}-test-${{ env.cache-name }}-${{ hashFiles('**/Project.toml') }}
           restore-keys: |
             ${{ runner.os }}-${{ matrix.arch }}-test-${{ env.cache-name }}-
