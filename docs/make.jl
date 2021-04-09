@@ -49,6 +49,7 @@ makedocs(
         "Glass Functions" => "glasscat.md",
         "Optimization" => "optimization.md",
         "Cloud Execution" => "cloud.md",
+        "Notebook utilities" => "notebooksutils.md",
         "Reference" => "ref.md",
         "Roadmap" => "roadmap.md"
     ],
