@@ -1,4 +1,4 @@
-@otestset "BVH" begin
+@testset "BVH" begin
     @testset "partition!" begin
         split = 0.5
 
