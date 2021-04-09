@@ -175,21 +175,15 @@ function processintersection(opticalinterface::FresnelInterface{T}, point::SVect
     powᵣ = max(powᵣ, reflectance(opticalinterface)) * internal_trans
     powₜ = powₜ * transmission(opticalinterface) * internal_trans
 
-    if interfacemode(opticalinterface) == Reflect
-        r = powᵣ / 2 + powₜ
-    elseif interfacemode(opticalinterface) == Transmit
-        r = zero(T)
-    else
-        # generate new rays using Monte Carlo sampling proportional to power. For most optical surfaces the vast majority of rays will be refracted rays.
-        # So could leave this turned on all the time with little impact on performance and get approximate scattering effects for free.
-        r = !test * rand()
-    end
+    # generate new rays using Monte Carlo sampling proportional to power. For most optical surfaces the vast majority of rays will be refracted rays.
+    # So could leave this turned on all the time with little impact on performance and get approximate scattering effects for free.
+    r = !test * rand()
     # assuming (powᵣ + powₜ) <= 1 (asserted in constructor)
-    if r < powₜ
+    if interfacemode(opticalinterface) == Transmit || (interfacemode(opticalinterface) == ReflectOrTransmit && r < powₜ)
         # refraction
         raydirection = refractedray(nᵢ, nₜ, normal, direction(incidentray))
         raypower = powₜ * incident_pow
-    elseif r < (powᵣ + powₜ)
+    elseif interfacemode(opticalinterace) == Reflect || (interfacemode(opticalinterface) == ReflectOrTransmit && r < (powᵣ + powₜ))
         # reflection
         raypower = powᵣ * incident_pow
         raydirection = reflectedray(normal, direction(incidentray))
