@@ -261,6 +261,7 @@ A display example using composite sources.
 Emitters.Spectrum.Uniform
 Emitters.Spectrum.DeltaFunction
 Emitters.Spectrum.Measured
+Emitters.Spectrum.spectrumpower
 ```
 
 ## [Angular Power Distribution](@id angular_power_distribution)
