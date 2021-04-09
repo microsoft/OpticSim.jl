@@ -42,6 +42,9 @@ transmission(i::OpticalInterface{T}) -> T
 abstract type OpticalInterface{T<:Real} end
 export OpticalInterface
 
+"""
+Valid modes for deterministic raytracing
+"""
 @enum InterfaceMode Reflect Transmit ReflectOrTransmit
 export InterfaceMode, Reflect, Transmit, ReflectOrTransmit
 
@@ -110,8 +113,15 @@ Interface between two materials with behavior defined according to the [Fresnel 
 Assumes unpolarized light.
 
 ```julia
-FresnelInterface{T}(insidematerial, outsidematerial; reflectance = 0, transmission = 1)
+FresnelInterface{T}(insidematerial, outsidematerial; reflectance = 0, transmission = 1, interfacemode = ReflectOrTransmit)
 ```
+
+The interfacemode can be used to trace rays deterministically. Valid values are defined in the InterfaceMode enum.
+Reflect means that all values are reflected, Transmit means that all values are transmitted. ReflectOrTransmit will randomly
+reflect and transmit rays with the distribution given by the reflection and transmission arguments. This is also the default.
+In all cases the power recorded with the ray is correctly updated. This can be used to fake sequential raytracing. For
+example a beamsplitter surface may be set to either Reflect or Transmit to switch between the two outgoing ray paths.
+
 """
 struct FresnelInterface{T} <: OpticalInterface{T}
     # storing glasses as IDs (integer) rather than the whole thing seems to improve performance significantly, even when the Glass type is a fixed size (i.e. the interface is pointer-free)

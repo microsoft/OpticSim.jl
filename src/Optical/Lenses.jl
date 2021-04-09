@@ -23,7 +23,7 @@
 opticinterface(::Type{S}, insidematerial, outsidematerial, reflectance = zero(S), interfacemode = ReflectOrTransmit) where {S<:Real} = FresnelInterface{S}(insidematerial, outsidematerial, reflectance = reflectance, transmission = one(S) - reflectance, interfacemode = interfacemode)
 
 """
-    SphericalLens(insidematerial, frontvertex, frontradius, backradius, thickness, semidiameter;  lastmaterial = OpticSim.GlassCat.Air, nextmaterial = OpticSim.GlassCat.Air, frontsurfacereflectance = 0.0, backsurfacereflectance = 0.0, frontdecenter = (0, 0), backdecenter = (0, 0))
+    SphericalLens(insidematerial, frontvertex, frontradius, backradius, thickness, semidiameter;  lastmaterial = OpticSim.GlassCat.Air, nextmaterial = OpticSim.GlassCat.Air, frontsurfacereflectance = 0.0, backsurfacereflectance = 0.0, frontdecenter = (0, 0), backdecenter = (0, 0), interfacemode = ReflectOrTransmit)
 
 Constructs a simple cylindrical lens with spherical front and back surfaces. The side walls of the lens are absorbing.
 """
@@ -36,7 +36,7 @@ end
 export SphericalLens
 
 """
-    ConicLens(insidematerial, frontvertex, frontradius, frontconic, backradius, backconic, thickness, semidiameter;  lastmaterial = OpticSim.GlassCat.Air, nextmaterial = OpticSim.GlassCat.Air, frontsurfacereflectance = 0.0, backsurfacereflectance = 0.0, frontdecenter = (0, 0), backdecenter = (0, 0))
+    ConicLens(insidematerial, frontvertex, frontradius, frontconic, backradius, backconic, thickness, semidiameter;  lastmaterial = OpticSim.GlassCat.Air, nextmaterial = OpticSim.GlassCat.Air, frontsurfacereflectance = 0.0, backsurfacereflectance = 0.0, frontdecenter = (0, 0), backdecenter = (0, 0), interfacemode = ReflectOrTransmit)
 
 Constructs a simple cylindrical lens with front and back surfaces with a radius and conic term. The side walls of the lens are absorbing.
 """
@@ -49,7 +49,7 @@ end
 export ConicLens
 
 """
-    AsphericLens(insidematerial, frontvertex, frontradius, frontconic, frontaspherics, backradius, backconic, backaspherics, thickness, semidiameter;  lastmaterial = OpticSim.GlassCat.Air, nextmaterial = OpticSim.GlassCat.Air, frontsurfacereflectance = 0.0, backsurfacereflectance = 0.0, frontdecenter = (0, 0), backdecenter = (0, 0))
+    AsphericLens(insidematerial, frontvertex, frontradius, frontconic, frontaspherics, backradius, backconic, backaspherics, thickness, semidiameter;  lastmaterial = OpticSim.GlassCat.Air, nextmaterial = OpticSim.GlassCat.Air, frontsurfacereflectance = 0.0, backsurfacereflectance = 0.0, frontdecenter = (0, 0), backdecenter = (0, 0), interfacemode = ReflectOrTransmit)
 
 Cosntructs a simple cylindrical lens with front and back surfaces with a radius, conic and apsheric terms. The side walls of the lens are absorbing.
 """
