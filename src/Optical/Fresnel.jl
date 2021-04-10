@@ -183,7 +183,7 @@ function processintersection(opticalinterface::FresnelInterface{T}, point::SVect
         # refraction
         raydirection = refractedray(nᵢ, nₜ, normal, direction(incidentray))
         raypower = powₜ * incident_pow
-    elseif interfacemode(opticalinterace) == Reflect || (interfacemode(opticalinterface) == ReflectOrTransmit && r < (powᵣ + powₜ))
+    elseif interfacemode(opticalinterface) == Reflect || (interfacemode(opticalinterface) == ReflectOrTransmit && r < (powᵣ + powₜ))
         # reflection
         raypower = powᵣ * incident_pow
         raydirection = reflectedray(normal, direction(incidentray))
