@@ -26,8 +26,8 @@ using OpticSim
 makedocs(
     sitename = "OpticSim.jl",
     format = Documenter.HTML(
-        assets = [asset("assets/logo.svg", class = :ico, islocal = true)],
         prettyurls = get(ENV, "CI", nothing) == "true",
+        assets = [asset("assets/logo.svg", class = :ico, islocal = true)],
     ),
     modules = [OpticSim],
     pages = [
@@ -53,9 +53,7 @@ makedocs(
         "Reference" => "ref.md",
         "Roadmap" => "roadmap.md"
     ],
-    expandfirst = ["glasscat.md", "systems.md", "vis.md"],
-    strict = true,
-)
+    expandfirst = ["glasscat.md", "systems.md", "vis.md"])
 
 deploydocs(
     repo = "github.com/microsoft/OpticSim.jl.git",
