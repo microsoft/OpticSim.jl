@@ -8,10 +8,6 @@ module Emitters
 using ...OpticSim, ..Geometry
 using LinearAlgebra
 
-struct MissingImplementationException <: Exception
-    msg::String
-end
-
 # defining name placeholders to override in nested modules
 generate() = 0 
 export generate
