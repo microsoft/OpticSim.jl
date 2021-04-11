@@ -1,4 +1,4 @@
-@otestset "Visualization" begin
+@testset "Visualization" begin
     if get(ENV, "CI", nothing) == "true" && Sys.iswindows() return #OpenGL is unreliable on headless Windows VMs on github. This fails unpredictably and prevents pull requests from being approved. These tests are not essential, so turn them off when running on windows.
     else
         # test that this all at least runs

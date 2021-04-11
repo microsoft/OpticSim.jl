@@ -1,4 +1,4 @@
-@otestset "Comparison" begin
+@testset "Comparison" begin
     @testset "Refraction" begin
         λ = 0.550
         r1 = OpticalRay([0.0, 0.0, 1.0], [0.0, 0.0, -1.0], 1.0, λ)

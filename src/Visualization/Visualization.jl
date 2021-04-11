@@ -103,6 +103,10 @@ end
 global current_main_scene = nothing
 global current_3d_scene = nothing
 
+# added the following 2 functions to allow us to hack the drawing mechanisim while in a pluto notebook
+set_current_main_scene(scene) = (global current_main_scene = scene)
+set_current_3d_scene(lscene) = (global current_3d_scene = lscene)
+
 show(image) = imshow(image)
 display(scene = current_main_scene) = Makie.display(scene)
 
