@@ -17,7 +17,7 @@ struct Lambertian{T} <: AbstractAngularPowerDistribution{T}
     Lambertian(::Type{T} = Float64) where {T<:Real} = new{T}()
 end
 
-Emitters.apply(::Lambertian, ::Transform, ::Real, ::OpticSim.Ray{<:Real,3}) = power
+Emitters.apply(::Lambertian, ::Transform, power::Real, ::OpticSim.Ray{<:Real,3}) = power
 
 """
     Cosine{T} <: AbstractAngularPowerDistribution{T} 
