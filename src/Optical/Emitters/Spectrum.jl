@@ -94,8 +94,7 @@ struct Measured{T} <: AbstractSpectrum{T}
     end
 end
 
-function Emitters.generate(s::Measured{T}) where {T<:Real}
-    spectrum = s
+function Emitters.generate(spectrum::Measured{T}) where {T<:Real}
     λ = rand(Distributions.Uniform(convert(T, spectrum.low_wave_length), convert(T, spectrum.high_wave_length)))
     power = spectrumpower(spectrum, λ)
     if power === nothing        #added this condition because the compiler was allocating if just returned values directly.
@@ -107,7 +106,6 @@ end
 
 """expects wavelength in nm not um"""
 function spectrumpower(spectrum::Measured{T}, λ::T) where {T<:Real}
-    λ = λ #convert from um to nm
     if λ < spectrum.low_wave_length || λ > spectrum.high_wave_length
         return nothing
     end
