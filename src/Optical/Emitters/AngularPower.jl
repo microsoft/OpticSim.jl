@@ -1,31 +1,26 @@
 module AngularPower
+export Lambertian, Cosine, Gaussian
 
-using ....OpticSim, ...Geometry
+using ....OpticSim
 using ...Emitters
+using ...Geometry
 using LinearAlgebra
 
 abstract type AbstractAngularPowerDistribution{T<:Real} end
 
-#---------------------------------------
-# Lambertian
-#---------------------------------------
 """
+    Lambertian{T} <: AbstractAngularPowerDistribution{T} 
+
 Ray power is unaffected by angle.
 """
-struct Lambertian{T} <: AbstractAngularPowerDistribution{T} 
+struct Lambertian{T} <: AbstractAngularPowerDistribution{T}
     Lambertian(::Type{T} = Float64) where {T<:Real} = new{T}()
 end
 
-function Emitters.apply(d::Lambertian{T}, Tr::Transform{T}, power::T, ray::OpticSim.Ray{T,3}) where {T}
-    return power
-end
-export Lambertian
+Emitters.apply(::Lambertian, ::Transform, ::Real, ::OpticSim.Ray{<:Real,3}) = power
 
-#---------------------------------------
-# Cosine Power Distribution
-#---------------------------------------
 """
-    Cosine(cosine_exp::T = one(T)) where {T<:Real}
+    Cosine{T} <: AbstractAngularPowerDistribution{T} 
 
 Cosine power distribution. Ray power is calculated by:
 
@@ -38,27 +33,21 @@ struct Cosine{T} <: AbstractAngularPowerDistribution{T}
         new{T}(cosine_exp)
     end
 end
-export Cosine
 
-# returning ray power
-function Emitters.apply(d::Cosine{T}, Tr::Transform{T}, power::T, ray::OpticSim.Ray{T,3}) where {T}
-    cosanglebetween = dot(OpticSim.direction(ray), forward(Tr))
-    power = power * cosanglebetween ^ d.cosine_exp
-    return power
+function Emitters.apply(d::Cosine, tr::Transform, power::Real, ray::OpticSim.Ray{<:Real,3})
+    cosanglebetween = dot(OpticSim.direction(ray), forward(tr))
+    return power * cosanglebetween ^ d.cosine_exp
 end
 
-#---------------------------------------
-# Gaussian Power Distribution
-#---------------------------------------
 """
-    Gaussian(gaussianu::T, gaussianv::T) where {T<:Real}
+    Gaussian{T} <: AbstractAngularPowerDistribution{T} 
 
 GGaussian power distribution. Ray power is calculated by:
 
 `power = power * exp(-(gaussianu * l^2 + gaussianv * m^2))`
 where l and m are the cos_angles between the two axes respectivly.
 """
-struct Gaussian{T} <: AbstractAngularPowerDistribution{T} 
+struct Gaussian{T} <: AbstractAngularPowerDistribution{T}
     gaussianu::T
     gaussianv::T
 
@@ -66,17 +55,11 @@ struct Gaussian{T} <: AbstractAngularPowerDistribution{T}
         new{T}(gaussianu, gaussianv)
     end
 end
-export Gaussian
 
-# returning ray power
-function Emitters.apply(d::Gaussian{T}, Tr::Transform{T}, power::T, ray::OpticSim.Ray{T,3}) where {T}
-
-    l = dot(OpticSim.direction(ray), right(Tr))
-    m = dot(OpticSim.direction(ray), up(Tr))
-    power = power * exp(-(d.gaussianu * l^2 + d.gaussianv * m^2))
-
-    return power
+function Emitters.apply(d::Gaussian, tr::Transform, power::Real, ray::OpticSim.Ray{<:Real,3})
+    l = dot(OpticSim.direction(ray), right(tr))
+    m = dot(OpticSim.direction(ray), up(tr))
+    return power * exp(-(d.gaussianu * l^2 + d.gaussianv * m^2))
 end
-
 
 end # module Angular Power

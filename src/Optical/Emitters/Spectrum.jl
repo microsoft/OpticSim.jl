@@ -1,20 +1,19 @@
 module Spectrum     
+export Uniform, DeltaFunction, Measured
 
 using ....OpticSim
 using ...Emitters
 using DataFrames
 using Distributions
 
-
-abstract type AbstractSpectrum{T<:Real} end
-
 const UNIFORMSHORT = 0.450 #um
 const UNIFORMLONG = 0.680 #um
 
-#---------------------------------------
-# Uniform Spectrum
-#---------------------------------------
+abstract type AbstractSpectrum{T<:Real} end
+
 """
+    Uniform{T} <: AbstractSpectrum{T}
+
 Encapsulates a flat spectrum range which is sampled uniformly. Unless stated diferrently, the range used will be 450nm to 680nm.
 
 ```julia
@@ -36,32 +35,27 @@ struct Uniform{T} <: AbstractSpectrum{T}
         return new{T}(UNIFORMSHORT, UNIFORMLONG)
     end
 end
-export Uniform
 
-Emitters.generate(s::Uniform{T}) where {T} = (T(1), rand(Distributions.Uniform(s.low_end, s.high_end)))
+Emitters.generate(s::Uniform{T}) where {T<:Real} = (one(T), rand(Distributions.Uniform(s.low_end, s.high_end)))
 
-#---------------------------------------
-# Delta Function Spectrum
-#---------------------------------------
 """
+    DeltaFunction{T} <: AbstractSpectrum{T}
+
 Encapsulates a constant spectrum.
 
 ```julia
 DeltaFunction{T<:Real}
 ```
 """
-struct DeltaFunction{T<:Real} <: AbstractSpectrum{T}
+struct DeltaFunction{T} <: AbstractSpectrum{T}
     λ::T
 end
-export DeltaFunction
 
-Emitters.generate(s::DeltaFunction{T}) where {T} = (T(1), s.λ)
-
-#---------------------------------------
-# Measured Spectrum
-#---------------------------------------
+Emitters.generate(s::DeltaFunction{T}) where {T<:Real} = (one(T), s.λ)
 
 """
+    Measured{T} <: AbstractSpectrum{T}
+
 Encapsulates a measured spectrum to compute emitter power. Create spectrum by reading CSV files.
 Evaluate spectrum at arbitrary wavelength with [`spectrumpower`](@ref) (**more technical details coming soon**)
 
@@ -69,10 +63,10 @@ Evaluate spectrum at arbitrary wavelength with [`spectrumpower`](@ref) (**more t
 Measured(samples::DataFrame)
 ```
 """
-struct Measured{T<:Real} <: AbstractSpectrum{T}
-    low_wave_length::Int
-    high_wave_length::Int
-    wave_length_step::Int
+struct Measured{T} <: AbstractSpectrum{T}
+    low_wave_length::Integer
+    high_wave_length::Integer
+    wave_length_step::Integer
     power_samples::Vector{T}
 
     function Measured(samples::DataFrame)
@@ -99,38 +93,35 @@ struct Measured{T<:Real} <: AbstractSpectrum{T}
         return new{T}(λmin, λmax, step, power)
     end
 end
-export Measured
+
+function Emitters.generate(s::Measured{T}) where {T<:Real}
+    spectrum = s
+    λ = rand(Distributions.Uniform(convert(T, spectrum.low_wave_length), convert(T, spectrum.high_wave_length)))
+    power = spectrumpower(spectrum, λ)
+    if power === nothing        #added this condition because the compiler was allocating if just returned values directly.
+        return (nothing, nothing)
+    else
+        return (power, λ / convert(T, 1000)) #convert from nm to um
+    end
+end
 
 """expects wavelength in nm not um"""
-function spectrumpower(spectrum::Measured{T}, λ::T)::Union{Nothing,T} where {T<:Real}
+function spectrumpower(spectrum::Measured{T}, λ::T) where {T<:Real}
     λ = λ #convert from um to nm
     if λ < spectrum.low_wave_length || λ > spectrum.high_wave_length
         return nothing
     end
 
-    lowindex = floor(Int, (λ - spectrum.low_wave_length)) ÷ spectrum.wave_length_step + 1
+    lowindex = floor(Integer, (λ - spectrum.low_wave_length)) ÷ spectrum.wave_length_step + 1
 
     if lowindex == length(spectrum.power_samples)
-        return T(spectrum.power_samples[end])
+        return convert(T, spectrum.power_samples[end])
     else
         highindex = lowindex + 1
         α = mod(λ, spectrum.wave_length_step) / spectrum.wave_length_step
 
-        return T((1 - α) * spectrum.power_samples[lowindex] + α * spectrum.power_samples[highindex])
+        return convert(T, (1 - α) * spectrum.power_samples[lowindex] + α * spectrum.power_samples[highindex])
     end
 end
-
-
-function Emitters.generate(s::Measured{T}) where {T}
-    spectrum = s
-    λ = rand(Distributions.Uniform{T}(T(spectrum.low_wave_length), T(spectrum.high_wave_length)))
-    power = spectrumpower(spectrum, λ)
-    if power === nothing        #added this condition because the compiler was allocating if just returned values directly.
-        return (nothing, nothing)
-    else
-        return (power, λ / T(1000)) #convert from nm to um
-    end
-end
-
 
 end # module Spectrum 
