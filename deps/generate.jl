@@ -198,18 +198,15 @@ function catalog_to_modstring(start_id::Integer, catalogname::AbstractString, ca
     modstrings = [
         "module $catalogname",
         "using ..GlassCat: Glass, GlassID, AGF",
-        # "using StaticArrays: SVector",
         "export $(join(keys(catalog), ", "))",
         ""
     ]
     for (glassname, glassinfo) in catalog
-        # skip docstrings for CI builds to avoid 'missing docstring' warnings in makedocs
-        docstring = isCI ? "" : glassinfo_to_docstring(glassinfo, id, catalogname, glassname)
         argstring = glassinfo_to_argstring(glassinfo, id)
-        append!(modstrings, [docstring, "const $glassname = Glass($argstring)", ""])
+        push!(modstrings, "const $glassname = Glass($argstring)")
         id += 1
     end
-    append!(modstrings, ["end #module", ""]) # last "" is for \n at EOF
+    append!(modstrings, ["end # module", ""]) # last "" is for \n at EOF
 
     return id, join(modstrings, "\n")
 end

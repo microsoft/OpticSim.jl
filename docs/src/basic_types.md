@@ -11,12 +11,12 @@ using OpticSim, OpticSim.Geometry
 Representing a 3D vector.
 
 ```@docs
-Geometry.Vec3
-Geometry.unitX3
-Geometry.unitY3
-Geometry.unitZ3
-Geometry.zero3
-Geometry.one3
+OpticSim.Geometry.Vec3
+OpticSim.Geometry.unitX3
+OpticSim.Geometry.unitY3
+OpticSim.Geometry.unitZ3
+OpticSim.Geometry.zero3
+OpticSim.Geometry.one3
 ```
 
 ## Vec4
@@ -24,13 +24,13 @@ Geometry.one3
 Representing a 4D vector 
 
 ```@docs
-Geometry.Vec4
-Geometry.unitX4
-Geometry.unitY4
-Geometry.unitZ4
-Geometry.unitW4
-Geometry.zero4
-Geometry.one4
+OpticSim.Geometry.Vec4
+OpticSim.Geometry.unitX4
+OpticSim.Geometry.unitY4
+OpticSim.Geometry.unitZ4
+OpticSim.Geometry.unitW4
+OpticSim.Geometry.zero4
+OpticSim.Geometry.one4
 ```
 
 ## Transform
@@ -39,17 +39,16 @@ Representing a general 3D transform (4x4 matrix). Currently only used as a rigid
 Transforms are used to position surfaces within the CSG tree, position emitters in 3D, etc. 
 
 ```@docs
-Geometry.Transform
-Geometry.identitytransform
-Geometry.rotationX
-Geometry.rotationY
-Geometry.rotationZ
-Geometry.rotation
-Geometry.rotationd
-Geometry.rotate
-Geometry.translation
-Geometry.rotmat
-Geometry.rotmatd
-Geometry.rotmatbetween
+OpticSim.Geometry.Transform
+OpticSim.Geometry.identitytransform
+OpticSim.Geometry.rotationX
+OpticSim.Geometry.rotationY
+OpticSim.Geometry.rotationZ
+OpticSim.Geometry.rotation
+OpticSim.Geometry.rotationd
+OpticSim.Geometry.rotate
+OpticSim.Geometry.translation
+OpticSim.Geometry.rotmat
+OpticSim.Geometry.rotmatd
+OpticSim.Geometry.rotmatbetween
 ```
-

@@ -21,7 +21,7 @@
 # SOFTWARE
 
 using Documenter
-using OpticSim, OpticSim.Geometry, OpticSim.Emitters
+using OpticSim
 
 makedocs(
     sitename = "OpticSim.jl",
@@ -49,6 +49,7 @@ makedocs(
         "Glass Functions" => "glasscat.md",
         "Optimization" => "optimization.md",
         "Cloud Execution" => "cloud.md",
+        "Notebook utilities" => "notebooksutils.md",
         "Reference" => "ref.md",
         "Roadmap" => "roadmap.md"
     ],

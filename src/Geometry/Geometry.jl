@@ -26,6 +26,9 @@ module Geometry
 include("Transform.jl")
 
 end # module Geometry
+export Geometry
+
+
 using .Geometry
 
 include("Ray.jl")
