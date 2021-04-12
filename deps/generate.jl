@@ -72,6 +72,16 @@ end
 
 """
 Parse a `sourcefile` (.agf) into a native dictionary, where each `kvp = (glassname, glassinfo)` is a glass.
+
+| 1  | 2        | 3         | 4     | 5     | 6                     | 7             | 8         | 9         | 10    | 11    |
+|:---|:---------|:----------|:------|:------|:----------------------|:--------------|:----------|:----------|:------|:------|
+| NM | raw name | dispform  | ?     |  Nd   | Vd                    | [exclude_sub  | status    | meltfreq] |
+| ED | TCE      | ?         | p     |  ΔPgF | [ignore_thermal_exp]  |
+| CD | C1       | C2        | C3    |  C4   | C5                    | C6            | C7        | C8        | C9    | C10   |
+| TD | D₀       | D₁        | D₂    |  E₀   | E₁                    | λₜₖ           | temp      |
+| OD | relcost  | CR        | FR    |  SR   | AR                    | PR
+| LD | λmin     | λmax      |
+| IT | T1       | T2        | T3    |
 """
 function sourcefile_to_catalog(source_file::AbstractString)
     catalog_dict = Dict{String,Dict{String}}()
