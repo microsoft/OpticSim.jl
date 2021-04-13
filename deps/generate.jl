@@ -72,6 +72,116 @@ end
 
 """
 Parse a `sourcefile` (.agf) into a native dictionary, where each `kvp = (glassname, glassinfo)` is a glass.
+"""
+function sourcefile_to_catalog(source_file::AbstractString)
+    catalog_dict = Dict{String,Dict{String}}()
+
+    # check whether the file is UTF8 or UTF16 encoded
+    is_utf8 = isvalid(readuntil(source_file, " "))
+    fo = is_utf8 ? open(source_file, "r") : open(source_file, enc"UTF-16LE", "r")
+
+    # accumulate a vector of lines between each NM line - this corresponds to one glass entry
+    glass_strings::Vector{String} = []
+
+    function process_glass_strings()
+        if isempty(glass_strings) return end
+
+        glass_name, glass_info = parse_glass_strings(glass_strings)
+        glass_strings = []
+        catalog_dict[make_valid_name(glass_name)] = glass_info
+    end
+
+    for line in readlines(fo)
+        if strip(line) == "" || length(strip(line)) == 0 || startswith(line, "CC ") || startswith(line, "GC ")
+            continue
+        end
+
+        if startswith(line, "NM ")
+            process_glass_strings()
+        end
+
+        push!(glass_strings, line)
+    end
+    process_glass_strings()
+
+    # # store glass_name and transmission_data as persistent variables in between loops
+    # glass_name = ""
+    # transmission_data = nothing
+
+    # # read the file
+    # for line in readlines(fo)
+    #     if strip(line) == "" || length(strip(line)) == 0 || startswith(line, "CC ") || startswith(line, "GC ")
+    #         continue
+    #     end
+    #     if startswith(line, "NM ")
+    #         nm = split(line)
+
+    #         glass_name = make_valid_name(nm[2])
+    #         transmission_data = Vector{SVector{3,Float64}}(undef, 0)
+
+    #         catalog_dict[glass_name] = Dict{String,Any}()
+    #         catalog_dict[glass_name]["raw_name"] = nm[2]
+    #         catalog_dict[glass_name]["dispform"] = Int(parse(Float64, nm[3]))
+    #         catalog_dict[glass_name]["Nd"] = parse(Float64, nm[5])
+    #         catalog_dict[glass_name]["Vd"] = parse(Float64, nm[6])
+    #         catalog_dict[glass_name]["exclude_sub"] = length(nm) < 7 ? 0 : Int(parse(Float64, nm[7]))
+    #         catalog_dict[glass_name]["status"] = length(nm) < 8 ? 0 : Int(parse(Float64, nm[8]))
+    #         catalog_dict[glass_name]["meltfreq"] = length(nm) < 9 || "-" ∈ nm ? 0 : Int(parse(Float64, nm[9]))
+    #     elseif startswith(line, "ED ")
+    #         ed = split(line)
+    #         catalog_dict[glass_name]["TCE"] = parse(Float64, ed[2])
+    #         catalog_dict[glass_name]["p"] = parse(Float64, ed[4])
+    #         catalog_dict[glass_name]["ΔPgF"] = parse(Float64, ed[5])
+    #         catalog_dict[glass_name]["ignore_thermal_exp"] = length(ed) < 6 ? 0 : Int(parse(Float64, ed[6]))
+    #     elseif startswith(line, "CD ")
+    #         cd = parse.(Float64, split(line)[2:end])
+    #         catalog_dict[glass_name]["C1"] = get(cd, 1, NaN)
+    #         catalog_dict[glass_name]["C2"] = get(cd, 2, NaN)
+    #         catalog_dict[glass_name]["C3"] = get(cd, 3, NaN)
+    #         catalog_dict[glass_name]["C4"] = get(cd, 4, NaN)
+    #         catalog_dict[glass_name]["C5"] = get(cd, 5, NaN)
+    #         catalog_dict[glass_name]["C6"] = get(cd, 6, NaN)
+    #         catalog_dict[glass_name]["C7"] = get(cd, 7, NaN)
+    #         catalog_dict[glass_name]["C8"] = get(cd, 8, NaN)
+    #         catalog_dict[glass_name]["C9"] = get(cd, 9, NaN)
+    #         catalog_dict[glass_name]["C10"] = get(cd, 10, NaN)
+    #     elseif startswith(line, "TD ")
+    #         td = parse.(Float64, split(line)[2:end])
+    #         catalog_dict[glass_name]["D₀"] = get(td, 1, 0.0)
+    #         catalog_dict[glass_name]["D₁"] = get(td, 2, 0.0)
+    #         catalog_dict[glass_name]["D₂"] = get(td, 3, 0.0)
+    #         catalog_dict[glass_name]["E₀"] = get(td, 4, 0.0)
+    #         catalog_dict[glass_name]["E₁"] = get(td, 5, 0.0)
+    #         catalog_dict[glass_name]["λₜₖ"] = get(td, 6, 0.0)
+    #         catalog_dict[glass_name]["temp"] = get(td, 7, 20.0)
+    #     elseif startswith(line, "OD ")
+    #         od = stringlist_to_floatlist(split(line)[2:end])
+    #         catalog_dict[glass_name]["relcost"] = get(od, 1, -1)
+    #         catalog_dict[glass_name]["CR"] = get(od, 2, -1)
+    #         catalog_dict[glass_name]["FR"] = get(od, 3, -1)
+    #         catalog_dict[glass_name]["SR"] = get(od, 4, -1)
+    #         catalog_dict[glass_name]["AR"] = get(od, 5, -1)
+    #         catalog_dict[glass_name]["PR"] = get(od, 6, -1)
+    #     elseif startswith(line, "LD ")
+    #         ld = parse.(Float64, split(line)[2:end])
+    #         catalog_dict[glass_name]["λmin"] = ld[1]
+    #         catalog_dict[glass_name]["λmax"] = ld[2]
+    #     elseif startswith(line, "IT ")
+    #         it_row = parse.(Float64, split(line)[2:end])
+    #         if length(it_row) == 3 && it_row[1] != 0.0
+    #             entry = SVector(it_row[1], it_row[2], it_row[3])
+    #             push!(transmission_data, entry)
+    #         end
+    #         catalog_dict[glass_name]["transmission"] = transmission_data
+    #     end
+    # end
+    return catalog_dict
+end
+
+"""
+Parses multiple space-delimited lines representing one glass in the AGF file format.
+
+Returns the glass name (String) and corresponding info (Dict{String}).
 
 | 1  | 2        | 3         | 4     | 5     | 6                     | 7             | 8         | 9         | 10    | 11    |
 |:---|:---------|:----------|:------|:------|:----------------------|:--------------|:----------|:----------|:------|:------|
@@ -83,85 +193,74 @@ Parse a `sourcefile` (.agf) into a native dictionary, where each `kvp = (glassna
 | LD | λmin     | λmax      |
 | IT | T1       | T2        | T3    |
 """
-function sourcefile_to_catalog(source_file::AbstractString)
-    catalog_dict = Dict{String,Dict{String}}()
-
-    # check whether the file is UTF8 or UTF16 encoded
-    is_utf8 = isvalid(readuntil(source_file, " "))
-    fo = is_utf8 ? open(source_file, "r") : open(source_file, enc"UTF-16LE", "r")
-
-    # store glass_name and transmission_data as persistent variables in between loops
+function parse_glass_strings(glass_strings::Vector{T}) where {T<:AbstractString}
     glass_name = ""
-    transmission_data = nothing
+    glass_info = Dict{String, Any}()
 
-    # read the file
-    for line in readlines(fo)
-        if strip(line) == "" || length(strip(line)) == 0 || startswith(line, "CC ") || startswith(line, "GC ")
+    # regex for matching anything but whitespace (will extract space-delimited strings)
+    const re_str = "[^ ]+"
+    # regex for matching a float, including scientific notation
+    const re_float = raw"[-+]?\d+(?:.\d+(?:[eE][-+]\d+)?)?"
+
+    # 0: un-captured
+    # 1: string
+    # 2: float
+    # 3: optional float
+    const re_components = Dict(
+        0 => "(?:$re_str)",
+        1 => "($re_str)",
+        2 => "($re_float)",
+        3 => "($re_float)?",
+    )
+
+    # regex for each row type
+    const re_specs = (
+        "NM" => [1, 2, 0, 2, 2, 3, 3, 3],
+        "ED" => [2, 0, 2, 2, 3],
+        "CD" => repeat([3], 10),
+        "TD" => repeat([3], 7),
+        "OD" => repeat([3], 6),
+        "LD" => repeat([2], 2),
+        "IT" => repeat([2], 3),
+    )
+    const regexes = Dict(
+        token => Regex(join(vcat([token], [re_components[id] for id in specs]), raw"\s+"))
+        for (token, specs) in re_specs
+    )
+
+    const tokens = [token for (token, _) in re_specs]
+    const re_token = "($(join(tokens, "|"))) "
+
+    # buffer in row strings line by line, flushing on regex matches
+    row::Vector{T} = []
+    for line in glass_strings
+        push!(row, line)
+        row_string = join(row, " ")
+
+        # check if previous row didn't match to anything, causing a buffer overflow
+        if match(Regex("$(re_token).+$(re_token)"), row_string) !== nothing
+            @error "Parsing error" row_string
+            return
+        end
+
+        # check for matches
+        token = match(Regex(re_token), row_string)[1]
+        if match(Regex(regexes[token]), row_string) === nothing
             continue
         end
-        if startswith(line, "NM ")
-            nm = split(line)
 
-            glass_name = make_valid_name(nm[2])
-            transmission_data = Vector{SVector{3,Float64}}(undef, 0)
-
-            catalog_dict[glass_name] = Dict{String,Any}()
-            catalog_dict[glass_name]["raw_name"] = nm[2]
-            catalog_dict[glass_name]["dispform"] = Int(parse(Float64, nm[3]))
-            catalog_dict[glass_name]["Nd"] = parse(Float64, nm[5])
-            catalog_dict[glass_name]["Vd"] = parse(Float64, nm[6])
-            catalog_dict[glass_name]["exclude_sub"] = length(nm) < 7 ? 0 : Int(parse(Float64, nm[7]))
-            catalog_dict[glass_name]["status"] = length(nm) < 8 ? 0 : Int(parse(Float64, nm[8]))
-            catalog_dict[glass_name]["meltfreq"] = length(nm) < 9 || "-" ∈ nm ? 0 : Int(parse(Float64, nm[9]))
-        elseif startswith(line, "ED ")
-            ed = split(line)
-            catalog_dict[glass_name]["TCE"] = parse(Float64, ed[2])
-            catalog_dict[glass_name]["p"] = parse(Float64, ed[4])
-            catalog_dict[glass_name]["ΔPgF"] = parse(Float64, ed[5])
-            catalog_dict[glass_name]["ignore_thermal_exp"] = length(ed) < 6 ? 0 : Int(parse(Float64, ed[6]))
-        elseif startswith(line, "CD ")
-            cd = parse.(Float64, split(line)[2:end])
-            catalog_dict[glass_name]["C1"] = get(cd, 1, NaN)
-            catalog_dict[glass_name]["C2"] = get(cd, 2, NaN)
-            catalog_dict[glass_name]["C3"] = get(cd, 3, NaN)
-            catalog_dict[glass_name]["C4"] = get(cd, 4, NaN)
-            catalog_dict[glass_name]["C5"] = get(cd, 5, NaN)
-            catalog_dict[glass_name]["C6"] = get(cd, 6, NaN)
-            catalog_dict[glass_name]["C7"] = get(cd, 7, NaN)
-            catalog_dict[glass_name]["C8"] = get(cd, 8, NaN)
-            catalog_dict[glass_name]["C9"] = get(cd, 9, NaN)
-            catalog_dict[glass_name]["C10"] = get(cd, 10, NaN)
-        elseif startswith(line, "TD ")
-            td = parse.(Float64, split(line)[2:end])
-            catalog_dict[glass_name]["D₀"] = get(td, 1, 0.0)
-            catalog_dict[glass_name]["D₁"] = get(td, 2, 0.0)
-            catalog_dict[glass_name]["D₂"] = get(td, 3, 0.0)
-            catalog_dict[glass_name]["E₀"] = get(td, 4, 0.0)
-            catalog_dict[glass_name]["E₁"] = get(td, 5, 0.0)
-            catalog_dict[glass_name]["λₜₖ"] = get(td, 6, 0.0)
-            catalog_dict[glass_name]["temp"] = get(td, 7, 20.0)
-        elseif startswith(line, "OD ")
-            od = stringlist_to_floatlist(split(line)[2:end])
-            catalog_dict[glass_name]["relcost"] = get(od, 1, -1)
-            catalog_dict[glass_name]["CR"] = get(od, 2, -1)
-            catalog_dict[glass_name]["FR"] = get(od, 3, -1)
-            catalog_dict[glass_name]["SR"] = get(od, 4, -1)
-            catalog_dict[glass_name]["AR"] = get(od, 5, -1)
-            catalog_dict[glass_name]["PR"] = get(od, 6, -1)
-        elseif startswith(line, "LD ")
-            ld = parse.(Float64, split(line)[2:end])
-            catalog_dict[glass_name]["λmin"] = ld[1]
-            catalog_dict[glass_name]["λmax"] = ld[2]
-        elseif startswith(line, "IT ")
-            it_row = parse.(Float64, split(line)[2:end])
-            if length(it_row) == 3 && it_row[1] != 0.0
-                entry = SVector(it_row[1], it_row[2], it_row[3])
-                push!(transmission_data, entry)
-            end
-            catalog_dict[glass_name]["transmission"] = transmission_data
+        # TODO do stuff with match
+        m = match(Regex(regexes[token]), row_string)
+        if token == "NM"
+            glass_name = m[1]
+            glass_info["dispform"] = Int(parse(Float64, m[2]))
+            
         end
+
+        row = []
     end
-    return catalog_dict
+
+    return glass_name, glass_info
 end
 
 """
