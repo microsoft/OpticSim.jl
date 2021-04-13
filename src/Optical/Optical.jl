@@ -24,7 +24,7 @@
 
 include("OpticalRay.jl")
 include("Emitter.jl")
-include("Emitter2.jl")
+include("Emitters/Emitters.jl")
 include("Fresnel.jl")
 include("Paraxial.jl")
 include("Grating.jl")
