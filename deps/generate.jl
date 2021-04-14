@@ -150,7 +150,8 @@ function sourcefile_to_catalog(sourcefile::AbstractString)
 
         # parse row buffer into catalogdict, according to rowspec
         for (i, (key, defaultvalue)) in enumerate(zip(split(rowspec[1]), rowspec[2]))
-            catalogdict[glassname][key] = length(rowbuffer) < i + 1 ? defaultvalue : rowbuffer[i + 1]
+            value = length(rowbuffer) < i + 1 || rowbuffer[i + 1] == "-" ? defaultvalue : rowbuffer[i + 1]
+            catalogdict[glassname][key] = value
         end
 
         # flush rowbuffer
@@ -192,26 +193,6 @@ function make_valid_name(name::AbstractString)
         name = "_" * name
     end
     return name
-end
-
-function stringlist_to_floatlist(x::Vector{<:AbstractString})
-    npts = length(x)
-    if (npts == 0) || ((npts == 1) && (strip(x[1]) == "-"))
-        return (repeat([-1.0], 10))
-    end
-    res = []
-    for a in x
-        if (strip(a) == "-")
-            push!(res, -1.0)
-        else
-            try
-                push!(res, parse(Float64, a))
-            catch
-                push!(res, NaN)
-            end
-        end
-    end
-    return (res)
 end
 
 """
