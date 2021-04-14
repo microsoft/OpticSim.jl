@@ -27,7 +27,9 @@ import ZipFile
 const Maybe{T} = Union{T, Nothing}
 
 """
-Add a downloaded source to the sourcelist at deps/sources.txt.
+Adds a downloaded AGF source to the sourcelist at data/sources.txt.
+
+Optionally provide a `name` for the corresponding module, and `rebuild` AGFGlassCat.jl by default.
 """
 function add_agf(sourcefile::AbstractString; name::Maybe{AbstractString} = nothing, rebuild::Bool = true)
     if !isfile(sourcefile)

@@ -40,12 +40,10 @@
     cat = Dict()
 
     @testset "Build Tests" begin
-        include(joinpath(ROOT_DIR, "deps", "build.jl"))
-
         # check that all automatic downloads are working
         include(joinpath(ROOT_DIR, "src", "GlassCat", "constants.jl"))
         for catname in split("HOYA NIKON OHARA SCHOTT Sumita")
-            agffile = joinpath(AGFDIR, catname * ".agf")
+            agffile = joinpath(AGF_DIR, catname * ".agf")
             @test isfile(agffile)
         end
 
