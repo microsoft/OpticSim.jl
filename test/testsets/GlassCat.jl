@@ -25,12 +25,14 @@
     @test isempty(detect_ambiguities(GlassCat))
     @test isempty(detect_unbound_args(GlassCat))
 
-    include(joinpath("..", "..", "src", "GlassCat", "GlassTypes.jl"))
-    include(joinpath("..", "..", "deps", "generate.jl"))
+    ROOT_DIR = joinpath(@__DIR__, "..", "..")
+    include(joinpath(ROOT_DIR, "src", "GlassCat", "GlassTypes.jl"))
+    include(joinpath(ROOT_DIR, "deps", "generate.jl"))
 
     CATALOG_NAME = "TEST_CAT"
-    SOURCE_DIR = joinpath(@__DIR__, "..")
+    SOURCE_DIR = joinpath(ROOT_DIR, "test")
     SOURCE_FILE = joinpath(SOURCE_DIR, "$(CATALOG_NAME).agf")
+
     tmpdir = mktempdir()
     MAIN_FILE = joinpath(tmpdir, "AGF_TEST_CAT.jl")
     JL_DIR = tmpdir
@@ -39,8 +41,10 @@
 
     @testset "Build Tests" begin
         # check that all automatic downloads are working
+        downloaddir = joinpath(ROOT_DIR, "deps", "downloads", "glasscat")
         for catname in split("HOYA NIKON OHARA SCHOTT Sumita")
-            @test isfile(joinpath("..", "..", "deps", "downloads", "glasscat", catname * ".agf"))
+            agffile = joinpath(downloaddir, catname * ".agf")
+            @test isfile(agffile)
         end
 
         # check that particularly problematic glasses are parsing correctly
