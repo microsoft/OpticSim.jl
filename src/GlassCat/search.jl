@@ -48,7 +48,7 @@ Returns the glass names available from a given catalog.
 
 # Example
 ```julia-repl
-julia> glasses(GlassCat.CARGILLE)
+julia> glassnames(GlassCat.CARGILLE)
 3-element Array{Any,1}:
  "OG0607"
  "OG0608"
@@ -74,7 +74,7 @@ Returns the glass names available from all catalogs.
 
 # Example
 ```julia-repl
-julia> glasses()
+julia> glassnames()
 6-element Array{Pair{Module,Array{Any,1}},1}:
  OpticSim.GlassCat.CARGILLE => ["OG0607", "OG0608", "OG081160"]
      OpticSim.GlassCat.HOYA => ["BAC4", "BACD11"  …  "TAFD65"]

@@ -27,7 +27,7 @@ import ZipFile
 const Maybe{T} = Union{T, Nothing}
 
 """
-Adds a downloaded AGF source to the sourcelist at data/sources.txt.
+Adds an already downloaded AGF file to the sourcelist at data/sources.txt, generating the SHA256 checksum automatically.
 
 Optionally provide a `name` for the corresponding module, and `rebuild` AGFGlassCat.jl by default.
 """
