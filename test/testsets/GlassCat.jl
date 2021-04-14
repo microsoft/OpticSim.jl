@@ -25,12 +25,14 @@
     @test isempty(detect_ambiguities(GlassCat))
     @test isempty(detect_unbound_args(GlassCat))
 
-    include(joinpath("..", "..", "src", "GlassCat", "GlassTypes.jl"))
-    include(joinpath(@__DIR__, "..", "..", "deps", "generate.jl"))
+    GLASSCAT_DIR = joinpath(@__DIR__, "..", "..", "src", "GlassCat")
+    include(joinpath(GLASSCAT_DIR, "GlassTypes.jl"))
+    include(joinpath(GLASSCAT_DIR, "generate.jl"))
 
     CATALOG_NAME = "TEST_CAT"
     SOURCE_DIR = joinpath(@__DIR__, "..")
     SOURCE_FILE = joinpath(SOURCE_DIR, "$(CATALOG_NAME).agf")
+
     tmpdir = mktempdir()
     MAIN_FILE = joinpath(tmpdir, "AGF_TEST_CAT.jl")
     JL_DIR = tmpdir
