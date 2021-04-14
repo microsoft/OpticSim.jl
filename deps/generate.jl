@@ -157,9 +157,16 @@ function sourcefile_to_catalog(sourcefile::AbstractString)
         rowbuffer = []
     end
 
+    is_utf8 = isvalid(readuntil(sourcefile, " "))
     # use DelimitedFiles.readdlm to parse the source file conveniently (with type inference)
     for line in eachrow(readdlm(sourcefile))
         for item in line
+            if !is_utf8
+                item = decode(Vector{UInt8}(item), "UTF-16")
+                _item = tryparse(Float64, item)
+                item = _item === nothing ? item : _item
+            end
+
             if item == "" # eol
                 break
             elseif item ∈ keys(rowspecs) # process buffer when a token is reached, instead of at eol (see Issue #106)
