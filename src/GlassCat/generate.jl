@@ -20,6 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE
 
+using DelimitedFiles: readdlm # used in sourcefile_to_catalog
 using StringEncodings
 using StaticArrays
 using Unitful
@@ -71,87 +72,113 @@ function generate_jls(
 end
 
 """
-Parse a `sourcefile` (.agf) into a native dictionary, where each `kvp = (glassname, glassinfo)` is a glass.
+Parse a `sourcefile` (.agf) into a native Dict, `catalogdict`, where each `kvp = (glassname, glassinfo)` is a glass.
+
+| 1  | 2        | 3         | 4     | 5     | 6                     | 7             | 8         | 9         | 10    | 11    |
+|:---|:---------|:----------|:------|:------|:----------------------|:--------------|:----------|:----------|:------|:------|
+| NM | raw name | dispform  | ?     |  Nd   | Vd                    | [exclude_sub  | status    | meltfreq] |
+| ED | TCE      | ?         | p     |  ΔPgF | [ignore_thermal_exp]  |
+| CD | C1       | C2        | C3    |  C4   | C5                    | C6            | C7        | C8        | C9    | C10   |
+| TD | D₀       | D₁        | D₂    |  E₀   | E₁                    | λₜₖ           | temp      |
+| OD | relcost  | CR        | FR    |  SR   | AR                    | PR
+| LD | λmin     | λmax      |
+| IT | T1       | T2        | T3    |
 """
-function sourcefile_to_catalog(source_file::AbstractString)
-    catalog_dict = Dict{String,Dict{String}}()
+function sourcefile_to_catalog(sourcefile::AbstractString)
+    catalogdict = Dict{String,Dict{String}}()
 
-    # check whether the file is UTF8 or UTF16 encoded
-    is_utf8 = isvalid(readuntil(source_file, " "))
-    fo = is_utf8 ? open(source_file, "r") : open(source_file, enc"UTF-16LE", "r")
+    # store persistent variables between loops
+    glassname = ""
+    rowbuffer = []
 
-    # store glass_name and transmission_data as persistent variables in between loops
-    glass_name = ""
-    transmission_data = nothing
+    # `rowspecs` provides tuples (keys, defaultvalues) which describe how to parse each tokenized row
+    nullspec = ("", [])
+    rowspecs = Dict(
+        "CC" => nullspec,
+        "GC" => nullspec,
+        "NM" => (
+            "raw_name dispform _        Nd   Vd   exclude_sub status meltfreq",
+            [nothing, NaN,     nothing, NaN, NaN, 0,          0,     0       ]
+        ),
+        "ED" => (
+            "TCE  _        p    ΔPgF ignore_thermal_exp",
+            [NaN, nothing, NaN, NaN, 0                 ]
+        ),
+        "CD" => (
+            join([string('C', i) for i in 1:10], ' '),
+            repeat([NaN], 10)
+        ),
+        "TD" => (
+            "D₀ D₁ D₂ E₀ E₁ λₜₖ temp",
+            [0, 0, 0, 0, 0, 0, 20  ]
+        ),
+        "OD" => (
+            "relcost CR FR SR AR PR",
+            repeat([-1], 6)
+        ),
+        "LD" => (
+            "λmin λmax",
+            [NaN, NaN ]
+        ),
+        "IT" => nullspec,
+    )
 
-    # read the file
-    for line in readlines(fo)
-        if strip(line) == "" || length(strip(line)) == 0 || startswith(line, "CC ") || startswith(line, "GC ")
-            continue
-        end
-        if startswith(line, "NM ")
-            nm = split(line)
+    # call process_rowbuffer!() when rowbuffer is a vector corresponding to a full AGF row
+    # e.g. rowbuffer = ["OD", -1.0, 5.0, 5.0, 5.0, -1.0, -1.0]
+    # the function will parse the row data into catalogdict and flush the row buffer
+    function process_rowbuffer!()
+        # an empty rowbuffer gets passed at the beginning of each file
+        if isempty(rowbuffer) return end
+        token = rowbuffer[1]
 
-            glass_name = make_valid_name(nm[2])
-            transmission_data = Vector{SVector{3,Float64}}(undef, 0)
-
-            catalog_dict[glass_name] = Dict{String,Any}()
-            catalog_dict[glass_name]["raw_name"] = nm[2]
-            catalog_dict[glass_name]["dispform"] = Int(parse(Float64, nm[3]))
-            catalog_dict[glass_name]["Nd"] = parse(Float64, nm[5])
-            catalog_dict[glass_name]["Vd"] = parse(Float64, nm[6])
-            catalog_dict[glass_name]["exclude_sub"] = length(nm) < 7 ? 0 : Int(parse(Float64, nm[7]))
-            catalog_dict[glass_name]["status"] = length(nm) < 8 ? 0 : Int(parse(Float64, nm[8]))
-            catalog_dict[glass_name]["meltfreq"] = length(nm) < 9 || "-" ∈ nm ? 0 : Int(parse(Float64, nm[9]))
-        elseif startswith(line, "ED ")
-            ed = split(line)
-            catalog_dict[glass_name]["TCE"] = parse(Float64, ed[2])
-            catalog_dict[glass_name]["p"] = parse(Float64, ed[4])
-            catalog_dict[glass_name]["ΔPgF"] = parse(Float64, ed[5])
-            catalog_dict[glass_name]["ignore_thermal_exp"] = length(ed) < 6 ? 0 : Int(parse(Float64, ed[6]))
-        elseif startswith(line, "CD ")
-            cd = parse.(Float64, split(line)[2:end])
-            catalog_dict[glass_name]["C1"] = get(cd, 1, NaN)
-            catalog_dict[glass_name]["C2"] = get(cd, 2, NaN)
-            catalog_dict[glass_name]["C3"] = get(cd, 3, NaN)
-            catalog_dict[glass_name]["C4"] = get(cd, 4, NaN)
-            catalog_dict[glass_name]["C5"] = get(cd, 5, NaN)
-            catalog_dict[glass_name]["C6"] = get(cd, 6, NaN)
-            catalog_dict[glass_name]["C7"] = get(cd, 7, NaN)
-            catalog_dict[glass_name]["C8"] = get(cd, 8, NaN)
-            catalog_dict[glass_name]["C9"] = get(cd, 9, NaN)
-            catalog_dict[glass_name]["C10"] = get(cd, 10, NaN)
-        elseif startswith(line, "TD ")
-            td = parse.(Float64, split(line)[2:end])
-            catalog_dict[glass_name]["D₀"] = get(td, 1, 0.0)
-            catalog_dict[glass_name]["D₁"] = get(td, 2, 0.0)
-            catalog_dict[glass_name]["D₂"] = get(td, 3, 0.0)
-            catalog_dict[glass_name]["E₀"] = get(td, 4, 0.0)
-            catalog_dict[glass_name]["E₁"] = get(td, 5, 0.0)
-            catalog_dict[glass_name]["λₜₖ"] = get(td, 6, 0.0)
-            catalog_dict[glass_name]["temp"] = get(td, 7, 20.0)
-        elseif startswith(line, "OD ")
-            od = stringlist_to_floatlist(split(line)[2:end])
-            catalog_dict[glass_name]["relcost"] = get(od, 1, -1)
-            catalog_dict[glass_name]["CR"] = get(od, 2, -1)
-            catalog_dict[glass_name]["FR"] = get(od, 3, -1)
-            catalog_dict[glass_name]["SR"] = get(od, 4, -1)
-            catalog_dict[glass_name]["AR"] = get(od, 5, -1)
-            catalog_dict[glass_name]["PR"] = get(od, 6, -1)
-        elseif startswith(line, "LD ")
-            ld = parse.(Float64, split(line)[2:end])
-            catalog_dict[glass_name]["λmin"] = ld[1]
-            catalog_dict[glass_name]["λmax"] = ld[2]
-        elseif startswith(line, "IT ")
-            it_row = parse.(Float64, split(line)[2:end])
-            if length(it_row) == 3 && it_row[1] != 0.0
-                entry = SVector(it_row[1], it_row[2], it_row[3])
-                push!(transmission_data, entry)
+        # NM and IT need special treatment
+        if token == "NM"
+            glassname = make_valid_name(string(rowbuffer[2]))
+            catalogdict[glassname] = Dict{String,Any}()
+            catalogdict[glassname]["transmission"] = Vector{SVector{3,Float64}}(undef, 0)
+        elseif token == "IT"
+            if rowbuffer[2] != 0 && length(rowbuffer) == 4
+                push!(catalogdict[glassname]["transmission"], SVector{3,Float64}(rowbuffer[2:4]))
             end
-            catalog_dict[glass_name]["transmission"] = transmission_data
+        end
+
+        if token ∉ keys(rowspecs)
+            @error "Unrecognised row token: $token" rowbuffer
+            return
+        end
+        rowspec = rowspecs[token]
+
+        # parse row buffer into catalogdict, according to rowspec
+        for (i, (key, defaultvalue)) in enumerate(zip(split(rowspec[1]), rowspec[2]))
+            value = length(rowbuffer) < i + 1 || rowbuffer[i + 1] == "-" ? defaultvalue : rowbuffer[i + 1]
+            catalogdict[glassname][key] = value
+        end
+
+        # flush rowbuffer
+        rowbuffer = []
+    end
+
+    is_utf8 = isvalid(readuntil(sourcefile, " "))
+    # use DelimitedFiles.readdlm to parse the source file conveniently (with type inference)
+    for line in eachrow(readdlm(sourcefile))
+        for item in line
+            if !is_utf8
+                item = decode(Vector{UInt8}(item), "UTF-16")
+                _item = tryparse(Float64, item)
+                item = _item === nothing ? item : _item
+            end
+
+            if item == "" # eol
+                break
+            elseif item ∈ keys(rowspecs) # process buffer when a token is reached, instead of at eol (see Issue #106)
+                process_rowbuffer!()
+            end
+
+            push!(rowbuffer, item)
         end
     end
-    return catalog_dict
+
+    return catalogdict
 end
 
 """
@@ -166,26 +193,6 @@ function make_valid_name(name::AbstractString)
         name = "_" * name
     end
     return name
-end
-
-function stringlist_to_floatlist(x::Vector{<:AbstractString})
-    npts = length(x)
-    if (npts == 0) || ((npts == 1) && (strip(x[1]) == "-"))
-        return (repeat([-1.0], 10))
-    end
-    res = []
-    for a in x
-        if (strip(a) == "-")
-            push!(res, -1.0)
-        else
-            try
-                push!(res, parse(Float64, a))
-            catch
-                push!(res, NaN)
-            end
-        end
-    end
-    return (res)
 end
 
 """
