@@ -1,5 +1,5 @@
 @testset "SurfaceDefs" begin
-    @testset "Knots" begin
+    @testcase "Knots" begin
         # find span
         knots = KnotVector{Int64}([0, 0, 0, 1, 2, 3, 4, 4, 5, 5, 5])
         function apply(knots::KnotVector, curveorder, u, correctindex)
@@ -14,7 +14,7 @@
         @test insertions == [(5, 2), (6, 2), (7, 1), (9, 1), (11, 1), (13, 2)]
     end
 
-    @testset "BSpline" begin
+    @testcase "BSpline" begin
         # bspline conversion
         correctverts = [[0.0, 0.0, 0.0], [0.0, 0.49625, 0.0], [0.6625, 0.49625, 0.65625], [0.0, 0.0, 0.0], [0.6625, 0.49625, 0.65625], [0.6625, 0.0, 0.0], [0.6625, 0.0, 0.0], [0.6625, 0.49625, 0.65625], [1.33, 0.49625, 0.0], [0.6625, 0.0, 0.0], [1.33, 0.49625, 0.0], [1.33, 0.0, 0.0], [0.0, 0.49625, 0.0], [0.0, 1.0, 0.0], [0.6625, 1.0, 0.0], [0.0, 0.49625, 0.0], [0.6625, 1.0, 0.0], [0.6625, 0.49625, 0.65625], [0.6625, 0.49625, 0.65625], [0.6625, 1.0, 0.0], [1.33, 1.0, 0.0], [0.6625, 0.49625, 0.65625], [1.33, 1.0, 0.0], [1.33, 0.49625, 0.0]]
         correcttris = [
@@ -34,7 +34,7 @@
         @test all(isapprox.(points, correctverts, rtol = RTOLERANCE, atol = ATOLERANCE))
     end # testset BSpline
 
-    @testset "PowerBasis" begin
+    @testcase "PowerBasis" begin
         # polynomial is 3x^2 + 2x + 1
         coeff = [1.0 2.0 3.0]
         curve = PowerBasisCurve{OpticSim.Euclidean,Float64,1,2}(coeff)
@@ -47,7 +47,7 @@
         end
     end # testset PowerBasis
 
-    @testset "BezierSurface" begin
+    @testcase "BezierSurface" begin
         surf = TestData.beziersurface()
         fdm = central_fdm(10, 1)
         for u in 0:0.1:1, v in 0:0.1:1
@@ -61,7 +61,7 @@
         end
     end # testset BezierSurface
 
-    @testset "ZernikeSurface" begin
+    @testcase "ZernikeSurface" begin
         surf = TestData.zernikesurface1a() # with normradius
         fdm = central_fdm(10, 1)
         for ρ in 0.05:0.1:0.95, ϕ in 0:(π / 10):(2π)
@@ -77,7 +77,7 @@
         @test !any(isnan.(normal(TestData.conicsurface(), 0.0, 0.0)))
     end # testset ZernikeSurface
 
-    @testset "QTypeSurface" begin
+    @testcase "QTypeSurface" begin
         # test predefined values against papers
         # Forbes, G. W. "Robust, efficient computational methods for axially symmetric optical aspheres." OpticSim express 18.19 (2010): 19700-19712.
         # Forbes, G. W. "Characterizing the shape of freeform optics." OpticSim express 20.3 (2012): 2483-2499.
@@ -159,7 +159,7 @@
         end
     end # testset QTypeSurface
 
-    @testset "GridSag" begin
+    @testcase "GridSag" begin
         surf = TestData.gridsagsurfacelinear()
         fdm = central_fdm(10, 1)
         # doesn't enforce C1 across patch boundaries meaning that finite differences won't match at all
@@ -202,7 +202,7 @@
         end
     end # testset GridSag
 
-    @testset "ChebyshevSurface" begin
+    @testcase "ChebyshevSurface" begin
         surf = TestData.chebyshevsurface1() # with normradius
         fdm = central_fdm(10, 1)
         # not valid at the very boundary of the surface as stuff gets weird outside |u| < 1 and |v| < 1
@@ -216,5 +216,4 @@
             @test isapprox(dv, fdv, rtol = 1e-11, atol = 2 * eps(Float64)) #changed rtol from 1e-12 to 1e-11. FiniteDifferences approximation to the derivative had larger than expected error.
         end
     end # testset ChebyshevSurface
-
 end # testset SurfaceDefs

@@ -11,7 +11,7 @@
         end
     end
 
-    @testset "Refraction" begin
+    @testcase "Refraction" begin
         Random.seed!(SEED)
         ηᵢ = 1.4
         ηₜ = 1.2
@@ -32,7 +32,7 @@
     end # testset refraction
 
     # snell
-    @testset "Snell" begin
+    @testcase "Snell" begin
         Random.seed!(SEED)
         for i in 1:test_n
             r = randunit()
@@ -45,7 +45,7 @@
         end
     end # testset snell
 
-    @testset "Reflection" begin
+    @testcase "Reflection" begin
         Random.seed!(SEED)
         # reflection
         for i in 1:test_n
@@ -64,7 +64,7 @@
         end
     end # testset reflection
 
-    @testset "Paraxial" begin
+    @testcase "Paraxial" begin
         # check that normally incident rays are focussed across the lens
         l = ParaxialLensEllipse(100.0, 10.0, 10.0, [1.0, 1.0, 0.0], [3.0, 3.0, 3.0])
         r = OpticalRay([2.0, 2.0, 3.0], [1.0, 1.0, 0.0], 1.0, 0.55)

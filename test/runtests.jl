@@ -67,24 +67,26 @@ macro test_all_no_arg_functions(m)
                 # if this method has no args then try and evaluate it
                 if meth.nargs == 1
                     # suppress STDOUT to prevent loads of stuff spamming the console
-                    @test (@suppress_out begin
-                        f()
-                    end;
-                    true)
+                    # @testcase begin
+                        @test (
+                            @suppress_out begin
+                                f()
+                            end;
+                            true
+                        )
+                    # end
                 end
             end
         end
     end
 end
 
-include("Benchmarks/Benchmarks.jl")
-
 alltestsets = [
     "JuliaLang",
     # "Examples", # slow
     "General",
     "SurfaceDefs",
-    "Intersection",
+    # "Intersection",
     "Lenses",
     "OpticalSystem",
     "Emitters", # TODO
@@ -95,4 +97,7 @@ alltestsets = [
 ]
 
 runtestsets = ALL_TESTS ? alltestsets : intersect(alltestsets, ARGS)
-include.([joinpath(TESTSET_DIR, "$(testset).jl") for testset in runtestsets])
+
+@testset "OpticSim" runner=ParallelTestRunner() begin
+    include.([joinpath(TESTSET_DIR, "$(testset).jl") for testset in runtestsets])
+end
