@@ -17,6 +17,8 @@ jobs:
         include:
           - os: ubuntu-18.04
             prefix: xvfb-run
+    env:
+      JULIA_NUM_THREADS: 2
     steps:
       - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@v1
