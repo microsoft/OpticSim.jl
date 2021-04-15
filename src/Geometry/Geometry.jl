@@ -55,8 +55,6 @@ include("Primitives/NonCSG/Hexagon.jl")
 include("Primitives/NonCSG/Ellipse.jl")
 include("Primitives/NonCSG/Stop.jl")
 
-# include("BoundingVolumeHierarchy.jl")
-
 include("AccelSurface.jl")
 
 include("Primitives/Curves/Knots.jl")
