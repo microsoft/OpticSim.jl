@@ -1,3 +1,7 @@
+# MIT license
+# Copyright (c) Microsoft Corporation. All rights reserved.
+# See LICENSE in the project root for full license information.
+
 @testset "Visualization" begin
     if get(ENV, "CI", nothing) == "true" && Sys.iswindows() return #OpenGL is unreliable on headless Windows VMs on github. This fails unpredictably and prevents pull requests from being approved. These tests are not essential, so turn them off when running on windows.
     else
