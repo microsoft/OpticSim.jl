@@ -1,3 +1,7 @@
+# MIT license
+# Copyright (c) Microsoft Corporation. All rights reserved.
+# See LICENSE in the project root for full license information.
+
 struct AirType <: AbstractGlass end
 Base.show(io::IO, ::AirType) = print(io, "Air")
 glassid(::AirType) = GlassID(AIR, 0)
