@@ -38,8 +38,8 @@ include("Air.jl")
 export Air, isair
 
 # include built glass cat source files
-include("data/AGFGlassCat.jl")
-include("data/CARGILLE.jl")
+include("data/jl/AGFGlassCat.jl")
+include("data/jl/CARGILLE.jl")
 
 # include functionality for managing runtime (dynamic) glass cats: MIL_GLASSES and MODEL_GLASSES
 include("runtime.jl")
@@ -51,6 +51,10 @@ export glasscatalogs, glassnames, findglass
 
 include("utilities.jl")
 export plot_indices, index, polyfit_indices, absairindex, absorption
+
+# include utility functions for maintaining the AGF source list
+include("sources.jl")
+export add_agf
 
 end # module
 export GlassCat

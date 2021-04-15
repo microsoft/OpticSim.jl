@@ -26,8 +26,11 @@
     @test isempty(detect_unbound_args(GlassCat))
 
     ROOT_DIR = joinpath(@__DIR__, "..", "..")
-    include(joinpath(ROOT_DIR, "src", "GlassCat", "GlassTypes.jl"))
-    include(joinpath(ROOT_DIR, "deps", "generate.jl"))
+
+    GLASSCAT_DIR = joinpath(ROOT_DIR, "src", "GlassCat")
+    include(joinpath(GLASSCAT_DIR, "constants.jl"))
+    include(joinpath(GLASSCAT_DIR, "GlassTypes.jl"))
+    include(joinpath(GLASSCAT_DIR, "generate.jl"))
 
     CATALOG_NAME = "TEST_CAT"
     SOURCE_DIR = joinpath(ROOT_DIR, "test")
@@ -41,9 +44,8 @@
 
     @testset "Build Tests" begin
         # check that all automatic downloads are working
-        downloaddir = joinpath(ROOT_DIR, "deps", "downloads", "glasscat")
         for catname in split("HOYA NIKON OHARA SCHOTT Sumita")
-            agffile = joinpath(downloaddir, catname * ".agf")
+            agffile = joinpath(AGF_DIR, catname * ".agf")
             @test isfile(agffile)
         end
 

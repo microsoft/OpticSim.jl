@@ -20,24 +20,18 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE
 
-const AGF_DIR = joinpath(@__DIR__, "downloads", "glasscat") # contains SCHOTT.agf, Sumita.agf, etc.
-const GLASSCAT_DIR = joinpath(@__DIR__, "..", "src", "GlassCat") # contains GlassCat.jl (pre-existing)
-const JL_DIR = joinpath(GLASSCAT_DIR, "data") # contains AGFGlasscat.jl, SCHOTT.jl, etc.
-
-const SOURCES_PATH = joinpath(@__DIR__, "sources.txt")
-const AGFGLASSCAT_NAME = "AGFGlassCat.jl"
-
+include(joinpath("..", "src", "GlassCat", "constants.jl"))
 include(joinpath(GLASSCAT_DIR, "GlassTypes.jl"))
-include("sources.jl")
-include("generate.jl")
+include(joinpath(GLASSCAT_DIR, "sources.jl"))
+include(joinpath(GLASSCAT_DIR, "generate.jl"))
 
 mkpath(AGF_DIR)
 mkpath(JL_DIR)
 
 # Build/verify a source directory using information from sources.txt
-sources = [split(line, " ") for line in readlines(SOURCES_PATH)]
+sources = split.(readlines(SOURCES_PATH))
 verify_sources!(sources, AGF_DIR)
-verified_source_names = [source[1] for source in sources]
+verified_source_names = first.(sources)
 
 # Use verified sources to generate required .jl files
 @info "Using sources: $(join(verified_source_names, ", ", " and "))"
