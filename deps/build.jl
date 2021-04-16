@@ -17,4 +17,4 @@ verified_source_names = first.(sources)
 
 # Use verified sources to generate required .jl files
 @info "Using sources: $(join(verified_source_names, ", ", " and "))"
-generate_jls(verified_source_names, AGFGLASSCAT_NAME, JL_DIR, AGF_DIR)
+generate_jls(verified_source_names, AGFGLASSCAT_PATH, JL_DIR, AGF_DIR)
