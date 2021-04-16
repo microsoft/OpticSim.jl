@@ -18,4 +18,6 @@ const AGF_DIR = joinpath(GLASSCAT_DIR, "data", "agf") # contains SCHOTT.agf, Sum
 const JL_DIR = joinpath(GLASSCAT_DIR, "data", "jl") # contains AGFGlasscat.jl, SCHOTT.jl, etc.
 
 const SOURCES_PATH = joinpath(GLASSCAT_DIR, "data", "sources.txt")
-const AGFGLASSCAT_NAME = "AGFGlassCat.jl"
+const AGFGLASSCAT_PATH = joinpath(JL_DIR, "AGFGlassCat.jl")
+
+# NOTE: if you change JL_DIR or AGFGLASSCAT_PATH, you also need to change the include statement in GlassCat.jl

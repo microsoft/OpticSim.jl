@@ -11,6 +11,7 @@ using Unitful
 using StaticArrays
 using Base: @.
 import Unitful: Length, Temperature, Quantity, Units
+using Pkg
 
 include("constants.jl")
 
@@ -20,7 +21,12 @@ include("Air.jl")
 export Air, isair
 
 # include built glass cat source files
-include("data/jl/AGFGlassCat.jl")
+@assert AGFGLASSCAT_PATH === joinpath(@__DIR__, "data", "jl", "AGFGlassCat.jl")
+if !isfile(AGFGLASSCAT_PATH)
+    @warn "$(basename(AGFGLASSCAT_PATH)) not found! Running build steps."
+    Pkg.build("OpticSim"; verbose=true)
+end
+include("data/jl/AGFGlassCat.jl") # this needs to be literal for intellisense to work
 include("data/jl/CARGILLE.jl")
 
 # include functionality for managing runtime (dynamic) glass cats: MIL_GLASSES and MODEL_GLASSES

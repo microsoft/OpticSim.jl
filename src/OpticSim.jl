@@ -12,6 +12,7 @@ using Images
 using Base: @.
 using ForwardDiff
 using StringEncodings
+using Revise
 
 # included here to allow a call to the activate! during the initialization
 import GLMakie

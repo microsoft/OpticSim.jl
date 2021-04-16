@@ -5,6 +5,7 @@
 import HTTP
 import SHA
 import ZipFile
+using Pkg
 
 const Maybe{T} = Union{T, Nothing}
 
@@ -34,17 +35,17 @@ function add_agf(sourcefile::AbstractString; name::Maybe{AbstractString} = nothi
 
     # copy sourcefile to correct location
     mkpath(AGF_DIR)
-    cp(sourcefile, joinpath(AGF_DIR, name * ".agf"))
+    cp(sourcefile, joinpath(AGF_DIR, name * ".agf"), force=true)
 
     # append a corresponding entry to sources.txt
     sha256sum = SHA.bytes2hex(SHA.sha256(read(sourcefile)))
     open(SOURCES_PATH, "a") do io
-        write(io, join([name, sha256sum], ' '))
+        write(io, join([name, sha256sum], ' ') * '\n')
     end
 
-    # re-build AGFGlassCat.jl
     if rebuild
-        include(joinpath(@__DIR__, "..", "..", "deps", "build.jl"))
+        @info "Re-building OpticSim.jl"
+        Pkg.build("OpticSim"; verbose=true)
     end
 end
 

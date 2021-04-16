@@ -30,7 +30,9 @@ function generate_jls(
         # parse the catalog into a module string and write it to a catalog file (.jl)
         id, modstring = catalog_to_modstring(id, catalogname, catalog)
         push!(catalogfiles, "$(catalogname).jl")
-        open(joinpath(jldir, catalogfiles[end]), "w") do io
+        catalogpath = joinpath(jldir, catalogfiles[end])
+        @info "Writing $catalogpath"
+        open(catalogpath, "w") do io
             write(io, modstring)
         end
 
@@ -48,7 +50,8 @@ function generate_jls(
         "const AGF_GLASSES = [$(join(glassnames, ", "))]",
         ""
     ]
-    open(joinpath(jldir, mainfile), "w") do io
+    @info "Writing $mainfile"
+    open(mainfile, "w") do io
         write(io, join(agfstrings, "\n"))
     end
 end
