@@ -20,7 +20,11 @@ include("Air.jl")
 export Air, isair
 
 # include built glass cat source files
-include("data/jl/AGFGlassCat.jl")
+@assert AGFGLASSCAT_PATH === joinpath(@__DIR__, "data", "jl", "AGFGlassCat.jl")
+if !isfile(AGFGLASSCAT_PATH)
+    @error "$(basename(AGFGLASSCAT_PATH)) not found! Run `] build` to trigger the build steps."
+end
+include("data/jl/AGFGlassCat.jl") # this needs to be literal for intellisense to work
 include("data/jl/CARGILLE.jl")
 
 # include functionality for managing runtime (dynamic) glass cats: MIL_GLASSES and MODEL_GLASSES
