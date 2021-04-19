@@ -28,21 +28,21 @@ OpticSim.origin(t::OpticSim.Geometry.Transform{<:Real}) = Vec3(t[1,4], t[2,4], t
 
 [TODO]
 """
-generate() = 0
+function generate end
 
 """
     visual_size(???)
 
 [TODO]
 """
-visual_size() = 0
+function visual_size end
 
 """
     apply(???)
 
 [TODO] Returns ray power
 """
-apply() = 0
+function apply end
 
 include("Spectrum.jl")
 include("Directions.jl")
