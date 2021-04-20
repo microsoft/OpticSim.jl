@@ -44,5 +44,8 @@ export plot_indices, index, polyfit_indices, absairindex, absorption
 include("sources.jl")
 export add_agf
 
+# include build utility scripts to make testing them a bit easier
+include("generate.jl")
+
 end # module
 export GlassCat
