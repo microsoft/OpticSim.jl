@@ -162,6 +162,7 @@ function sourcefile_to_catalog(sourcefile::AbstractString)
             push!(rowbuffer, item)
         end
     end
+    process_rowbuffer!()
 
     return catalogdict
 end
