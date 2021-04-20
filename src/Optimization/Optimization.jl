@@ -12,6 +12,8 @@ module Optimization
 using ..OpticSim
 using ..OpticSim: detectorsize, temperature, pressure
 
+include("Constraints.jl")
+
 
 """
     optimizationvariables(a::AxisymmetricOpticalSystem{T}) -> Vector{T}
