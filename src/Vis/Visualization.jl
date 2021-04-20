@@ -419,7 +419,7 @@ function draw!(scene::MakieLayout.LScene, ass::LensAssembly{T}; kwargs...) where
 end
 
 """
-    draw!(scene::MakieLayout.LScene, sys::OpticalSystem; kwargs...)
+    draw!(scene::MakieLayout.LScene, sys::AbstractOpticalSystem; kwargs...)
 
 Draw each element in the lens assembly of an [`OpticalSystem`](@ref), with each element automatically colored differently, as well as the detector of the system.
 """
@@ -430,7 +430,7 @@ end
 
 draw!(scene::MakieLayout.LScene, sys::AxisymmetricOpticalSystem{T}; kwargs...) where {T<:Real} = draw!(scene, sys.system; kwargs...)
 
-onlydetectorrays(system::Q, tracevalue::LensTrace{T,3}) where {T<:Real,Q<:OpticalSystem{T}} = onsurface(detector(system), point(tracevalue))
+onlydetectorrays(system::Q, tracevalue::LensTrace{T,3}) where {T<:Real,Q<:AbstractOpticalSystem{T}} = onsurface(detector(system), point(tracevalue))
 
 ## RAY GEN
 """
@@ -445,7 +445,7 @@ By default only ray paths that eventually intersect the detector surface are dis
 
 Also `drawtracerays!` to add to an existing scene, with `drawsys` and `drawgen` to specify whether `system` and `raygenerator` should be drawn respectively.
 """
-function drawtracerays(system::Q; raygenerator::S = UniformOpticalSource(CollimatedSource(GridRectOriginPoints(5, 5, 5.0, 5.0, position = SVector(0.0, 0.0, 10.0))), 0.55), test::Bool = false, trackallrays::Bool = false, colorbysourcenum::Bool = false, colorbynhits::Bool = false, rayfilter::Union{Nothing,Function} = onlydetectorrays, verbose::Bool = false, resolution::Tuple{Int,Int} = (1000, 1000), kwargs...) where {T<:Real,Q<:OpticalSystem{T},S<:AbstractRayGenerator{T}}
+function drawtracerays(system::Q; raygenerator::S = UniformOpticalSource(CollimatedSource(GridRectOriginPoints(5, 5, 5.0, 5.0, position = SVector(0.0, 0.0, 10.0))), 0.55), test::Bool = false, trackallrays::Bool = false, colorbysourcenum::Bool = false, colorbynhits::Bool = false, rayfilter::Union{Nothing,Function} = onlydetectorrays, verbose::Bool = false, resolution::Tuple{Int,Int} = (1000, 1000), kwargs...) where {T<:Real,Q<:AbstractOpticalSystem{T},S<:AbstractRayGenerator{T}}
     verbose && println("Drawing System...")
     s, ls = Vis.scene(resolution)
 
@@ -454,9 +454,9 @@ function drawtracerays(system::Q; raygenerator::S = UniformOpticalSource(Collima
     display(s)
 end
 
-drawtracerays!(system::Q; kwargs...) where {T<:Real,Q<:OpticalSystem{T}} = drawtracerays!(current_3d_scene, system; kwargs...)
+drawtracerays!(system::Q; kwargs...) where {T<:Real,Q<:AbstractOpticalSystem{T}} = drawtracerays!(current_3d_scene, system; kwargs...)
 
-function drawtracerays!(scene::MakieLayout.LScene, system::Q; raygenerator::S = UniformOpticalSource(CollimatedSource(GridRectOriginPoints(25, 25, 5.0, 5.0, position = SVector(0.0, 0.0, 10.0))), 0.55), test::Bool = false, trackallrays::Bool = false, colorbysourcenum::Bool = false, colorbynhits::Bool = false, rayfilter::Union{Nothing,Function} = onlydetectorrays, verbose::Bool = false, drawsys::Bool = false, drawgen::Bool = false, kwargs...) where {T<:Real,Q<:OpticalSystem{T},S<:AbstractRayGenerator{T}}
+function drawtracerays!(scene::MakieLayout.LScene, system::Q; raygenerator::S = UniformOpticalSource(CollimatedSource(GridRectOriginPoints(25, 25, 5.0, 5.0, position = SVector(0.0, 0.0, 10.0))), 0.55), test::Bool = false, trackallrays::Bool = false, colorbysourcenum::Bool = false, colorbynhits::Bool = false, rayfilter::Union{Nothing,Function} = onlydetectorrays, verbose::Bool = false, drawsys::Bool = false, drawgen::Bool = false, kwargs...) where {T<:Real,Q<:AbstractOpticalSystem{T},S<:AbstractRayGenerator{T}}
     raylines = Vector{LensTrace{T,3}}(undef, 0)
 
     drawgen && draw!(scene, raygenerator, norays = true; kwargs...)
@@ -498,7 +498,7 @@ end
 
 Traces rays from `raygenerator` through `system` and shows and returns the detector image. `verbose` will print progress updates.
 """
-function drawtraceimage(system::Q; raygenerator::S = UniformOpticalSource(CollimatedSource(GridRectOriginPoints(25, 25, 5.0, 5.0, position = SVector(0.0, 0.0, 10.0))), 0.55), test::Bool = false, verbose::Bool = false) where {T<:Real,Q<:OpticalSystem{T},S<:AbstractRayGenerator{T}}
+function drawtraceimage(system::Q; raygenerator::S = UniformOpticalSource(CollimatedSource(GridRectOriginPoints(25, 25, 5.0, 5.0, position = SVector(0.0, 0.0, 10.0))), 0.55), test::Bool = false, verbose::Bool = false) where {T<:Real,Q<:AbstractOpticalSystem{T},S<:AbstractRayGenerator{T}}
     resetdetector!(system)
     start_time = time()
     for (i, r) in enumerate(raygenerator)
