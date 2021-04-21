@@ -172,12 +172,86 @@ using StaticArrays
         @test repr(Air) === "Air"
         @test glassname(Air) === "GlassCat.Air"
 
-        io = IOBuffer()
-        info(io, Air)
-        @test String(take!(io)) === join([
+        info_lines = [
             "GlassCat.Air",
             "Material representing air, RI is always 1.0 at system temperature and pressure, absorption is always 0.0.",
-            ""], '\n')
+            ""
+        ]
+        io = IOBuffer()
+        info(io, Air)
+        @test String(take!(io)) === join(info_lines, '\n')
+    end
+
+    @testset "GlassTypes.jl" begin
+        @test repr(GlassID(GlassCat.MODEL, 1)) === "MODEL:1"
+        @test repr(GlassID(GlassCat.MIL, 1)) === "MIL:1"
+        @test repr(GlassID(GlassCat.AGF, 1)) === "AGF:1"
+        @test repr(GlassID(GlassCat.OTHER, 1)) === "OTHER:1"
+        @test repr(GlassID(GlassCat.AIR, 1)) === "AIR:1" # TODO should this fail?
+
+        empty_args = SVector{36,Union{Int,Nothing}}(repeat([0], 27)..., nothing, repeat([0], 8)...)
+        @test repr(GlassCat.Glass(GlassID(GlassCat.MODEL, 1), empty_args...)) === "GlassCat.ModelGlass.1"
+        @test repr(GlassCat.Glass(GlassID(GlassCat.MIL, 1), empty_args...)) === "GlassCat.GlassFromMIL.1"
+        @test repr(GlassCat.Glass(GlassID(GlassCat.AGF, 1), empty_args...)) === "NIKON.SF9" # fails if sources.txt is changed
+        @test repr(GlassCat.Glass(GlassID(GlassCat.OTHER, 1), empty_args...)) === "CARGILLE.OG0607"
+        @test repr(GlassCat.Glass(GlassID(GlassCat.AIR, 1), empty_args...)) === "GlassCat.Air" # repeated code
+
+        @test glassforid(GlassID(GlassCat.AIR, 1)) === Air
+        @test glassforid(GlassID(GlassCat.OTHER, 1)) === GlassCat.CARGILLE.OG0607
+
+        info_lines = [
+            "ID:                                                OTHER:2",
+            "Dispersion formula:                                Cauchy (-2)",
+            "Dispersion formula coefficients:",
+            "     A:                                            1.44503",
+            "     B:                                            0.0044096",
+            "     C:                                            -2.85878e-5",
+            "     D:                                            0.0",
+            "     E:                                            0.0",
+            "     F:                                            0.0",
+            "Valid wavelengths:                                 0.32μm to 1.55μm",
+            "Reference temperature:                             25.0°C",
+            "Thermal ΔRI coefficients:",
+            "     D₀:                                           -0.0009083144750540808",
+            "     D₁:                                           0.0",
+            "     D₂:                                           0.0",
+            "     E₀:                                           0.0",
+            "     E₁:                                           0.0",
+            "     λₜₖ:                                          0.0",
+            "TCE (÷1e-6):                                       700.0",
+            "Ignore thermal expansion:                          false",
+            "Density (p):                                       0.878g/m³",
+            "ΔPgF:                                              0.008",
+            "RI at sodium D-Line (587nm):                       1.457587",
+            "Abbe Number:                                       57.19833",
+            "Cost relative to N_BK7:                            ?",
+            "Status:                                            Standard (0)",
+            "Melt frequency:                                    ?",
+            "Exclude substitution:                              false",
+            "Transmission data:",
+            "     Wavelength   Transmission      Thickness",
+            "         0.32μm           0.15         10.0mm",
+            "        0.365μm           0.12        100.0mm",
+            "       0.4047μm           0.42        100.0mm",
+            "         0.48μm           0.78        100.0mm",
+            "       0.4861μm           0.79        100.0mm",
+            "       0.5461μm           0.86        100.0mm",
+            "       0.5893μm            0.9        100.0mm",
+            "       0.6328μm           0.92        100.0mm",
+            "       0.6439μm            0.9        100.0mm",
+            "       0.6563μm           0.92        100.0mm",
+            "       0.6943μm           0.98        100.0mm",
+            "         0.84μm           0.99        100.0mm",
+            "      0.10648μm           0.61        100.0mm",
+            "         0.13μm           0.39        100.0mm",
+            "        0.155μm           0.11        100.0mm",
+            ""
+        ]
+        io = IOBuffer()
+        info(io, GlassCat.CARGILLE.OG0607)
+        @test String(take!(io)) === join(info_lines, '\n')
+
+        # TODO the rest of the string tests
     end
 
     @testset "Glass Tests" begin
