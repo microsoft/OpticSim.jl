@@ -14,22 +14,7 @@ Generates 3D points in world space which serve as origins for rays.
 """
 abstract type RayOriginGenerator{T<:Real} end
 
-abstract type AbstractRayGenerator{T<:Real} end
 
-"""
-    GeometricRayGenerator{T,O<:RayOriginGenerator{T}} <: AbstractRayGenerator{T}
-
-Generates geometric [`Ray`](@ref)s according to the specific implementation of the subclass.
-"""
-abstract type GeometricRayGenerator{T,O<:RayOriginGenerator{T}} <: AbstractRayGenerator{T} end
-
-"""
-    OpticalRayGenerator{T} <: AbstractRayGenerator{T}
-
-Generates [`OpticalRay`](@ref)s according to the specific implementation of the subclass.
-"""
-abstract type OpticalRayGenerator{T} <: AbstractRayGenerator{T} end
-export AbstractRayGenerator, GeometricRayGenerator, OpticalRayGenerator
 
 Base.iterate(a::AbstractRayGenerator, state = 1) = state > length(a) ? nothing : (generateray(a, state - 1), state + 1)
 Base.getindex(a::AbstractRayGenerator, index) = generateray(a, index)

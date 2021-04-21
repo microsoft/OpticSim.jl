@@ -5,7 +5,7 @@
 # OpticalInterface.jl is included in Geometry.jl so is omitted here
 
 include("OpticalRay.jl")
-include("Emitter.jl")
+include("RayGenerator.jl")
 include("Emitters/Emitters.jl")
 include("Fresnel.jl")
 include("Paraxial.jl")

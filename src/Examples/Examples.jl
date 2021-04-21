@@ -190,6 +190,10 @@ function SchmidtCassegrainTelescope()
 end
 
 drawSchmidt(; kwargs...) = Vis.drawtracerays(SchmidtCassegrainTelescope(), raygenerator = Source(transform = translation(0.0,0.0,10.0),origins = RectUniform(20.0,20.0,100),directions = Constant(0.0,0.0,-1.0)), trackallrays = true, colorbynhits = true, test = true, numdivisions = 100; kwargs...)
+# function drawSchmidt(; kwargs...)
+#     println("here")
+#      Vis.drawtracerays(SchmidtCassegrainTelescope(),  trackallrays = true, colorbynhits = true, test = true, numdivisions = 100; kwargs...)
+# end
 
 function prism_refraction()
     # build the triangular prism
