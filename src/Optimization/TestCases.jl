@@ -93,28 +93,29 @@ function testOptim(; lens = Examples.cooketriplet(), constrained = false, algo =
     Vis.drawtracerays(newlens, raygenerator = field, trackallrays = true, test = true)
 end
 
-function testnlopt()
-    lens = Examples.doubleconvex(60.0, -60.0)
-    # lens = Examples.doubleconvex()
-    # lens = Examples.telephoto(6,.5)
-    # Vis.drawtraceimage(lens)
-    start = OpticSim.optimizationvariables(lens)
+#This example doesn't work. Leaving it here on the off chance we decide to revisit nlopt as an optimization platform
+# function testnlopt()
+#     lens = Examples.doubleconvex(60.0, -60.0)
+#     # lens = Examples.doubleconvex()
+#     # lens = Examples.telephoto(6,.5)
+#     # Vis.drawtraceimage(lens)
+#     start = Optimization.optimizationvariables(lens)
 
-    optimobjective = (arg) -> RMS_spot_size(arg, lens)
-    println("starting objective function $(optimobjective(start))")
+#     optimobjective = (arg) -> RMS_spot_size(arg, lens)
+#     println("starting objective function $(optimobjective(start))")
 
-    model = Model(NLopt.optimizer)
-    @variable(model, rad1, start = 60.0)
-    @variable(model, rad2, start = -60.0)
-    register(model, :f, 2, f, autodiff = true)
-    @NLconstraint(model, 30.0 <= rad1 <= 85.0)
-    @NLconstraint(model, -100.0 <= rad1 <= -55.0)
-    @NLobjective(model, Min, f(rad1, rad2))
-    NLOpt.optimize!(model)
+#     model = Model(NLopt.optimizer)
+#     @variable(model, rad1, start = 60.0)
+#     @variable(model, rad2, start = -60.0)
+#     register(model, :f, 2, f, autodiff = true)
+#     @NLconstraint(model, 30.0 <= rad1 <= 85.0)
+#     @NLconstraint(model, -100.0 <= rad1 <= -55.0)
+#     @NLobjective(model, Min, f(rad1, rad2))
+#     NLOpt.optimize!(model)
 
-    println("rad1 $(value(rad1)) rad2 $(value(rad2))")
+#     println("rad1 $(value(rad1)) rad2 $(value(rad2))")
 
-end
+# end
 
 function testJuMP()
     function innerfunc(radius1::T, radius2::T) where {T<:Real}
@@ -161,12 +162,12 @@ function testJuMP()
     # Vis.drawtracerays(doubleconvex(60.0,-60.0), trackallrays = true, test = true)
 
     model = Model(Ipopt.Optimizer)
-    set_time_limit_sec(model, 10.0)
+    set_time_limit_sec(model, 100.0)
     register(model, :f, 2, f, autodiff = true)
     @variable(model, 10.0 <= rad1 <= 85.0, start = 60.0)
     @variable(model, -150 <= rad2 <= 20.0, start = -10.0)
     @NLobjective(model, Min, f(rad1, rad2))
-    optimize!(model)
+    JuMP.optimize!(model)
 
     println("rad1 $(value(rad1)) rad2 $(value(rad2))")
     Vis.drawtracerays(Examples.doubleconvex(value(rad1), value(rad2)), trackallrays = true, test = true)
@@ -178,28 +179,7 @@ function simpletest()
     testgenericoptimization(lens, RMS_spot_size)
 end
 
-function RMS_spot_size(lens, x::T...) where {T}
-    lens = Optimization.updateoptimizationvariables(lens, collect(x))
-    field = HexapolarField(lens, collimated = true, samples = 10)
-    error = zero(T)
-    hits = 0
-    for r in field
-        traceres = OpticSim.trace(lens, r, test = true)
 
-        if !(nothing === traceres)
-            hitpoint = point(traceres)
-            if abs(hitpoint[1]) > eps(T) && abs(hitpoint[2]) > eps(T)
-                dist_to_axis = sqrt(hitpoint[1]^2 + hitpoint[2]^2)
-                error += dist_to_axis
-            end
-            hits += 1
-        end
-    end
-
-    error /= hits
-
-    return error
-end
 
 function testZygoteGradient(lens::S, objective::Function) where {S<:OpticalSystem}
     vars = Optimization.optimizationvariables(lens)

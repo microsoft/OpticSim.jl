@@ -63,3 +63,26 @@ function RMS_spot_size(system::OpticalSystem, rays::Emitters.Sources.Source, sam
     end
 end
 
+# function RMS_spot_size(lens, x::T...) where {T}
+#     lens = Optimization.updateoptimizationvariables(lens, collect(x))
+#     field = HexapolarField(lens, collimated = true, samples = 10)
+#     error = zero(T)
+#     hits = 0
+#     for r in field
+#         traceres = OpticSim.trace(lens, r, test = true)
+
+#         if !(nothing === traceres)
+#             hitpoint = point(traceres)
+#             if abs(hitpoint[1]) > eps(T) && abs(hitpoint[2]) > eps(T)
+#                 dist_to_axis = sqrt(hitpoint[1]^2 + hitpoint[2]^2)
+#                 error += dist_to_axis
+#             end
+#             hits += 1
+#         end
+#     end
+
+#     error /= hits
+
+#     return error
+# end
+
