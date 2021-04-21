@@ -52,7 +52,7 @@ function testbigfloat()
     @assert isapprox(point(OpticSim.intersection(OpticSim.trace(a, r5, test = true))), [5.75170097290395, 2.504152441922817, -67.8], atol = TOLERANCE)
 end
 
-function vistest(sys::OpticalSystem{Float64}; kwargs...)
+function vistest(sys::AbstractOpticalSystem{Float64}; kwargs...)
     λ = 0.550
     r1 = OpticalRay([0.0, 0.0, 1.0], [0.0, 0.0, -1.0], 1.0, λ)
     r2 = OpticalRay([2.0, 2.0, 1.0], [0.0, 0.0, -1.0], 1.0, λ)
@@ -358,13 +358,13 @@ function RMS_spot_size(lens, x::T...) where {T}
     return error
 end
 
-function testZygoteGradient(lens::S, objective::Function) where {S<:OpticalSystem}
+function testZygoteGradient(lens::S, objective::Function) where {S<:AbstractOpticalSystem}
     vars = Optimization.optimizationvariables(lens)
     gradient = objective'(vars)
     println(gradient)
 end
 
-function testgenericoptimization(lens::S, objective::Function) where {S<:OpticalSystem}
+function testgenericoptimization(lens::S, objective::Function) where {S<:AbstractOpticalSystem}
     vars = Optimization.optimizationvariables(lens)
     function newobjective(a)
         objective(lens, a...)
