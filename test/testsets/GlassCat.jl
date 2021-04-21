@@ -168,6 +168,18 @@ using StaticArrays
         end
     end
 
+    @testset "Air.jl" begin
+        @test repr(Air) === "Air"
+        @test glassname(Air) === "GlassCat.Air"
+
+        io = IOBuffer()
+        info(io, Air)
+        @test String(take!(io)) === join([
+            "GlassCat.Air",
+            "Material representing air, RI is always 1.0 at system temperature and pressure, absorption is always 0.0.",
+            ""], '\n')
+    end
+
     @testset "Glass Tests" begin
         @test GlassCat.absairindex(500u"nm") ≈ 1.0002741948670688 atol=1e-14
         @test GlassCat.absairindex(600u"nm", temperature=35u"°C", pressure=2.0) ≈ 1.0005179096900811 atol=1e-14
