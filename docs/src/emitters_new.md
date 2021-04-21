@@ -48,8 +48,8 @@ nothing #hide
 ```@raw html
 <table><tr>
 <td>
-<a target="_blank" href="assets/emitters_example_rect_grid.png">
-    <img width="250" src="assets/emitters_example_rect_grid.png" style="max-width:100%;">
+<a target="_blank" href="../assets/emitters_example_rect_grid.png">
+    <img width="250" src="../assets/emitters_example_rect_grid.png" style="max-width:100%;">
 </a>
 </td>
 <td valign="middle">
@@ -69,8 +69,8 @@ nothing #hide
 ```@raw html
 <table><tr>
 <td>
-<a target="_blank" href="assets/emitters_example_uniform_cone.png">
-    <img width="250" src="assets/emitters_example_uniform_cone.png" style="max-width:100%;">
+<a target="_blank" href="../assets/emitters_example_uniform_cone.png">
+    <img width="250" src="../assets/emitters_example_uniform_cone.png" style="max-width:100%;">
 </a>
 </td>
 <td valign="middle">
@@ -90,8 +90,8 @@ nothing #hide
 ```@raw html
 <table><tr>
 <td>
-<a target="_blank" href="assets/emitters_example_hexapolar_cone.png">
-    <img width="250" src="assets/emitters_example_hexapolar_cone.png" style="max-width:100%;">
+<a target="_blank" href="../assets/emitters_example_hexapolar_cone.png">
+    <img width="250" src="../assets/emitters_example_hexapolar_cone.png" style="max-width:100%;">
 </a>
 </td>
 <td valign="middle">
@@ -113,8 +113,8 @@ nothing #hide
 ```@raw html
 <table><tr>
 <td>
-<a target="_blank" href="assets/emitters_example_origin_rectgrid.png">
-    <img width="250" src="assets/emitters_example_origin_rectgrid.png" style="max-width:100%;">
+<a target="_blank" href="../assets/emitters_example_origin_rectgrid.png">
+    <img width="250" src="../assets/emitters_example_origin_rectgrid.png" style="max-width:100%;">
 </a>
 </td>
 <td valign="middle">
@@ -134,8 +134,8 @@ nothing #hide
 ```@raw html
 <table><tr>
 <td>
-<a target="_blank" href="assets/emitters_example_origin_hexapolar.png">
-    <img width="250" src="assets/emitters_example_origin_hexapolar.png" style="max-width:100%;">
+<a target="_blank" href="../assets/emitters_example_origin_hexapolar.png">
+    <img width="250" src="../assets/emitters_example_origin_hexapolar.png" style="max-width:100%;">
 </a>
 </td>
 <td valign="middle">
@@ -163,8 +163,8 @@ nothing #hide
 ```@raw html
 <table><tr>
 <td>
-<a target="_blank" href="assets/emitters_example_angular1.png">
-    <img width="250" src="assets/emitters_example_angular1.png" style="max-width:100%;">
+<a target="_blank" href="../assets/emitters_example_angular1.png">
+    <img width="250" src="../assets/emitters_example_angular1.png" style="max-width:100%;">
 </a>
 </td>
 <td valign="middle">
@@ -188,8 +188,8 @@ nothing #hide
 ```@raw html
 <table><tr>
 <td>
-<a target="_blank" href="assets/emitters_example_angular2.png">
-    <img width="250" src="assets/emitters_example_angular2.png" style="max-width:100%;">
+<a target="_blank" href="../assets/emitters_example_angular2.png">
+    <img width="250" src="../assets/emitters_example_angular2.png" style="max-width:100%;">
 </a>
 </td>
 <td valign="middle">
@@ -243,8 +243,8 @@ nothing #hide
 ```@raw html
 <table><tr>
 <td>
-<a target="_blank" href="assets/emitters_example_composite_display.png">
-    <img width="500" src="assets/emitters_example_composite_display.png" style="max-width:100%;">
+<a target="_blank" href="../assets/emitters_example_composite_display.png">
+    <img width="500" src="../assets/emitters_example_composite_display.png" style="max-width:100%;">
 </a>
 </td>
 <td valign="middle">
