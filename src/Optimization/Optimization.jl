@@ -11,6 +11,7 @@ module Optimization
 
 using ..OpticSim
 using ..OpticSim: detectorsize, temperature, pressure
+using ..OpticSim.Emitters
 
 include("Constraints.jl")
 
