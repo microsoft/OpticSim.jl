@@ -19,6 +19,30 @@ function intersectionpoints() end
 function centroid(a::AbstractVector) end
 
 #standard measurements
+
+function RMS_spot_size(a::AbstractVector{T}, b::AxisymmetricOpticalSystem{T}, samples::Int = 3) where {T}
+    # RMSE spot size
+    lens = Optimization.updateoptimizationvariables(b, a)
+    field = HexapolarField(lens, collimated = true, samples = samples)
+    error = zero(T)
+    hits = 0
+    for r in field
+        traceres = OpticSim.trace(lens, r, test = true)
+        if traceres !== nothing
+            hitpoint = point(traceres)
+            if abs(hitpoint[1]) > eps(T) && abs(hitpoint[2]) > eps(T)
+                dist_to_axis = hitpoint[1]^2 + hitpoint[2]^2
+                error += dist_to_axis
+            end
+            hits += 1
+        end
+    end
+    if hits > 0
+        error = sqrt(error / hits)
+    end
+    return error
+end
+
 function RMS_spot_size(system::OpticalSystem, rays::Emitters.Sources.Source, samples::Int = 3)
     error = zero(T)
     hits = 0
@@ -38,3 +62,4 @@ function RMS_spot_size(system::OpticalSystem, rays::Emitters.Sources.Source, sam
         return nothing
     end
 end
+

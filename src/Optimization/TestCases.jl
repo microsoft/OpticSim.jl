@@ -1,12 +1,4 @@
-using OpticSim
-using FiniteDifferences
-using ForwardDiff
-using DataFrames
-using Optim
-using JuMP
-using Ipopt
-using Zygote
-using NLopt
+
 
 doubleconvexprescription() = DataFrame(Surface = [:Object, 1, 2, :Image], Radius = [(Inf64), 60.0, -60.0, (Inf64)], Thickness = [(Inf64), (10.0), (77.8), missing], Material = [OpticSim.GlassCat.Air, OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air, missing], SemiDiameter = [(Inf64), (9.0), (9.0), (15.0)])
 
@@ -16,55 +8,34 @@ function doubleconvex(a::AbstractVector{T}; detpix::Int = 100) where {T<:Real}
     #! format: off
     AxisymmetricOpticalSystem{T}(DataFrame(
         Surface = [:Object, 1, 2, :Image],
-        Radius = [T(Inf64), frontradius, rearradius, T(Inf64)],
+        Radius = [T(Inf), frontradius, rearradius, T(Inf)],
         Conic = [missing, -1.0, 1.0, missing],
-        Thickness = [T(Inf64), T(10.0), T(77.8), missing],
+        Thickness = [T(Inf), T(10.0), T(77.8), missing],
         Material = [OpticSim.GlassCat.Air, OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air, missing],
-        SemiDiameter = [T(Inf64), T(9.0), T(9.0), T(15.0)],
+        SemiDiameter = [T(Inf), T(9.0), T(9.0), T(15.0)],
     ), detpix, detpix, T, temperature = OpticSim.GlassCat.TEMP_REF_UNITFUL, pressure = OpticSim.GlassCat.PRESSURE_REF)
     #! format: on
 end
 
-function RMS_spot_size(a::AbstractVector{T}, b::AxisymmetricOpticalSystem{T}, samples::Int = 3) where {T}
-    # RMSE spot size
-    lens = Optimization.updateoptimizationvariables(b, a)
-    field = HexapolarField(lens, collimated = true, samples = samples)
-    error = zero(T)
-    hits = 0
-    for r in field
-        traceres = OpticSim.trace(lens, r, test = true)
-        if traceres !== nothing
-            hitpoint = point(traceres)
-            if abs(hitpoint[1]) > eps(T) && abs(hitpoint[2]) > eps(T)
-                dist_to_axis = hitpoint[1]^2 + hitpoint[2]^2
-                error += dist_to_axis
-            end
-            hits += 1
-        end
-    end
-    if hits > 0
-        error = sqrt(error / hits)
-    end
-    return error
-end
 
-function testfinitedifferences()
-    lens = Examples.doubleconvex(60.0, -60.0)
-    start = Optimization.optimizationvariables(lens)
 
-    u = 60.0
-    println("time to compute objective function $(@time RMS_spot_size([u,-60.0],lens))")
-    fdm = central_fdm(3, 1)
-    f1(u) = RMS_spot_size([u, -60.0], lens)
-    fu = 0.0
-    for i in 1:100
-        fu = fdm(f1, 60.0)
-    end
-    return fu
-end
-export testfinitedifferences
+# function testfinitedifferences()
+#     lens = Examples.doubleconvex(60.0, -60.0)
+#     start = Optimization.optimizationvariables(lens)
 
-function testoptimization(; lens = Examples.cooketriplet(), constrained = false, algo = constrained ? IPNewton() : LBFGS(), chunk_size = 1, samples = 3)
+#     u = 60.0
+#     println("time to compute objective function $(@time RMS_spot_size([u,-60.0],lens))")
+#     fdm = central_fdm(3, 1)
+#     f1(u) = RMS_spot_size([u, -60.0], lens)
+#     fu = 0.0
+#     for i in 1:100
+#         fu = fdm(f1, 60.0)
+#     end
+#     return fu
+# end
+# export testfinitedifferences
+
+function testOptim(; lens = Examples.cooketriplet(), constrained = false, algo = constrained ? IPNewton() : LBFGS(), chunk_size = 1, samples = 3)
     @info "NaN safe: $(ForwardDiff.NANSAFE_MODE_ENABLED)"
 
     start, lower, upper = Optimization.optimizationvariables(lens)
@@ -91,12 +62,12 @@ function testoptimization(; lens = Examples.cooketriplet(), constrained = false,
         @info "Constraints: $lower, $upper"
         df = TwiceDifferentiable(optimobjective, g!, h!, start)
         dfc = TwiceDifferentiableConstraints(lower, upper)
-        res = optimize(df, dfc, start, algo, Optim.Options(show_trace = true, iterations = 100, allow_f_increases = true))
+        res = Optim.optimize(df, dfc, start, algo, Optim.Options(show_trace = true, iterations = 100, allow_f_increases = true))
     else
         if constrained
             @warn "No constraints to apply, using unconstrained optimization"
         end
-        res = optimize(optimobjective, g!, h!, start, algo, Optim.Options(show_trace = true, iterations = 100, allow_f_increases = true))
+        res = Optim.optimize(optimobjective, g!, h!, start, algo, Optim.Options(show_trace = true, iterations = 100, allow_f_increases = true))
     end
 
     # println("== Computing gradient")
@@ -139,7 +110,7 @@ function testnlopt()
     @NLconstraint(model, 30.0 <= rad1 <= 85.0)
     @NLconstraint(model, -100.0 <= rad1 <= -55.0)
     @NLobjective(model, Min, f(rad1, rad2))
-    optimize!(model)
+    NLOpt.optimize!(model)
 
     println("rad1 $(value(rad1)) rad2 $(value(rad2))")
 
