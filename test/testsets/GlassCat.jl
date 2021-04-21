@@ -138,12 +138,14 @@ using StaticArrays
             mainfile = joinpath(jldir, "AGF_TEST_CAT.jl")
 
             GlassCat.generate_jls([CATALOG_NAME], mainfile, jldir, SOURCE_DIR)
+
             include(mainfile)
 
             for row in eachrow(TEST_CAT_VALUES)
                 name = row["name"]
                 glass = getfield(getfield(Main, Symbol(CATALOG_NAME)), Symbol(name))
                 @test "$CATALOG_NAME.$name" ∈ AGF_GLASS_NAMES
+                @test Symbol("$CATALOG_NAME.$name") ∈ AGF_GLASSES
                 for field in FIELDS
                     if field === "raw_name"
                     elseif field === "transmission"
@@ -155,42 +157,42 @@ using StaticArrays
                 end
             end
 
+            # these used to be in the "Glass Tests" testset, but they rely on the generated AGF_TEST_CAT.jl file
+            g = TEST_CAT.MG523
+            @test GlassCat.index(g, ((g.λmin + g.λmax) / 2)u"μm") ≈ 3.1560980389455593 atol=1e-14
+            @test_throws ErrorException GlassCat.index(g, (g.λmin - 1)u"μm")
+            @test_throws ErrorException GlassCat.index(g, (g.λmax + 1)u"μm")
+
+            # [hacky] AGF_TEST_CAT.jl redefines consts AGF_GLASS_NAMES and AGF_GLASSES - this restores them
             include(GlassCat.AGFGLASSCAT_PATH)
         end
     end
 
     @testset "Glass Tests" begin
-        # include(MAIN_FILE)
-
-        # g = TEST_CAT.MG523
-        # @test isapprox(GlassCat.index(g, ((g.λmin + g.λmax) / 2) * u"μm"), 3.1560980389455593, atol = 1e-14)
-        # @test_throws ErrorException GlassCat.index(g, (g.λmin - 1) * u"μm")
-        # @test_throws ErrorException GlassCat.index(g, (g.λmax + 1) * u"μm")
-        # @test isapprox(GlassCat.absairindex(500 * u"nm"), 1.0002741948670688, atol = 1e-14)
-        # @test isapprox(GlassCat.absairindex(600 * u"nm", temperature = 35 * u"°C", pressure = 2.0), 1.0005179096900811, atol = 1e-14)
-        # @test GlassCat.index(GlassCat.Air, 500 * u"nm") == 1.0
-        # @test GlassCat.index(GlassCat.Air, 600 * u"nm") == 1.0
-        # # @test isapprox(index(GlassCat.Vacuum, 500 * u"nm"), 0.9997258841958212, atol = 1e-14)
+        @test GlassCat.absairindex(500u"nm") ≈ 1.0002741948670688 atol=1e-14
+        @test GlassCat.absairindex(600u"nm", temperature=35u"°C", pressure=2.0) ≈ 1.0005179096900811 atol=1e-14
+        @test GlassCat.index(GlassCat.Air, 500u"nm") == 1.0
+        @test GlassCat.index(GlassCat.Air, 600u"nm") == 1.0
 
         # test against true values
         g = GlassCat.SCHOTT.N_BK7
-        @test isapprox(GlassCat.index(g, 533 * u"nm"), 1.519417351519283, atol = 1e-14)
-        @test isapprox(GlassCat.index(g, 533 * u"nm", temperature = 35 * u"°C"), 1.519462486258311, atol = 1e-14)
-        @test isapprox(GlassCat.index(g, 533 * u"nm", pressure = 2.0), 1.518994119690216, atol = 1e-14)
-        @test isapprox(GlassCat.index(g, 533 * u"nm", temperature = 35 * u"°C", pressure = 2.0), 1.519059871499476, atol = 1e-14)
+        @test GlassCat.index(g, 533u"nm") ≈ 1.519417351519283 atol=1e-14
+        @test GlassCat.index(g, 533u"nm", temperature=35u"°C") ≈ 1.519462486258311 atol=1e-14
+        @test GlassCat.index(g, 533u"nm", pressure=2.0) ≈ 1.518994119690216 atol=1e-14
+        @test GlassCat.index(g, 533u"nm", temperature=35u"°C", pressure=2.0) ≈ 1.519059871499476 atol=1e-14
 
         # test transmission
-        @test GlassCat.absorption(GlassCat.Air, 500 * u"nm") == 0.0
-        @test GlassCat.absorption(GlassCat.Air, 600 * u"nm") == 0.0
+        @test GlassCat.absorption(GlassCat.Air, 500u"nm") == 0.0
+        @test GlassCat.absorption(GlassCat.Air, 600u"nm") == 0.0
         # TODO these are currently taken from this package (i.e. regression tests), ideally we would get true values somehow
-        @test GlassCat.absorption(g, 500 * u"nm") == 0.0002407228930225164
-        @test GlassCat.absorption(g, 600 * u"nm") == 0.00022060722752440445
-        @test GlassCat.absorption(g, 3000 * u"nm") == 0.04086604990127926
-        @test GlassCat.absorption(g, 600 * u"nm", temperature = 35 * u"°C", pressure = 2.0) == 0.00022075540719494738
+        @test GlassCat.absorption(g, 500u"nm") == 0.0002407228930225164
+        @test GlassCat.absorption(g, 600u"nm") == 0.00022060722752440445
+        @test GlassCat.absorption(g, 3000u"nm") == 0.04086604990127926
+        @test GlassCat.absorption(g, 600u"nm", temperature = 35u"°C", pressure=2.0) == 0.00022075540719494738
 
         # test that everything is alloc-less
-        @test (@allocated GlassCat.absorption(g, 600 * u"nm")) == 0
-        @test (@allocated GlassCat.index(g, 533 * u"nm")) == 0
+        @test (@allocated GlassCat.absorption(g, 600u"nm")) == 0
+        @test (@allocated GlassCat.index(g, 533u"nm")) == 0
         @test (@allocated GlassCat.SCHOTT.N_BK7) == 0
 
         @test GlassCat.glassforid(GlassCat.glassid(GlassCat.SCHOTT.N_BK7)) == GlassCat.SCHOTT.N_BK7
@@ -202,21 +204,21 @@ using StaticArrays
         fit_acc = 0.001
         bk7 = GlassCat.glassfromMIL(517642)
         @test GlassCat.glassforid(GlassCat.glassid(bk7)) == bk7
-        @test GlassCat.isapprox(GlassCat.index(bk7, 0.5875618), 1.517, atol = fit_acc)
-        @test GlassCat.isapprox(GlassCat.index(bk7, 0.533), 1.519417351519283, atol = fit_acc)
-        @test GlassCat.isapprox(GlassCat.index(bk7, 0.743), 1.511997032563557, atol = fit_acc)
-        @test GlassCat.isapprox(GlassCat.index(bk7, 533 * u"nm", temperature = 35 * u"°C", pressure = 2.0), 1.519059871499476, atol = fit_acc)
+        @test GlassCat.index(bk7, 0.5875618) ≈ 1.517 atol=fit_acc
+        @test GlassCat.index(bk7, 0.533) ≈ 1.519417351519283 atol=fit_acc
+        @test GlassCat.index(bk7, 0.743) ≈ 1.511997032563557 atol=fit_acc
+        @test GlassCat.index(bk7, 533u"nm", temperature = 35u"°C", pressure = 2.0) ≈ 1.519059871499476 atol=fit_acc
 
         t2 = GlassCat.glassfromMIL(1.135635)
-        @test GlassCat.isapprox(GlassCat.index(t2, 0.5875618), 2.135, atol = fit_acc)
+        @test GlassCat.index(t2, 0.5875618) ≈ 2.135 atol=fit_acc
 
         fit_acc = 0.0001
         bk7 = GlassCat.modelglass(1.5168, 64.167336, -0.0009)
         @test GlassCat.glassforid(GlassCat.glassid(bk7)) == bk7
-        @test isapprox(GlassCat.index(bk7, 0.5875618), 1.5168, atol = fit_acc)
-        @test isapprox(GlassCat.index(bk7, 0.533), 1.519417351519283, atol = fit_acc)
-        @test isapprox(GlassCat.index(bk7, 0.743), 1.511997032563557, atol = fit_acc)
-        @test isapprox(GlassCat.index(bk7, 533 * u"nm", temperature = 35 * u"°C", pressure = 2.0), 1.519059871499476, atol = fit_acc)
+        @test GlassCat.index(bk7, 0.5875618) ≈ 1.5168 atol=fit_acc
+        @test GlassCat.index(bk7, 0.533) ≈ 1.519417351519283 atol=fit_acc
+        @test GlassCat.index(bk7, 0.743) ≈ 1.511997032563557 atol=fit_acc
+        @test GlassCat.index(bk7, 533u"nm", temperature = 35u"°C", pressure = 2.0) ≈ 1.519059871499476 atol=fit_acc
 
         # test other glass
         @test GlassCat.index(GlassCat.CARGILLE.OG0608, 0.578) == 1.4596475735607324
