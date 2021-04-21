@@ -189,3 +189,51 @@ nothing # hide
 ```
 
 ![Multi-HOE example](assets/hoe_m.png)
+
+## Deterministic Raytracing
+
+```@example
+using OpticSim
+using OpticSim.GlassCat
+using OpticSim.Geometry
+using StaticArrays
+
+function stacked_beamsplitters(interfacemode)
+    bs_1 = leaf(
+             leaf(
+               Cuboid(10.0, 20.0, 2.0; 
+                      interface = FresnelInterface{Float64}(SCHOTT.N_BK7, Air; 
+                                                   reflectance=0.5, transmission=0.5, 
+                                                   interfacemode=interfacemode)),
+               rotationX(pi/4)),
+             translation(0.0, 0.0, -30.0-2*sqrt(2))) 
+    l1 = leaf(SphericalLens(SCHOTT.N_BK7, -70.0, 30.0, Inf, 5.0, 10.0), translation(0.0, -1.34, 0.0))
+    bs_2 = leaf(
+             leaf(
+               Cuboid(10.0, 20.0, 2.0; 
+                      interface = FresnelInterface{Float64}(SCHOTT.N_BK7, Air; 
+                                                   reflectance=0.5, transmission=0.5, 
+                                                   interfacemode=interfacemode)),
+               rotationX(pi/4)),
+              translation(0.0, 40.0, -30.0+2*sqrt(2)))
+    l2 = leaf(SphericalLens(SCHOTT.N_BK7, -70.0, 30.0, Inf, 5.0, 10.0), translation(0.0, 40.0, 0.0))
+    la = LensAssembly(bs_1(), l1(), bs_2(), l2())
+    detector = Rectangle(20.0, 40.0, SVector(0.0, 0.0, 1.0), SVector(0.0, 20.0, -130.0); interface = opaqueinterface())
+    CSGOpticalSystem(la, detector)
+end
+
+# nondeterministic
+Vis.drawtracerays(stacked_beamsplitters(ReflectOrTransmit); trackallrays=true, rayfilter=nothing, colorbynhits=true)
+Vis.save("assets/deterministic_trace_1.png") # hide
+# deterministic, all beamsplitters transmissive
+Vis.drawtracerays(stacked_beamsplitters(Transmit); trackallrays=true, rayfilter=nothing, colorbynhits=true)
+Vis.save("assets/deterministic_trace_2.png") # hide
+# deterministic, all beamsplitters reflective
+Vis.drawtracerays(stacked_beamsplitters(Reflect); trackallrays=true, rayfilter=nothing, colorbynhits=true)
+Vis.save("assets/deterministic_trace_3.png") # hide
+nothing # hide
+```
+
+![Nondeterministic Raytrace](assets/deterministic_trace_1.png)
+![Transmission only](assets/deterministic_trace_2.png)
+![Reflection only](assets/deterministic_trace_3.png)
