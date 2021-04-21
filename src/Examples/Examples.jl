@@ -7,6 +7,11 @@ module Examples
 using ..OpticSim
 using ..OpticSim.Vis
 using ..OpticSim.Geometry
+using ..OpticSim.Emitters
+using ..OpticSim.Emitters.Origins
+using ..OpticSim.Emitters.Directions
+using ..OpticSim.Emitters.Sources
+
 # using ..OpticSim.GlassCat use this if you want to type SCHOTT.N_BK7 rather than OpticSim.GlassCat.SCHOTT.N_BK7
 using StaticArrays
 using DataFrames
@@ -184,7 +189,7 @@ function SchmidtCassegrainTelescope()
     return CSGOpticalSystem(la, det)
 end
 
-drawSchmidt(; kwargs...) = Vis.drawtracerays(SchmidtCassegrainTelescope(), raygenerator = UniformOpticalSource(CollimatedSource(GridRectOriginPoints(5, 5, 10.0, 10.0, position = SVector(0.0, 0.0, 20.0))), 0.55), trackallrays = true, colorbynhits = true, test = true, numdivisions = 100; kwargs...)
+drawSchmidt(; kwargs...) = Vis.drawtracerays(SchmidtCassegrainTelescope(), raygenerator = Source(transform = translation(0.0,0.0,10.0),origins = RectUniform(20.0,20.0,100),directions = Constant(0.0,0.0,-1.0)), trackallrays = true, colorbynhits = true, test = true, numdivisions = 100; kwargs...)
 
 function prism_refraction()
     # build the triangular prism
