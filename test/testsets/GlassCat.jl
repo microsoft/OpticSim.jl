@@ -144,7 +144,9 @@ using StaticArrays
                 name = row["name"]
                 glass = getfield(getfield(Main, Symbol(CATALOG_NAME)), Symbol(name))
                 @test "$CATALOG_NAME.$name" ∈ getfield(Main, Symbol("AGF_GLASS_NAMES"))
-                @test_broken Symbol("$CATALOG_NAME.$name") ∈ getfield(Main, Symbol("$AGF_GLASSES"))
+                @test_broken Symbol("$CATALOG_NAME.$name") ∈ getfield(Main, Symbol("AGF_GLASSES")) # ! TODO !
+                # this test fails because TEST_CAT is built with GlassID(GlassType.AGF, $ID)
+                # we either need to append test glasses to AGF with appropriate IDs or use another GlassType (e.g. TEST)
                 for field in FIELDS
                     if field === "raw_name"
                     elseif field === "transmission"
