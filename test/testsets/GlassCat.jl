@@ -254,6 +254,33 @@ using StaticArrays
         # TODO the rest of the string tests
     end
 
+    @testset "search.jl" begin
+        @test glasscatalogs() == [
+            GlassCat.CARGILLE,
+            GlassCat.HOYA,
+            GlassCat.NIKON,
+            GlassCat.OHARA,
+            GlassCat.SCHOTT,
+            GlassCat.Sumita,
+        ]
+
+        @test glassnames(GlassCat.CARGILLE) == [
+            :OG0607,
+            :OG0608,
+            :OG081160,
+        ]
+
+        # TODO @test glassnames()
+
+        @test findglass(x -> (x.Nd > 2.1 && x.λmin < 0.5 && x.λmax > 0.9)) == [
+            HOYA.E_FDS3,
+            Sumita.K_PSFn214P,
+            Sumita.K_PSFn214P_M_,
+        ]
+
+        # TODO _child_modules() unit test
+    end
+
     @testset "Glass Tests" begin
         @test GlassCat.absairindex(500u"nm") ≈ 1.0002741948670688 atol=1e-14
         @test GlassCat.absairindex(600u"nm", temperature=35u"°C", pressure=2.0) ≈ 1.0005179096900811 atol=1e-14
