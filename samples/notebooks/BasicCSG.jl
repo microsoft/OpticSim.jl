@@ -29,8 +29,8 @@ begin
 	import PlutoUI
 
 	using Makie
-	using AbstractPlotting
-	using AbstractPlotting.MakieLayout
+	using Makie.AbstractPlotting
+	using Makie.AbstractPlotting.MakieLayout
 	
 	defs = OpticSim.NotebooksUtils.Defs("ran")
 

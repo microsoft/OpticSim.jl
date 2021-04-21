@@ -1,3 +1,7 @@
+# MIT license
+# Copyright (c) Microsoft Corporation. All rights reserved.
+# See LICENSE in the project root for full license information.
+
 # FIXING ERRONEOUS UNBOUND TYPE ERRORS THAT OCCUR WITH VARARG
 #=
 The set will contain something like this:

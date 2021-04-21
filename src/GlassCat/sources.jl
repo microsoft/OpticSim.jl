@@ -1,32 +1,57 @@
-# MIT License
-
-# Copyright (c) Microsoft Corporation.
-
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE
+# MIT license
+# Copyright (c) Microsoft Corporation. All rights reserved.
+# See LICENSE in the project root for full license information.
 
 import HTTP
 import SHA
 import ZipFile
+using Pkg
 
 const Maybe{T} = Union{T, Nothing}
 
 """
+    add_agf(sourcefile::AbstractString; name::Maybe{AbstractString} = nothing, rebuild::Bool = true)
+
+Adds an already downloaded AGF file to the sourcelist at data/sources.txt, generating the SHA256 checksum automatically.
+
+Optionally provide a `name` for the corresponding module, and `rebuild` AGFGlassCat.jl by default.
+"""
+function add_agf(sourcefile::AbstractString; name::Maybe{AbstractString} = nothing, rebuild::Bool = true)
+    if !isfile(sourcefile)
+        @error "AGF file not found at $sourcefile"
+        return
+    end
+
+    # infer catalog name from sourcefile basename (alphabetical only)
+    if name === nothing
+        name = uppercase(match(r"^([a-zA-Z]+)\.agf$"i, basename(sourcefile))[1])
+    end
+
+    # avoid duplicate catalog names
+    if name ∈ first.(split.(readlines(SOURCES_PATH)))
+        @error "Adding the catalog name \"$name\" would create a duplicate entry in sources.txt"
+        return
+    end
+
+    # copy sourcefile to correct location
+    mkpath(AGF_DIR)
+    cp(sourcefile, joinpath(AGF_DIR, name * ".agf"), force=true)
+
+    # append a corresponding entry to sources.txt
+    sha256sum = SHA.bytes2hex(SHA.sha256(read(sourcefile)))
+    open(SOURCES_PATH, "a") do io
+        write(io, join([name, sha256sum], ' ') * '\n')
+    end
+
+    if rebuild
+        @info "Re-building OpticSim.jl"
+        Pkg.build("OpticSim"; verbose=true)
+    end
+end
+
+"""
+    verify_sources!(sources::AbstractVector{<:AbstractVector{<:AbstractString}}, sourcedir::AbstractString)
+
 Verify a list of `sources` located in `sourcedir`. If AGF files are missing or invalid, try to download them using the
 information provided in `sources`.
 
@@ -58,6 +83,8 @@ function verify_sources!(sources::AbstractVector{<:AbstractVector{<:AbstractStri
 end
 
 """
+    verify_source(sourcefile::AbstractString, sha256sum::AbstractString)
+
 Verify a source file using SHA256, returning true if successful. Otherwise, remove the file and return false.
 """
 function verify_source(sourcefile::AbstractString, sha256sum::AbstractString)
@@ -74,6 +101,8 @@ function verify_source(sourcefile::AbstractString, sha256sum::AbstractString)
 end
 
 """
+    download_source(sourcefile::AbstractString, url::AbstractString, POST_data::Maybe{AbstractString} = nothing)
+
 Download and unzip an AGF glass catalog from a publicly available source. Supports POST requests.
 """
 function download_source(sourcefile::AbstractString, url::AbstractString, POST_data::Maybe{AbstractString} = nothing)

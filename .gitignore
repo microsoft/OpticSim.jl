@@ -2,9 +2,11 @@
 AGFGlassCat.jl
 HOYA.jl
 NIKON.jl
+NHG.jl
 OHARA.jl
 SCHOTT.jl
 Sumita.jl
+*.agf
 
 # Don't track sysimage file: dll on windows, so on linux
 *.dll
