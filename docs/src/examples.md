@@ -16,20 +16,23 @@ The **run_sample** method will **copy** the notebook to your current folder (if 
 ## Cooke Triplet
 
 ```@example
-using OpticSim
-
+using OpticSim, OpticSim.GlassCat
 using DataFrames
-sys = AxisymmetricOpticalSystem(
-    DataFrame(Surface = [:Object, 1, 2, 3, :Stop, 5, 6, :Image],
-              Radius = [Inf, 26.777, 66.604, -35.571, 35.571, 35.571, -26.777, Inf],
-              Thickness = [Inf, 4.0, 2.0, 4.0, 2.0, 4.0, 44.748, missing],
-              Material = [OpticSim.GlassCat.Air, OpticSim.GlassCat.SCHOTT.N_SK16, OpticSim.GlassCat.Air, OpticSim.GlassCat.SCHOTT.N_SF2, OpticSim.GlassCat.Air, OpticSim.GlassCat.SCHOTT.N_SK16, OpticSim.GlassCat.Air, missing],
-              SemiDiameter = [Inf, 8.580, 7.513, 7.054, 6.033, 7.003, 7.506, 15.0]))
+sys = AxisymmetricOpticalSystem(DataFrame(
+    Surface      = [:Object, 1,             2,      3,            :Stop,  5,             6,       :Image ],
+    Radius       = [Inf,     26.777,        66.604, -35.571,      35.571, 35.571,        -26.777, Inf    ],
+    Thickness    = [Inf,     4.0,           2.0,    4.0,          2.0,    4.0,           44.748,  missing],
+    Material     = [Air,     SCHOTT.N_SK16, Air,    SCHOTT.N_SF2, Air,    SCHOTT.N_SK16, Air,     missing],
+    SemiDiameter = [Inf,     8.580,         7.513,  7.054,        6.033,  7.003,         7.506,   15.0   ]))
 @show sys
-f1 = HexapolarField(sys, collimated = true, samples = 4, sourcenum = 1)
-f2 = HexapolarField(sys, collimated = true, samples = 4, sourceangle = -10 / 180 * π, sourcenum = 2)
-Vis.drawtracerays(sys, raygenerator = f1, test = true, trackallrays = true, colorbysourcenum = true, resolution = (1000, 700))
-Vis.drawtracerays!(sys, raygenerator = f2, test = true, trackallrays = true, colorbysourcenum = true)
+
+using OpticSim.Geometry, OpticSim.Emitters
+origins = Origins.Hexapolar(8, 15.0, 15.0)
+directions = Directions.Constant(-unitZ3())
+s1 = Sources.Source(; origins, directions, sourcenum=1)
+s2 = Sources.Source(; transform=Transform(rotmatd(10, 0, 0), unitZ3()), origins, directions, sourcenum=2)
+raygenerator = Sources.CompositeSource(Transform(), [s1, s2])
+Vis.drawtracerays(sys; raygenerator, test=true, trackallrays=true, colorbysourcenum=true, resolution=(1000, 700))
 Vis.make2dy() # hide
 Vis.save("assets/cooke.png") # hide
 nothing # hide
