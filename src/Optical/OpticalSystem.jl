@@ -3,15 +3,15 @@
 # See LICENSE in the project root for full license information.
 
 """
-    OpticalSystem{T<:Real}
+    AbstractOpticalSystem{T<:Real}
 
 Abstract type for any optical system, must parameterized by the datatype of entities within the system `T`.
 """
-abstract type OpticalSystem{T<:Real} end
-export OpticalSystem
+abstract type AbstractOpticalSystem{T<:Real} end
+export AbstractOpticalSystem
 
 """
-    CSGOpticalSystem{T,D<:Real,S<:Surface{T},L<:LensAssembly{T}} <: OpticalSystem{T}
+    CSGOpticalSystem{T,D<:Real,S<:Surface{T},L<:LensAssembly{T}} <: AbstractOpticalSystem{T}
 
 An optical system containing a lens assembly with all optical elements and a detector surface with associated image. The system can be at a specified temperature and pressure.
 
@@ -24,7 +24,7 @@ The detector can be any [`Surface`](@ref) which implements [`uv`](@ref), [`uvtop
 CSGOpticalSystem(assembly::LensAssembly, detector::Surface, detectorpixelsx = 1000, detectorpixelsy = 1000, ::Type{D} = Float32; temperature = OpticSim.GlassCat.TEMP_REF, pressure = OpticSim.GlassCat.PRESSURE_REF)
 ```
 """
-struct CSGOpticalSystem{T,D<:Number,S<:Surface{T},L<:LensAssembly{T}} <: OpticalSystem{T}
+struct CSGOpticalSystem{T,D<:Number,S<:Surface{T},L<:LensAssembly{T}} <: AbstractOpticalSystem{T}
     assembly::L
     detector::S
     detectorimage::HierarchicalImage{D}
@@ -52,14 +52,14 @@ Base.copy(a::CSGOpticalSystem) = CSGOpticalSystem(a.assembly, a.detector, size(a
 Base.show(io::IO, a::CSGOpticalSystem{T}) where {T} = print(io, "CSGOpticalSystem{$T}($(temperature(a)), $(pressure(a)), $(assembly(a)), $(detector(a)))")
 
 """
-    assembly(system::OpticalSystem{T}) -> LensAssembly{T}
+    assembly(system::AbstractOpticalSystem{T}) -> LensAssembly{T}
 
 Get the [`LensAssembly`](@ref) of `system`.
 """
 assembly(system::CSGOpticalSystem{T}) where {T<:Real} = system.assembly
 detector(system::CSGOpticalSystem) = system.detector
 """
-    detectorimage(system::OpticalSystem{T}) -> HierarchicalImage{D}
+    detectorimage(system::AbstractOpticalSystem{T}) -> HierarchicalImage{D}
 
 Get the detector image of `system`.
 `D` is the datatype of the detector image and is not necessarily the same as the datatype of the system `T`.
@@ -67,19 +67,19 @@ Get the detector image of `system`.
 detectorimage(system::CSGOpticalSystem) = system.detectorimage
 detectorsize(system::CSGOpticalSystem) = size(system.detectorimage)
 """
-    temperature(system::OpticalSystem{T}) -> T
+    temperature(system::AbstractOpticalSystem{T}) -> T
 
 Get the temperature of `system` in °C.
 """
 temperature(system::CSGOpticalSystem{T}) where {T<:Real} = system.temperature
 """
-    pressure(system::OpticalSystem{T}) -> T
+    pressure(system::AbstractOpticalSystem{T}) -> T
 
 Get the pressure of `system` in Atm.
 """
 pressure(system::CSGOpticalSystem{T}) where {T<:Real} = system.pressure
 """
-    resetdetector!(system::OpticalSystem{T})
+    resetdetector!(system::AbstractOpticalSystem{T})
 
 Reset the deterctor image of `system` to zero.
 """
@@ -90,7 +90,7 @@ export temperature, pressure, detectorimage, resetdetector!, assembly
 Base.Float32(a::T) where {T<:ForwardDiff.Dual} = Float32(ForwardDiff.value(a))
 
 """
-    trace(system::OpticalSystem{T}, ray::OpticalRay{T}; trackrays = nothing, test = false)
+    trace(system::AbstractOpticalSystem{T}, ray::OpticalRay{T}; trackrays = nothing, test = false)
 
 Traces `system` with `ray`, if `test` is enabled then fresnel reflections are disabled and the power distribution will not be correct.
 Returns either a [`LensTrace`](@ref) if the ray hits the detector or `nothing` otherwise.
@@ -167,7 +167,7 @@ end
 ######################################################################################################################
 
 """
-    AxisymmetricOpticalSystem{T,C<:CSGOpticalSystem{T}} <: OpticalSystem{T}
+    AxisymmetricOpticalSystem{T,C<:CSGOpticalSystem{T}} <: AbstractOpticalSystem{T}
 
 Optical system which has lens elements and an image detector, created from a `DataFrame` containing prescription data.
 
@@ -181,7 +181,7 @@ In practice a [`CSGOpticalSystem`](@ref) is generated automatically and stored w
 AxisymmetricOpticalSystem{T}(prescription::DataFrame, detectorpixelsx = 1000, detectorpixelsy:: = 1000, ::Type{D} = Float32; temperature = OpticSim.GlassCat.TEMP_REF, pressure = OpticSim.GlassCat.PRESSURE_REF)
 ```
 """
-struct AxisymmetricOpticalSystem{T,C<:CSGOpticalSystem{T}} <: OpticalSystem{T}
+struct AxisymmetricOpticalSystem{T,C<:CSGOpticalSystem{T}} <: AbstractOpticalSystem{T}
     system::C
     prescription::DataFrame
     semidiameter::T
@@ -315,7 +315,7 @@ export semidiameter
 trace(system::AxisymmetricOpticalSystem{T}, raygenerator::OpticalRayGenerator{T}; printprog::Bool = true, test::Bool = false, outpath::Union{Nothing,String} = nothing) where {T<:Real} = trace(system.system, raygenerator, printprog = printprog, test = test, outpath = outpath)
 
 """
-    trace(system::OpticalSystem{T}, raygenerator::OpticalRayGenerator{T}; printprog = true, test = false)
+    trace(system::AbstractOpticalSystem{T}, raygenerator::OpticalRayGenerator{T}; printprog = true, test = false)
 
 Traces `system` with rays generated by `raygenerator` on a single thread.
 Optionally the progress can be printed to the REPL.
@@ -364,7 +364,7 @@ function traceMT(system::AxisymmetricOpticalSystem{T}, raygenerator::OpticalRayG
 end
 
 """
-    traceMT(system::OpticalSystem{T}, raygenerator::OpticalRayGenerator{T}; printprog = true, test = false)
+    traceMT(system::AbstractOpticalSystem{T}, raygenerator::OpticalRayGenerator{T}; printprog = true, test = false)
 
 Traces `system` with rays generated by `raygenerator` using as many threads as possible.
 Optionally the progress can be printed to the REPL.
@@ -470,7 +470,7 @@ function tracehitsMT(system::AxisymmetricOpticalSystem{T}, raygenerator::Optical
 end
 
 """
-    tracehitsMT(system::OpticalSystem{T}, raygenerator::OpticalRayGenerator{T}; printprog = true, test = false)
+    tracehitsMT(system::AbstractOpticalSystem{T}, raygenerator::OpticalRayGenerator{T}; printprog = true, test = false)
 
 Traces `system` with rays generated by `raygenerator` using as many threads as possible.
 Optionally the progress can be printed to the REPL.
@@ -578,7 +578,7 @@ end
 tracehits(system::AxisymmetricOpticalSystem{T}, raygenerator::OpticalRayGenerator{T}; printprog::Bool = true, test::Bool = false) where {T<:Real} = tracehits(system.system, raygenerator, printprog = printprog, test = test)
 
 """
-    tracehits(system::OpticalSystem{T}, raygenerator::OpticalRayGenerator{T}; printprog = true, test = false)
+    tracehits(system::AbstractOpticalSystem{T}, raygenerator::OpticalRayGenerator{T}; printprog = true, test = false)
 
 Traces `system` with rays generated by `raygenerator` on a single thread.
 Optionally the progress can be printed to the REPL.

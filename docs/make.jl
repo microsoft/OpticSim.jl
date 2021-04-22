@@ -8,7 +8,7 @@ using OpticSim
 makedocs(
     sitename = "OpticSim.jl",
     format = Documenter.HTML(
-        prettyurls = get(ENV, "CI", nothing) == "true",
+        # prettyurls = get(ENV, "CI", nothing) == "true",
         assets = [asset("assets/logo.svg", class = :ico, islocal = true)],
     ),
     modules = [OpticSim],
