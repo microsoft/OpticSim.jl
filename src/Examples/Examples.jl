@@ -11,8 +11,8 @@ using ..OpticSim.Emitters
 using ..OpticSim.Emitters.Origins
 using ..OpticSim.Emitters.Directions
 using ..OpticSim.Emitters.Sources
+using ..OpticSim.GlassCat
 
-# using ..OpticSim.GlassCat use this if you want to type SCHOTT.N_BK7 rather than OpticSim.GlassCat.SCHOTT.N_BK7
 using StaticArrays
 using DataFrames
 using Images
@@ -47,15 +47,12 @@ cooketriplet(::Type{T} = Float64, detpix::Int = 1000) where {T<:Real} = Axisymme
               SemiDiameter = [Inf, 8.580, 7.513, 7.054, 6.033, 7.003, 7.506, 15.0]), detpix, detpix)
 export cooketriplet
 
-#no longer works
-cooketripletlensonly(::Type{T} = Float64) where {T<:Real} = AxisymmetricLens{T}(
-    DataFrame(Surface = [:Object, 1, 2, 3, :Stop, 5, 6, :Image],
-              Radius = [Inf, 26.777, 66.604, -35.571, 35.571, 35.571, -26.777, Inf],
-              OptimizeRadius = [false,true,true,true,true,true,true,false],
-              Thickness = [Inf, 4.0, 2.0, 4.0, 2.0, 4.0, 44.748, missing],
-              OptimizeThickness = [false,true,true,true,true,true,true,false],
-              Material = [OpticSim.GlassCat.Air, OpticSim.GlassCat.SCHOTT.N_SK16, OpticSim.GlassCat.Air, OpticSim.GlassCat.SCHOTT.N_SF2, OpticSim.GlassCat.Air, OpticSim.GlassCat.SCHOTT.N_SK16, OpticSim.GlassCat.Air, missing],
-              SemiDiameter = [Inf, 8.580, 7.513, 7.054, 6.033, 7.003, 7.506, 15.0]))
+cooketripletlensonly(::Type{T} = Float64) where {T<:Real} = AxisymmetricOpticalSystem{T}(DataFrame(
+    Surface      = [:Object, 1,             2,      3,            :Stop,  5,             6,       :Image ],
+    Radius       = [Inf,     26.777,        66.604, -35.571,      35.571, 35.571,        -26.777, Inf    ],
+    Thickness    = [Inf,     4.0,           2.0,    4.0,          2.0,    4.0,           44.748,  missing],
+    Material     = [Air,     SCHOTT.N_SK16, Air,    SCHOTT.N_SF2, Air,    SCHOTT.N_SK16, Air,     missing],
+    SemiDiameter = [Inf,     8.580,         7.513,  7.054,        6.033,  7.003,         7.506,   15.0   ]))
 export cooketripletlensonly
 
 cooketripletfirstelement(::Type{T} = Float64) where {T<:Real} = AxisymmetricOpticalSystem(
