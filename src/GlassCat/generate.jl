@@ -15,7 +15,11 @@ Each catalog file is a module representing a distinct glass catalog (e.g. NIKON,
 AGF files in `sourcedir`. These are then included and exported in `mainfile`.
 """
 function generate_jls(
-    sourcenames::Vector{<:AbstractString}, mainfile::AbstractString, jldir::AbstractString, sourcedir::AbstractString
+    sourcenames::Vector{<:AbstractString},
+    mainfile::AbstractString,
+    jldir::AbstractString,
+    sourcedir::AbstractString;
+    glasstype::AbstractString = "AGF"
 )
     id = 1
     catalogfiles = []
@@ -28,7 +32,7 @@ function generate_jls(
         catalog = sourcefile_to_catalog(sourcefile)
 
         # parse the catalog into a module string and write it to a catalog file (.jl)
-        id, modstring = catalog_to_modstring(id, catalogname, catalog)
+        id, modstring = catalog_to_modstring(id, catalogname, catalog, glasstype)
         push!(catalogfiles, "$(catalogname).jl")
         catalogpath = joinpath(jldir, catalogfiles[end])
         @info "Writing $catalogpath"
@@ -46,8 +50,8 @@ function generate_jls(
         "",
         ["include(\"$(catalogfile)\")" for catalogfile in catalogfiles]...,
         "",
-        "const AGF_GLASS_NAMES = [$(join(repr.(glassnames), ", "))]",
-        "const AGF_GLASSES = [$(join(glassnames, ", "))]",
+        "const $(glasstype)_GLASS_NAMES = [$(join(repr.(glassnames), ", "))]",
+        "const $(glasstype)_GLASSES = [$(join(glassnames, ", "))]",
         ""
     ]
     @info "Writing $mainfile"
@@ -184,18 +188,20 @@ end
 """
 Convert a `catalog` dict into a `modstring` which can be written to a Julia source file.
 """
-function catalog_to_modstring(start_id::Integer, catalogname::AbstractString, catalog::Dict{<:AbstractString})
+function catalog_to_modstring(
+    start_id::Integer, catalogname::AbstractString, catalog::Dict{<:AbstractString}, glasstype::AbstractString
+)
     id = start_id
     isCI = haskey(ENV, "CI")
 
     modstrings = [
         "module $catalogname",
-        "using ..GlassCat: Glass, GlassID, AGF",
+        "using ..GlassCat: Glass, GlassID, $glasstype",
         "export $(join(keys(catalog), ", "))",
         ""
     ]
     for (glassname, glassinfo) in catalog
-        argstring = glassinfo_to_argstring(glassinfo, id)
+        argstring = glassinfo_to_argstring(glassinfo, id, glasstype)
         push!(modstrings, "const $glassname = Glass($argstring)")
         id += 1
     end
@@ -208,7 +214,11 @@ end
 Convert a `glassinfo` dict into a `docstring` to be prepended to a `Glass` const.
 """
 function glassinfo_to_docstring(
-    glassinfo::Dict{<:AbstractString}, id::Integer, catalogname::AbstractString, glassname::AbstractString
+    glassinfo::Dict{<:AbstractString},
+    id::Integer,
+    catalogname::AbstractString,
+    glassname::AbstractString,
+    glasstype::AbstractString
 )
     raw_name = glassinfo["raw_name"] == glassname ? "" : " ($(glassinfo["raw_name"]))"
     pad(str, padding=25) = rpad(str, padding)
@@ -217,7 +227,7 @@ function glassinfo_to_docstring(
     return join([
         "\"\"\"    $catalogname.$glassname$raw_name",
         "```",
-        "$(pad("ID:"))AGF:$id",
+        "$(pad("ID:"))$glasstype:$id",
         "$(pad("RI @ 587nm:"))$(getinfo("Nd"))",
         "$(pad("Abbe Number:"))$(getinfo("Vd"))",
         "$(pad("ΔPgF:"))$(getinfo("ΔPgF"))",
@@ -233,11 +243,11 @@ end
 """
 Convert a `glassinfo` dict into an `argstring` to be passed into a `Glass` constructor.
 """
-function glassinfo_to_argstring(glassinfo::Dict{<:AbstractString}, id::Integer)
+function glassinfo_to_argstring(glassinfo::Dict{<:AbstractString}, id::Integer, glasstype::AbstractString)
     argstrings = []
     for fn in string.(fieldnames(Glass))
         if fn == "ID"
-            push!(argstrings, "GlassID(AGF, $id)")
+            push!(argstrings, "GlassID($glasstype, $id)")
         elseif fn in ["D₀", "D₁", "D₂", "E₀", "E₁", "λₜₖ"]
             push!(argstrings, repr(get(glassinfo, fn, 0.0)))
         elseif fn == "temp"

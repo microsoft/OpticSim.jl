@@ -94,16 +94,16 @@ using StaticArrays
         end
 
         @testset "Module Gen Tests" begin
-            OpticSim.GlassCat.generate_jls([CATALOG_NAME], MAIN_FILE, TMP_DIR, SOURCE_DIR)
+            OpticSim.GlassCat.generate_jls([CATALOG_NAME], MAIN_FILE, TMP_DIR, SOURCE_DIR, glasstype="TEST")
             include(MAIN_FILE)
 
             for row in eachrow(TEST_CAT_VALUES)
                 name = row["name"]
+                @test "$CATALOG_NAME.$name" ∈ TEST_GLASS_NAMES
+
                 glass = getfield(getfield(Main, Symbol(CATALOG_NAME)), Symbol(name))
-                @test "$CATALOG_NAME.$name" ∈ getfield(Main, Symbol("AGF_GLASS_NAMES"))
-                @test Symbol("$CATALOG_NAME.$name") ∈ getfield(Main, Symbol("AGF_GLASSES")) # ! TODO !
-                # this test fails because TEST_CAT is built with GlassID(GlassType.AGF, $ID)
-                # we either need to append test glasses to AGF with appropriate IDs or use another GlassType (e.g. TEST)
+                @test glass ∈ TEST_GLASSES
+
                 for field in FIELDS
                     if field === "raw_name"
                     elseif field === "transmission"
