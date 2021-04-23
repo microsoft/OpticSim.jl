@@ -14,14 +14,15 @@ NB.run_sample("EmittersIntro.jl")
 The **run_sample** method will **copy** the notebook to your current folder (if it does not exist) and launch Pluto to run the notebook in the browser.
 
 ## Cooke Triplet
-
-```@example cooketriplet
-using OpticSim.Examples
-sys = cooketripletlensonly()
-using CodeTracking; print(@code_string cooketripletlensonly()) # hide
+```@example
+using CodeTracking, OpticSim.Examples # hide
+print(@code_string cooketripletlensonly()) # hide
 ```
 
-```@example cooketriplet
+```@example
+using OpticSim.Examples
+sys = cooketripletlensonly()
+
 using OpticSim.Geometry, OpticSim.Emitters
 origins = Origins.Hexapolar(8, 15.0, 15.0)
 directions = Directions.Constant(0.0, 0.0, -1.0)
@@ -31,7 +32,8 @@ raygenerator = Sources.CompositeSource(Transform(), [s1, s2])
 
 using OpticSim.Vis
 Vis.drawtracerays(sys; raygenerator, test=true, trackallrays=true, colorbysourcenum=true, resolution=(1000, 700))
-Vis.make2dy(); Vis.save("assets/cooke.png"); sys # hide
+Vis.make2dy(); Vis.save("assets/cooke.png") # hide
+sys # hide
 ```
 
 ![Cooke triplet visualization](assets/cooke.png)
