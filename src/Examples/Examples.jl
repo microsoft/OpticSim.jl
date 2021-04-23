@@ -210,31 +210,19 @@ function prism_refraction()
     Vis.drawtracerays(sys, raygenerator = raygen, test = true, trackallrays = true)
 end
 
-function zoom_lens(pos = 1)
-    if pos == 0
-        stop = 2.89
-        zoom = 9.48
-        dist = 4.46970613
-    elseif pos == 1
-        stop = 3.99
-        zoom = 4.48
-        dist = 21.21
-    else
-        stop = 4.90
-        zoom = 2.00
-        dist = 43.81
-    end
-    #! format: off
-    return AxisymmetricOpticalSystem{Float64}(
-        DataFrame(Surface = [:Object, :Stop, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, :Image],
-                  Radius = [Inf64, Inf64, -1.6202203499676E+01, -4.8875855327468E+01, 1.5666614444619E+01, -4.2955326460481E+01, 1.0869565217391E+02, 2.3623907394283E+01, -1.6059097478722E+01, -4.2553191489362E+02, -3.5435861091425E+01, -1.4146272457208E+01, -2.5125628140704E+02, -2.2502250225023E+01, -1.0583130489999E+01, -4.4444444444444E+01, Inf64],
-                  Aspherics = [missing, missing, missing, missing, missing, [(4, 1.03860000000E-04), (6, 1.42090000000E-07), (8, -8.84950000000E-09), (10, 1.24770000000E-10), (12, -1.03670000000E-12), (14, 3.65560000000E-15)], missing, missing, [(4, 4.27210000000E-05), (6, 1.24840000000E-07), (8, 9.70790000000E-09), (10, -1.84440000000E-10), (12, 1.86440000000E-12), (14, -7.79750000000E-15)], [(4, 1.13390000000E-04), (6, 4.81650000000E-07), (8, 1.87780000000E-08), (10, -5.75710000000E-10), (12, 8.99940000000E-12), (14, -4.67680000000E-14)], missing, missing, missing, missing, missing, missing, missing],
-                  Thickness = [Inf64, 0.0, 5.18, 0.10, 4.40, 0.16, 1.0, 4.96, zoom, 4.04, 1.35, 1.0, 2.80, 3.0, 1.22, dist, missing],
-                  Material = [OpticSim.GlassCat.Air, OpticSim.GlassCat.Air, OpticSim.GlassCat.OHARA.S_LAH66, OpticSim.GlassCat.Air, OpticSim.GlassCat.NIKON.LLF6, OpticSim.GlassCat.Air, OpticSim.GlassCat.OHARA.S_TIH6, OpticSim.GlassCat.OHARA.S_FSL5, OpticSim.GlassCat.Air, OpticSim.GlassCat.OHARA.S_FSL5, OpticSim.GlassCat.Air, OpticSim.GlassCat.OHARA.S_LAL8, OpticSim.GlassCat.SCHOTT.S_FL4, OpticSim.GlassCat.Air, OpticSim.GlassCat.OHARA.S_LAH66, OpticSim.GlassCat.Air, missing],
-                  SemiDiameter = [Inf64, stop, 3.85433218451, 3.85433218451, 4.36304692871, 4.36304692871, 4.72505505439, 4.72505505439, 4.72505505439, 4.45240784026, 4.45240784026, 4.50974054117, 4.50974054117, 4.50974054117, 4.76271114409, 4.76271114409, 15.0]))
-    #! format: on
-
+function zoom_lens(pos)
+    stops = [2.89, 3.99, 4.90]
+    zooms = [9.48, 4.48, 2.00]
+    dists = [4.46970613, 21.21, 43.81]
+    return AxisymmetricOpticalSystem{Float64}(DataFrame(
+        Surface = [:Object, :Stop, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, :Image],
+        Radius = [Inf64, Inf64, -1.6202203499676E+01, -4.8875855327468E+01, 1.5666614444619E+01, -4.2955326460481E+01, 1.0869565217391E+02, 2.3623907394283E+01, -1.6059097478722E+01, -4.2553191489362E+02, -3.5435861091425E+01, -1.4146272457208E+01, -2.5125628140704E+02, -2.2502250225023E+01, -1.0583130489999E+01, -4.4444444444444E+01, Inf64],
+        Aspherics = [missing, missing, missing, missing, missing, [(4, 1.0386E-04), (6, 1.4209E-07), (8, -8.8495E-09), (10, 1.2477E-10), (12, -1.0367E-12), (14, 3.6556E-15)], missing, missing, [(4, 4.2721E-05), (6, 1.2484E-07), (8, 9.7079E-09), (10, -1.8444E-10), (12, 1.8644E-12), (14, -7.7975E-15)], [(4, 1.1339E-04), (6, 4.8165E-07), (8, 1.8778E-08), (10, -5.7571E-10), (12, 8.9994E-12), (14, -4.6768E-14)], missing, missing, missing, missing, missing, missing, missing],
+        Thickness = [Inf64, 0.0, 5.18, 0.10, 4.40, 0.16, 1.0, 4.96, zooms[pos], 4.04, 1.35, 1.0, 2.80, 3.0, 1.22, dists[pos], missing],
+        Material = [Air, Air, OHARA.S_LAH66, Air, NIKON.LLF6, Air, OHARA.S_TIH6, OHARA.S_FSL5, Air, OHARA.S_FSL5, Air, OHARA.S_LAL8, OHARA.S_FSL5, Air, OHARA.S_LAH66, Air, missing], # S_FL4 -> S_FSL5>
+        SemiDiameter = [Inf64, stops[pos], 3.85433218451, 3.85433218451, 4.36304692871, 4.36304692871, 4.72505505439, 4.72505505439, 4.72505505439, 4.45240784026, 4.45240784026, 4.50974054117, 4.50974054117, 4.50974054117, 4.76271114409, 4.76271114409, 15.0]))
 end
+export zoom_lens
 
 function fresnel(convex = true; kwargs...)
     lens = FresnelLens(OpticSim.GlassCat.SCHOTT.N_BK7, 0.0, convex ? 15.0 : -15.0, 1.0, 8.0, 0.8, conic = 0.1)
