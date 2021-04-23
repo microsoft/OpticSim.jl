@@ -9,7 +9,7 @@ Rectangular surface, not a valid CSG object.
 The rotation of the rectangle around its normal is defined by `rotationvec`.
 `rotationvec×surfacenormal` is taken as the vector along the u axis.
 
-**Can be used as a detector in [`OpticalSystem`](@ref)s.**
+**Can be used as a detector in [`AbstractOpticalSystem`](@ref)s.**
 
 ```julia
 Rectangle(halfsizeu::T, halfsizev::T, [surfacenormal::SVector{3,T}, centrepoint::SVector{3,T}]; rotationvec::SVector{3,T} = [0.0, 1.0, 0.0], interface::NullOrFresnel{T} = nullinterface(T))
@@ -73,7 +73,7 @@ onsurface(a::Rectangle{T}, point::SVector{3,T}) where {T<:Real} = onsurface(a.pl
 
 Converts a uvcoordinate on `surf` to an integer index to a pixel in an image of size `imsize`.
 Not implemented on all `Surface` objects.
-Used to determine where in the detector image a ray has hit when in intersects the detector surface of an [`OpticalSystem`](@ref).
+Used to determine where in the detector image a ray has hit when in intersects the detector surface of an [`AbstractOpticalSystem`](@ref).
 """
 function uvtopix(::Rectangle{T}, uv::SVector{2,T}, imsize::Tuple{Int,Int}) where {T<:Real}
     u, v = uv
