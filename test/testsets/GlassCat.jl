@@ -120,17 +120,17 @@ using StaticArrays
     end
 
     @testset "Glass Tests" begin
-        @test isapprox(absairindex(500 * u"nm"), 1.0002741948670688, atol = 1e-14)
-        @test isapprox(absairindex(600 * u"nm", temperature = 35 * u"°C", pressure = 2.0), 1.0005179096900811, atol = 1e-14)
+        @test absairindex(500 * u"nm") ≈ 1.0002741948670688 atol=1e-14
+        @test absairindex(600 * u"nm", temperature = 35 * u"°C", pressure = 2.0) ≈ 1.0005179096900811 atol=1e-14
         @test index(Air, 500 * u"nm") == 1.0
         @test index(Air, 600 * u"nm") == 1.0
 
         # test against true values
         g = SCHOTT.N_BK7
-        @test isapprox(index(g, 533 * u"nm"), 1.519417351519283, atol = 1e-14)
-        @test isapprox(index(g, 533 * u"nm", temperature = 35 * u"°C"), 1.519462486258311, atol = 1e-14)
-        @test isapprox(index(g, 533 * u"nm", pressure = 2.0), 1.518994119690216, atol = 1e-14)
-        @test isapprox(index(g, 533 * u"nm", temperature = 35 * u"°C", pressure = 2.0), 1.519059871499476, atol = 1e-14)
+        @test index(g, 533 * u"nm") ≈ 1.519417351519283 atol=1e-14
+        @test index(g, 533 * u"nm", temperature = 35 * u"°C") ≈ 1.519462486258311 atol=1e-14
+        @test index(g, 533 * u"nm", pressure = 2.0) ≈ 1.518994119690216 atol=1e-14
+        @test index(g, 533 * u"nm", temperature = 35 * u"°C", pressure = 2.0) ≈ 1.519059871499476 atol=1e-14
 
         # test transmission
         @test absorption(Air, 500 * u"nm") == 0.0
@@ -155,21 +155,21 @@ using StaticArrays
         fit_acc = 0.001
         bk7 = glassfromMIL(517642)
         @test glassforid(glassid(bk7)) == bk7
-        @test isapprox(index(bk7, 0.5875618), 1.517, atol = fit_acc)
-        @test isapprox(index(bk7, 0.533), 1.519417351519283, atol = fit_acc)
-        @test isapprox(index(bk7, 0.743), 1.511997032563557, atol = fit_acc)
-        @test isapprox(index(bk7, 533 * u"nm", temperature = 35 * u"°C", pressure = 2.0), 1.519059871499476, atol = fit_acc)
+        @test index(bk7, 0.5875618) ≈ 1.517 atol=fit_acc
+        @test index(bk7, 0.533) ≈ 1.519417351519283 atol=fit_acc
+        @test index(bk7, 0.743) ≈ 1.511997032563557 atol=fit_acc
+        @test index(bk7, 533 * u"nm", temperature = 35 * u"°C", pressure = 2.0) ≈ 1.519059871499476 atol=fit_acc
 
         t2 = glassfromMIL(1.135635)
-        @test isapprox(index(t2, 0.5875618), 2.135, atol = fit_acc)
+        @test index(t2, 0.5875618) ≈ 2.135 atol=fit_acc
 
         fit_acc = 0.0001
         bk7 = modelglass(1.5168, 64.167336, -0.0009)
         @test glassforid(glassid(bk7)) == bk7
-        @test isapprox(index(bk7, 0.5875618), 1.5168, atol = fit_acc)
-        @test isapprox(index(bk7, 0.533), 1.519417351519283, atol = fit_acc)
-        @test isapprox(index(bk7, 0.743), 1.511997032563557, atol = fit_acc)
-        @test isapprox(index(bk7, 533 * u"nm", temperature = 35 * u"°C", pressure = 2.0), 1.519059871499476, atol = fit_acc)
+        @test index(bk7, 0.5875618) ≈ 1.5168 atol=fit_acc
+        @test index(bk7, 0.533) ≈ 1.519417351519283 atol=fit_acc
+        @test index(bk7, 0.743) ≈ 1.511997032563557 atol=fit_acc
+        @test index(bk7, 533 * u"nm", temperature = 35 * u"°C", pressure = 2.0) ≈ 1.519059871499476 atol=fit_acc
 
         # test other glass
         @test index(CARGILLE.OG0608, 0.578) == 1.4596475735607324
