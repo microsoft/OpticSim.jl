@@ -67,31 +67,25 @@ nothing # hide
 ![Zoom position 3 visualization](assets/zoom3.png)
 
 ## Schmidt Cassegrain Telescope
+```@example
+using CodeTracking, OpticSim.Examples # hide
+print(@code_string SchmidtCassegrainTelescope()) # hide
+```
 
 ```@example
-using OpticSim, OpticSim.Geometry
-using StaticArrays
+using OpticSim.Examples
+sys = SchmidtCassegrainTelescope()
 
+using OpticSim.Geometry, OpticSim.Emitters
+transform = translation(0.0, 0.0, 10.0)
+origins = Origins.Hexapolar(8, 20.0, 20.0)
+directions = Directions.Constant(0.0, 0.0, -1.0)
+raygenerator = Sources.Source(; transform, origins, directions)
 
-# glass entrance lens on telescope
-topsurf = Plane(SVector(0.0, 0.0, 1.0), SVector(0.0, 0.0, 0.0), interface = FresnelInterface{Float64}(OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air), vishalfsizeu = 12.00075, vishalfsizev = 12.00075)
-botsurf = AcceleratedParametricSurface(ZernikeSurface(12.00075, radius = -1.14659768e+4, aspherics = [(4, 3.68090959e-7), (6, 2.73643352e-11), (8, 3.20036892e-14)]), 17, interface = FresnelInterface{Float64}(OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air))
-coverlens = csgintersection(leaf(Cylinder(12.00075, 1.4)), csgintersection(leaf(topsurf), leaf(botsurf, Transform(OpticSim.rotmatd(0, 180, 0), Vec3(0.0, 0.0, -0.65)))))
-# big mirror with a hole in it
-bigmirror = ConicLens(OpticSim.GlassCat.SCHOTT.N_BK7, -72.65, -95.2773500000134, 0.077235, Inf, 0.0, 0.2, 12.18263, frontsurfacereflectance = 1.0)
-bigmirror = csgdifference(bigmirror, leaf(Cylinder(4.0, 0.3, interface = opaqueinterface()), translation(0.0, 0.0, -72.75)))
-# small mirror supported on a spider
-smallmirror = SphericalLens(OpticSim.GlassCat.SCHOTT.N_BK7, -40.65, Inf, -49.6845, 1.13365, 4.3223859, backsurfacereflectance = 1.0)
-obscuration1 = Circle(4.5, SVector(0.0, 0.0, 1.0), SVector(0.0, 0.0, -40.649), interface = opaqueinterface())
-obscurations2 = Spider(3, 0.5, 12.0, SVector(0.0, 0.0, -40.65))
-# put it together with the detector
-la = LensAssembly(coverlens(), bigmirror(), smallmirror(), obscuration1, obscurations2...)
-det = Circle(3.0, SVector(0.0, 0.0, 1.0), SVector(0.0, 0.0, -92.4542988), interface = opaqueinterface())
-tele = CSGOpticalSystem(la, det)
-
-Vis.drawtracerays(tele, raygenerator = UniformOpticalSource(CollimatedSource(GridRectOriginPoints(5, 5, 10.0, 10.0, position = SVector(0.0, 0.0, 20.0))), 0.55), trackallrays = true, colorbynhits = true, test = true)
+using OpticSim.Vis
+Vis.drawtracerays(sys; raygenerator, trackallrays = true, colorbynhits = true, test = true, numdivisions = 100)
 Vis.save("assets/tele.png") # hide
-nothing # hide
+sys # hide
 ```
 
 ![Schmidt Cassegrain Telescope visualization](assets/tele.png)
