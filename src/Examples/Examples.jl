@@ -8,6 +8,7 @@ using ..OpticSim
 using ..OpticSim.Vis
 using ..OpticSim.Geometry
 using ..OpticSim.Emitters
+using ..OpticSim.Emitters.Spectrum
 using ..OpticSim.Emitters.Origins
 using ..OpticSim.Emitters.Directions
 using ..OpticSim.Emitters.Sources
@@ -275,18 +276,40 @@ end
 
 function HOEfocus(; kwargs...)
     rect = Rectangle(5.0, 5.0, SVector(0.0, 0.0, 1.0), SVector(0.0, 0.0, 0.0))
-    int = HologramInterface(SVector(0.0, -3.0, -20.0), ConvergingBeam, SVector(0.0, 0.0, -1.0), CollimatedBeam, 0.55, 9.0, OpticSim.GlassCat.Air, OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air, OpticSim.GlassCat.Air, OpticSim.GlassCat.Air, 0.05, false)
+    int = HologramInterface(
+        SVector(0.0, -3.0, -20.0), ConvergingBeam,
+        SVector(0.0, 0.0, -1.0), CollimatedBeam,
+        0.55, 9.0, Air, SCHOTT.N_BK7, Air, Air, Air, 0.05, false)
     obj = HologramSurface(rect, int)
-    sys = CSGOpticalSystem(LensAssembly(obj), Rectangle(10.0, 10.0, SVector(0.0, 0.0, 1.0), SVector(0.0, 0.0, -25.0), interface = opaqueinterface()))
-    Vis.drawtracerays(sys; raygenerator = UniformOpticalSource(CollimatedSource(GridRectOriginPoints(5, 5, 3.0, 3.0, position = SVector(0.0, 0.0, 10.0), direction = SVector(0.0, 0.0, -1.0))), 0.55), trackallrays = true, rayfilter = nothing, test = true, kwargs...)
+    sys = CSGOpticalSystem(
+        LensAssembly(obj),
+        Rectangle(10.0, 10.0, SVector(0.0, 0.0, 1.0), SVector(0.0, 0.0, -25.0),
+        interface = opaqueinterface()))
+    raygenerator = Source(;
+        transform = translation(0.0, 0.0, 10.0),
+        spectrum = DeltaFunction(0.55),
+        origins = Origins.RectGrid(3.0, 3.0, 5, 5),
+        directions = Constant(0.0, 0.0, -1.0))
+    Vis.drawtracerays(sys; raygenerator, trackallrays = true, rayfilter = nothing, test = true, kwargs...)
 end
 
 function HOEcollimate(; kwargs...)
     rect = Rectangle(5.0, 5.0, SVector(0.0, 0.0, 1.0), SVector(0.0, 0.0, 0.0))
-    int = HologramInterface(SVector(0.1, -0.05, -1.0), CollimatedBeam, SVector(0.0, 0.0, 10), DivergingBeam, 0.55, 9.0, OpticSim.GlassCat.Air, OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air, OpticSim.GlassCat.Air, OpticSim.GlassCat.Air, 0.05, false)
+    int = HologramInterface(
+        SVector(0.1, -0.05, -1.0), CollimatedBeam,
+        SVector(0.0, 0.0, 10), DivergingBeam,
+        0.55, 9.0, Air, SCHOTT.N_BK7, Air, Air, Air, 0.05, false)
     obj = HologramSurface(rect, int)
-    sys = CSGOpticalSystem(LensAssembly(obj), Rectangle(10.0, 10.0, SVector(0.0, 0.0, 1.0), SVector(0.0, 0.0, -25.0), interface = opaqueinterface()))
-    Vis.drawtracerays(sys; raygenerator = UniformOpticalSource(GridSource(OriginPoint{Float64}(1, position = SVector(0.0, 0.0, 10.0), direction = SVector(0.0, 0.0, -1.0)), 5, 5, π / 4, π / 4), 0.55), trackallrays = true, rayfilter = nothing, test = true, kwargs...)
+    sys = CSGOpticalSystem(
+        LensAssembly(obj),
+        Rectangle(10.0, 10.0, SVector(0.0, 0.0, 1.0), SVector(0.0, 0.0, -25.0),
+        interface = opaqueinterface()))
+    raygenerator = Source(
+        transform = Transform(rotmatd(180, 0, 0), Vec3(0.0, 0.0, 10.0)),
+        spectrum = DeltaFunction(0.55),
+        origins = Origins.Point(),
+        directions = Directions.RectGrid(π/4, π/4, 8, 8))
+    Vis.drawtracerays(sys; raygenerator, trackallrays = true, rayfilter = nothing, test = true, kwargs...)
 end
 
 function eyetrackHOE(nrays = 5000, det = false, showhead = true, zeroorder = false; kwargs...)
@@ -382,14 +405,28 @@ end
 
 function multiHOE(; kwargs...)
     rect = Rectangle(5.0, 5.0, SVector(0.0, 0.0, 1.0), SVector(0.0, 0.0, 0.0))
-    int1 = HologramInterface(SVector(-5.0, 0.0, -20.0), ConvergingBeam, SVector(0.0, -1.0, -1.0), CollimatedBeam, 0.55, 100.0, OpticSim.GlassCat.Air, OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air, OpticSim.GlassCat.Air, OpticSim.GlassCat.Air, 0.05, false)
-    int2 = HologramInterface(SVector(5.0, 0.0, -20.0), ConvergingBeam, SVector(0.0, 1.0, -1.0), CollimatedBeam, 0.55, 100.0, OpticSim.GlassCat.Air, OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air, OpticSim.GlassCat.Air, OpticSim.GlassCat.Air, 0.05, false)
+    int1 = HologramInterface(
+        SVector(-5.0, 0.0, -20.0), ConvergingBeam,
+        SVector(0.0, -1.0, -1.0), CollimatedBeam,
+        0.55, 100.0, Air, SCHOTT.N_BK7, Air, Air, Air, 0.05, false)
+    int2 = HologramInterface(
+        SVector(5.0, 0.0, -20.0), ConvergingBeam,
+        SVector(0.0, 1.0, -1.0), CollimatedBeam,
+        0.55, 100.0, Air, SCHOTT.N_BK7, Air, Air, Air, 0.05, false)
     mint = MultiHologramInterface(int1, int2)
     obj = MultiHologramSurface(rect, mint)
-    sys = CSGOpticalSystem(LensAssembly(obj), Rectangle(10.0, 10.0, SVector(0.0, 0.0, 1.0), SVector(0.0, 0.0, -20.0), interface = opaqueinterface()))
-    s1 = UniformOpticalSource(CollimatedSource(RandomRectOriginPoints(500, 3.0, 3.0, position = SVector(0.0, 3.0, 3.0), direction = SVector(0.0, -1.0, -1.0))), 0.55, sourcenum = 1)
-    s2 = UniformOpticalSource(CollimatedSource(RandomRectOriginPoints(500, 3.0, 3.0, position = SVector(0.0, -3.0, 3.0), direction = SVector(0.0, 1.0, -1.0))), 0.55, sourcenum = 2)
-    s3 = UniformOpticalSource(CollimatedSource(RandomRectOriginPoints(500, 3.0, 3.0, position = SVector(0.0, 0.0, 3.0), direction = SVector(0.0, 0.0, -1.0))), 0.55, sourcenum = 3)
+    sys = CSGOpticalSystem(
+        LensAssembly(obj),
+        Rectangle(10.0, 10.0, SVector(0.0, 0.0, 1.0), SVector(0.0, 0.0, -20.0), interface = opaqueinterface()))
+    spectrum = DeltaFunction(0.55)
+    origins = Origins.RectUniform(3.0, 3.0, 500)
+    directions = Constant(0.0, 0.0, -1.0)
+    s1 = Source(; spectrum, origins, directions, sourcenum = 1,
+        transform = Transform(rotmatd(-45, 0, 0), Vec3(0.0, 3.0, 3.0)))
+    s2 = Source(; spectrum, origins, directions, sourcenum = 2,
+        transform = Transform(rotmatd(45, 0, 0), Vec3(0.0, -3.0, 3.0)))
+    s3 = Source(; spectrum, origins, directions, sourcenum = 3,
+        transform = translation(0.0, 0.0, 3.0))
     Vis.drawtracerays(sys; raygenerator = s1, trackallrays = true, colorbysourcenum = true, rayfilter = nothing, kwargs...)
     Vis.drawtracerays!(sys; raygenerator = s2, trackallrays = true, colorbysourcenum = true, rayfilter = nothing, drawgen = true, kwargs...)
     Vis.drawtracerays!(sys; raygenerator = s3, trackallrays = true, colorbysourcenum = true, rayfilter = nothing, drawgen = true, kwargs...)

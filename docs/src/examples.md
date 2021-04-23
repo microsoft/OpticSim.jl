@@ -111,58 +111,48 @@ nothing # hide
 ## HOEs
 
 ### Focusing
+```@example
+using CodeTracking # hide
+using OpticSim.Examples: HOEfocus # hide
+print(@code_string HOEfocus()) # hide
+```
 
 ```@example
-using OpticSim
-using StaticArrays
-
-rect = Rectangle(5.0, 5.0, SVector(0.0, 0.0, 1.0), SVector(0.0, 0.0, 0.0))
-int = HologramInterface(SVector(0.0, -3.0, -20.0), ConvergingBeam, SVector(0.0, 0.0, -1.0), CollimatedBeam, 0.55, 9.0, OpticSim.GlassCat.Air, OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air, OpticSim.GlassCat.Air, OpticSim.GlassCat.Air, 0.05, false)
-obj = HologramSurface(rect, int)
-sys = CSGOpticalSystem(LensAssembly(obj), Rectangle(10.0, 10.0, SVector(0.0, 0.0, 1.0), SVector(0.0, 0.0, -25.0), interface = opaqueinterface()))
-Vis.drawtracerays(sys; raygenerator = UniformOpticalSource(CollimatedSource(GridRectOriginPoints(5, 5, 3.0, 3.0, position = SVector(0.0, 0.0, 10.0), direction = SVector(0.0, 0.0, -1.0))), 0.55), trackallrays = true, rayfilter = nothing, test = true)
-Vis.save("assets/hoe_f.png") # hide
+using OpticSim.Examples: HOEfocus
+HOEfocus()
+using OpticSim.Vis; Vis.save("assets/hoe_f.png") # hide
 nothing # hide
 ```
 
 ![Focusing HOE example](assets/hoe_f.png)
 
 ### Collimating
+```@example
+using CodeTracking # hide
+using OpticSim.Examples: HOEcollimate # hide
+print(@code_string HOEcollimate()) # hide
+```
 
 ```@example
-using OpticSim
-using StaticArrays
-
-rect = Rectangle(5.0, 5.0, SVector(0.0, 0.0, 1.0), SVector(0.0, 0.0, 0.0))
-int = HologramInterface(SVector(0.1, -0.05, -1.0), CollimatedBeam, SVector(0.0, 0.0, 10), DivergingBeam, 0.55, 9.0, OpticSim.GlassCat.Air, OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air, OpticSim.GlassCat.Air, OpticSim.GlassCat.Air, 0.05, false)
-obj = HologramSurface(rect, int)
-sys = CSGOpticalSystem(LensAssembly(obj), Rectangle(10.0, 10.0, SVector(0.0, 0.0, 1.0), SVector(0.0, 0.0, -25.0), interface = opaqueinterface()))
-Vis.drawtracerays(sys; raygenerator = UniformOpticalSource(GridSource(OriginPoint{Float64}(1, position = SVector(0.0, 0.0, 10.0), direction = SVector(0.0, 0.0, -1.0)), 5, 5, π / 4, π / 4), 0.55), trackallrays = true, rayfilter = nothing, test = true)
-Vis.save("assets/hoe_c.png") # hide
+using OpticSim.Examples: HOEcollimate
+HOEcollimate()
+using OpticSim.Vis; Vis.save("assets/hoe_c.png") # hide
 nothing # hide
 ```
 
 ![Collimating HOE example](assets/hoe_c.png)
 
 ### Multi
+```@example
+using CodeTracking # hide
+using OpticSim.Examples: multiHOE # hide
+print(@code_string multiHOE()) # hide
+```
 
 ```@example
-using OpticSim
-using StaticArrays
-
-rect = Rectangle(5.0, 5.0, SVector(0.0, 0.0, 1.0), SVector(0.0, 0.0, 0.0))
-int1 = HologramInterface(SVector(-5.0, 0.0, -20.0), ConvergingBeam, SVector(0.0, -1.0, -1.0), CollimatedBeam, 0.55, 100.0, OpticSim.GlassCat.Air, OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air, OpticSim.GlassCat.Air, OpticSim.GlassCat.Air, 0.05, false)
-int2 = HologramInterface(SVector(5.0, 0.0, -20.0), ConvergingBeam, SVector(0.0, 1.0, -1.0), CollimatedBeam, 0.55, 100.0, OpticSim.GlassCat.Air, OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air, OpticSim.GlassCat.Air, OpticSim.GlassCat.Air, 0.05, false)
-mint = MultiHologramInterface(int1, int2)
-obj = MultiHologramSurface(rect, mint)
-sys = CSGOpticalSystem(LensAssembly(obj), Rectangle(10.0, 10.0, SVector(0.0, 0.0, 1.0), SVector(0.0, 0.0, -20.0), interface = opaqueinterface()))
-s1 = UniformOpticalSource(CollimatedSource(RandomRectOriginPoints(500, 3.0, 3.0, position = SVector(0.0, 3.0, 3.0), direction = SVector(0.0, -1.0, -1.0))), 0.55, sourcenum = 1)
-s2 = UniformOpticalSource(CollimatedSource(RandomRectOriginPoints(500, 3.0, 3.0, position = SVector(0.0, -3.0, 3.0), direction = SVector(0.0, 1.0, -1.0))), 0.55, sourcenum = 2)
-s3 = UniformOpticalSource(CollimatedSource(RandomRectOriginPoints(500, 3.0, 3.0, position = SVector(0.0, 0.0, 3.0), direction = SVector(0.0, 0.0, -1.0))), 0.55, sourcenum = 3)
-Vis.drawtracerays(sys; raygenerator = s1, trackallrays = true, colorbysourcenum = true, rayfilter = nothing)
-Vis.drawtracerays!(sys; raygenerator = s2, trackallrays = true, colorbysourcenum = true, rayfilter = nothing, drawgen = true)
-Vis.drawtracerays!(sys; raygenerator = s3, trackallrays = true, colorbysourcenum = true, rayfilter = nothing, drawgen = true)
-Vis.save("assets/hoe_m.png") # hide
+using OpticSim.Examples: multiHOE
+multiHOE()
+using OpticSim.Vis; Vis.save("assets/hoe_m.png") # hide
 nothing # hide
 ```
 
