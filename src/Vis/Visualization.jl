@@ -421,7 +421,7 @@ end
 """
     draw!(scene::MakieLayout.LScene, sys::AbstractOpticalSystem; kwargs...)
 
-Draw each element in the lens assembly of an [`OpticalSystem`](@ref), with each element automatically colored differently, as well as the detector of the system.
+Draw each element in the lens assembly of an [`AbstractOpticalSystem`](@ref), with each element automatically colored differently, as well as the detector of the system.
 """
 function draw!(scene::MakieLayout.LScene, sys::CSGOpticalSystem{T}; kwargs...) where {T<:Real}
     draw!(scene, sys.assembly; kwargs...)
