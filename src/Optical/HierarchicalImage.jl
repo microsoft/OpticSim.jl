@@ -9,7 +9,7 @@ import Base: setindex!, getindex
 
 Image type which dynamically allocated memory for pixels when their value is set, the value of unset pixels is assumed to be zero.
 
-This is used for the detector image of [`OpticalSystem`](@ref)s which can typically be very high resolution, but often have a large proportion of the image blank.
+This is used for the detector image of [`AbstractOpticalSystem`](@ref)s which can typically be very high resolution, but often have a large proportion of the image blank.
 """
 struct HierarchicalImage{T<:Number} <: AbstractArray{T,2} #allow for complex values. May want to expand this even further to allow more complicated detector image types
     toplevel::Array{Array{T,2},2}
