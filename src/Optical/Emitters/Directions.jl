@@ -35,6 +35,10 @@ struct Constant{T} <: AbstractDirectionDistribution{T}
         return new{T}(direction)
     end
 
+    function Constant(dirx::T,diry::T,dirz::T) where{T<:Real}
+        return new{T}(Vec3(dirx,diry,dirz))
+    end
+    
     function Constant(::Type{T} = Float64) where {T<:Real}
         direction = unitZ3(T)
         return new{T}(direction)

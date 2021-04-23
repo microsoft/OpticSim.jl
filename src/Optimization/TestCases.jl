@@ -122,7 +122,7 @@ function testJuMP()
 
         lens = Examples.doubleconvex(radius1, radius2)
 
-        field = HexapolarField(lens, collimated = true, samples = 10)
+        field = Sources.Source(transform = Geometry.translation(0.0,0.0,10.0), origins = Origins.Hexapolar(5,5.0,5.0),directions = Directions.Constant(0.0,0.0,-1.0))
         error = zero(T)
         hits = 0
         for r in field

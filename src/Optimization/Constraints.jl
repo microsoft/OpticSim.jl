@@ -1,7 +1,7 @@
 """Interfaces, and some implementations, for common constraints widely used in optical optimization"""
 
 #Notes: we probably need a OpticalElement type, which represents a physical lens object with a defined shape. One can compute thickness of an element, i.e., the distance through an object with a homogeneous material when pierced by a ray with a specific origin and direction. LensAssembly is too general to serve this purpose.
-# Need a generalization of AbstractOpticalSystem which allows for more than one emitter and more than one detector. The latter may not be immediately useful but the former will be, since we are designing systems with multiple display chips.
+# Need a generalization of AbstractOpticalSystem with more than one detector.
 
 # 
 
@@ -23,7 +23,7 @@ function centroid(a::AbstractVector) end
 function RMS_spot_size(a::AbstractVector{T}, b::AxisymmetricOpticalSystem{T}, samples::Int = 3) where {T}
     # RMSE spot size
     lens = Optimization.updateoptimizationvariables(b, a)
-    field = HexapolarField(lens, collimated = true, samples = samples)
+    field = Sources.Source(transform = Geometry.translation(0.0,0.0,10.0), origins = Origins.Hexapolar(5,5.0,5.0),directions = Directions.Constant(0.0,0.0,-1.0))
     error = zero(T)
     hits = 0
     for r in field
