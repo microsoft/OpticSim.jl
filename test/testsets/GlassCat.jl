@@ -11,10 +11,6 @@ using DataFrames
 using StaticArrays
 
 @testset "GlassCat" begin
-    # ensure there aren't any ambiguities
-    @test isempty(detect_ambiguities(GlassCat))
-    @test isempty(detect_unbound_args(GlassCat))
-
     @testset "Build Tests" begin
         # check that all automatic downloads are working
         for catname in split("HOYA NIKON OHARA SCHOTT Sumita")
