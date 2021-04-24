@@ -1,5 +1,10 @@
 # Examples
 
+```@setup highlight
+using CodeTracking, Markdown, OpticSim.Examples
+mdparse(s) = Markdown.parse("```julia\n$s\n```")
+```
+
 ## Pluto Notebooks
 
 The [`OpticSim`](index.html) package comes with several [`Pluto`](https://github.com/fonsp/Pluto.jl) notebooks (code snippets are coming soon) that allow the user to change and run sample code and view the results in real-time. We highly recommend for you to try these out.
@@ -14,9 +19,8 @@ NB.run_sample("EmittersIntro.jl")
 The **run_sample** method will **copy** the notebook to your current folder (if it does not exist) and launch Pluto to run the notebook in the browser.
 
 ## Cooke Triplet
-```@example
-using CodeTracking, OpticSim.Examples # hide
-print(@code_string cooketripletlensonly()) # hide
+```@example highlight
+mdparse(@code_string cooketripletlensonly()) # hide
 ```
 
 ```@example
@@ -39,9 +43,8 @@ sys # hide
 ![Cooke triplet visualization](assets/cooke.png)
 
 ## Zoom Lens
-```@example
-using CodeTracking, OpticSim.Examples # hide
-print(@code_string zoom_lens(1)) # hide
+```@example highlight
+mdparse(@code_string zoom_lens(1)) # hide
 ```
 
 ```@example
@@ -67,9 +70,8 @@ nothing # hide
 ![Zoom position 3 visualization](assets/zoom3.png)
 
 ## Schmidt Cassegrain Telescope
-```@example
-using CodeTracking, OpticSim.Examples # hide
-print(@code_string SchmidtCassegrainTelescope()) # hide
+```@example highlight
+mdparse(@code_string SchmidtCassegrainTelescope()) # hide
 ```
 
 ```@example
@@ -111,49 +113,49 @@ nothing # hide
 ## HOEs
 
 ### Focusing
-```@example
-using CodeTracking # hide
+```@example highlight
 using OpticSim.Examples: HOEfocus # hide
-print(@code_string HOEfocus()) # hide
+mdparse(@code_string HOEfocus()) # hide
 ```
 
-```@example
+```@eval
 using OpticSim.Examples: HOEfocus
 HOEfocus()
-using OpticSim.Vis; Vis.save("assets/hoe_f.png") # hide
-nothing # hide
+using OpticSim.Vis
+Vis.save("assets/hoe_f.png")
+nothing
 ```
 
 ![Focusing HOE example](assets/hoe_f.png)
 
 ### Collimating
-```@example
-using CodeTracking # hide
+```@example highlight
 using OpticSim.Examples: HOEcollimate # hide
-print(@code_string HOEcollimate()) # hide
+mdparse(@code_string HOEcollimate()) # hide
 ```
 
-```@example
+```@eval
 using OpticSim.Examples: HOEcollimate
 HOEcollimate()
-using OpticSim.Vis; Vis.save("assets/hoe_c.png") # hide
-nothing # hide
+using OpticSim.Vis
+Vis.save("assets/hoe_c.png")
+nothing
 ```
 
 ![Collimating HOE example](assets/hoe_c.png)
 
 ### Multi
-```@example
-using CodeTracking # hide
+```@example highlight
 using OpticSim.Examples: multiHOE # hide
-print(@code_string multiHOE()) # hide
+mdparse(@code_string multiHOE()) # hide
 ```
 
-```@example
+```@eval
 using OpticSim.Examples: multiHOE
 multiHOE()
-using OpticSim.Vis; Vis.save("assets/hoe_m.png") # hide
-nothing # hide
+using OpticSim.Vis
+Vis.save("assets/hoe_m.png")
+nothing
 ```
 
 ![Multi-HOE example](assets/hoe_m.png)
