@@ -22,7 +22,7 @@ makedocs(
         ],
         "Optical" => [
             "Systems" => "systems.md",
-            "Emitters (NEW)" => "emitters_new.md",
+            "Emitters" => "emitters.md",
             "Interfaces" => "interfaces.md",
             "Lenses" => "lenses.md"
         ],
