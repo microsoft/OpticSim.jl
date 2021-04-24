@@ -456,7 +456,6 @@ end
 
 drawtracerays!(system::Q; kwargs...) where {T<:Real,Q<:AbstractOpticalSystem{T}} = drawtracerays!(current_3d_scene, system; kwargs...)
 
-# UniformOpticalSource(CollimatedSource(GridRectOriginPoints(25, 25, 5.0, 5.0, position = SVector(0.0, 0.0, 10.0))), 0.55)
 function drawtracerays!(scene::MakieLayout.LScene, system::Q; raygenerator::S = Source(transform = translation(0.0,0.0,10.0), origins = Origins.RectGrid(10.0,10.0,25,25),directions = Constant(0.0,0.0,-1.0)), test::Bool = false, trackallrays::Bool = false, colorbysourcenum::Bool = false, colorbynhits::Bool = false, rayfilter::Union{Nothing,Function} = onlydetectorrays, verbose::Bool = false, drawsys::Bool = false, drawgen::Bool = false, kwargs...) where {T<:Real,Q<:AbstractOpticalSystem{T},S<:AbstractRayGenerator{T}}
     raylines = Vector{LensTrace{T,3}}(undef, 0)
 
@@ -516,83 +515,6 @@ function drawtraceimage(system::Q; raygenerator::S = Source(transform = translat
     show(detectorimage(system))
     return detectorimage(system)
 end
-
-# """
-#     draw!(scene::MakieLayout.LScene, origingenerator::RayOriginGenerator; kwargs...)
-
-# Draw the surface representing `origingenerator`.
-# """
-# function draw!(scene::MakieLayout.LScene, origingenerator::Union{RandomRectOriginPoints{T},GridRectOriginPoints{T}}; position::SVector{3,T} = SVector{3,T}(0, 0, 0), color = :white, kwargs...) where {T<:Real}
-#     draw!(scene, Rectangle(Plane(origingenerator.direction, origingenerator.position + position), origingenerator.halfsizeu, origingenerator.halfsizev, origingenerator.uvec, origingenerator.vvec); color = color)
-# end
-
-# function draw!(scene::MakieLayout.LScene, origingenerator::Union{HexapolarOriginPoints{T},RandomEllipseOriginPoints{T}}; position::SVector{3,T} = SVector{3,T}(0, 0, 0), color = :white, kwargs...) where {T<:Real}
-#     draw!(scene, Ellipse(Plane(origingenerator.direction, origingenerator.position + position), origingenerator.halfsizeu, origingenerator.halfsizev, origingenerator.uvec, origingenerator.vvec); color = color)
-# end
-
-# function draw!(scene::MakieLayout.LScene, origingenerator::OriginPoint{T}; position::SVector{3,T} = SVector{3,T}(0, 0, 0), color = :white, kwargs...) where {T<:Real}
-#     draw!(scene, origingenerator.position + position; color = color)
-# end
-
-"""
-    draw!(scene::MakieLayout.LScene, raygen::OpticalRayGenerator, norays::Bool = false; kwargs...)
-
-Draw the surface representing `raygen`, as well as some sample [`OpticalRay`](@ref)s eminating from it (providing `norays` is false).
-"""
-function draw!(scene::MakieLayout.LScene, raygen::OpticalRayGenerator{T}; position::SVector{3,T} = SVector{3,T}(0, 0, 0), norays::Bool = false, kwargs...) where {T<:Real}
-    throw(ErrorException("rewrite once understand origingen"))
-    # if !norays
-    #     for r in raygen
-    #         draw!(scene, OpticalRay(origin(r) + position, direction(r), power(r), wavelength(r), opl = pathlength(r), nhits = nhits(r), sourcenum = sourcenum(r)); kwargs...)
-    #     end
-    # end
-    # if hasproperty(raygen, :sourcenum)
-    #     col = indexedcolor(raygen.sourcenum)
-    # else
-    #     col = :white
-    # end
-    # if !(nothing === origingen(raygen))
-    #     draw!(scene, origingen(raygen), position = position, color = col)
-    # end
-end
-
-"""
-    draw!(scene::MakieLayout.LScene, raygen::GeometricRayGenerator, norays::Bool = false; kwargs...)
-
-Draw the surface representing `raygen`, as well as some sample [`Ray`](@ref)s eminating from it (providing `norays` is false).
-"""
-function draw!(scene::MakieLayout.LScene, raygen::GeometricRayGenerator{T}; position::SVector{3,T} = SVector{3,T}(0, 0, 0), norays::Bool = false, kwargs...) where {T<:Real}
-   throw(ErrorException("needs to be rewritten once we figure out what origingen is doing"))
-
-    #    if !norays
-    #     for r in raygen
-    #         draw!(scene, Ray(origin(r) + position, direction(r)); kwargs...)
-    #     end
-    # end
-    # draw!(scene, origingen(raygen), position = position, color = :white)
-end
-
-# function draw!(scene::MakieLayout.LScene, pixel::PixelSource{T,C}; kwargs...) where {T<:Real,C}
-#     for (i, raygen) in enumerate(pixel.subpixels)
-#         draw!(scene, raygen; kwargs...)
-#     end
-# end
-
-# function draw!(scene::MakieLayout.LScene, display::BasicDisplayPanel{T,C}; kwargs...) where {T<:Real,C}
-#     draw!(scene, display.generator; kwargs...)
-# end
-
-# function draw!(scene::MakieLayout.LScene, arr::OpticalSourceArray{T}; position::SVector{3,T} = SVector{3,T}(0, 0, 0), kwargs...) where {T<:Real}
-#     for pos in arr.positions
-#         draw!(scene, arr.generator; kwargs..., position = pos + position)
-#     end
-# end
-
-# function draw!(scene::MakieLayout.LScene, arr::OpticalSourceGroup{T}; kwargs...) where {T<:Real}
-#     for gen in arr.generators
-#         draw!(scene, gen; kwargs...)
-#     end
-# end
 
 ## RAYS, LINES AND POINTS
 
