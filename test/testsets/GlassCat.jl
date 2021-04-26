@@ -94,7 +94,7 @@ using StaticArrays
         end
 
         @testset "Module Gen Tests" begin
-            OpticSim.GlassCat.generate_jls([CATALOG_NAME], MAIN_FILE, TMP_DIR, SOURCE_DIR, glasstype="TEST")
+            OpticSim.GlassCat.generate_jls([CATALOG_NAME], MAIN_FILE, TMP_DIR, SOURCE_DIR, test=true)
             include(MAIN_FILE)
 
             for row in eachrow(TEST_CAT_VALUES)

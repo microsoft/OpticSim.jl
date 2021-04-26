@@ -9,18 +9,25 @@ using Unitful
 import Unitful: Length, Temperature, Quantity, Units
 
 """
-Generates .jl files: a `mainfile` and several catalog files.
+    generate_jls(sourcenames::Vector{<:AbstractString}, mainfile::AbstractString, jldir::AbstractString, sourcedir::AbstractString; test::Bool = false)
+
+Generates .jl files in `jldir`: a `mainfile` and several catalog files.
 
 Each catalog file is a module representing a distinct glass catalog (e.g. NIKON, SCHOTT), generated from corresponding
 AGF files in `sourcedir`. These are then included and exported in `mainfile`.
+
+In order to avoid re-definition of constants `AGF_GLASS_NAMES` and `AGF_GLASSES` during testing, we have an optional
+`test` argument. If `true`, we generate a .jl file that defines glasses with `GlassType.TEST` to avoid namespace/ID
+clashes.
 """
 function generate_jls(
     sourcenames::Vector{<:AbstractString},
     mainfile::AbstractString,
     jldir::AbstractString,
     sourcedir::AbstractString;
-    glasstype::AbstractString = "AGF"
+    test::Bool = false
 )
+    glasstype = test ? "TEST" : "AGF"
     id = 1
     catalogfiles = []
     glassnames = []
