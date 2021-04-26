@@ -114,7 +114,6 @@ nothing # hide
 
 ### Focusing
 ```@example highlight
-using OpticSim.Examples: HOEfocus # hide
 mdparse(@code_string HOEfocus()) # hide
 ```
 
@@ -130,12 +129,11 @@ nothing
 
 ### Collimating
 ```@example highlight
-using OpticSim.Examples: HOEcollimate # hide
 mdparse(@code_string HOEcollimate()) # hide
 ```
 
 ```@eval
-using OpticSim.Examples: HOEcollimate
+using OpticSim.Examples
 HOEcollimate()
 using OpticSim.Vis
 Vis.save("assets/hoe_c.png")
@@ -146,12 +144,11 @@ nothing
 
 ### Multi
 ```@example highlight
-using OpticSim.Examples: multiHOE # hide
 mdparse(@code_string multiHOE()) # hide
 ```
 
 ```@eval
-using OpticSim.Examples: multiHOE
+using OpticSim.Examples
 multiHOE()
 using OpticSim.Vis
 Vis.save("assets/hoe_m.png")
