@@ -236,6 +236,7 @@ function save(path::String)
     AbstractPlotting.resize!(current_main_scene, size)
     display(current_main_scene)
 end
+function save(::Nothing) end
 
 #############################################################################
 

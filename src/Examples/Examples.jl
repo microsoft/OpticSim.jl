@@ -8,10 +8,6 @@ using ..OpticSim
 using ..OpticSim.Vis
 using ..OpticSim.Geometry
 using ..OpticSim.Emitters
-using ..OpticSim.Emitters.Spectrum
-using ..OpticSim.Emitters.Origins
-using ..OpticSim.Emitters.Directions
-using ..OpticSim.Emitters.Sources
 using ..OpticSim.GlassCat
 
 using StaticArrays

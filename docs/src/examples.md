@@ -5,6 +5,10 @@ using CodeTracking, Markdown, OpticSim.Examples
 mdparse(s) = Markdown.parse("```julia\n$s\n```")
 ```
 
+```@setup example
+using OpticSim.Examples
+```
+
 ## Pluto Notebooks
 
 The [`OpticSim`](index.html) package comes with several [`Pluto`](https://github.com/fonsp/Pluto.jl) notebooks (code snippets are coming soon) that allow the user to change and run sample code and view the results in real-time. We highly recommend for you to try these out.
@@ -20,49 +24,24 @@ The **run_sample** method will **copy** the notebook to your current folder (if 
 
 ## Cooke Triplet
 ```@example highlight
-mdparse(@code_string cooketripletlensonly()) # hide
+mdparse(@code_string draw_cooketriplet()) # hide
 ```
 
-```@example
-using OpticSim.Examples
-sys = cooketripletlensonly()
-
-using OpticSim.Geometry, OpticSim.Emitters
-origins = Origins.Hexapolar(8, 15.0, 15.0)
-directions = Directions.Constant(0.0, 0.0, -1.0)
-s1 = Sources.Source(; origins, directions, sourcenum=1)
-s2 = Sources.Source(; transform=Transform(rotmatd(10, 0, 0), unitZ3()), origins, directions, sourcenum=2)
-raygenerator = Sources.CompositeSource(Transform(), [s1, s2])
-
-using OpticSim.Vis
-Vis.drawtracerays(sys; raygenerator, test=true, trackallrays=true, colorbysourcenum=true, resolution=(1000, 700))
-Vis.make2dy(); Vis.save("assets/cooke.png") # hide
-sys # hide
+```@example example
+sys = draw_cooketriplet("assets/cooke.png") # hide
+@show sys # hide
 ```
 
 ![Cooke triplet visualization](assets/cooke.png)
 
 ## Zoom Lens
 ```@example highlight
-mdparse(@code_string zoom_lens(1)) # hide
+mdparse(@code_string draw_zoomlenses()) # hide
 ```
 
-```@example
-using OpticSim.Examples
-@show zoom_lens(1)
-
-using OpticSim.Geometry, OpticSim.Emitters
-transform = translation(0.0, 0.0, 10.0)
-origins = Origins.Hexapolar(8, 10.0, 10.0)
-directions = Directions.Constant(0.0, 0.0, -1.0)
-raygenerator = Sources.Source(; transform, origins, directions)
-
-using OpticSim.Vis
-for i = 1:3
-    Vis.drawtracerays(zoom_lens(i); raygenerator, test=true, trackallrays=true, numdivisions=50, resolution=(1200, 600))
-    Vis.make2dy(); Vis.save("assets/zoom$i.png") # hide
-end
-nothing # hide
+```@example example
+syss = draw_zoomlenses(["assets/zoom$i.png" for i in 1:3]) # hide
+@show syss[1] # hide
 ```
 
 ![Zoom position 1 visualization](assets/zoom1.png)
@@ -71,41 +50,22 @@ nothing # hide
 
 ## Schmidt Cassegrain Telescope
 ```@example highlight
-mdparse(@code_string SchmidtCassegrainTelescope()) # hide
+mdparse(@code_string draw_schmidtcassegraintelescope()) # hide
 ```
 
-```@example
-using OpticSim.Examples
-sys = SchmidtCassegrainTelescope()
-
-using OpticSim.Geometry, OpticSim.Emitters
-transform = translation(0.0, 0.0, 10.0)
-origins = Origins.Hexapolar(8, 20.0, 20.0)
-directions = Directions.Constant(0.0, 0.0, -1.0)
-raygenerator = Sources.Source(; transform, origins, directions)
-
-using OpticSim.Vis
-Vis.drawtracerays(sys; raygenerator, trackallrays = true, colorbynhits = true, test = true, numdivisions = 100)
-Vis.save("assets/tele.png") # hide
-sys # hide
+```@example example
+draw_schmidtcassegraintelescope("assets/tele.png") # hide
 ```
 
 ![Schmidt Cassegrain Telescope visualization](assets/tele.png)
 
 ## Lens Construction
+```@example highlight
+mdparse(@code_string draw_lensconstruction()) # hide
+```
 
-```@example
-using OpticSim, OpticSim.Geometry
-using StaticArrays
-
-topsurface = leaf(AcceleratedParametricSurface(QTypeSurface(9.0, radius = -25.0, conic = 0.3, αcoeffs = [(1, 0, 0.3), (1, 1, 1.0)], βcoeffs = [(1, 0, -0.1), (2, 0, 0.4), (3, 0, -0.6)], normradius = 9.5), interface = FresnelInterface{Float64}(OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air)), translation(0.0, 0.0, 5.0))
-botsurface = leaf(Plane(0.0, 0.0, -1.0, 0.0, 0.0, -5.0, vishalfsizeu = 9.5, vishalfsizev = 9.5, interface = FresnelInterface{Float64}(OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air)))
-barrel = leaf(Cylinder(9.0, 20.0, interface = FresnelInterface{Float64}(OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air, reflectance = zero(Float64), transmission = zero(Float64))))
-lens = csgintersection(barrel, csgintersection(topsurface, botsurface))(Transform{Float64}(0.0, Float64(π), 0.0, 0.0, 0.0, -5.0))
-sys = CSGOpticalSystem(LensAssembly(lens), Rectangle(15.0, 15.0, [0.0, 0.0, 1.0], [0.0, 0.0, -67.8], interface = opaqueinterface()))
-Vis.drawtracerays(sys, test = true, trackallrays = true)
-Vis.save("assets/qtype.png") # hide
-nothing # hide
+```@example example
+draw_lensconstruction("assets/qtype.png") # hide
 ```
 
 ![lens construction example](assets/qtype.png)
@@ -114,91 +74,44 @@ nothing # hide
 
 ### Focusing
 ```@example highlight
-mdparse(@code_string HOEfocus()) # hide
+mdparse(@code_string draw_HOEfocus()) # hide
 ```
 
-```@eval
-using OpticSim.Examples: HOEfocus
-HOEfocus()
-using OpticSim.Vis
-Vis.save("assets/hoe_f.png")
-nothing
+```@example example
+draw_HOEfocus("assets/hoe_f.png") # hide
 ```
 
 ![Focusing HOE example](assets/hoe_f.png)
 
 ### Collimating
 ```@example highlight
-mdparse(@code_string HOEcollimate()) # hide
+mdparse(@code_string draw_HOEcollimate()) # hide
 ```
 
-```@eval
-using OpticSim.Examples
-HOEcollimate()
-using OpticSim.Vis
-Vis.save("assets/hoe_c.png")
-nothing
+```@example example
+draw_HOEcollimate("assets/hoe_c.png") # hide
 ```
 
 ![Collimating HOE example](assets/hoe_c.png)
 
 ### Multi
 ```@example highlight
-mdparse(@code_string multiHOE()) # hide
+mdparse(@code_string draw_multiHOE()) # hide
 ```
 
-```@eval
-using OpticSim.Examples
-multiHOE()
-using OpticSim.Vis
-Vis.save("assets/hoe_m.png")
-nothing
+```@example example
+draw_multiHOE("assets/hoe_m.png") # hide
 ```
 
 ![Multi-HOE example](assets/hoe_m.png)
 
 ## Deterministic Raytracing
+```@example highlight
+mdparse(@code_string draw_stackedbeamsplitters()) # hide
+```
 
-```@example
-using OpticSim
-using OpticSim.GlassCat
-using OpticSim.Geometry
-using StaticArrays
-
-function stacked_beamsplitters(interfacemode)
-    bs_1 = leaf(
-             leaf(
-               Cuboid(10.0, 20.0, 2.0; 
-                      interface = FresnelInterface{Float64}(SCHOTT.N_BK7, Air; 
-                                                   reflectance=0.5, transmission=0.5, 
-                                                   interfacemode=interfacemode)),
-               rotationX(pi/4)),
-             translation(0.0, 0.0, -30.0-2*sqrt(2))) 
-    l1 = leaf(SphericalLens(SCHOTT.N_BK7, -70.0, 30.0, Inf, 5.0, 10.0), translation(0.0, -1.34, 0.0))
-    bs_2 = leaf(
-             leaf(
-               Cuboid(10.0, 20.0, 2.0; 
-                      interface = FresnelInterface{Float64}(SCHOTT.N_BK7, Air; 
-                                                   reflectance=0.5, transmission=0.5, 
-                                                   interfacemode=interfacemode)),
-               rotationX(pi/4)),
-              translation(0.0, 40.0, -30.0+2*sqrt(2)))
-    l2 = leaf(SphericalLens(SCHOTT.N_BK7, -70.0, 30.0, Inf, 5.0, 10.0), translation(0.0, 40.0, 0.0))
-    la = LensAssembly(bs_1(), l1(), bs_2(), l2())
-    detector = Rectangle(20.0, 40.0, SVector(0.0, 0.0, 1.0), SVector(0.0, 20.0, -130.0); interface = opaqueinterface())
-    CSGOpticalSystem(la, detector)
-end
-
-# nondeterministic
-Vis.drawtracerays(stacked_beamsplitters(ReflectOrTransmit); trackallrays=true, rayfilter=nothing, colorbynhits=true)
-Vis.save("assets/deterministic_trace_1.png") # hide
-# deterministic, all beamsplitters transmissive
-Vis.drawtracerays(stacked_beamsplitters(Transmit); trackallrays=true, rayfilter=nothing, colorbynhits=true)
-Vis.save("assets/deterministic_trace_2.png") # hide
-# deterministic, all beamsplitters reflective
-Vis.drawtracerays(stacked_beamsplitters(Reflect); trackallrays=true, rayfilter=nothing, colorbynhits=true)
-Vis.save("assets/deterministic_trace_3.png") # hide
-nothing # hide
+```@example example
+draw_stackedbeamsplitters(["assets/deterministic_trace_$i.png" for i in 1:3]) # hide
 ```
 
 ![Nondeterministic Raytrace](assets/deterministic_trace_1.png)
