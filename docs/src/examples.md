@@ -28,8 +28,7 @@ mdparse(@code_string draw_cooketriplet()) # hide
 ```
 
 ```@example example
-sys = draw_cooketriplet("assets/cooke.png") # hide
-@show sys # hide
+sys = draw_cooketriplet("assets/cooke.png"); @show sys; nothing # hide
 ```
 
 ![Cooke triplet visualization](assets/cooke.png)
@@ -40,8 +39,7 @@ mdparse(@code_string draw_zoomlenses()) # hide
 ```
 
 ```@example example
-syss = draw_zoomlenses(["assets/zoom$i.png" for i in 1:3]) # hide
-@show syss[1] # hide
+syss = draw_zoomlenses(["assets/zoom$i.png" for i in 1:3]); @show sys[1]; nothing # hide
 ```
 
 ![Zoom position 1 visualization](assets/zoom1.png)
