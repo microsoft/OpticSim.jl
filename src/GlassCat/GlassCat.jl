@@ -1,24 +1,6 @@
-# MIT License
-
-# Copyright (c) Microsoft Corporation.
-
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE
+# MIT license
+# Copyright (c) Microsoft Corporation. All rights reserved.
+# See LICENSE in the project root for full license information.
 
 module GlassCat
 
@@ -29,6 +11,7 @@ using Unitful
 using StaticArrays
 using Base: @.
 import Unitful: Length, Temperature, Quantity, Units
+using Pkg
 
 include("constants.jl")
 
@@ -38,8 +21,13 @@ include("Air.jl")
 export Air, isair
 
 # include built glass cat source files
-include("data/AGFGlassCat.jl")
-include("data/CARGILLE.jl")
+@assert AGFGLASSCAT_PATH === joinpath(@__DIR__, "data", "jl", "AGFGlassCat.jl")
+if !isfile(AGFGLASSCAT_PATH)
+    @warn "$(basename(AGFGLASSCAT_PATH)) not found! Running build steps."
+    Pkg.build("OpticSim"; verbose=true)
+end
+include("data/jl/AGFGlassCat.jl") # this needs to be literal for intellisense to work
+include("data/jl/CARGILLE.jl")
 
 # include functionality for managing runtime (dynamic) glass cats: MIL_GLASSES and MODEL_GLASSES
 include("runtime.jl")
@@ -51,6 +39,13 @@ export glasscatalogs, glassnames, findglass
 
 include("utilities.jl")
 export plot_indices, index, polyfit_indices, absairindex, absorption
+
+# include utility functions for maintaining the AGF source list
+include("sources.jl")
+export add_agf
+
+# include build utility scripts to make testing them a bit easier
+include("generate.jl")
 
 end # module
 export GlassCat

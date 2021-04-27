@@ -1,24 +1,6 @@
-# MIT License
-
-# Copyright (c) Microsoft Corporation.
-
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE
+# MIT license
+# Copyright (c) Microsoft Corporation. All rights reserved.
+# See LICENSE in the project root for full license information.
 
 # Programs used to visualize output, profile code or perform debugging tasks, as opposed to unit testing
 module Diagnostics
@@ -70,7 +52,7 @@ function testbigfloat()
     @assert isapprox(point(OpticSim.intersection(OpticSim.trace(a, r5, test = true))), [5.75170097290395, 2.504152441922817, -67.8], atol = TOLERANCE)
 end
 
-function vistest(sys::OpticalSystem{Float64}; kwargs...)
+function vistest(sys::AbstractOpticalSystem{Float64}; kwargs...)
     λ = 0.550
     r1 = OpticalRay([0.0, 0.0, 1.0], [0.0, 0.0, -1.0], 1.0, λ)
     r2 = OpticalRay([2.0, 2.0, 1.0], [0.0, 0.0, -1.0], 1.0, λ)
@@ -376,13 +358,13 @@ function RMS_spot_size(lens, x::T...) where {T}
     return error
 end
 
-function testZygoteGradient(lens::S, objective::Function) where {S<:OpticalSystem}
+function testZygoteGradient(lens::S, objective::Function) where {S<:AbstractOpticalSystem}
     vars = Optimization.optimizationvariables(lens)
     gradient = objective'(vars)
     println(gradient)
 end
 
-function testgenericoptimization(lens::S, objective::Function) where {S<:OpticalSystem}
+function testgenericoptimization(lens::S, objective::Function) where {S<:AbstractOpticalSystem}
     vars = Optimization.optimizationvariables(lens)
     function newobjective(a)
         objective(lens, a...)

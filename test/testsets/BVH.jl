@@ -1,3 +1,7 @@
+# MIT license
+# Copyright (c) Microsoft Corporation. All rights reserved.
+# See LICENSE in the project root for full license information.
+
 @testset "BVH" begin
     @testset "partition!" begin
         split = 0.5

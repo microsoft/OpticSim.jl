@@ -1,3 +1,7 @@
+# MIT license
+# Copyright (c) Microsoft Corporation. All rights reserved.
+# See LICENSE in the project root for full license information.
+
 module Vis
 
 # If using precompiled system image (which we always are) you have to run AbstractPlotting.__init__() after loading Makie

@@ -1,3 +1,7 @@
+# MIT license
+# Copyright (c) Microsoft Corporation. All rights reserved.
+# See LICENSE in the project root for full license information.
+
 @testset "Intersection" begin
     function samplepoints(numsamples, lowu, highu, lowv, highv)
         samples = Array{Tuple{Float64,Float64},1}(undef, 0)
