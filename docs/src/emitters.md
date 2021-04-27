@@ -1,6 +1,7 @@
 # Emitters
 
-> :warning: **The old emitter implementation is deprecated as of v0.5!** See below for the new API.
+!!! warning
+    **The old emitter implementation is deprecated as of v0.5!** See below for the new API.
 
 Emitters create rays in a certain pattern, usually controlled by some parameters. Emitters are defined by Pixels and Spatial Layouts, and have a spectrum and an optical power distribution over the hemisphere. These are intrinsic physical properties of the emitter.
 
