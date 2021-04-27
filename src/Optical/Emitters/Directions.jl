@@ -31,8 +31,8 @@ Constant(::Type{T} = Float64) where {T<:Real}
 struct Constant{T} <: AbstractDirectionDistribution{T}
     direction::Vec3{T}
 
-    function Constant(direction::T...) where{T<:Real}
-        return new{T}(direction)
+    function Constant(dirx::T,diry::T,dirz::T) where{T<:Real}
+        return new{T}(Vec3(dirx,diry,dirz))
     end
 
     function Constant(direction::Vec3{T}) where {T<:Real}
