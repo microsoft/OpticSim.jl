@@ -4,7 +4,7 @@
 
 using StaticArrays
 
-@enum GlassType MODEL MIL AGF OTHER AIR
+@enum GlassType MODEL MIL AGF OTHER AIR TEST
 
 """
 Object identifying a glass, containing a type (e.g. `MODEL`, `MIL`, `OTHER` or `AGF`) depending on how the glass is defined, and an integer ID.
@@ -16,13 +16,6 @@ struct GlassID
 end
 
 Base.show(io::IO, a::GlassID) = print(io, "$(string(a.type)):$(a.num)")
-type(a::GlassID) = a.type
-num(a::GlassID) = a.num
-
-ismodel(a::GlassID) = a.type === MODEL
-isMIL(a::GlassID) = a.type === MIL
-isAGF(a::GlassID) = a.type === AGF
-isother(a::GlassID) = a.type === OTHER
 
 """
 Abstract type encapsulating all glasses.
@@ -104,16 +97,21 @@ Get the name (including catalog) of the glass, or glass with this ID.
 """
 glassname(g::Glass) = glassname(g.ID)
 function glassname(ID::GlassID)
-    if ismodel(ID)
-        return "GlassCat.ModelGlass.$(num(ID))"
-    elseif isMIL(ID)
-        return "GlassCat.GlassFromMIL.$(num(ID))"
-    elseif isair(ID)
+    t, n = ID.type, ID.num
+    if t === MODEL
+        return "GlassCat.ModelGlass.$(n)"
+    elseif t === MIL
+        return "GlassCat.GlassFromMIL.$(n)"
+    elseif t === AIR
         return "GlassCat.Air"
-    elseif isother(ID)
-        return OTHER_GLASS_NAMES[num(ID)]
+    elseif t === OTHER
+        return OTHER_GLASS_NAMES[n]
+    elseif t === AGF
+        return AGF_GLASS_NAMES[n]
+    elseif t === TEST
+        return TEST_GLASS_NAMES[n]
     else
-        return AGF_GLASS_NAMES[num(ID)]
+        throw(ArgumentError("unsupported GlassID type $t"))
     end
 end
 
@@ -127,16 +125,21 @@ end
 Get the glass for a given ID.
 """
 function glassforid(ID::GlassID)
-    if ismodel(ID)
-        return MODEL_GLASSES[num(ID)]::Glass
-    elseif isMIL(ID)
-        return MIL_GLASSES[num(ID)]::Glass
-    elseif isair(ID)
+    t, n = ID.type, ID.num
+    if t === MODEL
+        return MODEL_GLASSES[n]::Glass
+    elseif t === MIL
+        return MIL_GLASSES[n]::Glass
+    elseif t === AIR
         return GlassCat.Air
-    elseif isother(ID)
-        return OTHER_GLASSES[num(ID)]::Glass
+    elseif t === OTHER
+        return OTHER_GLASSES[n]::Glass
+    elseif t === AGF
+        return AGF_GLASSES[n]::Glass
+    elseif t === TEST
+        return TEST_GLASSES[n]::Glass
     else
-        return AGF_GLASSES[num(ID)]::Glass
+        throw(ArgumentError("unsupported GlassID type $t"))
     end
 end
 
