@@ -68,7 +68,7 @@ struct RectGrid{T} <: AbstractDirectionDistribution{T}
     vvec::Vec3{T}
 
     function RectGrid(direction::Vec3{T}, halfangleu::T, halfanglev::T, numraysu::Integer, numraysv::Integer) where {T<:Real}
-        (uvec, vvec) = get_uv_vectors(direction)
+        (uvec, vvec) = get_orthogonal_vectors(direction)
         return new{T}(direction, halfangleu, halfanglev, numraysu, numraysv, uvec, vvec)
     end
 
@@ -112,7 +112,7 @@ struct UniformCone{T} <: AbstractDirectionDistribution{T}
     vvec::Vec3{T}
 
     function UniformCone(direction::Vec3{T}, θmax::T, numsamples::Integer) where {T<:Real}
-        (uvec, vvec) = get_uv_vectors(direction)
+        (uvec, vvec) = get_orthogonal_vectors(direction)
         return new{T}(direction, θmax, numsamples, uvec, vvec)
     end
 

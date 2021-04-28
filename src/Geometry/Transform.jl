@@ -143,6 +143,7 @@ function get_orthogonal_vectors(direction::Vec3{T}) where {T<:Real}
     axis2 = normalize(cross(axis3, axis1))
     return (axis2, axis3)
 end
+export get_orthogonal_vectors
 
 #---------------------------------------
 # 3D Transform / Local Frame
