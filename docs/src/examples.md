@@ -39,7 +39,7 @@ mdparse(@code_string draw_zoomlenses()) # hide
 ```
 
 ```@example example
-syss = draw_zoomlenses(["assets/zoom$i.png" for i in 1:3]); @show sys[1]; nothing # hide
+syss = draw_zoomlenses(["assets/zoom$i.png" for i in 1:3]); @show syss[1]; nothing # hide
 ```
 
 ![Zoom position 1 visualization](assets/zoom1.png)

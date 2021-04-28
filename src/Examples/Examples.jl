@@ -17,8 +17,8 @@ using Unitful
 using Plots
 using LinearAlgebra
 
-include("docs.jl")
-include("other.jl")
+include("docs_examples.jl")
+include("other_examples.jl")
 
 end #module Examples
 export Examples

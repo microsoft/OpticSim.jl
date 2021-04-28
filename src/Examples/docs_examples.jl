@@ -30,7 +30,7 @@ function draw_cooketriplet(filename::Maybe{AbstractString} = nothing)
     return sys
 end
 
-function draw_zoomlenses(filenames::MaybeVector{AbstractString} = cycle([nothing]))
+function draw_zoomlenses(filenames::MaybeVector{AbstractString} = repeat([nothing], 3))
     stops = [2.89, 3.99, 4.90]
     zooms = [9.48, 4.48, 2.00]
     dists = [4.46970613, 21.21, 43.81]
@@ -220,7 +220,7 @@ function draw_multiHOE(filename::Maybe{AbstractString} = nothing)
     return nothing
 end
 
-function draw_stackedbeamsplitters(filenames::MaybeVector{AbstractString} = cycle([nothing]))
+function draw_stackedbeamsplitters(filenames::MaybeVector{AbstractString} = repeat([nothing], 3))
     # ReflectOrTransmit: nondeterministic
     # Transmit: deterministic, all beamsplitters transmissive
     # Reflect: deterministic, all beamsplitters reflective

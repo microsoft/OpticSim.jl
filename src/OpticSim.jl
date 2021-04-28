@@ -3,7 +3,6 @@
 # See LICENSE in the project root for full license information.
 
 module OpticSim
-export Maybe, MaybeVector
 
 import Unitful
 using LinearAlgebra: eigen, svd, I, qr, dot, cross, norm, det, normalize, inv
@@ -19,14 +18,13 @@ using Revise
 import GLMakie
 import Makie.AbstractPlotting
 
-const Maybe{T} = Union{T, Nothing}
-const MaybeVector{T} = Union{Vector{<:T}, Iterators.Cycle{Vector{Nothing}}}
-
-include("GlassCat/GlassCat.jl")
-import OpticSim.GlassCat: plot_indices, index, polyfit_indices, absairindex, absorption, info, glassid, glassname, glassforid, isair, findglass, modelglass, glassfromMIL, GlassID
-
+include("maybe.jl")
 include("constants.jl")
 include("utilities.jl")
+
+include("GlassCat/GlassCat.jl")
+import .GlassCat: plot_indices, index, polyfit_indices, absairindex, absorption, info, glassid, glassname, glassforid, isair, findglass, modelglass, glassfromMIL, GlassID
+
 include("Geometry/Geometry.jl")
 include("Optical/Optical.jl")
 include("Vis/Vis.jl")
