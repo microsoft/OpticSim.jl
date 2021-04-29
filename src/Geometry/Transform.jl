@@ -147,8 +147,6 @@ Transform(rotation::AbstractArray{S,2}, translation::AbstractArray{S,1})
 Transform{T} = SMatrix{4,4,T,16}
 export Transform
 
-lastrow(::Type{T}) where{T<:Real} = SMatrix{1,4,T}(zero(T),zero(T),zero(T),one(T)) 
-
 # for compatability ith the "old" RigidBodyTransform
 """
 identitytransform([S::Type]) -> Transform{S}
@@ -179,7 +177,7 @@ end
 Costruct a transform from the input columns.     
 """
 function Transform(colx::Vec3{T}, coly::Vec3{T}, colz::Vec3{T}, colw::Vec3{T} = zero(Vec3{T})) where {T<:Real}
-    return vcat(hcat(colx,coly,colz,colw),lastrow(T))
+    return vcat(hcat(colx,coly,colz,colw),SMatrix{1,4,T}(zero(T),zero(T),zero(T),one(T)) )
 end
 
 
