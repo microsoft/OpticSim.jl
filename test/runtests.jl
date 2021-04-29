@@ -75,6 +75,7 @@ alltestsets = [
     "Visualization",
     "Allocations",
     "GlassCat",
+    "Transform"
 ]
 
 runtestsets = ALL_TESTS ? alltestsets : intersect(alltestsets, ARGS)

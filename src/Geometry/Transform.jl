@@ -38,16 +38,8 @@ unitY3(::Type{T} = Float64) where {T<:Real} = Vec3{T}(zero(T), one(T), zero(T))
 returns the unit vector `[0, 0, 1]`
 """
 unitZ3(::Type{T} = Float64) where {T<:Real} = Vec3{T}(zero(T), zero(T), one(T))
-"""
-returns the unit vector `[0, 0, 0]`
-"""
-zero3(::Type{T} = Float64) where {T<:Real} = zeros(Vec3{T})
-"""
-returns the unit vector `[1, 1, 1]`
-"""
-one3(::Type{T} = Float64) where {T<:Real} = Vec3{T}(one(T), one(T), one(T))
 
-export unitX3, unitY3, unitZ3, zero3, one3
+export unitX3, unitY3, unitZ3
 
 #endregion Vec3
 
@@ -105,16 +97,8 @@ unitZ4(::Type{T} = Float64) where {T<:Real} = Vec4{T}(zero(T), zero(T), one(T), 
 returns the unit vector `[0, 0, 0, 1]`
 """
 unitW4(::Type{T} = Float64) where {T<:Real} = Vec4{T}(zero(T), zero(T), zero(T), one(T))
-"""
-returns the unit vector `[0, 0, 0, 0]`
-"""
-zero4(::Type{T} = Float64) where {T<:Real} = zeros(Vec4{T})
-"""
-returns the unit vector `[1, 1, 1, 1]`
-"""
-one4(::Type{T} = Float64) where {T<:Real} = Vec4{T}(one(T), one(T), one(T), one(T))
 
-export unitX4, unitY4, unitZ4, unitW4, zero4, one4
+export unitX4, unitY4, unitZ4, unitW4
 #endregion Vec4
 
 
@@ -163,6 +147,7 @@ Transform(rotation::AbstractArray{S,2}, translation::AbstractArray{S,1})
 Transform{T} = SMatrix{4,4,T,16}
 export Transform
 
+lastrow(::Type{T}) where{T<:Real} = SMatrix{1,4,T}(zero(T),zero(T),zero(T),one(T)) 
 
 # for compatability ith the "old" RigidBodyTransform
 """
@@ -193,14 +178,10 @@ end
 
 Costruct a transform from the input columns.     
 """
-function Transform(colx::Vec3{T}, coly::Vec3{T}, colz::Vec3{T}, colw::Vec3{T} = zero3(T)) where {T<:Real}
-    return Transform{T}(
-        colx[1], colx[2], colx[3], zero(T), 
-        coly[1], coly[2], coly[3], zero(T), 
-        colz[1], colz[2], colz[3], zero(T), 
-        colw[1], colw[2], colw[3], one(T)
-    )
+function Transform(colx::Vec3{T}, coly::Vec3{T}, colz::Vec3{T}, colw::Vec3{T} = zero(Vec3{T})) where {T<:Real}
+    return vcat(hcat(colx,coly,colz,colw),lastrow(T))
 end
+
 
 """
     Transform(colx::Vec3{T}, coly::Vec3{T},colz::Vec3{T}, colw::Vec3{T}, ::Type{T} = Float64) where {T<:Real}
@@ -208,12 +189,7 @@ end
 Costruct a transform from the input columns.     
 """
 function Transform(colx::Vec4{T}, coly::Vec4{T}, colz::Vec4{T}, colw::Vec4{T}) where {T<:Real}
-    return Transform{T}(
-        colx[1], colx[2], colx[3], colx[4], 
-        coly[1], coly[2], coly[3], coly[4], 
-        colz[1], colz[2], colz[3], colz[4], 
-        colw[1], colw[2], colw[3], colw[4]
-    )
+    return hcat(colx,coly,colz,colw)
 end
 
 """
@@ -258,7 +234,6 @@ function Transform(rotation::AbstractArray{T,2}, translation::AbstractArray{T,1}
         rotation[1,3], rotation[2,3], rotation[3,3], zero(T), 
         translation[1], translation[2], translation[3], one(T))
 end
-
 
 """
     rotationX(angle::T) where {T<:Real} -> Transform
@@ -333,7 +308,7 @@ function rotation(t::Transform{T}) where {T<:Real}
         t[1, 1], t[2, 1], t[3, 1], 
         t[1, 2], t[2, 2], t[3, 2],
         t[1, 3], t[2, 3], t[3, 3])
-    return Transform(rot, zero3(T))
+    return Transform(rot, zero(Vec3{T}))
 end
 
 """
