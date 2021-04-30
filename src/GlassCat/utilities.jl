@@ -329,9 +329,9 @@ dispersion are computed at wavelength λ.
 If showprefixglasses is true then glasses with names like F_BAK7 will be displayed. Otherwise glasses that have a
 leading letter prefix followed by an underscore, such as F_, will not be displayed.
 
-The index formulas for some glasses may give incorrect results if λ is outside the valid range for that glass. This can give anomalous results, such as indices less than zero. To filter out these glasses set maximumindex to a reasonable value such as 3.0.
+The index formulas for some glasses may give incorrect results if λ is outside the valid range for that glass. This can give anomalous results, such as indices less than zero or greater than 6. To filter out these glasses set maximumindex to a reasonable value such as 3.0.
 """
-function drawglassmap(glasscatalog::Module; λ::Length = 550nm, glassfontsize::Integer = 3, showprefixglasses::Bool = false, minimumindex = 1.0, maximumindex = 3.0)
+function drawglassmap(glasscatalog::Module; λ::Length = 550nm, glassfontsize::Integer = 3, showprefixglasses::Bool = false, minindex = 1.0, maxindex = 3.0, mindispersion = -.3, maxdispersion = 0.0)
     wavelength = Float64(ustrip(uconvert(μm, λ)))
     indices = Vector{Float64}(undef,0)
     dispersions = Vector{Float64}(undef,0)
@@ -341,13 +341,13 @@ function drawglassmap(glasscatalog::Module; λ::Length = 550nm, glassfontsize::I
         glass = eval(:($glasscatalog.$name))
         glassstring = String(name)
         hasprefix = occursin("_",glassstring)
-
-        if typeof(glass) !== Module && index(glass,wavelength) > minimumindex && index(glass,wavelength) < maximumindex
+ 
+        if typeof(glass) !== Module && (minindex <= index(glass,wavelength) <= maxindex)
             f(x) = index(glass,x)
             g = x -> ForwardDiff.derivative(f, x);
             dispersion = g(wavelength)
 
-            if  showprefixglasses ? true : !hasprefix    #don't show glasses that have an _ in the name. This prevents cluttering the map with many glasses of similar (index,dispersion).  
+            if (mindispersion <= dispersion <= maxdispersion) && (showprefixglasses ? true : !hasprefix)    #don't show glasses that have an _ in the name. This prevents cluttering the map with many glasses of similar (index,dispersion).  
                 push!(indices,index(glass,wavelength))          
                 push!(dispersions, dispersion)
                 push!(glassnames,String(name))
