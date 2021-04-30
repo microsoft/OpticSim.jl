@@ -154,18 +154,18 @@ end
 This data-type represents the composite emitter (Source) which is constructed with a list of basic or composite emitters and a 3D Transform.
 
 ```julia
-CompositeSource(transform::Transform{T}, sources::Array) where {T<:Real} 
+CompositeSource(transform::Transform{T}, sources::Vector{<:AbstractSource}) where {T<:Real} 
 ```
 """
 struct CompositeSource{T} <: AbstractSource{T}
     transform::Transform{T}
-    sources::Array
+    sources::Vector{<:AbstractSource}
 
     uniform_length::Integer
     total_length::Integer
     start_indexes::Vector{Integer}
 
-    function CompositeSource(transform::Transform{T}, sources::Array) where {T<:Real}
+    function CompositeSource(transform::Transform{T}, sources::Vector{<:AbstractSource}) where {T<:Real}
         lens = [length(src) for src in sources]
         size1 = findmin(lens)[1]
         size2 = findmax(lens)[1]
