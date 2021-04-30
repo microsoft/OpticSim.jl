@@ -282,6 +282,7 @@ using StaticArrays
 
         # TODO @test glassnames()
 
+        # !! TODO !! for some reason uncommenting this test causes the alloc tests at L145-146 to fail
         # @test findglass(x -> (x.Nd > 2.1 && x.λmin < 0.5 && x.λmax > 0.9)) == [
         #     HOYA.E_FDS3,
         #     Sumita.K_PSFn214P,
