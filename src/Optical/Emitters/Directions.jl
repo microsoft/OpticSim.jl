@@ -73,8 +73,8 @@ struct RectGrid{T} <: AbstractDirectionDistribution{T}
     end
 
     function RectGrid(halfangleu::T, halfanglev::T, numraysu::Integer, numraysv::Integer) where {T<:Real}
-        direction, uvec, vvec = (unitZ3(T), unitX3(T), unitY3(T))
-        return new{T}(direction, halfangleu, halfanglev, numraysu, numraysv, uvec, vvec)
+        direction = unitZ3(T)
+        return RectGrid(direction, halfangleu, halfanglev, numraysu, numraysv)
     end
 end
 
@@ -117,8 +117,8 @@ struct UniformCone{T} <: AbstractDirectionDistribution{T}
     end
 
     function UniformCone(θmax::T, numsamples::Integer) where {T<:Real}
-        direction, uvec, vvec = (unitZ3(T), unitX3(T), unitY3(T))
-        return new{T}(direction, θmax, numsamples, uvec, vvec)
+        direction = unitZ3(T)
+        return UniformCone(direction, θmax, numsamples)
     end
 end
 
@@ -159,8 +159,8 @@ struct HexapolarCone{T} <: AbstractDirectionDistribution{T}
 
     # assume canonical directions
     function HexapolarCone(θmax::T, nrings::Integer = 3) where {T<:Real}
-        direction, uvec, vvec = (unitZ3(T), unitX3(T), unitY3(T))
-        return new{T}(direction, θmax, nrings, uvec, vvec)
+        direction = unitZ3(T)
+        return HexapolarCone(direction, θmax, nrings)
     end
 end
 
