@@ -24,6 +24,7 @@ using NLopt
 include("OptimizationVariables.jl")
 include("Constraints.jl")
 include("TestCases.jl")
+include("UI/AxisSymmetric.jl")
 
 end #module
 export Optimization
