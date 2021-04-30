@@ -328,8 +328,10 @@ dispersion are computed at wavelength λ.
 
 If showprefixglasses is true then glasses with names like F_BAK7 will be displayed. Otherwise glasses that have a
 leading letter prefix followed by an underscore, such as F_, will not be displayed.
+
+The index formulas for some glasses may give incorrect results if λ is outside the valid range for that glass. This can give anomalous results, such as indices less than zero or as high as 6. To filter out these glasses set maximumindex to a reasonable value such as 3.0.
 """
-function drawglassmap(glasscatalog::Module; λ::Length = 550nm, glassfontsize::Integer = 3, showprefixglasses::Bool = false)
+function drawglassmap(glasscatalog::Module; λ::Length = 550nm, glassfontsize::Integer = 3, showprefixglasses::Bool = false, maximumindex = 3.0)
     wavelength = Float64(ustrip(uconvert(μm, λ)))
     indices = Vector{Float64}(undef,0)
     dispersions = Vector{Float64}(undef,0)
@@ -340,7 +342,7 @@ function drawglassmap(glasscatalog::Module; λ::Length = 550nm, glassfontsize::I
         glassstring = String(name)
         hasprefix = occursin("_",glassstring)
         
-        if typeof(glass) !== Module && index(glass,wavelength) > 0 && index(glass,wavelength) < 3 && (showprefixglasses ? true : !hasprefix)
+        if typeof(glass) !== Module && index(glass,wavelength) > 1.0 && index(glass,wavelength) < maximumindex && (showprefixglasses ? true : !hasprefix)
             f(x) = index(glass,x)
             push!(indices,index(glass,wavelength))
             g = x -> ForwardDiff.derivative(f, x);
@@ -349,5 +351,5 @@ function drawglassmap(glasscatalog::Module; λ::Length = 550nm, glassfontsize::I
         end
     end
     series_annotations = Plots.series_annotations(glassnames, Plots.font(family = "Sans", pointsize = glassfontsize, color = RGB(0.0,0.0,.4)))
-   scatter(dispersions,indices, xaxis = "dispersion", yaxis = "index", series_annotations = series_annotations, markersize = .001, legends = :none, markershape = :none, title = "$NIKON Glass Catalog")
+   scatter(dispersions,indices, xaxis = "dispersion", yaxis = "index", series_annotations = series_annotations, markersize = .001, legends = :none, markershape = :none, title = "$glasscatalog Glass Catalog")
 end
