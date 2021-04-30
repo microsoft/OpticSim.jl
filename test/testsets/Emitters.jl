@@ -182,11 +182,31 @@ using StaticArrays
         end
     end
 
-    @testset "Sources" begin
-        
+    @testset "Spectrum" begin
+        @testset "Uniform" begin
+            @test Spectrum.UNIFORMSHORT === 0.450
+            @test Spectrum.UNIFORMLONG === 0.680
+            @test Spectrum.Uniform(0, 1).low_end === 0
+            @test Spectrum.Uniform(0, 1).high_end === 1
+            @test Spectrum.Uniform().low_end === 0.450
+            @test Spectrum.Uniform().high_end === 0.680
+
+            Random.seed!(0)
+            @test Emitters.generate(Spectrum.Uniform()) === (1.0, 0.6394389268348049)
+        end
+
+        @testset "DeltaFunction" begin
+            @test Emitters.generate(Spectrum.DeltaFunction(2)) === (1, 2)
+            @test Emitters.generate(Spectrum.DeltaFunction(2.)) === (1., 2.)
+            @test Emitters.generate(Spectrum.DeltaFunction(π)) === (true, π) # hopefully this is ok!
+        end
+
+        @testset "Measured" begin
+            # TODO
+        end
     end
 
-    @testset "Spectrum" begin
+    @testset "Sources" begin
         
     end
 end # testset Emitters
