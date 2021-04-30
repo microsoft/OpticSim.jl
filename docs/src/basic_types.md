@@ -15,8 +15,6 @@ OpticSim.Geometry.Vec3
 OpticSim.Geometry.unitX3
 OpticSim.Geometry.unitY3
 OpticSim.Geometry.unitZ3
-OpticSim.Geometry.zero3
-OpticSim.Geometry.one3
 ```
 
 ## Vec4
@@ -29,8 +27,6 @@ OpticSim.Geometry.unitX4
 OpticSim.Geometry.unitY4
 OpticSim.Geometry.unitZ4
 OpticSim.Geometry.unitW4
-OpticSim.Geometry.zero4
-OpticSim.Geometry.one4
 ```
 
 ## Transform
