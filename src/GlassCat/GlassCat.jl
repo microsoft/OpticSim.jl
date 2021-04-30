@@ -40,7 +40,7 @@ include("search.jl")
 export glasscatalogs, glassnames, findglass
 
 include("utilities.jl")
-export plot_indices, index, polyfit_indices, absairindex, absorption, glasscatmap
+export plot_indices, index, polyfit_indices, absairindex, absorption, drawglassmap
 
 # include utility functions for maintaining the AGF source list
 include("sources.jl")
