@@ -318,3 +318,24 @@ function plot_indices(glass::AbstractGlass; polyfit::Bool = false, fiterror::Boo
 
     gui(p)
 end
+
+
+""" Draw a scatter plot of index vs dispersion at wavelength λ """
+function drawglassmap(glasscatalog::Module; λ = 550nm)
+    wavelength = Float64(ustrip(uconvert(u"μm", λ)))
+    indices = Vector{Float64}(undef,0)
+    dispersions = Vector{Float64}(undef,0)
+    glassnames = Vector{Symbol}(undef,0)
+
+    for name in names(glasscatalog)
+        glass = eval(:($glasscatalog.$name))
+        if typeof(glass) !== Module
+            f(x) = index(glass,x)
+            push!(indices,index(glass,wavelength))
+            g = x -> ForwardDiff.derivative(f, x);
+            push!(dispersions, g(wavelength))
+        end
+    end
+   scatter(indices,dispersions)
+   return indices
+end

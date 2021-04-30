@@ -11,7 +11,9 @@ using Unitful
 using StaticArrays
 using Base: @.
 import Unitful: Length, Temperature, Quantity, Units
+using Unitful.DefaultSymbols
 using Pkg
+using ForwardDiff
 
 include("constants.jl")
 
