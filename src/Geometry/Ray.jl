@@ -75,7 +75,7 @@ function closestpointonray(r::AbstractRay{T,N}, point::SVector{N,T}) where {T,N}
 end
 
 """
-    distance(r::Ray{T,N}, point::SVector{N,T}) -> Union{T,Nothing}
+    distance(r::Ray{T,N}, point::SVector{N,T}) -> Union{Nothing,T}
 
 Returns distance to the position on the ray closest to point. If t < 0 returns nothing.
 """
