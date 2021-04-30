@@ -207,6 +207,84 @@ using StaticArrays
     end
 
     @testset "Sources" begin
-        
+        expected_rays = [
+            OpticalRay([0., 0., 0.], [0., 0., 1.], 1., 0.6394389268348049),
+            OpticalRay([0., 0., 0.], [0., 0., 1.], 1., 0.6593820037230804),
+            OpticalRay([0., 0., 0.], [0., 0., 1.], 1., 0.48785013357074763),
+        ]
+
+        @testset "Source" begin
+            @test Sources.Source().transform === Transform()
+            @test Sources.Source().spectrum === Spectrum.Uniform()
+            @test Sources.Source().origins === Origins.Point()
+            @test Sources.Source().directions === Directions.Constant()
+            @test Sources.Source().power_distribution === AngularPower.Lambertian()
+            @test Sources.Source().sourcenum === 0
+
+            @test Sources.Source() === Sources.Source(
+                Transform(),
+                Spectrum.Uniform(),
+                Origins.Point(),
+                Directions.Constant(),
+                AngularPower.Lambertian())
+
+            @test Base.length(Sources.Source()) === 1
+            @test Base.length(Sources.Source(; origins=Origins.Hexapolar(1, 0., 0.))) === 7
+            @test Base.length(Sources.Source(; directions=Directions.HexapolarCone(0., 1))) === 7
+            @test Base.length(Sources.Source(;
+                origins=Origins.Hexapolar(1, 0., 0.),
+                directions=Directions.HexapolarCone(0., 1)
+            )) === 49
+
+            Random.seed!(0)
+            @test Base.iterate(Sources.Source()) === (expected_rays[1], Sources.SourceGenerationState(2, 0, Vec3()))
+
+            Random.seed!(0)
+            @test Base.getindex(Sources.Source(), 0) === expected_rays[1]
+            Random.seed!(0)
+            @test Emitters.generate(Sources.Source(), 0) === expected_rays[1]
+
+            Random.seed!(0)
+            @test Emitters.generate(Sources.Source()) === (expected_rays[1], Sources.SourceGenerationState(0, -2, Vec3()))
+
+            @test Base.firstindex(Sources.Source()) === 0
+            @test Base.lastindex(Sources.Source()) === 0
+            @test Base.copy(Sources.Source()) === Sources.Source()
+        end
+
+        @testset "CompositeSource" begin
+            s() = Sources.Source()
+            tr = Transform()
+            cs1 = Sources.CompositeSource(tr, [s()])
+            cs2 = Sources.CompositeSource(tr, [s(), s()])
+            cs3 = Sources.CompositeSource(tr, [s(), cs2])
+
+            @test cs1.transform === tr
+
+            @test cs1.uniform_length === 1
+            @test cs2.uniform_length === 1
+            @test cs3.uniform_length === -1
+
+            @test cs1.total_length === 1
+            @test cs2.total_length === 2
+            @test cs3.total_length === 3
+
+            @test cs1.start_indexes == []
+            @test cs2.start_indexes == []
+            @test cs3.start_indexes == [0, 1, 3]
+
+            @test Base.length(cs1) === 1
+            @test Base.length(cs2) === 2
+            @test Base.length(cs3) === 3
+
+            Random.seed!(0)
+            @test Base.iterate(cs1) === (expected_rays[1], Sources.SourceGenerationState(2, 0, Vec3()))
+
+            Random.seed!(0)
+            @test collect(cs2) == expected_rays[1:2]
+
+            Random.seed!(0)
+            @test collect(cs3) == expected_rays[1:3]
+        end
     end
 end # testset Emitters
