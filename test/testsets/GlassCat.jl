@@ -207,7 +207,7 @@ using StaticArrays
         @test repr(GlassCat.Glass(GlassID(GlassCat.AIR, 1), empty_args...)) === "GlassCat.Air" # repeated code
 
         @test glassforid(GlassID(GlassCat.AIR, 1)) === Air
-        @test glassforid(GlassID(GlassCat.OTHER, 1)) === GlassCat.CARGILLE.OG0607
+        @test glassforid(GlassID(GlassCat.OTHER, 1)) === CARGILLE.OG0607
 
         info_lines = [
             "ID:                                                OTHER:2",
@@ -258,7 +258,7 @@ using StaticArrays
             ""
         ]
         io = IOBuffer()
-        info(io, GlassCat.CARGILLE.OG0607)
+        info(io, CARGILLE.OG0607)
         @test String(take!(io)) === join(info_lines, '\n')
 
         # TODO the rest of the string tests
@@ -266,15 +266,15 @@ using StaticArrays
 
     @testset "search.jl" begin
         @test glasscatalogs() == [
-            GlassCat.CARGILLE,
-            GlassCat.HOYA,
-            GlassCat.NIKON,
-            GlassCat.OHARA,
-            GlassCat.SCHOTT,
-            GlassCat.Sumita,
+            CARGILLE,
+            HOYA,
+            NIKON,
+            OHARA,
+            SCHOTT,
+            Sumita,
         ]
 
-        @test glassnames(GlassCat.CARGILLE) == [
+        @test glassnames(CARGILLE) == [
             :OG0607,
             :OG0608,
             :OG081160,
