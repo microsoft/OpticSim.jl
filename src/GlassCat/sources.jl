@@ -7,16 +7,14 @@ import SHA
 import ZipFile
 using Pkg
 
-const Maybe{T} = Union{T, Nothing}
-
 """
-    add_agf(sourcefile::AbstractString; name::Maybe{AbstractString} = nothing, rebuild::Bool = true)
+    add_agf(sourcefile::AbstractString; name::Union{Nothing,AbstractString} = nothing, rebuild::Bool = true)
 
 Adds an already downloaded AGF file to the sourcelist at data/sources.txt, generating the SHA256 checksum automatically.
 
 Optionally provide a `name` for the corresponding module, and `rebuild` AGFGlassCat.jl by default.
 """
-function add_agf(sourcefile::AbstractString; name::Maybe{AbstractString} = nothing, rebuild::Bool = true)
+function add_agf(sourcefile::AbstractString; name::Union{Nothing,AbstractString} = nothing, rebuild::Bool = true)
     if !isfile(sourcefile)
         @error "AGF file not found at $sourcefile"
         return
@@ -101,11 +99,11 @@ function verify_source(sourcefile::AbstractString, sha256sum::AbstractString)
 end
 
 """
-    download_source(sourcefile::AbstractString, url::AbstractString, POST_data::Maybe{AbstractString} = nothing)
+    download_source(sourcefile::AbstractString, url::AbstractString, POST_data::Union{Nothing,AbstractString} = nothing)
 
 Download and unzip an AGF glass catalog from a publicly available source. Supports POST requests.
 """
-function download_source(sourcefile::AbstractString, url::AbstractString, POST_data::Maybe{AbstractString} = nothing)
+function download_source(sourcefile::AbstractString, url::AbstractString, POST_data::Union{Nothing,AbstractString} = nothing)
     @info "Downloading source file from $url"
     try
         headers = ["Content-Type" => "application/x-www-form-urlencoded"]

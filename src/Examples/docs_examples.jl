@@ -5,7 +5,7 @@
 # Group examples that are used in the docs (examples.md)
 export draw_cooketriplet, draw_schmidtcassegraintelescope, draw_lensconstruction, draw_zoomlenses, draw_HOEfocus, draw_HOEcollimate, draw_multiHOE, draw_stackedbeamsplitters
 
-function draw_cooketriplet(filename::Maybe{AbstractString} = nothing)
+function draw_cooketriplet(filename::Union{Nothing,AbstractString} = nothing)
     g1, g2 = SCHOTT.N_SK16, SCHOTT.N_SF2
     sys = AxisymmetricOpticalSystem{Float64}(DataFrame(
         Surface      = [:Object, 1,      2,      3,       :Stop,  5,      6,       :Image ],
@@ -30,7 +30,7 @@ function draw_cooketriplet(filename::Maybe{AbstractString} = nothing)
     return sys
 end
 
-function draw_zoomlenses(filenames::MaybeVector{AbstractString} = repeat([nothing], 3))
+function draw_zoomlenses(filenames::Vector{<:Union{Nothing,AbstractString}} = repeat([nothing], 3))
     stops = [2.89, 3.99, 4.90]
     zooms = [9.48, 4.48, 2.00]
     dists = [4.46970613, 21.21, 43.81]
@@ -57,7 +57,7 @@ function draw_zoomlenses(filenames::MaybeVector{AbstractString} = repeat([nothin
     return syss
 end
 
-function draw_schmidtcassegraintelescope(filename::Maybe{AbstractString} = nothing)
+function draw_schmidtcassegraintelescope(filename::Union{Nothing,AbstractString} = nothing)
     # glass entrance lens on telescope
     topsurf = Plane(
         SVector(0.0, 0.0, 1.0),
@@ -105,7 +105,7 @@ function draw_schmidtcassegraintelescope(filename::Maybe{AbstractString} = nothi
     return nothing
 end
 
-function draw_lensconstruction(filename::Maybe{AbstractString} = nothing)
+function draw_lensconstruction(filename::Union{Nothing,AbstractString} = nothing)
     topsurface = leaf(
         AcceleratedParametricSurface(
             QTypeSurface(
@@ -142,7 +142,7 @@ function draw_lensconstruction(filename::Maybe{AbstractString} = nothing)
     return nothing
 end
 
-function draw_HOEfocus(filename::Maybe{AbstractString} = nothing)
+function draw_HOEfocus(filename::Union{Nothing,AbstractString} = nothing)
     rect = Rectangle(5.0, 5.0, SVector(0.0, 0.0, 1.0), SVector(0.0, 0.0, 0.0))
     int = HologramInterface(
         SVector(0.0, -3.0, -20.0), ConvergingBeam,
@@ -165,7 +165,7 @@ function draw_HOEfocus(filename::Maybe{AbstractString} = nothing)
     return nothing
 end
 
-function draw_HOEcollimate(filename::Maybe{AbstractString} = nothing)
+function draw_HOEcollimate(filename::Union{Nothing,AbstractString} = nothing)
     rect = Rectangle(5.0, 5.0, SVector(0.0, 0.0, 1.0), SVector(0.0, 0.0, 0.0))
     int = HologramInterface(
         SVector(0.1, -0.05, -1.0), CollimatedBeam,
@@ -188,7 +188,7 @@ function draw_HOEcollimate(filename::Maybe{AbstractString} = nothing)
     return nothing
 end
 
-function draw_multiHOE(filename::Maybe{AbstractString} = nothing)
+function draw_multiHOE(filename::Union{Nothing,AbstractString} = nothing)
     rect = Rectangle(5.0, 5.0, SVector(0.0, 0.0, 1.0), SVector(0.0, 0.0, 0.0))
     int1 = HologramInterface(
         SVector(-5.0, 0.0, -20.0), ConvergingBeam,
@@ -220,7 +220,7 @@ function draw_multiHOE(filename::Maybe{AbstractString} = nothing)
     return nothing
 end
 
-function draw_stackedbeamsplitters(filenames::MaybeVector{AbstractString} = repeat([nothing], 3))
+function draw_stackedbeamsplitters(filenames::Vector{<:Union{Nothing,AbstractString}} = repeat([nothing], 3))
     # ReflectOrTransmit: nondeterministic
     # Transmit: deterministic, all beamsplitters transmissive
     # Reflect: deterministic, all beamsplitters reflective
