@@ -104,7 +104,82 @@ using StaticArrays
     end
 
     @testset "Origins" begin
-        
+        @testset "Point" begin
+            @test Origins.Point(Vec3()).origin === Vec3()
+            @test Origins.Point(0, 0, 0).origin === Vec3(Int)
+            @test Origins.Point().origin === Vec3()
+
+            @test Base.length(Origins.Point()) === 1
+            @test Emitters.visual_size(Origins.Point()) === 1
+            @test Emitters.visual_size(Origins.Point()) === 1
+            @test Emitters.generate(Origins.Point(), 1) === Vec3()
+
+            @test Base.iterate(Origins.Point(), 1) === (Vec3(), 2)
+            @test Base.iterate(Origins.Point(), 2) |> isnothing
+            @test Base.getindex(Origins.Point(), 1) === Vec3()
+            @test Base.getindex(Origins.Point(), 2) === Vec3()
+            @test Base.firstindex(Origins.Point()) === 0
+            @test Base.lastindex(Origins.Point()) === 0
+            @test Base.copy(Origins.Point()) === Origins.Point()
+        end
+
+        @testset "RectUniform" begin
+            @test Origins.RectUniform(1, 2, 3).width === 1
+            @test Origins.RectUniform(1, 2, 3).height === 2
+            @test Origins.RectUniform(1, 2, 3).samples_count === 3
+
+            @test Base.length(Origins.RectUniform(1, 2, 3)) === 3
+            @test Emitters.visual_size(Origins.RectUniform(1, 2, 3)) === 2
+
+            Random.seed!(0)
+            @test collect(Origins.RectUniform(1, 2, 3)) == [
+                [0.3236475079774124, 0.8207130758528729, 0.0],
+                [-0.3354342018663148, -0.6453423070674709, 0.0],
+                [-0.221119890668799, -0.5930468839161547, 0.0],
+            ]
+        end
+
+        @testset "RectGrid" begin
+            @test Origins.RectGrid(1., 2., 3, 4).ustep === .5
+            @test Origins.RectGrid(1., 2., 3, 4).vstep === 2/3
+
+            @test Base.length(Origins.RectGrid(1., 2., 3, 4)) === 12
+            @test Emitters.visual_size(Origins.RectGrid(1., 2., 3, 4)) === 2.
+
+            @test collect(Origins.RectGrid(1., 2., 3, 4)) == [
+                [-0.5, -1.0, 0.0],
+                [0.0, -1.0, 0.0],
+                [0.5, -1.0, 0.0],
+                [-0.5, -0.33333333333333337, 0.0],
+                [0.0, -0.33333333333333337, 0.0],
+                [0.5, -0.33333333333333337, 0.0],
+                [-0.5, 0.33333333333333326, 0.0],
+                [0.0, 0.33333333333333326, 0.0],
+                [0.5, 0.33333333333333326, 0.0],
+                [-0.5, 1.0, 0.0],
+                [0.0, 1.0, 0.0],
+                [0.5, 1.0, 0.0],
+            ]
+        end
+
+        @testset "Hexapolar" begin
+            @test Origins.Hexapolar(1, 0, 0).nrings === 1
+            @test_throws MethodError Origins.Hexapolar(1., 0, 0)
+
+            @test Base.length(Origins.Hexapolar(1, 0, 0)) === 7
+            @test Base.length(Origins.Hexapolar(2, 0, 0)) === 19
+            @test Emitters.visual_size(Origins.Hexapolar(0, 1, 2)) === 4
+
+            @test collect(Origins.Hexapolar(1, π/4, π/4)) == [
+                [0.0, 0.0, 0.0],
+                [0.7853981633974483, 0.0, 0.0],
+                [0.39269908169872425, 0.6801747615878316, 0.0],
+                [-0.392699081698724, 0.6801747615878317, 0.0],
+                [-0.7853981633974483, 9.618353468608949e-17, 0.0],
+                [-0.3926990816987245, -0.6801747615878315, 0.0],
+                [0.39269908169872425, -0.6801747615878316, 0.0],
+            ]
+        end
     end
 
     @testset "Sources" begin
