@@ -320,9 +320,17 @@ function plot_indices(glass::AbstractGlass; polyfit::Bool = false, fiterror::Boo
 end
 
 
-""" Draw a scatter plot of index vs dispersion (the derivative of index with respect to wavelength). Both index and dispersion are computed at wavelength λ. If showprefixglasses is true then glasses with names like F_BAK7 will be displayed. Otherwise glasses that have a leading letter prefix followed by an underscore, such as F_, will not be displayed."""
-function drawglassmap(glasscatalog::Module; λ = 550nm, glassfontsize = 3, showprefixglasses = false)
-    wavelength = Float64(ustrip(uconvert(u"μm", λ)))
+"""
+    drawglassmap(glasscatalog::Module; λ::Length = 550nm, glassfontsize::Integer = 3, showprefixglasses::Bool = false)
+
+Draw a scatter plot of index vs dispersion (the derivative of index with respect to wavelength). Both index and
+dispersion are computed at wavelength λ.
+
+If showprefixglasses is true then glasses with names like F_BAK7 will be displayed. Otherwise glasses that have a
+leading letter prefix followed by an underscore, such as F_, will not be displayed.
+"""
+function drawglassmap(glasscatalog::Module; λ::Length = 550nm, glassfontsize::Integer = 3, showprefixglasses::Bool = false)
+    wavelength = Float64(ustrip(uconvert(μm, λ)))
     indices = Vector{Float64}(undef,0)
     dispersions = Vector{Float64}(undef,0)
     glassnames = Vector{String}(undef,0)
