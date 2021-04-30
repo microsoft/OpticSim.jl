@@ -319,10 +319,17 @@ function plot_indices(glass::AbstractGlass; polyfit::Bool = false, fiterror::Boo
     gui(p)
 end
 
+"""
+    drawglassmap(glasscatalog::Module; λ::Length = 550nm, glassfontsize::Integer = 3, showprefixglasses::Bool = false)
 
-""" Draw a scatter plot of index vs dispersion (the derivative of index with respect to wavelength). Both index and dispersion are computed at wavelength λ. If showprefixglasses is true then glasses with names like F_BAK7 will be displayed. Otherwise glasses that have a leading letter prefix followed by an underscore, such as F_, will not be displayed."""
-function drawglassmap(glasscatalog::Module; λ = 550nm, glassfontsize = 3, showprefixglasses = false)
-    wavelength = Float64(ustrip(uconvert(u"μm", λ)))
+Draw a scatter plot of index vs dispersion (the derivative of index with respect to wavelength). Both index and
+dispersion are computed at wavelength λ.
+
+If showprefixglasses is true then glasses with names like F_BAK7 will be displayed. Otherwise glasses that have a
+leading letter prefix followed by an underscore, such as F_, will not be displayed.
+"""
+function drawglassmap(glasscatalog::Module; λ::Length = 550nm, glassfontsize::Integer = 3, showprefixglasses::Bool = false)
+    wavelength = Float64(ustrip(uconvert(μm, λ)))
     indices = Vector{Float64}(undef,0)
     dispersions = Vector{Float64}(undef,0)
     glassnames = Vector{String}(undef,0)
@@ -330,16 +337,17 @@ function drawglassmap(glasscatalog::Module; λ = 550nm, glassfontsize = 3, showp
     for name in names(glasscatalog)
         glass = eval(:($glasscatalog.$name))
         glassstring = String(name)
-        hasprefix = occursin("_",glassstring)
-        
-        if typeof(glass) !== Module && index(glass,wavelength) > 0 && index(glass,wavelength) < 3 && (showprefixglasses ? true : !hasprefix)
+        hasprefix = occursin("_", glassstring)
+
+        if !(glass isa Module) && 0 < index(glass, wavelength) < 3 && (!hasprefix || showprefixglasses)
             f(x) = index(glass,x)
             push!(indices,index(glass,wavelength))
             g = x -> ForwardDiff.derivative(f, x);
             push!(dispersions, -g(wavelength))
-            push!(glassnames,String(name))
+            push!(glassnames, String(name))
         end
     end
+
     series_annotations = Plots.series_annotations(glassnames, Plots.font(family = "Sans", pointsize = glassfontsize, color = RGB(0.0,0.0,.4)))
-   scatter(dispersions,indices, xaxis = "dispersion", yaxis = "index", series_annotations = series_annotations, markersize = .001, legends = :none, markershape = :none)
+    scatter(dispersions,indices, xaxis = "dispersion", yaxis = "index", series_annotations = series_annotations, markersize = .001, legends = :none, markershape = :none)
 end
