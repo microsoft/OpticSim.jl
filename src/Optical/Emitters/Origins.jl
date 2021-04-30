@@ -97,7 +97,7 @@ struct RectGrid{T} <: AbstractOriginDistribution{T}
     ustep::T
     vstep::T
 
-    function RectGrid(width::T, height::T, usamples::Integer, vsamples::Integer) where {T<:Real} 
+    function RectGrid(width::T, height::T, usamples::Integer, vsamples::Integer) where {T<:Real}
         return new{T}(width, height, usamples, vsamples, width / (usamples - 1), height / (vsamples - 1))
     end
 end
