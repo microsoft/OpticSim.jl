@@ -14,7 +14,7 @@ using Distributions
 abstract type AbstractOriginDistribution{T<:Real} end
 
 Base.iterate(a::AbstractOriginDistribution, state = 1) = state > length(a) ? nothing : (generate(a, state - 1), state + 1)
-Base.getindex(a::AbstractOriginDistribution, index) = generateray(a, index)
+Base.getindex(a::AbstractOriginDistribution, index) = generate(a, index)
 Base.firstindex(a::AbstractOriginDistribution) = 0
 Base.lastindex(a::AbstractOriginDistribution) = length(a) - 1
 Base.copy(a::AbstractOriginDistribution) = a # most don't have any heap allocated stuff so don't really need copying
