@@ -56,7 +56,7 @@ Emitters.generate(o::Point, ::Integer) = o.origin
 Encapsulates a uniformly sampled rectangle with user defined number of samples.
 
 ```julia
-RectUniform(width::T, height::T, count::Integer) where {T<:Real}
+RectUniform(width::T, height::T, samples_count::Integer) where {T<:Real}
 ```
 """
 struct RectUniform{T} <: AbstractOriginDistribution{T}
@@ -64,8 +64,8 @@ struct RectUniform{T} <: AbstractOriginDistribution{T}
     height::T
     samples_count::Integer
 
-    function RectUniform(width::T, height::T, count::Integer) where {T<:Real}
-        return new{T}(width, height, count)
+    function RectUniform(width::T, height::T, samples_count::Integer) where {T<:Real}
+        return new{T}(width, height, samples_count)
     end
 end
 
