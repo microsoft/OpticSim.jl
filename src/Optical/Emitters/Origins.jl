@@ -46,8 +46,8 @@ struct Point{T} <: AbstractOriginDistribution{T}
     end
 end
 
-Base.length(o::Point) = 1
-Emitters.visual_size(o::Point) = 1
+Base.length(::Point) = 1
+Emitters.visual_size(::Point) = 1
 Emitters.generate(o::Point, ::Integer) = o.origin
 
 """
