@@ -355,5 +355,5 @@ function drawglassmap(glasscatalog::Module; λ::Length = 550nm, glassfontsize::I
         end
     end
     series_annotations = Plots.series_annotations(glassnames, Plots.font(family = "Sans", pointsize = glassfontsize, color = RGB(0.0,0.0,.4)))
-   scatter(dispersions,indices, xaxis = "dispersion", yaxis = "index", series_annotations = series_annotations, markersize = .001, legends = :none, markershape = :none, title = "Glass Catalog: $glasscatalog")
+   scatter(dispersions,indices, xaxis = "dispersion", yaxis = "index", series_annotations = series_annotations, markersize = .001, legends = :none, markeralpha = 0.0, markershape = :none, title = "Glass Catalog: $glasscatalog")
 end
