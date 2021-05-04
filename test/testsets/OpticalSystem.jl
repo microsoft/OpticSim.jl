@@ -5,8 +5,8 @@
 @testset "OpticalSystem" begin
     @testset "Single threaded trace makes sure function executes properly" begin
         conv = Examples.doubleconvex()
-        rays = RayListSource([OpticalRay([0.0,0.0,0.0],[0.0,0.0,1.0],1.0,.78) for _ in 1:100])
-        trace(conv,rays)
+        rays = Emitters.Sources.CompositeSource(translation(-unitZ3()), repeat([Emitters.Sources.Source()], 100))
+        trace(conv, rays)
         @test true #just want to verify that the trace function executed properly
     end
 end

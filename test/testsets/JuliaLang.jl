@@ -21,9 +21,6 @@ and pop it from the set
     methods_to_ignore = Dict(
         OpticSim => VERSION >= v"1.6.0-DEV" ? [
             (OpticSim.LensAssembly, Tuple{Vararg{Union{CSGTree{T},LensAssembly{T},OpticSim.Surface{T}},N} where N} where {T<:Real}),
-            (OpticSim.RayListSource, Tuple{Vararg{OpticalRay{T,3},N} where N} where {T<:Real}),
-            (OpticSim.OpticalSourceGroup, Tuple{Vararg{OpticalRayGenerator{T},N} where N} where {T<:Real}),
-            (OpticSim.PixelSource, Tuple{Vararg{P,N} where N} where {P<:OpticalRayGenerator{T}} where {T<:Real}),
             (OpticSim.MultiHologramInterface, Tuple{Vararg{HologramInterface{T},N}} where {N} where {T<:Real}),
         ] : [],
         OpticSim.Zernike => [],

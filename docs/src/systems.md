@@ -20,10 +20,10 @@ OpticSim.sum!
 
 ## Systems
 
-There are two types of `OpticalSystem` which can be used depending on the requirements.
+There are two types of `AbstractOpticalSystem` which can be used depending on the requirements.
 
 ```@docs
-OpticalSystem
+AbstractOpticalSystem
 CSGOpticalSystem
 AxisymmetricOpticalSystem
 temperature

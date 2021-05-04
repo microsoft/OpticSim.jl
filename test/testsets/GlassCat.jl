@@ -2,32 +2,23 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # See LICENSE in the project root for full license information.
 
+using Test
+using OpticSim
+
+using Unitful
+using Base.Filesystem
+using DataFrames
+using StaticArrays
+
 @testset "GlassCat" begin
     # ensure there aren't any ambiguities
     @test isempty(detect_ambiguities(GlassCat))
     @test isempty(detect_unbound_args(GlassCat))
 
-    ROOT_DIR = joinpath(@__DIR__, "..", "..")
-
-    GLASSCAT_DIR = joinpath(ROOT_DIR, "src", "GlassCat")
-    include(joinpath(GLASSCAT_DIR, "constants.jl"))
-    include(joinpath(GLASSCAT_DIR, "GlassTypes.jl"))
-    include(joinpath(GLASSCAT_DIR, "generate.jl"))
-
-    CATALOG_NAME = "TEST_CAT"
-    SOURCE_DIR = joinpath(ROOT_DIR, "test")
-    SOURCE_FILE = joinpath(SOURCE_DIR, "$(CATALOG_NAME).agf")
-
-    tmpdir = mktempdir()
-    MAIN_FILE = joinpath(tmpdir, "AGF_TEST_CAT.jl")
-    JL_DIR = tmpdir
-
-    cat = Dict()
-
     @testset "Build Tests" begin
         # check that all automatic downloads are working
         for catname in split("HOYA NIKON OHARA SCHOTT Sumita")
-            agffile = joinpath(AGF_DIR, catname * ".agf")
+            agffile = joinpath(OpticSim.GlassCat.AGF_DIR, catname * ".agf")
             @test isfile(agffile)
         end
 
@@ -35,127 +26,104 @@
         @test !isnan(OpticSim.GlassCat.NIKON.LLF6.C10)
     end
 
-    @testset "Parsing Tests" begin
-        cat = sourcefile_to_catalog(SOURCE_FILE)
+    @testset "generate.jl" begin
+        CATALOG_NAME = "TEST_CAT"
+        SOURCE_DIR = joinpath(@__DIR__, "..", "..", "test")
+        SOURCE_FILE = joinpath(SOURCE_DIR, "$(CATALOG_NAME).agf")
 
-        # test that all glasses were parsed correctly
-        @test "MG463_" ∈ keys(cat)
-        @test "MG523" ∈ keys(cat)
-        @test "_5MG448" ∈ keys(cat)
-        @test "MG452_STAR" ∈ keys(cat)
+        TMP_DIR = mktempdir()
+        MAIN_FILE = joinpath(TMP_DIR, "AGF_TEST_CAT.jl")
 
-        # check that parsing all the variables worked for one example
-        glass = cat["MG463_"]
+        TEST_CAT_VALUES = DataFrame(
+            name = split("MG463_ MG523 _5MG448 MG452_STAR"),
+            raw_name = split("MG463& MG523 5MG448 MG452*"),
+            dispform = repeat([2], 4),
+            Nd = repeat([1.0], 4),
+            Vd = repeat([0.0], 4),
+            exclude_sub = [5, 0, 0, 0],
+            status = [6, 0, 0, 0],
+            meltfreq = repeat([-1], 4),
+            TCE = [19.8, 18.3, 30.2, 25.7],
+            p = [4.63, 5.23, 4.48, 4.52],
+            ΔPgF = repeat([0.0], 4),
+            ignore_thermal_exp = [3, 0, 0, 0],
+            C1 = [6.781409960E+00, 4.401393677E+00, 8.427948454E+00, 4.656568861E+00],
+            C2 = [9.868538020E-02, 2.234722960E-02, 6.325268390E-02, 1.170534894E-01],
+            C3 = [3.469529960E-03, 4.562935070E+00, -2.441576539E+00, 1.409322578E+00],
+            C4 = [2.277823700E+00, 3.239318260E-01, 1.997453950E-03, 2.445302672E-04],
+            C5 = [2.126055280E+00, 6.863473749E-01, 4.975938104E-01, 6.352738622E-01],
+            C6 = [3.227490100E+03, 1.625888344E+03, 1.443307391E+03, 1.397305161E+03],
+            C7 = repeat([0.0], 4),
+            C8 = repeat([0.0], 4),
+            C9 = repeat([0.0], 4),
+            C10 = repeat([0.0], 4),
+            D₀ = [2.226000000E-05, 1.122401430E-04, -1.718689957E-05, -2.545621409E-07],
+            D₁ = [5.150100000E-08, 2.868995096E-13, -6.499841076E-13, 1.258087492E-10],
+            D₂ = [1.309700000E-10, -4.157332734E-16, -4.153311088E-16, 1.119703940E-11],
+            E₀ = [4.382400000E-05, 9.532969159E-05, 8.220254442E-06, 2.184273853E-05],
+            E₁ = [4.966000000E-07, -1.045247704E-11, 6.086168578E-12, -2.788674395E-09],
+            λₜₖ = [3.728000000E-01, 6.338475915E-01, 3.610058073E-01, -1.948154058E+00],
+            temp = [2.002000000E+01, 2.000000000E+01, 2.000000000E+01, 2.000000000E+01],
+            relcost = [1.1, -1.0, -1.0, -1.0],
+            CR = [1.2, -1.0, -1.0, -1.0],
+            FR = [1.3, -1.0, -1.0, -1.0],
+            SR = [1.4, -1.0, -1.0, -1.0],
+            AR = [1.5, -1.0, -1.0, -1.0],
+            PR = [1.6, -1.0, -1.0, -1.0],
+            λmin = repeat([2.0], 4),
+            λmax = repeat([14.0], 4),
+            transmission = [
+                [[2.0, 1.0, 3.0], [14.0, 4.0, 5.0]],
+                [[2.0, 1.0, 1.0], [14.0, 1.0, 1.0]],
+                [[2.0, 1.0, 1.0], [14.0, 1.0, 1.0]],
+                [[2.0, 1.0, 1.0], [14.0, 1.0, 1.0]],
+            ],
+        )
+        FIELDS = names(TEST_CAT_VALUES)[2:end]
 
-        @test glass["raw_name"] == "MG463&"
+        @testset "Parsing Tests" begin
+            cat = OpticSim.GlassCat.sourcefile_to_catalog(SOURCE_FILE)
 
-        @test glass["dispform"] == 2
-        @test glass["Nd"] == 1.0
-        @test glass["Vd"] == 0.0
-        @test glass["exclude_sub"] == 5
-        @test glass["status"] == 6
-        @test glass["meltfreq"] == -1
+            for glass in eachrow(TEST_CAT_VALUES)
+                name = glass["name"]
+                @test name ∈ keys(cat)
+                for field in FIELDS
+                    @test glass[field] == cat[name][field]
+                end
+            end
+        end
 
-        @test glass["TCE"] == 19.8
-        @test glass["p"] == 4.63
-        @test glass["ΔPgF"] == 0.0
-        @test glass["ignore_thermal_exp"] == 3
+        @testset "Module Gen Tests" begin
+            OpticSim.GlassCat.generate_jls([CATALOG_NAME], MAIN_FILE, TMP_DIR, SOURCE_DIR, test=true)
+            include(MAIN_FILE)
 
-        @test glass["C1"] == 6.781409960
-        @test glass["C2"] == 0.09868538020
-        @test glass["C3"] == 0.003469529960
-        @test glass["C4"] == 2.277823700
-        @test glass["C5"] == 2.126055280
-        @test glass["C6"] == 3227.490100
-        @test glass["C7"] == 0.000000000
-        @test glass["C8"] == 0.000000000
-        @test glass["C9"] == 0.000000000
-        @test glass["C10"] == 0.000000000
+            for row in eachrow(TEST_CAT_VALUES)
+                name = row["name"]
+                @test "$CATALOG_NAME.$name" ∈ TEST_GLASS_NAMES
 
-        @test glass["D₀"] == 2.226000000E-05
-        @test glass["D₁"] == 5.150100000E-08
-        @test glass["D₂"] == 1.309700000E-10
-        @test glass["E₀"] == 4.382400000E-05
-        @test glass["E₁"] == 4.966000000E-07
-        @test glass["λₜₖ"] == 3.728000000E-01
-        @test glass["temp"] == 2.002000000E+01
+                glass = getfield(getfield(Main, Symbol(CATALOG_NAME)), Symbol(name))
+                @test glass ∈ TEST_GLASSES
 
-        @test glass["relcost"] == 1.1
-        @test glass["CR"] == 1.2
-        @test glass["FR"] == 1.3
-        @test glass["SR"] == 1.4
-        @test glass["AR"] == 1.5
-        @test glass["PR"] == 1.6
+                for field in FIELDS
+                    if field === "raw_name"
+                    elseif field === "transmission"
+                        @test row[field] == getfield(glass, Symbol(field))[1:length(row[field])]
+                        @test zero(SVector{100-length(row[field]),SVector{3,Float64}}) == getfield(glass, Symbol(field))[length(row[field])+1:end]
+                    else
+                        @test row[field] == getfield(glass, Symbol(field))
+                    end
+                end
+            end
 
-        @test glass["λmin"] == 2.0
-        @test glass["λmax"] == 14.0
-
-        @test glass["transmission"] == [[2.0, 1.0, 3.0], [14.0, 4.0, 5.0]]
-    end
-
-    @testset "Module Gen Tests" begin
-        generate_jls([CATALOG_NAME], MAIN_FILE, JL_DIR, SOURCE_DIR)
-        include(MAIN_FILE)
-
-        @test :MG463_ ∈ names(TEST_CAT, all = true)
-        @test :MG523 ∈ names(TEST_CAT, all = true)
-        @test :_5MG448 ∈ names(TEST_CAT, all = true)
-        @test :MG452_STAR ∈ names(TEST_CAT, all = true)
-
-        # test that the struct matches the dict
-        glassd = cat["MG452_STAR"]
-        glass = TEST_CAT.MG452_STAR
-
-        @test glass.dispform == glassd["dispform"]
-
-        @test glass.Nd == glassd["Nd"]
-        @test glass.Vd == glassd["Vd"]
-        @test glass.exclude_sub == glassd["exclude_sub"]
-        @test glass.status == glassd["status"]
-        @test glass.meltfreq == glassd["meltfreq"]
-
-        @test glass.TCE == glassd["TCE"]
-        @test glass.p == glassd["p"]
-        @test glass.ΔPgF == glassd["ΔPgF"]
-        @test glass.ignore_thermal_exp == glassd["ignore_thermal_exp"]
-
-        @test glass.C1 == glassd["C1"]
-        @test glass.C2 == glassd["C2"]
-        @test glass.C3 == glassd["C3"]
-        @test glass.C4 == glassd["C4"]
-        @test glass.C5 == glassd["C5"]
-        @test glass.C6 == glassd["C6"]
-        @test glass.C7 == glassd["C7"]
-        @test glass.C8 == glassd["C8"]
-        @test glass.C9 == glassd["C9"]
-        @test glass.C10 == glassd["C10"]
-
-        @test glass.D₀ == glassd["D₀"]
-        @test glass.D₁ == glassd["D₁"]
-        @test glass.D₂ == glassd["D₂"]
-        @test glass.E₀ == glassd["E₀"]
-        @test glass.E₁ == glassd["E₁"]
-        @test glass.λₜₖ == glassd["λₜₖ"]
-        @test glass.temp == glassd["temp"]
-
-        @test glass.relcost == glassd["relcost"]
-        @test glass.CR == glassd["CR"]
-        @test glass.FR == glassd["FR"]
-        @test glass.SR == glassd["SR"]
-        @test glass.AR == glassd["AR"]
-        @test glass.PR == glassd["PR"]
-
-        @test glass.λmin == glassd["λmin"]
-        @test glass.λmax == glassd["λmax"]
+            # these used to be in the "Glass Tests" testset, but they rely on the generated AGF_TEST_CAT.jl file
+            g = TEST_CAT.MG523
+            @test OpticSim.GlassCat.index(g, ((g.λmin + g.λmax) / 2)u"μm") ≈ 3.1560980389455593 atol=1e-14
+            @test_throws ErrorException GlassCat.index(g, (g.λmin - 1)u"μm")
+            @test_throws ErrorException GlassCat.index(g, (g.λmax + 1)u"μm")
+        end
     end
 
     @testset "Glass Tests" begin
-        include(MAIN_FILE)
-
-        g = TEST_CAT.MG523
-        @test isapprox(OpticSim.GlassCat.index(g, ((g.λmin + g.λmax) / 2) * u"μm"), 3.1560980389455593, atol = 1e-14)
-        @test_throws ErrorException OpticSim.GlassCat.index(g, (g.λmin - 1) * u"μm")
-        @test_throws ErrorException OpticSim.GlassCat.index(g, (g.λmax + 1) * u"μm")
         @test isapprox(OpticSim.GlassCat.absairindex(500 * u"nm"), 1.0002741948670688, atol = 1e-14)
         @test isapprox(OpticSim.GlassCat.absairindex(600 * u"nm", temperature = 35 * u"°C", pressure = 2.0), 1.0005179096900811, atol = 1e-14)
         @test OpticSim.GlassCat.index(OpticSim.GlassCat.Air, 500 * u"nm") == 1.0

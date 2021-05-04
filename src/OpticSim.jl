@@ -12,19 +12,21 @@ using Images
 using Base: @.
 using ForwardDiff
 using StringEncodings
+
+# this dependency is intentional! Revise allows OpticSim to reload AGFGlassCat.jl (the glass database) after calling
+# `add_agf` (src/GlassCat/sources.jl) with `rebuild = true`
 using Revise
 
 # included here to allow a call to the activate! during the initialization
 import GLMakie
 import Makie.AbstractPlotting
 
-unzip(a) = map(x -> getfield.(a, x), fieldnames(eltype(a)))
-
-include("GlassCat/GlassCat.jl")
-import OpticSim.GlassCat: plot_indices, index, polyfit_indices, absairindex, absorption, info, glassid, glassname, glassforid, isair, findglass, modelglass, glassfromMIL, GlassID
-
 include("constants.jl")
 include("utilities.jl")
+
+include("GlassCat/GlassCat.jl")
+import .GlassCat: plot_indices, index, polyfit_indices, absairindex, absorption, info, glassid, glassname, glassforid, isair, findglass, modelglass, glassfromMIL, GlassID
+
 include("Geometry/Geometry.jl")
 include("Optical/Optical.jl")
 include("Vis/Vis.jl")
