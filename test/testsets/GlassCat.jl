@@ -5,10 +5,11 @@
 using Test
 using OpticSim.GlassCat
 
-using Unitful
 using Base.Filesystem
 using DataFrames
 using StaticArrays
+using Unitful
+using Unitful.DefaultSymbols
 
 @testset "GlassCat" begin
     @testset "Build Tests" begin
@@ -113,37 +114,37 @@ using StaticArrays
 
             # these used to be in the "Glass Tests" testset, but they rely on the generated AGF_TEST_CAT.jl file
             g = TEST_CAT.MG523
-            @test index(g, ((g.λmin + g.λmax) / 2)u"μm") ≈ 3.1560980389455593 atol=1e-14
-            @test_throws ErrorException index(g, (g.λmin - 1)u"μm")
-            @test_throws ErrorException index(g, (g.λmax + 1)u"μm")
+            @test index(g, ((g.λmin + g.λmax) / 2)μm) ≈ 3.1560980389455593 atol=1e-14
+            @test_throws ErrorException index(g, (g.λmin - 1)μm)
+            @test_throws ErrorException index(g, (g.λmax + 1)μm)
         end
     end
 
     @testset "Glass Tests" begin
-        @test absairindex(500u"nm") ≈ 1.0002741948670688 atol=1e-14
-        @test absairindex(600u"nm", temperature = 35u"°C", pressure = 2.0) ≈ 1.0005179096900811 atol=1e-14
-        @test index(Air, 500u"nm") == 1.0
-        @test index(Air, 600u"nm") == 1.0
+        @test absairindex(500nm) ≈ 1.0002741948670688 atol=1e-14
+        @test absairindex(600nm, temperature=35°C, pressure=2.0) ≈ 1.0005179096900811 atol=1e-14
+        @test index(Air, 500nm) == 1.0
+        @test index(Air, 600nm) == 1.0
 
         # test against true values
         g = SCHOTT.N_BK7
-        @test index(g, 533u"nm") ≈ 1.519417351519283 atol=1e-14
-        @test index(g, 533u"nm", temperature = 35u"°C") ≈ 1.519462486258311 atol=1e-14
-        @test index(g, 533u"nm", pressure = 2.0) ≈ 1.518994119690216 atol=1e-14
-        @test index(g, 533u"nm", temperature = 35u"°C", pressure = 2.0) ≈ 1.519059871499476 atol=1e-14
+        @test index(g, 533nm) ≈ 1.519417351519283 atol=1e-14
+        @test index(g, 533nm, temperature=35°C) ≈ 1.519462486258311 atol=1e-14
+        @test index(g, 533nm, pressure=2.0) ≈ 1.518994119690216 atol=1e-14
+        @test index(g, 533nm, temperature=35°C, pressure=2.0) ≈ 1.519059871499476 atol=1e-14
 
         # test transmission
-        @test absorption(Air, 500u"nm") == 0.0
-        @test absorption(Air, 600u"nm") == 0.0
+        @test absorption(Air, 500nm) == 0.0
+        @test absorption(Air, 600nm) == 0.0
         # TODO these are currently taken from this package (i.e. regression tests), ideally we would get true values somehow
-        @test absorption(g, 500u"nm") == 0.0002407228930225164
-        @test absorption(g, 600u"nm") == 0.00022060722752440445
-        @test absorption(g, 3000u"nm") == 0.04086604990127926
-        @test absorption(g, 600u"nm", temperature = 35u"°C", pressure = 2.0) == 0.00022075540719494738
+        @test absorption(g, 500nm) == 0.0002407228930225164
+        @test absorption(g, 600nm) == 0.00022060722752440445
+        @test absorption(g, 3000nm) == 0.04086604990127926
+        @test absorption(g, 600nm, temperature=35°C, pressure=2.0) == 0.00022075540719494738
 
         # test that everything is alloc-less
-        @test (@wrappedallocs absorption(g, 600u"nm")) == 0
-        @test (@wrappedallocs index(g, 533u"nm")) == 0
+        @test (@wrappedallocs absorption(g, 600nm)) == 0
+        @test (@wrappedallocs index(g, 533nm)) == 0
         @test (@allocated SCHOTT.N_BK7) == 0
 
         @test glassforid(glassid(SCHOTT.N_BK7)) == SCHOTT.N_BK7
@@ -158,7 +159,7 @@ using StaticArrays
         @test index(bk7, 0.5875618) ≈ 1.517 atol=fit_acc
         @test index(bk7, 0.533) ≈ 1.519417351519283 atol=fit_acc
         @test index(bk7, 0.743) ≈ 1.511997032563557 atol=fit_acc
-        @test index(bk7, 533u"nm", temperature = 35u"°C", pressure = 2.0) ≈ 1.519059871499476 atol=fit_acc
+        @test index(bk7, 533nm, temperature=35°C, pressure=2.0) ≈ 1.519059871499476 atol=fit_acc
 
         t2 = glassfromMIL(1.135635)
         @test index(t2, 0.5875618) ≈ 2.135 atol=fit_acc
@@ -169,7 +170,7 @@ using StaticArrays
         @test index(bk7, 0.5875618) ≈ 1.5168 atol=fit_acc
         @test index(bk7, 0.533) ≈ 1.519417351519283 atol=fit_acc
         @test index(bk7, 0.743) ≈ 1.511997032563557 atol=fit_acc
-        @test index(bk7, 533u"nm", temperature = 35u"°C", pressure = 2.0) ≈ 1.519059871499476 atol=fit_acc
+        @test index(bk7, 533nm, temperature=35°C, pressure=2.0) ≈ 1.519059871499476 atol=fit_acc
 
         # test other glass
         @test index(CARGILLE.OG0608, 0.578) == 1.4596475735607324
