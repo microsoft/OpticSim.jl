@@ -142,8 +142,8 @@ using StaticArrays
         @test absorption(g, 600u"nm", temperature = 35u"°C", pressure = 2.0) == 0.00022075540719494738
 
         # test that everything is alloc-less
-        @test (@allocated absorption(g, 600u"nm")) == 0
-        @test (@allocated index(g, 533u"nm")) == 0
+        @test (@wrappedallocs absorption(g, 600u"nm")) == 0
+        @test (@wrappedallocs index(g, 533u"nm")) == 0
         @test (@allocated SCHOTT.N_BK7) == 0
 
         @test glassforid(glassid(SCHOTT.N_BK7)) == SCHOTT.N_BK7
@@ -297,12 +297,11 @@ using StaticArrays
             178,
         ]
 
-        # !! TODO !! for some reason uncommenting this test causes the alloc tests at L145-146 to fail
-        # @test findglass(x -> (x.Nd > 2.1 && x.λmin < 0.5 && x.λmax > 0.9)) == [
-        #     HOYA.E_FDS3,
-        #     Sumita.K_PSFn214P,
-        #     Sumita.K_PSFn214P_M_,
-        # ]
+        @test findglass(x -> (x.Nd > 2.1 && x.λmin < 0.5 && x.λmax > 0.9)) == [
+            HOYA.E_FDS3,
+            Sumita.K_PSFn214P,
+            Sumita.K_PSFn214P_M_,
+        ]
 
         # TODO _child_modules() unit test
     end
