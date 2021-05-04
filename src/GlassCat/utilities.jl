@@ -326,8 +326,8 @@ end
 Draw a scatter plot of index vs dispersion (the derivative of index with respect to wavelength). Both index and
 dispersion are computed at wavelength λ.
 
-If showprefixglasses is true then glasses with names like F_BAK7 will be displayed. Otherwise glasses that have a
-leading letter prefix followed by an underscore, such as F_, will not be displayed.
+If showprefixglasses is true then glasses with names like `F_BAK7` will be displayed. Otherwise glasses that have a
+leading letter prefix followed by an underscore, such as `F_`, will not be displayed.
 
 The index formulas for some glasses may give incorrect results if λ is outside the valid range for that glass. This can
 give anomalous results, such as indices less than zero or greater than 6. To filter out these glasses set maximumindex
