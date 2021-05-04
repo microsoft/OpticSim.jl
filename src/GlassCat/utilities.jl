@@ -351,7 +351,7 @@ function drawglassmap(glasscatalog::Module; λ::Length = 550nm, glassfontsize::I
 
             # don't show glasses that have an _ in the name. This prevents cluttering the map with many glasses of
             # similar (index, dispersion).
-            if (mindispersion <= dispersion <= maxdispersion) && (showprefixglasses ? true : !hasprefix)
+            if (mindispersion <= dispersion <= maxdispersion) && (showprefixglasses || !hasprefix)
                 push!(indices, index(glass, wavelength))
                 push!(dispersions, dispersion)
                 push!(glassnames, String(name))
@@ -361,5 +361,13 @@ function drawglassmap(glasscatalog::Module; λ::Length = 550nm, glassfontsize::I
 
     font = Plots.font(family = "Sans", pointsize = glassfontsize, color = RGB(0.0,0.0,.4))
     series_annotations = Plots.series_annotations(glassnames, font)
-    scatter(dispersions, indices, xaxis = "dispersion", yaxis = "index", series_annotations = series_annotations, markersize = .001, legends = :none, markeralpha = 0.0, markershape = :none, title = "Glass Catalog: $glasscatalog")
+    scatter(
+        dispersions,
+        indices;
+        series_annotations,
+        markeralpha = 0.0,
+        legends = :none,
+        xaxis = "dispersion",
+        yaxis = "index",
+        title = "Glass Catalog: $glasscatalog")
 end
