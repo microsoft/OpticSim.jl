@@ -280,7 +280,22 @@ using StaticArrays
             :OG081160,
         ]
 
-        # TODO @test glassnames()
+        @test first.(glassnames()) == [
+            CARGILLE,
+            HOYA,
+            NIKON,
+            OHARA,
+            SCHOTT,
+            Sumita,
+        ]
+        @test length.(last.(glassnames())) == [
+            3,
+            210,
+            379,
+            160,
+            160,
+            178,
+        ]
 
         # !! TODO !! for some reason uncommenting this test causes the alloc tests at L145-146 to fail
         # @test findglass(x -> (x.Nd > 2.1 && x.λmin < 0.5 && x.λmax > 0.9)) == [
