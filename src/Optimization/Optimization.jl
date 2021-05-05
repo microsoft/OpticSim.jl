@@ -24,7 +24,11 @@ using NLopt
 include("OptimizationVariables.jl")
 include("Constraints.jl")
 include("TestCases.jl")
-include("UI/AxisSymmetric.jl")
+
+# include("UI/AxisSymmetric.jl") # old version
+include("UI/BlinkUtils.jl")
+include("UI/AxisSymmetricOptimization.jl")
+include("UI/AxisSymmetricOptimizationUI.jl")
 
 end #module
 export Optimization
