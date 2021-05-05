@@ -2,7 +2,7 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # See LICENSE in the project root for full license information.
 
-module AxisSymmetricOptimization
+module AxisymmetricOptimization
 
 using OpticSim, OpticSim.Geometry, OpticSim.Emitters
 using CSV, DataFrames
@@ -84,12 +84,12 @@ function try_parse_variable_1(row, col, str)
 end
 
 
-struct AxisSymmetric
+struct Axisymmetric
     _original_definition
     _original_df::DataFrame
     _variables::AbstractArray
     
-    function AxisSymmetric(def::DataFrame)
+    function Axisymmetric(def::DataFrame)
 
         df = copy(def)
 
@@ -173,7 +173,7 @@ struct AxisSymmetric
     end
 end
 
-function original(ax::AxisSymmetric)
+function original(ax::Axisymmetric)
     res = copy(ax._original_df)
     for var in ax._variables
         res[var._row, var._col] = var._start_value
@@ -184,7 +184,7 @@ function original(ax::AxisSymmetric)
     return res
 end
 
-function original_values(ax::AxisSymmetric)
+function original_values(ax::Axisymmetric)
     res = []
     for var in ax._variables
         push!(res, var._start_value)
@@ -192,7 +192,7 @@ function original_values(ax::AxisSymmetric)
     return tuple(res...)
 end
 
-function optimized(ax::AxisSymmetric, params)
+function optimized(ax::Axisymmetric, params)
     T = typeof(params[1])
     res = copy(ax._original_df)
     for (index, var) in enumerate(ax._variables)
@@ -204,7 +204,7 @@ function optimized(ax::AxisSymmetric, params)
     return res
 end
 
-function optimized(ax::AxisSymmetric, model::AbstractModel)
+function optimized(ax::Axisymmetric, model::AbstractModel)
     T = Float64
     res = copy(ax._original_df)
     model_vars = JuMP.all_variables(model)
@@ -217,7 +217,7 @@ function optimized(ax::AxisSymmetric, model::AbstractModel)
     return res
 end
 
-function optimized_values(ax::AxisSymmetric, model::AbstractModel)
+function optimized_values(ax::Axisymmetric, model::AbstractModel)
     res = []
     model_vars = JuMP.all_variables(model)
     for (index, var) in enumerate(ax._variables)
@@ -276,7 +276,7 @@ function cost_func(x...)
     end
 end
 
-function optimize(ax::AxisSymmetric, optimization_options::Dict = Dict())
+function optimize(ax::Axisymmetric, optimization_options::Dict = Dict())
     @info "Optimizing"
 
     global options = copy(optimization_options)
@@ -312,15 +312,15 @@ function optimize(ax::AxisSymmetric, optimization_options::Dict = Dict())
     statistics["max_time"] = get(options, :MaxTime, 10.0)
     statistics["iterations"] = DataStructures.OrderedDict()
 
-    original_params = AxisSymmetricOptimization.original_values(ax)
-    cost_original = AxisSymmetricOptimization.cost_func(original_params...)
+    original_params = AxisymmetricOptimization.original_values(ax)
+    cost_original = AxisymmetricOptimization.cost_func(original_params...)
     statistics["iterations"]["original"] = Dict("index" => global_counter, "parameters" => original_params, "cost" => cost_original)
 
     JuMP.optimize!(model)
 
     # save final statistics
-    optimized_params = AxisSymmetricOptimization.optimized_values(ax, model)
-    cost_optimized = AxisSymmetricOptimization.cost_func(optimized_params...)
+    optimized_params = AxisymmetricOptimization.optimized_values(ax, model)
+    cost_optimized = AxisymmetricOptimization.cost_func(optimized_params...)
     statistics["iterations"]["final"] = Dict("index" => global_counter, "parameters" => optimized_params, "cost" => cost_optimized)
 
     # debug dump of variables
@@ -342,7 +342,7 @@ function get_statistics()
 end
 
 
-end # module AxisSymmetricOptimization
+end # module AxisymmetricOptimization
 
 
 

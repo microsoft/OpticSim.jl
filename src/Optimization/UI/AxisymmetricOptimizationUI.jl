@@ -2,14 +2,14 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # See LICENSE in the project root for full license information.
 
-module AxisSymmetricOptimizationUI
+module AxisymmetricOptimizationUI
 
 const INTERACTIVE_HTML = false
 
 using OpticSim
 using Blink, WebIO, Interact, Interact.CSSUtil, DataFrames, CSV, TableView
 using ..BlinkUtils
-using ..AxisSymmetricOptimization
+using ..AxisymmetricOptimization
 
 #
 import Makie
@@ -320,7 +320,7 @@ function run()
 
         res = true;
         try
-            ax = AxisSymmetricOptimization.AxisSymmetric(data_table[])
+            ax = AxisymmetricOptimization.Axisymmetric(data_table[])
             set_table_stat_color("MediumSeaGreen")
             set_message("Validation Passed")
         catch e
@@ -329,7 +329,7 @@ function run()
             set_message("Validation Error\n$e")
             res = false
         end
-        AxisSymmetricOptimization.set_global_ax(ax)
+        AxisymmetricOptimization.set_global_ax(ax)
         return res
     end
 
@@ -337,16 +337,16 @@ function run()
         @info "showing original drawing"
         validate_data()
 
-        df = AxisSymmetricOptimization.original(ax)
+        df = AxisymmetricOptimization.original(ax)
         sys_original = AxisymmetricOpticalSystem(df)
 
         if (INTERACTIVE_HTML)
             resolution = BlinkUtils.resolution(html, "OriginalDrawing")
-            drawing_original  = Vis.drawtracerays(sys_original, raygenerator=AxisSymmetricOptimization.emitter, trackallrays = true, test = true, linewidth=100, resolution = resolution)
+            drawing_original  = Vis.drawtracerays(sys_original, raygenerator=AxisymmetricOptimization.emitter, trackallrays = true, test = true, linewidth=100, resolution = resolution)
         else
-            drawing_original  = Vis.drawtracerays(sys_original, raygenerator=AxisSymmetricOptimization.emitter, trackallrays = true, test = true, linewidth=1)
+            drawing_original  = Vis.drawtracerays(sys_original, raygenerator=AxisymmetricOptimization.emitter, trackallrays = true, test = true, linewidth=1)
         end
-        cost_original = AxisSymmetricOptimization.cost_func(AxisSymmetricOptimization.original_values(ax)...)
+        cost_original = AxisymmetricOptimization.cost_func(AxisymmetricOptimization.original_values(ax)...)
 
         stats = vbox(
             Node(:div, "Original State"), 
@@ -359,16 +359,16 @@ function run()
     # function show_optimized_drawing()
     #     @info "showing optimized drawing"
 
-    #     sys_optimized = AxisymmetricOpticalSystem(AxisSymmetricOptimization.optimized(ax, model))
+    #     sys_optimized = AxisymmetricOpticalSystem(AxisymmetricOptimization.optimized(ax, model))
 
     #     if (INTERACTIVE_HTML)
     #         resolution = BlinkUtils.resolution(html, "OriginalDrawing")
     #         @info "@@@@@@@@@@@@@@@@@@@@@@ $resolution"
-    #         drawing_optimized  = Vis.drawtracerays(sys_optimized, raygenerator=AxisSymmetricOptimization.emitter, trackallrays = true, test = true, linewidth=100, resolution=resolution)
+    #         drawing_optimized  = Vis.drawtracerays(sys_optimized, raygenerator=AxisymmetricOptimization.emitter, trackallrays = true, test = true, linewidth=100, resolution=resolution)
     #     else
-    #         drawing_optimized  = Vis.drawtracerays(sys_optimized, raygenerator=AxisSymmetricOptimization.emitter, trackallrays = true, test = true, linewidth=1)
+    #         drawing_optimized  = Vis.drawtracerays(sys_optimized, raygenerator=AxisymmetricOptimization.emitter, trackallrays = true, test = true, linewidth=1)
     #     end
-    #     cost_optimized = AxisSymmetricOptimization.cost_func(AxisSymmetricOptimization.optimized_values(ax, model)...)
+    #     cost_optimized = AxisymmetricOptimization.cost_func(AxisymmetricOptimization.optimized_values(ax, model)...)
 
     #     stats = vbox(
     #         Node(:div, "Optimized State"), 
@@ -401,7 +401,7 @@ function run()
         end
         # @show params, cost
         
-        df = AxisSymmetricOptimization.optimized(ax, params)
+        df = AxisymmetricOptimization.optimized(ax, params)
 
         sys_optimized = AxisymmetricOpticalSystem(df)
 
@@ -411,9 +411,9 @@ function run()
         else
             if (INTERACTIVE_HTML)
                 resolution = BlinkUtils.resolution(html, "OptimizedDrawing")
-                drawing  = Vis.drawtracerays(sys_optimized, raygenerator=AxisSymmetricOptimization.emitter, trackallrays = true, test = true, linewidth=100, resolution=resolution)
+                drawing  = Vis.drawtracerays(sys_optimized, raygenerator=AxisymmetricOptimization.emitter, trackallrays = true, test = true, linewidth=100, resolution=resolution)
             else
-                drawing  = Vis.drawtracerays(sys_optimized, raygenerator=AxisSymmetricOptimization.emitter, trackallrays = true, test = true, linewidth=1)
+                drawing  = Vis.drawtracerays(sys_optimized, raygenerator=AxisymmetricOptimization.emitter, trackallrays = true, test = true, linewidth=1)
             end
             iteration["drawing"] = drawing
         end
@@ -490,11 +490,11 @@ function run()
         )
 
         if (true)
-            model = AxisSymmetricOptimization.optimize(ax, optimization_options)
+            model = AxisymmetricOptimization.optimize(ax, optimization_options)
 
             # show_optimized_drawing()
 
-            statistics = AxisSymmetricOptimization.get_statistics()
+            statistics = AxisymmetricOptimization.get_statistics()
             # @show statistics
 
             show_stats()
