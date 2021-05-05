@@ -28,6 +28,7 @@ if !isfile(AGFGLASSCAT_PATH)
 end
 include("data/jl/AGFGlassCat.jl") # this needs to be literal for intellisense to work
 include("data/jl/CARGILLE.jl")
+export CARGILLE
 
 # include functionality for managing runtime (dynamic) glass cats: MIL_GLASSES and MODEL_GLASSES
 include("runtime.jl")
