@@ -154,30 +154,30 @@ end
 This data-type represents the composite emitter (Source) which is constructed with a list of basic or composite emitters and a 3D Transform.
 
 ```julia
-CompositeSource(transform::Transform{T}, sources::Array) where {T<:Real} 
+CompositeSource(transform::Transform{T}, sources::Vector{<:AbstractSource}) where {T<:Real} 
 ```
 """
 struct CompositeSource{T} <: AbstractSource{T}
     transform::Transform{T}
-    sources::Array
+    sources::Vector{<:AbstractSource}
 
-    uniform_length::Integer
-    total_length::Integer
-    start_indexes::Vector{Integer}
+    uniform_length::Int
+    total_length::Int
+    start_indexes::Vector{Int}
 
-    function CompositeSource(transform::Transform{T}, sources::Array) where {T<:Real}
+    function CompositeSource(transform::Transform{T}, sources::Vector{<:AbstractSource}) where {T<:Real}
         lens = [length(src) for src in sources]
         size1 = findmin(lens)[1]
         size2 = findmax(lens)[1]
         if (size1 == size2)
             uniform_length = size1
-            start_indexes = Vector{Integer}()
+            start_indexes = Vector{Int}()
             total_length = length(sources) * uniform_length
             # @info "Uniform Length $size1 total=$total_length"
         else
             uniform_length = -1
 
-            start_indexes = Vector{Integer}()
+            start_indexes = Vector{Int}()
             start = 0
             for s in sources
                 push!(start_indexes, start)
