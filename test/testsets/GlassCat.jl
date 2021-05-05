@@ -3,27 +3,24 @@
 # See LICENSE in the project root for full license information.
 
 using Test
-using OpticSim
+using OpticSim.GlassCat
 
-using Unitful
 using Base.Filesystem
 using DataFrames
 using StaticArrays
+using Unitful
+using Unitful.DefaultSymbols
 
 @testset "GlassCat" begin
-    # ensure there aren't any ambiguities
-    @test isempty(detect_ambiguities(GlassCat))
-    @test isempty(detect_unbound_args(GlassCat))
-
     @testset "Build Tests" begin
         # check that all automatic downloads are working
         for catname in split("HOYA NIKON OHARA SCHOTT Sumita")
-            agffile = joinpath(OpticSim.GlassCat.AGF_DIR, catname * ".agf")
+            agffile = joinpath(GlassCat.AGF_DIR, catname * ".agf")
             @test isfile(agffile)
         end
 
         # check that particularly problematic glasses are parsing correctly
-        @test !isnan(OpticSim.GlassCat.NIKON.LLF6.C10)
+        @test !isnan(NIKON.LLF6.C10)
     end
 
     @testset "generate.jl" begin
@@ -82,7 +79,7 @@ using StaticArrays
         FIELDS = names(TEST_CAT_VALUES)[2:end]
 
         @testset "Parsing Tests" begin
-            cat = OpticSim.GlassCat.sourcefile_to_catalog(SOURCE_FILE)
+            cat = GlassCat.sourcefile_to_catalog(SOURCE_FILE)
 
             for glass in eachrow(TEST_CAT_VALUES)
                 name = glass["name"]
@@ -117,69 +114,196 @@ using StaticArrays
 
             # these used to be in the "Glass Tests" testset, but they rely on the generated AGF_TEST_CAT.jl file
             g = TEST_CAT.MG523
-            @test OpticSim.GlassCat.index(g, ((g.λmin + g.λmax) / 2)u"μm") ≈ 3.1560980389455593 atol=1e-14
-            @test_throws ErrorException GlassCat.index(g, (g.λmin - 1)u"μm")
-            @test_throws ErrorException GlassCat.index(g, (g.λmax + 1)u"μm")
+            @test index(g, ((g.λmin + g.λmax) / 2)μm) ≈ 3.1560980389455593 atol=1e-14
+            @test_throws ErrorException index(g, (g.λmin - 1)μm)
+            @test_throws ErrorException index(g, (g.λmax + 1)μm)
         end
     end
 
     @testset "Glass Tests" begin
-        @test isapprox(OpticSim.GlassCat.absairindex(500 * u"nm"), 1.0002741948670688, atol = 1e-14)
-        @test isapprox(OpticSim.GlassCat.absairindex(600 * u"nm", temperature = 35 * u"°C", pressure = 2.0), 1.0005179096900811, atol = 1e-14)
-        @test OpticSim.GlassCat.index(OpticSim.GlassCat.Air, 500 * u"nm") == 1.0
-        @test OpticSim.GlassCat.index(OpticSim.GlassCat.Air, 600 * u"nm") == 1.0
-        # @test isapprox(index(OpticSim.GlassCat.Vacuum, 500 * u"nm"), 0.9997258841958212, atol = 1e-14)
+        @test absairindex(500nm) ≈ 1.0002741948670688 atol=1e-14
+        @test absairindex(600nm, temperature=35°C, pressure=2.0) ≈ 1.0005179096900811 atol=1e-14
+        @test index(Air, 500nm) == 1.0
+        @test index(Air, 600nm) == 1.0
 
         # test against true values
-        g = OpticSim.GlassCat.SCHOTT.N_BK7
-        @test isapprox(OpticSim.GlassCat.index(g, 533 * u"nm"), 1.519417351519283, atol = 1e-14)
-        @test isapprox(OpticSim.GlassCat.index(g, 533 * u"nm", temperature = 35 * u"°C"), 1.519462486258311, atol = 1e-14)
-        @test isapprox(OpticSim.GlassCat.index(g, 533 * u"nm", pressure = 2.0), 1.518994119690216, atol = 1e-14)
-        @test isapprox(OpticSim.GlassCat.index(g, 533 * u"nm", temperature = 35 * u"°C", pressure = 2.0), 1.519059871499476, atol = 1e-14)
+        g = SCHOTT.N_BK7
+        @test index(g, 533nm) ≈ 1.519417351519283 atol=1e-14
+        @test index(g, 533nm, temperature=35°C) ≈ 1.519462486258311 atol=1e-14
+        @test index(g, 533nm, pressure=2.0) ≈ 1.518994119690216 atol=1e-14
+        @test index(g, 533nm, temperature=35°C, pressure=2.0) ≈ 1.519059871499476 atol=1e-14
 
         # test transmission
-        @test OpticSim.GlassCat.absorption(OpticSim.GlassCat.Air, 500 * u"nm") == 0.0
-        @test OpticSim.GlassCat.absorption(OpticSim.GlassCat.Air, 600 * u"nm") == 0.0
+        @test absorption(Air, 500nm) == 0.0
+        @test absorption(Air, 600nm) == 0.0
         # TODO these are currently taken from this package (i.e. regression tests), ideally we would get true values somehow
-        @test OpticSim.GlassCat.absorption(g, 500 * u"nm") == 0.0002407228930225164
-        @test OpticSim.GlassCat.absorption(g, 600 * u"nm") == 0.00022060722752440445
-        @test OpticSim.GlassCat.absorption(g, 3000 * u"nm") == 0.04086604990127926
-        @test OpticSim.GlassCat.absorption(g, 600 * u"nm", temperature = 35 * u"°C", pressure = 2.0) == 0.00022075540719494738
+        @test absorption(g, 500nm) == 0.0002407228930225164
+        @test absorption(g, 600nm) == 0.00022060722752440445
+        @test absorption(g, 3000nm) == 0.04086604990127926
+        @test absorption(g, 600nm, temperature=35°C, pressure=2.0) == 0.00022075540719494738
 
         # test that everything is alloc-less
-        @test (@allocated OpticSim.GlassCat.absorption(g, 600 * u"nm")) == 0
-        @test (@allocated OpticSim.GlassCat.index(g, 533 * u"nm")) == 0
-        @test (@allocated OpticSim.GlassCat.SCHOTT.N_BK7) == 0
+        @test (@wrappedallocs absorption(g, 600nm)) == 0
+        @test (@wrappedallocs index(g, 533nm)) == 0
+        @test (@allocated SCHOTT.N_BK7) == 0
 
-        @test OpticSim.GlassCat.glassforid(OpticSim.GlassCat.glassid(OpticSim.GlassCat.SCHOTT.N_BK7)) == OpticSim.GlassCat.SCHOTT.N_BK7
+        @test glassforid(glassid(SCHOTT.N_BK7)) == SCHOTT.N_BK7
 
-        @test OpticSim.GlassCat.isair(OpticSim.GlassCat.Air) == true
-        @test OpticSim.GlassCat.isair(OpticSim.GlassCat.SCHOTT.N_BK7) == false
+        @test isair(Air) == true
+        @test isair(SCHOTT.N_BK7) == false
 
         # test MIL and model glasses
         fit_acc = 0.001
-        bk7 = OpticSim.GlassCat.glassfromMIL(517642)
-        @test OpticSim.GlassCat.glassforid(OpticSim.GlassCat.glassid(bk7)) == bk7
-        @test OpticSim.GlassCat.isapprox(OpticSim.GlassCat.index(bk7, 0.5875618), 1.517, atol = fit_acc)
-        @test OpticSim.GlassCat.isapprox(OpticSim.GlassCat.index(bk7, 0.533), 1.519417351519283, atol = fit_acc)
-        @test OpticSim.GlassCat.isapprox(OpticSim.GlassCat.index(bk7, 0.743), 1.511997032563557, atol = fit_acc)
-        @test OpticSim.GlassCat.isapprox(OpticSim.GlassCat.index(bk7, 533 * u"nm", temperature = 35 * u"°C", pressure = 2.0), 1.519059871499476, atol = fit_acc)
+        bk7 = glassfromMIL(517642)
+        @test glassforid(glassid(bk7)) == bk7
+        @test index(bk7, 0.5875618) ≈ 1.517 atol=fit_acc
+        @test index(bk7, 0.533) ≈ 1.519417351519283 atol=fit_acc
+        @test index(bk7, 0.743) ≈ 1.511997032563557 atol=fit_acc
+        @test index(bk7, 533nm, temperature=35°C, pressure=2.0) ≈ 1.519059871499476 atol=fit_acc
 
-        t2 = OpticSim.GlassCat.glassfromMIL(1.135635)
-        @test OpticSim.GlassCat.isapprox(OpticSim.GlassCat.index(t2, 0.5875618), 2.135, atol = fit_acc)
+        t2 = glassfromMIL(1.135635)
+        @test index(t2, 0.5875618) ≈ 2.135 atol=fit_acc
 
         fit_acc = 0.0001
-        bk7 = OpticSim.GlassCat.modelglass(1.5168, 64.167336, -0.0009)
-        @test OpticSim.GlassCat.glassforid(OpticSim.GlassCat.glassid(bk7)) == bk7
-        @test isapprox(OpticSim.GlassCat.index(bk7, 0.5875618), 1.5168, atol = fit_acc)
-        @test isapprox(OpticSim.GlassCat.index(bk7, 0.533), 1.519417351519283, atol = fit_acc)
-        @test isapprox(OpticSim.GlassCat.index(bk7, 0.743), 1.511997032563557, atol = fit_acc)
-        @test isapprox(OpticSim.GlassCat.index(bk7, 533 * u"nm", temperature = 35 * u"°C", pressure = 2.0), 1.519059871499476, atol = fit_acc)
+        bk7 = modelglass(1.5168, 64.167336, -0.0009)
+        @test glassforid(glassid(bk7)) == bk7
+        @test index(bk7, 0.5875618) ≈ 1.5168 atol=fit_acc
+        @test index(bk7, 0.533) ≈ 1.519417351519283 atol=fit_acc
+        @test index(bk7, 0.743) ≈ 1.511997032563557 atol=fit_acc
+        @test index(bk7, 533nm, temperature=35°C, pressure=2.0) ≈ 1.519059871499476 atol=fit_acc
 
         # test other glass
-        @test OpticSim.GlassCat.index(OpticSim.GlassCat.CARGILLE.OG0608, 0.578) == 1.4596475735607324
+        @test index(CARGILLE.OG0608, 0.578) == 1.4596475735607324
 
         # make sure that the other functions work
-        OpticSim.GlassCat.plot_indices(OpticSim.GlassCat.SCHOTT.N_BK7; polyfit = true, fiterror = true)
+        plot_indices(SCHOTT.N_BK7; polyfit = true, fiterror = true)
+    end
+
+    @testset "Air.jl" begin
+        @test repr(Air) === "Air"
+        @test glassname(Air) === "GlassCat.Air"
+
+        info_lines = [
+            "GlassCat.Air",
+            "Material representing air, RI is always 1.0 at system temperature and pressure, absorption is always 0.0.",
+            ""
+        ]
+        io = IOBuffer()
+        info(io, Air)
+        @test String(take!(io)) === join(info_lines, '\n')
+    end
+
+    @testset "GlassTypes.jl" begin
+        @test repr(GlassID(GlassCat.MODEL, 1)) === "MODEL:1"
+        @test repr(GlassID(GlassCat.MIL, 1)) === "MIL:1"
+        @test repr(GlassID(GlassCat.AGF, 1)) === "AGF:1"
+        @test repr(GlassID(GlassCat.OTHER, 1)) === "OTHER:1"
+        @test repr(GlassID(GlassCat.AIR, 1)) === "AIR:1" # TODO should this fail?
+
+        empty_args = SVector{36,Union{Int,Nothing}}(repeat([0], 27)..., nothing, repeat([0], 8)...)
+        @test repr(GlassCat.Glass(GlassID(GlassCat.MODEL, 1), empty_args...)) === "GlassCat.ModelGlass.1"
+        @test repr(GlassCat.Glass(GlassID(GlassCat.MIL, 1), empty_args...)) === "GlassCat.GlassFromMIL.1"
+        @test repr(GlassCat.Glass(GlassID(GlassCat.AGF, 1), empty_args...)) === "NIKON.SF9" # fails if sources.txt is changed
+        @test repr(GlassCat.Glass(GlassID(GlassCat.OTHER, 1), empty_args...)) === "CARGILLE.OG0607"
+        @test repr(GlassCat.Glass(GlassID(GlassCat.AIR, 1), empty_args...)) === "GlassCat.Air" # repeated code
+
+        @test glassforid(GlassID(GlassCat.AIR, 1)) === Air
+        @test glassforid(GlassID(GlassCat.OTHER, 1)) === CARGILLE.OG0607
+
+        info_lines = [
+            "ID:                                                OTHER:2",
+            "Dispersion formula:                                Cauchy (-2)",
+            "Dispersion formula coefficients:",
+            "     A:                                            1.44503",
+            "     B:                                            0.0044096",
+            "     C:                                            -2.85878e-5",
+            "     D:                                            0.0",
+            "     E:                                            0.0",
+            "     F:                                            0.0",
+            "Valid wavelengths:                                 0.32μm to 1.55μm",
+            "Reference temperature:                             25.0°C",
+            "Thermal ΔRI coefficients:",
+            "     D₀:                                           -0.0009083144750540808",
+            "     D₁:                                           0.0",
+            "     D₂:                                           0.0",
+            "     E₀:                                           0.0",
+            "     E₁:                                           0.0",
+            "     λₜₖ:                                          0.0",
+            "TCE (÷1e-6):                                       700.0",
+            "Ignore thermal expansion:                          false",
+            "Density (p):                                       0.878g/m³",
+            "ΔPgF:                                              0.008",
+            "RI at sodium D-Line (587nm):                       1.457587",
+            "Abbe Number:                                       57.19833",
+            "Cost relative to N_BK7:                            ?",
+            "Status:                                            Standard (0)",
+            "Melt frequency:                                    ?",
+            "Exclude substitution:                              false",
+            "Transmission data:",
+            "     Wavelength   Transmission      Thickness",
+            "         0.32μm           0.15         10.0mm",
+            "        0.365μm           0.12        100.0mm",
+            "       0.4047μm           0.42        100.0mm",
+            "         0.48μm           0.78        100.0mm",
+            "       0.4861μm           0.79        100.0mm",
+            "       0.5461μm           0.86        100.0mm",
+            "       0.5893μm            0.9        100.0mm",
+            "       0.6328μm           0.92        100.0mm",
+            "       0.6439μm            0.9        100.0mm",
+            "       0.6563μm           0.92        100.0mm",
+            "       0.6943μm           0.98        100.0mm",
+            "         0.84μm           0.99        100.0mm",
+            "      0.10648μm           0.61        100.0mm",
+            "         0.13μm           0.39        100.0mm",
+            "        0.155μm           0.11        100.0mm",
+            ""
+        ]
+        io = IOBuffer()
+        info(io, CARGILLE.OG0607)
+        @test String(take!(io)) === join(info_lines, '\n')
+
+        # TODO the rest of the string tests
+    end
+
+    @testset "search.jl" begin
+        @test glasscatalogs() == [
+            CARGILLE,
+            HOYA,
+            NIKON,
+            OHARA,
+            SCHOTT,
+            Sumita,
+        ]
+
+        @test glassnames(CARGILLE) == [
+            :OG0607,
+            :OG0608,
+            :OG081160,
+        ]
+
+        @test first.(glassnames()) == [
+            CARGILLE,
+            HOYA,
+            NIKON,
+            OHARA,
+            SCHOTT,
+            Sumita,
+        ]
+        @test length.(last.(glassnames())) == [
+            3,
+            210,
+            379,
+            160,
+            160,
+            178,
+        ]
+
+        @test findglass(x -> (x.Nd > 2.1 && x.λmin < 0.5 && x.λmax > 0.9)) == [
+            HOYA.E_FDS3,
+            Sumita.K_PSFn214P,
+            Sumita.K_PSFn214P_M_,
+        ]
+
+        # TODO _child_modules() unit test
     end
 end # testset GlassCat
