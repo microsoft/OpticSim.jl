@@ -41,9 +41,10 @@ using OpticSim, OpticSim.Geometry, OpticSim.Emitters
 Many optical systems by convention have their optical axis parallel to the z axis. These utility functions provide a simple interface to the Emitters package to create emitters that direct their rays in the negative z direction, toward the entrance of the optical system.
 
 The [`Emitters.pointemitter`](@ref) function creates a point emitter with a Lambertian power distribution and a spherical cone ray direction distribution.
+
 ```@example
 using OpticSim, OpticSim.Geometry, OpticSim.Emitters # hide
-pt = Emitters.pointemitter([0.0,0.0,15.0],.3)
+pt = Emitters.pointemitter([0.0,0.0,.5],.3)
 Vis.draw(pt, debug=true)
 Vis.save("assets/emitters_example_pointemitter.png") # hide
 nothing #hide
@@ -66,7 +67,7 @@ The [`Emitters.collimatedmitter`](@ref) function creates a collimated rectangula
 
 ```@example
 using OpticSim, OpticSim.Geometry, OpticSim.Emitters # hide
-pt = Emitters.pointemitter([0.0,0.0,15.0],.3)
+pt = Emitters.collimatedemitter([0.0,0.0,1.0],.5)
 Vis.draw(pt, debug=true)
 Vis.save("assets/emitters_example_collimatedemitter.png") # hide
 nothing #hide
