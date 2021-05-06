@@ -49,15 +49,42 @@ Vis.save("assets/emitters_example_pointemitter.png") # hide
 nothing #hide
 ```
 
-The The [`Emitters.collimatedmitter`](@ref) function creates a collimated rectangular emitter with constant power distribution.
+```@raw html
+<table><tr>
+<td>
+<a target="_blank" href="../assets/emitters_example_pointemitter.png">
+    <img width="250" src="../assets/emitters_example_pointemitter.png" style="max-width:100%;">
+</a>
+</td>
+<td valign="middle">
+An example of a standard point emitter
+</td>
+</tr></table>
+```
+
+The [`Emitters.collimatedmitter`](@ref) function creates a collimated rectangular emitter with constant power distribution.
 
 ```@example
 using OpticSim, OpticSim.Geometry, OpticSim.Emitters # hide
 pt = Emitters.pointemitter([0.0,0.0,15.0],.3)
 Vis.draw(pt, debug=true)
-Vis.save("assets/emitters_example_pointemitter.png") # hide
+Vis.save("assets/emitters_example_collimatedemitter.png") # hide
 nothing #hide
 ```
+
+```@raw html
+<table><tr>
+<td>
+<a target="_blank" href="../assets/emitters_example_collimatedemitter.png">
+    <img width="250" src="../assets/emitters_example_collimatedemitter.png" style="max-width:100%;">
+</a>
+</td>
+<td valign="middle">
+An example of a standard collimated emitter
+</td>
+</tr></table>
+```
+
 ### Point origin with various Direction distributions
 ```@example
 using OpticSim, OpticSim.Geometry, OpticSim.Emitters # hide
