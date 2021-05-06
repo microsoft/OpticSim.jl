@@ -14,6 +14,8 @@ export Spectrum, Directions, Origins, AngularPower, Sources
 
 using ...OpticSim, ..Geometry
 using LinearAlgebra
+import Unitful.Length
+using Unitful.DefaultSymbols
 
 # define some utility functions 
 right(t::OpticSim.Geometry.Transform{<:Real}) = normalize(Vec3(t[1,1], t[2,1], t[3,1]))
@@ -49,6 +51,7 @@ include("Directions.jl")
 include("Origins.jl")
 include("AngularPower.jl")
 include("Sources.jl")
+include("StandardEmitters.jl")
 
 end # module Emitters
 

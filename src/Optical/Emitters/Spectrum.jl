@@ -9,6 +9,8 @@ using ....OpticSim
 using ...Emitters
 using DataFrames
 using Distributions
+import Unitful:Length,ustrip
+using Unitful.DefaultSymbols
 
 const UNIFORMSHORT = 0.450 #um
 const UNIFORMLONG = 0.680 #um
@@ -54,6 +56,8 @@ DeltaFunction{T<:Real}
 struct DeltaFunction{T} <: AbstractSpectrum{T}
     λ::T
 end
+
+DeltaFunction(λ::Length) = DeltaFunction{Float64}(ustrip(μm,λ))
 
 Emitters.generate(s::DeltaFunction{T}) where {T<:Real} = (one(T), s.λ)
 

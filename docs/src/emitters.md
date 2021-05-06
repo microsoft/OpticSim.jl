@@ -30,7 +30,6 @@ The [`OpticSim`](index.html) package comes with various implementations of each 
   * [`Emitters.Directions.RectGrid`](@ref)
   * [`Emitters.Directions.UniformCone`](@ref)
   * [`Emitters.Directions.HexapolarCone`](@ref)
-
 ## [Examples of Basic Emitters](@id basic_emitters)
 
 **Note**: All of the examples on this page assume that the following statement was executed:
@@ -38,7 +37,27 @@ The [`OpticSim`](index.html) package comes with various implementations of each 
 ```@example
 using OpticSim, OpticSim.Geometry, OpticSim.Emitters
 ```
+### Simple functions for creating commonly used emitters
+Many optical systems by convention have their optical axis parallel to the z axis. These utility functions provide a simple interface to the Emitters package to create emitters that direct their rays in the negative z direction, toward the entrance of the optical system.
 
+The [`Emitters.pointemitter`](@ref) function creates a point emitter with a Lambertian power distribution and a spherical cone ray direction distribution.
+```@example
+using OpticSim, OpticSim.Geometry, OpticSim.Emitters # hide
+pt = Emitters.pointemitter([0.0,0.0,15.0],.3)
+Vis.draw(pt, debug=true)
+Vis.save("assets/emitters_example_pointemitter.png") # hide
+nothing #hide
+```
+
+The The [`Emitters.collimatedmitter`](@ref) function creates a collimated rectangular emitter with constant power distribution.
+
+```@example
+using OpticSim, OpticSim.Geometry, OpticSim.Emitters # hide
+pt = Emitters.pointemitter([0.0,0.0,15.0],.3)
+Vis.draw(pt, debug=true)
+Vis.save("assets/emitters_example_pointemitter.png") # hide
+nothing #hide
+```
 ### Point origin with various Direction distributions
 ```@example
 using OpticSim, OpticSim.Geometry, OpticSim.Emitters # hide
