@@ -1,0 +1,9 @@
+Surface,Radius,OptimizeRadius,Thickness,OptimizeThickness,Material,SemiDiameter
+:Object,Inf,false,Inf,false,Air,Inf
+1,"start=40,low=10,high=80",true,4,false,SCHOTT.N_SK16,8.58
+2,"start=40,low=10,high=80",true,2,false,Air,7.513
+3,"start=-30,low=-40,high=-10",false,"start=4,low=3,high=5",false,SCHOTT.N_SF2,7.054
+:Stop,35,false,2,false,Air,6.033
+1,35,true,4,false,SCHOTT.N_SK16,7.003
+2,-26,true,44,false,Air,7.506
+:Image,Inf,false,missing,false,missing,15.0

@@ -1,3 +1,7 @@
+# MIT license
+# Copyright (c) Microsoft Corporation. All rights reserved.
+# See LICENSE in the project root for full license information.
+
 """Interfaces, and some implementations, for common constraints widely used in optical optimization"""
 
 #Notes: we probably need a OpticalElement type, which represents a physical lens object with a defined shape. One can compute thickness of an element, i.e., the distance through an object with a homogeneous material when pierced by a ray with a specific origin and direction. LensAssembly is too general to serve this purpose.

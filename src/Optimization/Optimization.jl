@@ -25,6 +25,10 @@ include("OptimizationVariables.jl")
 include("Constraints.jl")
 include("TestCases.jl")
 
+include("UI/BlinkUtils.jl")
+include("UI/AxisymmetricOptimization.jl")
+include("UI/AxisymmetricOptimizationUI.jl")
+
 end #module
 export Optimization
 
