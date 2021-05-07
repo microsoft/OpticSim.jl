@@ -8,11 +8,11 @@ export draw_cooketriplet, draw_schmidtcassegraintelescope, draw_lensconstruction
 function draw_cooketriplet(filename::Union{Nothing,AbstractString} = nothing)
     g1, g2 = SCHOTT.N_SK16, SCHOTT.N_SF2
     sys = AxisymmetricOpticalSystem{Float64}(DataFrame(
-        Surface      = [:Object, 1,      2,      3,       :Stop,  5,      6,       :Image ],
-        Radius       = [Inf,     26.777, 66.604, -35.571, 35.571, 35.571, -26.777, Inf    ],
-        Thickness    = [Inf,     4.0,    2.0,    4.0,     2.0,    4.0,    44.748,  missing],
-        Material     = [Air,     g1,     Air,    g2,      Air,    g1,     Air,     missing],
-        SemiDiameter = [Inf,     8.580,  7.513,  7.054,   6.033,  7.003,  7.506,   15.0   ],
+        SurfaceType  = ["Object", "Standard", "Standard", "Standard", "Stop", "Standard", "Standard", "Image"],
+        Radius       = [Inf,      26.777,     66.604,     -35.571,    35.571, 35.571,     -26.777,    Inf    ],
+        Thickness    = [Inf,      4.0,        2.0,        4.0,        2.0,    4.0,        44.748,     missing],
+        Material     = [Air,      g1,         Air,        g2,         Air,    g1,         Air,        missing],
+        SemiDiameter = [Inf,      8.580,      7.513,      7.054,      6.033,  7.003,      7.506,      15.0   ],
     ))
 
     origins = Origins.Hexapolar(8, 15.0, 15.0)
@@ -42,7 +42,7 @@ function draw_zoomlenses(filenames::Vector{<:Union{Nothing,AbstractString}} = re
 
     syss = [
         AxisymmetricOpticalSystem{Float64}(DataFrame(
-            Surface = [:Object, :Stop, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, :Image],
+            SurfaceType = ["Object", "Stop", "Standard", "Standard", "Standard", "Standard", "Standard", "Standard", "Standard", "Standard", "Standard", "Standard", "Standard", "Standard", "Standard", "Standard", :Image],
             Radius = [Inf64, Inf64, -1.6202203499676E+01, -4.8875855327468E+01, 1.5666614444619E+01, -4.2955326460481E+01, 1.0869565217391E+02, 2.3623907394283E+01, -1.6059097478722E+01, -4.2553191489362E+02, -3.5435861091425E+01, -1.4146272457208E+01, -2.5125628140704E+02, -2.2502250225023E+01, -1.0583130489999E+01, -4.4444444444444E+01, Inf64],
             Aspherics = [missing, missing, missing, missing, missing, [(4, 1.0386E-04), (6, 1.4209E-07), (8, -8.8495E-09), (10, 1.2477E-10), (12, -1.0367E-12), (14, 3.6556E-15)], missing, missing, [(4, 4.2721E-05), (6, 1.2484E-07), (8, 9.7079E-09), (10, -1.8444E-10), (12, 1.8644E-12), (14, -7.7975E-15)], [(4, 1.1339E-04), (6, 4.8165E-07), (8, 1.8778E-08), (10, -5.7571E-10), (12, 8.9994E-12), (14, -4.6768E-14)], missing, missing, missing, missing, missing, missing, missing],
             Thickness = [Inf64, 0.0, 5.18, 0.10, 4.40, 0.16, 1.0, 4.96, zoom, 4.04, 1.35, 1.0, 2.80, 3.0, 1.22, dist, missing],

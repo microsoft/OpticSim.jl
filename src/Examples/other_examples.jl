@@ -4,119 +4,186 @@
 
 export cooketriplet, doubleconvexlensonly
 
-# Create a geometric hemisphere
+"""
+    hemisphere()
+
+Create a geometric hemisphere
+"""
 function hemisphere()::CSGTree
     sph = Sphere(10.0)
     pln = Plane(0.0, 0.0, -1.0, 0.0, 0.0, 0.0)
-    csgintersection(sph, pln)() #csg operations create a csggenerator which instantiates the csg tree after applying a rigid body transformation. This allows you to make as many instances of the object as you want with different transformations. We just want the CSGTree object rather than a generator.
+    # CSV operations create a csggenerator which instantiates the csg tree after applying a rigid body transformation.
+    # This allows you to make as many instances of the object as you want with different transformations. We just want
+    # the CSGTree object rather than a generator.
+    return csgintersection(sph, pln)()
 end
 
-# Create an optical hemisphere that has optical material properties so it will reflect and refract light. In the previous example the hemisphere object had optical properties of OpticSim.GlassCat.Air, which is the default optical interface, so it won't refract or reflect light.
+"""
+    opticalhemisphere()
+
+Create an optical hemisphere that has optical material properties so it will reflect and refract light. In the previous
+example the hemisphere object had optical properties of Air, which is the default optical interface, so it won't refract
+or reflect light.
+"""
 function opticalhemisphere()::CSGOpticalSystem
-    sph = Sphere(10.0, interface = FresnelInterface{Float64}(OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air))
-    pln = Plane(0.0, 0.0, -1.0, 0.0, 0.0, 0.0, interface = FresnelInterface{Float64}(OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air))
+    sph = Sphere(10.0, interface = FresnelInterface{Float64}(SCHOTT.N_BK7, Air))
+    pln = Plane(0.0, 0.0, -1.0, 0.0, 0.0, 0.0, interface = FresnelInterface{Float64}(SCHOTT.N_BK7, Air))
     assy = LensAssembly{Float64}(csgintersection(sph, pln)())
     return CSGOpticalSystem(assy, Rectangle(1.0, 1.0, SVector{3,Float64}(0.0, 0.0, 1.0), SVector{3,Float64}(0.0, 0.0, -11.0)))
 end
 
-#! format: off
+function cooketriplet(::Type{T} = Float64, detpix::Int = 1000) where {T<:Real}
+    AxisymmetricOpticalSystem{T}(
+        DataFrame(
+            SurfaceType = ["Object", "Standard", "Standard", "Standard", "Stop", "Standard", "Standard", "Image"],
+            Radius = [Inf, 26.777, 66.604, -35.571, 35.571, 35.571, -26.777, Inf],
+            OptimizeRadius = [false, true, true, true, true, true, true, false],
+            Thickness = [Inf, 4.0, 2.0, 4.0, 2.0, 4.0, 44.748, missing],
+            OptimizeThickness = [false, true, true, true, true, true, true, false],
+            Material = [Air, SCHOTT.N_SK16, Air, SCHOTT.N_SF2, Air, SCHOTT.N_SK16, Air, missing],
+            SemiDiameter = [Inf, 8.580, 7.513, 7.054, 6.033, 7.003, 7.506, 15.0]
+        ),
+        detpix,
+        detpix
+    )
+end
 
-cooketriplet(::Type{T} = Float64, detpix::Int = 1000) where {T<:Real} = AxisymmetricOpticalSystem{T}(
-    DataFrame(Surface = [:Object, 1, 2, 3, :Stop, 5, 6, :Image],
-              Radius = [Inf, 26.777, 66.604, -35.571, 35.571, 35.571, -26.777, Inf],
-              OptimizeRadius = [false,true,true,true,true,true,true,false],
-              Thickness = [Inf, 4.0, 2.0, 4.0, 2.0, 4.0, 44.748, missing],
-              OptimizeThickness = [false,true,true,true,true,true,true,false],
-              Material = [OpticSim.GlassCat.Air, OpticSim.GlassCat.SCHOTT.N_SK16, OpticSim.GlassCat.Air, OpticSim.GlassCat.SCHOTT.N_SF2, OpticSim.GlassCat.Air, OpticSim.GlassCat.SCHOTT.N_SK16, OpticSim.GlassCat.Air, missing],
-              SemiDiameter = [Inf, 8.580, 7.513, 7.054, 6.033, 7.003, 7.506, 15.0]), detpix, detpix)
+function cooketripletfirstelement(::Type{T} = Float64) where {T<:Real}
+    AxisymmetricOpticalSystem(
+        DataFrame(
+            SurfaceType = ["Object", "Standard", "Standard", "Image"],
+            Radius = [Inf, -35.571, 35.571, Inf],
+            Thickness = [Inf, 4.0, 44.748, missing],
+            Material = [Air, SCHOTT.N_SK16, Air, missing],
+            SemiDiameter = [Inf, 7.054, 6.033, 15.0]
+        )
+    )
+end
 
-cooketripletfirstelement(::Type{T} = Float64) where {T<:Real} = AxisymmetricOpticalSystem(
-    DataFrame(Surface = [:Object, 1, 2, :Image],
-              Radius = [Inf, -35.571, 35.571, Inf],
-              Thickness = [Inf, 4.0, 44.748, missing],
-              Material = [OpticSim.GlassCat.Air, OpticSim.GlassCat.SCHOTT.N_SK16, OpticSim.GlassCat.Air, missing],
-              SemiDiameter = [Inf, 7.054, 6.033, 15.0]))
+function convexplano(::Type{T} = Float64) where {T<:Real}
+    AxisymmetricOpticalSystem{T}(
+        DataFrame(
+            SurfaceType = ["Object", "Standard", "Standard", "Image"],
+            Radius = [Inf, 60.0, Inf, Inf],
+            Thickness = [Inf, 10.0, 57.8, missing],
+            Material = [Air, SCHOTT.N_BK7, Air, missing],
+            SemiDiameter = [Inf, 9.0, 9.0, 15.0]
+        )
+    )
+end
 
-convexplano(::Type{T} = Float64) where {T<:Real} = AxisymmetricOpticalSystem{T}(
-    DataFrame(Surface = [:Object, 1, 2, :Image],
-              Radius = [Inf, 60.0, Inf, Inf],
-              Thickness = [Inf, 10.0, 57.8, missing],
-              Material = [OpticSim.GlassCat.Air, OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air, missing],
-              SemiDiameter = [Inf, 9.0, 9.0, 15.0]))
+function doubleconvex(frontradius::T,rearradius::T) where{T<:Real}
+    AxisymmetricOpticalSystem{T}(
+        DataFrame(
+            SurfaceType = ["Object", "Standard", "Standard", "Image"],
+            Radius = [convert(T, Inf64), frontradius, rearradius, convert(T, Inf64)],
+            OptimizeRadius = [false, true, true, false],
+            Thickness = [convert(T, Inf64), convert(T, 10.0), convert(T, 57.8), missing],
+            OptimizeThickness = [false, false, false, false],
+            Material = [Air, SCHOTT.N_BK7, Air, missing],
+            SemiDiameter = [convert(T, Inf64), convert(T, 9.0), convert(T, 9.0), convert(T, 15.0)]
+        )
+    )
+end
 
-doubleconvex(frontradius::T,rearradius::T) where{T<:Real} =
-AxisymmetricOpticalSystem{T}(
-    DataFrame(Surface = [:Object, 1, 2, :Image],
-              Radius = [T(Inf64), frontradius, rearradius, T(Inf64)],
-              OptimizeRadius = [false,true,true,false],
-              Thickness = [T(Inf64), T(10.0), T(57.8), missing],
-              OptimizeThickness = [false,false,false,false],
-              Material = [OpticSim.GlassCat.Air, OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air, missing],
-              SemiDiameter = [T(Inf64), T(9.0), T(9.0), T(15.0)]))
+function doubleconvexconic(::Type{T} = Float64) where {T<:Real}
+    AxisymmetricOpticalSystem{T}(
+        DataFrame(
+            SurfaceType = ["Object", "Standard", "Standard", "Image"],
+            Radius = [Inf64, 60, -60, Inf64],
+            OptimizeRadius = [false, true, true, false],
+            Thickness = [Inf64, 10.0, 57.8, missing],
+            OptimizeThickness = [false, false, false, false],
+            Conic = [missing, 0.01, 0.01, missing],
+            OptimizeConic = [false, true, true, false],
+            Material = [Air, SCHOTT.N_BK7, Air, missing],
+            SemiDiameter = [Inf64, 9.0, 9.0, 15.0]
+        )
+    )
+end
 
-doubleconvexconic(::Type{T} = Float64) where {T<:Real} =
-              AxisymmetricOpticalSystem{T}(
-                  DataFrame(Surface = [:Object, 1, 2, :Image],
-                            Radius = [Inf64, 60, -60, Inf64],
-                            OptimizeRadius = [false,true,true,false],
-                            Thickness = [Inf64, 10.0, 57.8, missing],
-                            OptimizeThickness = [false,false,false,false],
-                            Conic = [missing, 0.01, 0.01, missing],
-                            OptimizeConic = [false, true, true, false],
-                            Material = [OpticSim.GlassCat.Air, OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air, missing],
-                            SemiDiameter = [Inf64, 9.0, 9.0, 15.0]))
+function doubleconvexlensonly(frontradius::T,rearradius::T) where{T<:Real}
+    AxisymmetricLens{T}(
+        DataFrame(
+            SurfaceType = ["Object", "Standard", "Standard", "Image"],
+            Radius = [convert(T, Inf64), frontradius, rearradius, convert(T, Inf64)],
+            OptimizeRadius = [false, true, true, false],
+            Thickness = [convert(T, Inf64), convert(T, 10.0), convert(T, 57.8), missing],
+            OptimizeThickness = [false, false, false, false],
+            Material = [Air, SCHOTT.N_BK7, Air, missing],
+            SemiDiameter = [convert(T, Inf64), convert(T, 9.0), convert(T, 9.0), convert(T, 15.0)]
+        )
+    )
+end
 
-doubleconvexlensonly(frontradius::T,rearradius::T) where{T<:Real} =
-AxisymmetricLens{T}(
-    DataFrame(Surface = [:Object, 1, 2, :Image],
-              Radius = [T(Inf64), frontradius, rearradius, T(Inf64)],
-              OptimizeRadius = [false,true,true,false],
-              Thickness = [T(Inf64), T(10.0), T(57.8), missing],
-              OptimizeThickness = [false,false,false,false],
-              Material = [OpticSim.GlassCat.Air, OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air, missing],
-              SemiDiameter = [T(Inf64), T(9.0), T(9.0), T(15.0)]))
+function doubleconvex(
+    ::Type{T} = Float64;
+    temperature::Unitful.Temperature = GlassCat.TEMP_REF_UNITFUL,
+    pressure::T = convert(T, PRESSURE_REF)
+) where {T<:Real}
+    AxisymmetricOpticalSystem{T}(
+        DataFrame(
+            SurfaceType = ["Object", "Standard", "Standard", "Image"],
+            Radius = [Inf64, 60, -60, Inf64],
+            OptimizeRadius = [false, true, true, false],
+            Thickness = [Inf64, 10.0, 57.8, missing],
+            OptimizeThickness = [false, true, true, false],
+            Material = [Air, SCHOTT.N_BK7, Air, missing],
+            SemiDiameter = [Inf64, 9.0, 9.0, 15.0]
+        );
+        temperature,
+        pressure
+    )
+end
 
-doubleconvexprescription() = DataFrame(
-    Surface = [:Object, 1, 2, :Image],
-    Radius = [Inf64, 60, -60, Inf64],
-    OptimizeRadius = [false,true,true,false],
-    Thickness = [Inf64, 10.0, 57.8, missing],
-    OptimizeThickness = [false,true,true,false],
-    Material = [OpticSim.GlassCat.Air, OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air, missing],
-    SemiDiameter = [Inf64, 9.0, 9.0, 15.0])
+function doubleconcave(::Type{T} = Float64) where {T<:Real}
+    AxisymmetricOpticalSystem{T}(
+        DataFrame(
+            SurfaceType = ["Object", "Standard", "Standard", "Image"],
+            Radius = [Inf64, -41.0, 41.0, Inf64],
+            Thickness = [Inf64, 10.0, 57.8, missing],
+            Material = [Air, SCHOTT.N_BK7, Air, missing],
+            SemiDiameter = [Inf64, 9.0, 9.0, 15.0]
+        )
+    )
+end
 
-doubleconvex(::Type{T} = Float64; temperature::Unitful.Temperature = OpticSim.GlassCat.TEMP_REF_UNITFUL, pressure::T = T(OpticSim.GlassCat.PRESSURE_REF)) where {T<:Real} = AxisymmetricOpticalSystem{T}(doubleconvexprescription(),temperature = temperature, pressure = pressure)
+function planoconcaverefl(::Type{T} = Float64) where {T<:Real}
+    AxisymmetricOpticalSystem{T}(
+        DataFrame(
+            SurfaceType = ["Object", "Standard", "Standard", "Image"],
+            Radius = [Inf64, Inf64, -41.0, Inf64],
+            Thickness = [Inf64, 10.0, -57.8, missing],
+            Material = [Air, SCHOTT.N_BK7, Air, missing],
+            SemiDiameter = [Inf64, 9.0, 9.0, 25.0],
+            Reflectance = [missing, missing, 1.0, missing]
+        )
+    )
+end
 
-doubleconcave(::Type{T} = Float64) where {T<:Real} = AxisymmetricOpticalSystem{T}(
-    DataFrame(Surface = [:Object, 1, 2, :Image],
-              Radius = [Inf64, -41.0, 41.0, Inf64],
-              Thickness = [Inf64, 10.0, 57.8, missing],
-              Material = [OpticSim.GlassCat.Air, OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air, missing],
-              SemiDiameter = [Inf64, 9.0, 9.0, 15.0]))
+function concaveplano(::Type{T} = Float64) where {T<:Real}
+    AxisymmetricOpticalSystem{T}(
+        DataFrame(
+            SurfaceType = ["Object", "Standard", "Standard", "Image"],
+            Radius = [Inf64, -41.0, Inf64, Inf64],
+            Thickness = [Inf64, 10.0, 57.8, missing],
+            Material = [Air, SCHOTT.N_BK7, Air, missing],
+            SemiDiameter = [Inf64, 9.0, 9.0, 15.0]
+        )
+    )
+end
 
-planoconcaverefl(::Type{T} = Float64) where {T<:Real} = AxisymmetricOpticalSystem{T}(
-    DataFrame(Surface = [:Object, 1, 2, :Image],
-              Radius = [Inf64, Inf64, -41.0, Inf64],
-              Thickness = [Inf64, 10.0, -57.8, missing],
-              Material = [OpticSim.GlassCat.Air, OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air, missing],
-              SemiDiameter = [Inf64, 9.0, 9.0, 25.0],
-              Reflectance = [missing, missing, 1.0, missing]))
-
-concaveplano(::Type{T} = Float64) where {T<:Real} = AxisymmetricOpticalSystem{T}(
-    DataFrame(Surface = [:Object, 1, 2, :Image],
-              Radius = [Inf64, -41.0, Inf64, Inf64],
-              Thickness = [Inf64, 10.0, 57.8, missing],
-              Material = [OpticSim.GlassCat.Air, OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air, missing],
-              SemiDiameter = [Inf64, 9.0, 9.0, 15.0]))
-
-planoplano(::Type{T} = Float64) where {T<:Real} = AxisymmetricOpticalSystem{T}(
-    DataFrame(Surface = [:Object, 1, 2, :Image],
-              Radius = [Inf64, Inf64, Inf64, Inf64],
-              Thickness = [Inf64, 10.0, 57.8, missing],
-              Material = [OpticSim.GlassCat.Air, OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air, missing],
-              SemiDiameter = [Inf64, 9.0, 9.0, 15.0]))
-
-#! format: on
+function planoplano(::Type{T} = Float64) where {T<:Real}
+    AxisymmetricOpticalSystem{T}(
+        DataFrame(
+            SurfaceType = ["Object", 1, 2, "Image"],
+            Radius = [Inf64, Inf64, Inf64, Inf64],
+            Thickness = [Inf64, 10.0, 57.8, missing],
+            Material = [Air, SCHOTT.N_BK7, Air, missing],
+            SemiDiameter = [Inf64, 9.0, 9.0, 15.0]
+        )
+    )
+end
 
 function autodrawrays(lens::AxisymmetricOpticalSystem = cooketriplet(), angle = 10; kwargs...)
     f1 = HexapolarField(lens, collimated = true, wavelength = 0.45, sourcenum = 1)
@@ -143,7 +210,7 @@ end
 
 function prism_refraction()
     # build the triangular prism
-    int = FresnelInterface{Float64}(OpticSim.GlassCat.SCHOTT.N_SF14, OpticSim.GlassCat.Air)
+    int = FresnelInterface{Float64}(SCHOTT.N_SF14, Air)
     s = 2.0
     prism = csgintersection(leaf(Plane(SVector(0.0, -1.0, 0.0), SVector(0.0, -s, 0.0), interface = int, vishalfsizeu = 2 * s, vishalfsizev = 2 * s)), csgintersection(Plane(SVector(0.0, sind(30), cosd(30)), SVector(0.0, s * sind(30), s * cosd(30)), interface = int, vishalfsizeu = 2 * s, vishalfsizev = 2 * s), Plane(SVector(0.0, sind(30), -cosd(30)), SVector(0.0, s * sind(30), -s * cosd(30)), interface = int, vishalfsizeu = 2 * s, vishalfsizev = 2 * s)))
     sys = CSGOpticalSystem(LensAssembly(prism()), Rectangle(15.0, 15.0, SVector(0.0, 0.0, 1.0), SVector(0.0, 0.0, -20.0), interface = opaqueinterface()))
@@ -160,13 +227,13 @@ function prism_refraction()
 end
 
 function fresnel(convex = true; kwargs...)
-    lens = FresnelLens(OpticSim.GlassCat.SCHOTT.N_BK7, 0.0, convex ? 15.0 : -15.0, 1.0, 8.0, 0.8, conic = 0.1)
+    lens = FresnelLens(SCHOTT.N_BK7, 0.0, convex ? 15.0 : -15.0, 1.0, 8.0, 0.8, conic = 0.1)
     sys = CSGOpticalSystem(LensAssembly(lens()), Rectangle(15.0, 15.0, SVector(0.0, 0.0, 1.0), SVector(0.0, 0.0, -25.0), interface = opaqueinterface()))
     Vis.drawtracerays(sys; test = true, trackallrays = true, numdivisions = 30, kwargs...)
 end
 
 function grating(; period = 1.0, θ = 0.0, λ = 0.55, kwargs...)
-    int = ThinGratingInterface(SVector(0.0, 1.0, 0.0), period, OpticSim.GlassCat.Air, OpticSim.GlassCat.Air, minorder = -2, maxorder = 2, reflectance = [0.0, 0.0, 0.1, 0.0, 0.0], transmission = [0.05, 0.1, 0.4, 0.1, 0.05])
+    int = ThinGratingInterface(SVector(0.0, 1.0, 0.0), period, Air, Air, minorder = -2, maxorder = 2, reflectance = [0.0, 0.0, 0.1, 0.0, 0.0], transmission = [0.05, 0.1, 0.4, 0.1, 0.05])
     grating = ThinGratingSurface(Rectangle(5.0, 5.0, SVector(0.0, 0.0, 1.0), SVector(0.0, 0.0, 0.0)), int)
     back = Rectangle(30.0, 30.0, SVector(0.0, 0.0, 1.0), SVector(0.0, 0.0, 25.0))
     sys = CSGOpticalSystem(LensAssembly(grating, back), Rectangle(30.0, 30.0, SVector(0.0, 0.0, 1.0), SVector(0.0, 0.0, -25.0), interface = opaqueinterface()))
@@ -174,7 +241,7 @@ function grating(; period = 1.0, θ = 0.0, λ = 0.55, kwargs...)
 end
 
 function reflgrating(; period = 1.0, θ = 0.0, λ = 0.55, kwargs...)
-    int = ThinGratingInterface(SVector(0.0, 1.0, 0.0), period, OpticSim.GlassCat.Air, OpticSim.GlassCat.Air, minorder = -2, maxorder = 2, transmission = [0.0, 0.0, 0.1, 0.0, 0.0], reflectance = [0.05, 0.1, 0.4, 0.1, 0.05])
+    int = ThinGratingInterface(SVector(0.0, 1.0, 0.0), period, Air, Air, minorder = -2, maxorder = 2, transmission = [0.0, 0.0, 0.1, 0.0, 0.0], reflectance = [0.05, 0.1, 0.4, 0.1, 0.05])
     grating = ThinGratingSurface(Rectangle(5.0, 5.0, SVector(0.0, 0.0, 1.0), SVector(0.0, 0.0, 0.0)), int)
     back = Rectangle(30.0, 30.0, SVector(0.0, 0.0, 1.0), SVector(0.0, 0.0, -25.0))
     sys = CSGOpticalSystem(LensAssembly(grating, back), Rectangle(30.0, 30.0, SVector(0.0, 0.0, 1.0), SVector(0.0, 0.0, 25.0), interface = opaqueinterface()))
@@ -184,9 +251,9 @@ end
 function HOE(refl = false, firstorderonly = false; kwargs...)
     rect = Rectangle(5.0, 5.0, SVector(0.0, 0.0, 1.0), SVector(0.0, 0.0, 0.0))
     if refl
-        int = HologramInterface(SVector(0.0, -10.0, 20.0), ConvergingBeam, SVector(0.0, 0.0, -200), ConvergingBeam, 0.55, 9.0, OpticSim.GlassCat.Air, OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air, OpticSim.GlassCat.Air, OpticSim.GlassCat.Air, 0.05, !firstorderonly)
+        int = HologramInterface(SVector(0.0, -10.0, 20.0), ConvergingBeam, SVector(0.0, 0.0, -200), ConvergingBeam, 0.55, 9.0, Air, SCHOTT.N_BK7, Air, Air, Air, 0.05, !firstorderonly)
     else
-        int = HologramInterface(SVector(0.0, -10.0, -20.0), ConvergingBeam, SVector(0.0, 0.0, -200), ConvergingBeam, 0.55, 5.0, OpticSim.GlassCat.Air, OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air, OpticSim.GlassCat.Air, OpticSim.GlassCat.Air, 0.05, !firstorderonly)
+        int = HologramInterface(SVector(0.0, -10.0, -20.0), ConvergingBeam, SVector(0.0, 0.0, -200), ConvergingBeam, 0.55, 5.0, Air, SCHOTT.N_BK7, Air, Air, Air, 0.05, !firstorderonly)
     end
     obj = HologramSurface(rect, int)
     back = Rectangle(50.0, 50.0, SVector(0.0, 0.0, 1.0), SVector(0.0, 0.0, 25.0))
@@ -213,21 +280,21 @@ function eyetrackHOE(nrays = 5000, det = false, showhead = true, zeroorder = fal
     # offset = SVector(-5.0, 10.0, -10.0)
     # for θ in 0:(π / 6):(2π)
     #     ledloc = SVector(20 * cos(θ) + offset[1], 0 + offset[2], 15 * sin(θ) + offset[3])
-    #     int = HologramInterface(ledloc, ConvergingBeam, sourceloc, DivergingBeam, 0.78, 100.0, OpticSim.GlassCat.Air, OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air, OpticSim.GlassCat.Air, OpticSim.GlassCat.Air, 0.05, zeroorder)
+    #     int = HologramInterface(ledloc, ConvergingBeam, sourceloc, DivergingBeam, 0.78, 100.0, Air, SCHOTT.N_BK7, Air, Air, Air, 0.05, zeroorder)
     #     push!(interfaces, int)
     # end
 
     dirs = [SVector(0.7713, 0.6350, -0.0437), SVector(0.5667, 0.8111, -0.1445), SVector(0.3400, 0.9349, -0.1017), SVector(0.1492, 0.9878, 0.0445), SVector(0.0249, 0.9686, 0.2474), SVector(-0.0184, 0.8855, 0.4643), SVector(0.0254, 0.7537, 0.6567), SVector(0.1548, 0.5964, 0.7876), SVector(0.3570, 0.4462, 0.8207), SVector(0.5959, 0.3470, 0.7242), SVector(0.7976, 0.3449, 0.4948), SVector(0.8680, 0.4555, 0.1978)]
 
     for d in dirs
-        int = HologramInterface(normalize(d), CollimatedBeam, sourceloc, DivergingBeam, 0.78, 100.0, OpticSim.GlassCat.Air, OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air, OpticSim.GlassCat.Air, OpticSim.GlassCat.Air, 0.05, zeroorder)
-        # int = HologramInterface(corneavertex - 10 * d, ConvergingBeam, sourceloc, DivergingBeam, 0.78, 100.0, OpticSim.GlassCat.Air, OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air, OpticSim.GlassCat.Air, OpticSim.GlassCat.Air, 0.05, zeroorder)
+        int = HologramInterface(normalize(d), CollimatedBeam, sourceloc, DivergingBeam, 0.78, 100.0, Air, SCHOTT.N_BK7, Air, Air, Air, 0.05, zeroorder)
+        # int = HologramInterface(corneavertex - 10 * d, ConvergingBeam, sourceloc, DivergingBeam, 0.78, 100.0, Air, SCHOTT.N_BK7, Air, Air, Air, 0.05, zeroorder)
         push!(interfaces, int)
     end
 
     mint = MultiHologramInterface(interfaces...)
     obj = MultiHologramSurface(rect, mint)
-    cornea = leaf(Sphere(cornea_rad, interface = FresnelInterface{Float64}(OpticSim.GlassCat.EYE.CORNEA, OpticSim.GlassCat.Air, reflectance = 1.0, transmission = 0.0)), translation(0.0, er + cornea_rad, 0.0))()
+    cornea = leaf(Sphere(cornea_rad, interface = FresnelInterface{Float64}(EYE.CORNEA, Air, reflectance = 1.0, transmission = 0.0)), translation(0.0, er + cornea_rad, 0.0))()
 
     # cam settings
     fnum = 2.0

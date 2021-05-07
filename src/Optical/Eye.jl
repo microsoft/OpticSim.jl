@@ -54,7 +54,7 @@ function ArizonaEye(::Type{T} = Float64; accommodation::T = 0.0) where {T<:Real}
     # from https://photonengr.com/wp-content/uploads/kbasefiles/ArizonaEyeModel.pdf also in our documentation/papers directory
     return DataFrame(
         Name = ["Air", "Cornea", "Aqueous", "Lens", "Vitreous", "Retina"],
-        Surface = [:Object, 1, 2, 3, 4, :Image],
+        Surface = ["Object", "Standard", "Standard", "Standard", "Standard", "Image"],
         Radius = [Inf64, 7.8, 6.5, 12.0 - 0.4*accommodation, -5.22 + 0.2*accommodation, -13.4],
         Conic = [missing, -.25, -.25, -7.52 + 1.29*accommodation, -1.35 - 0.43*accommodation, missing],
         Material = [OpticSim.GlassCat.Air, OpticSim.GlassCat.modelglass(1.377, 57.1, 0.0), OpticSim.GlassCat.modelglass(1.337, 61.3, 0.0), OpticSim.GlassCat.modelglass(1.42 + 0.0026 * accommodation - 0.00022 * accommodation^2, 51.9, 0.0), OpticSim.GlassCat.modelglass(1.336, 61.1, 0.0), missing],
