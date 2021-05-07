@@ -1,3 +1,7 @@
+# MIT license
+# Copyright (c) Microsoft Corporation. All rights reserved.
+# See LICENSE in the project root for full license information.
+
 # These utility functions provide a simple interface to the Emitters package to create emitters that are commonly used in optical systems. Many optical systems by convention have their optical axis parallel to the z axis. These emitters direct the rays in the negative z direction, toward the entrance of the optical system.
 
 """
