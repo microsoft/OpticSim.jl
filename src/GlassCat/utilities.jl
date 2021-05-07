@@ -318,3 +318,56 @@ function plot_indices(glass::AbstractGlass; polyfit::Bool = false, fiterror::Boo
 
     gui(p)
 end
+
+
+"""
+    drawglassmap(glasscatalog::Module; λ::Length = 550nm, glassfontsize::Integer = 3, showprefixglasses::Bool = false)
+
+Draw a scatter plot of index vs dispersion (the derivative of index with respect to wavelength). Both index and
+dispersion are computed at wavelength λ.
+
+If showprefixglasses is true then glasses with names like `F_BAK7` will be displayed. Otherwise glasses that have a
+leading letter prefix followed by an underscore, such as `F_`, will not be displayed.
+
+The index formulas for some glasses may give incorrect results if λ is outside the valid range for that glass. This can
+give anomalous results, such as indices less than zero or greater than 6. To filter out these glasses set maximumindex
+to a reasonable value such as 3.0.
+"""
+function drawglassmap(glasscatalog::Module; λ::Length = 550nm, glassfontsize::Integer = 3, showprefixglasses::Bool = false, minindex = 1.0, maxindex = 3.0, mindispersion = -.3, maxdispersion = 0.0)
+    wavelength = Float64(ustrip(uconvert(μm, λ)))
+    indices = Vector{Float64}(undef,0)
+    dispersions = Vector{Float64}(undef,0)
+    glassnames = Vector{String}(undef,0)
+
+    for name in names(glasscatalog)
+        glass = eval(:($glasscatalog.$name))
+        glassstring = String(name)
+        hasprefix = occursin("_", glassstring)
+ 
+        if typeof(glass) !== Module && (minindex <= index(glass, wavelength) <= maxindex)
+            f(x) = index(glass,x)
+            g = x -> ForwardDiff.derivative(f, x);
+            dispersion = g(wavelength)
+
+            # don't show glasses that have an _ in the name. This prevents cluttering the map with many glasses of
+            # similar (index, dispersion).
+            if (mindispersion <= dispersion <= maxdispersion) && (showprefixglasses || !hasprefix)
+                push!(indices, index(glass, wavelength))
+                push!(dispersions, dispersion)
+                push!(glassnames, String(name))
+            end
+        end
+    end
+
+    font = Plots.font(family = "Sans", pointsize = glassfontsize, color = RGB(0.0,0.0,.4))
+    series_annotations = Plots.series_annotations(glassnames, font)
+    scatter(
+        dispersions,
+        indices;
+        series_annotations,
+        markeralpha = 0.0,
+        legends = :none,
+        xaxis = "dispersion",
+        yaxis = "index",
+        title = "Glass Catalog: $glasscatalog") #should use markershape = :none to prevent markers from being drawn but this option doesn't work. Used markeralpha = 0 so the markers are invisible. A hack which works.
+end

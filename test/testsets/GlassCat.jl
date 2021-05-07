@@ -23,6 +23,63 @@ using Unitful.DefaultSymbols
         @test !isnan(NIKON.LLF6.C10)
     end
 
+    @testset "sources.jl" begin
+        @testset "add_agf" begin
+            tmpdir = mktempdir()
+            agfdir = mktempdir(tmpdir)
+            sourcefile, _ = mktemp(tmpdir)
+
+            @testset "bad implicit catalog names" begin
+                for agffile in split("a 1.agf a.Agf")
+                    @test_logs (:error, "invalid implicit catalog name \"$agffile\". Should be purely alphabetical with a .agf/.AGF extension.") add_agf(agffile; agfdir, sourcefile)
+                end
+            end
+
+            @testset "file not found" begin
+                @test_logs (:error, "file not found at nonexistentfile.agf") add_agf("nonexistentfile.agf"; agfdir, sourcefile)
+            end
+
+            @testset "add to source file" begin
+                for name in split("a b")
+                    open(joinpath(tmpdir, "$name.agf"), "w") do io
+                        write(io, "")
+                    end
+                end
+                empty_sha = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+
+                @test isempty(readlines(sourcefile))
+
+                add_agf(joinpath(tmpdir, "a.agf"); agfdir, sourcefile, rebuild=false)
+                @test length(readlines(sourcefile)) === 1
+                @test readlines(sourcefile)[1] === "a $empty_sha"
+
+                add_agf(joinpath(tmpdir, "b.agf"); agfdir, sourcefile, rebuild=false)
+                @test length(readlines(sourcefile)) === 2
+                @test readlines(sourcefile)[1] === "a $empty_sha"
+                @test readlines(sourcefile)[2] === "b $empty_sha"
+
+                @test_logs (:error, "adding the catalog name \"a\" would create a duplicate entry in source file $sourcefile") add_agf(joinpath(tmpdir, "a.agf"); agfdir, sourcefile)
+            end
+
+            # TODO rebuild=true
+        end
+
+        # integration test
+        @testset "verify_sources!" begin
+            tmpdir = mktempdir()
+            agfdir = mktempdir(tmpdir)
+
+            sources = split.(readlines(GlassCat.SOURCES_PATH))
+            GlassCat.verify_sources!(sources, agfdir)
+
+            @test first.(sources) == first.(split.(readlines(GlassCat.SOURCES_PATH)))
+
+            # TODO missing_sources
+        end
+
+        # TODO unit tests
+    end
+
     @testset "generate.jl" begin
         CATALOG_NAME = "TEST_CAT"
         SOURCE_DIR = joinpath(@__DIR__, "..", "..", "test")
@@ -79,7 +136,7 @@ using Unitful.DefaultSymbols
         FIELDS = names(TEST_CAT_VALUES)[2:end]
 
         @testset "Parsing Tests" begin
-            cat = GlassCat.sourcefile_to_catalog(SOURCE_FILE)
+            cat = GlassCat.agffile_to_catalog(SOURCE_FILE)
 
             for glass in eachrow(TEST_CAT_VALUES)
                 name = glass["name"]
