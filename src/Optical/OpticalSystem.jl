@@ -2,13 +2,17 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # See LICENSE in the project root for full license information.
 
+export AbstractOpticalSystem
+export CSGOpticalSystem, temperature, pressure, detectorimage, resetdetector!, assembly
+export AxisymmetricOpticalSystem, semidiameter
+export trace, traceMT, tracehits, tracehitsMT
+
 """
     AbstractOpticalSystem{T<:Real}
 
 Abstract type for any optical system, must parameterized by the datatype of entities within the system `T`.
 """
 abstract type AbstractOpticalSystem{T<:Real} end
-export AbstractOpticalSystem
 
 """
     CSGOpticalSystem{T,D<:Real,S<:Surface{T},L<:LensAssembly{T}} <: AbstractOpticalSystem{T}
@@ -44,7 +48,6 @@ struct CSGOpticalSystem{T,D<:Number,S<:Surface{T},L<:LensAssembly{T}} <: Abstrac
         return new{T,D,S,L}(assembly, detector, image, temperature, T(pressure))
     end
 end
-export CSGOpticalSystem
 
 Base.copy(a::CSGOpticalSystem) = CSGOpticalSystem(a.assembly, a.detector, size(a.detectorimage)..., temperature = a.temperature * Unitful.u"°C", pressure = a.pressure)
 
@@ -84,7 +87,6 @@ pressure(system::CSGOpticalSystem{T}) where {T<:Real} = system.pressure
 Reset the deterctor image of `system` to zero.
 """
 resetdetector!(system::CSGOpticalSystem{T}) where {T<:Real} = reset!(system.detectorimage)
-export temperature, pressure, detectorimage, resetdetector!, assembly
 
 
 Base.Float32(a::T) where {T<:ForwardDiff.Dual} = Float32(ForwardDiff.value(a))
@@ -288,7 +290,6 @@ struct AxisymmetricOpticalSystem{T,C<:CSGOpticalSystem{T}} <: AbstractOpticalSys
 
     AxisymmetricOpticalSystem(prescription::DataFrame) = AxisymmetricOpticalSystem{Float64}(prescription)
 end
-export AxisymmetricOpticalSystem
 
 Base.show(io::IO, a::AxisymmetricOpticalSystem) = print(io, a.prescription)
 Base.copy(a::AxisymmetricOpticalSystem) = AxisymmetricOpticalSystem(a.prescription, size(detectorimage(a))..., temperature = temperature(a), pressure = pressure(a))
@@ -308,7 +309,6 @@ detectorsize(system::AxisymmetricOpticalSystem) = detectorsize(system.system)
 resetdetector!(system::AxisymmetricOpticalSystem) = resetdetector!(system.system)
 temperature(system::AxisymmetricOpticalSystem) = temperature(system.system)
 pressure(system::AxisymmetricOpticalSystem) = pressure(system.system)
-export semidiameter
 
 ######################################################################################################################
 
@@ -617,6 +617,3 @@ function tracehits(system::CSGOpticalSystem{T}, raygenerator::OpticalRayGenerato
 
     return res
 end
-
-
-export trace, traceMT, tracehits, tracehitsMT
