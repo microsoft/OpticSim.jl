@@ -223,6 +223,37 @@ end
 
 ######################################################################################################################
 
+function validate_axisymmetricopticalsystem_dataframe(prescription::DataFrame)
+    required_headers = [
+        "SurfaceType" => String,
+        "Radius" => Real,
+        "Thickness" => Real,
+        "Material" => GlassCat.AbstractGlass,
+        "SemiDiameter" => Real
+    ]
+    supported_surface_types = ["Object", "Stop", "Image", "Standard", "Conic", "Aspheric", "Zernike"]
+
+    # check that required headers are present
+    @assert issubset(first.(required_headers), names(prescription))
+
+    # check that required columns have the right type (allow missing)
+    @assert all(T1 <: Union{Missing, T2} for (T1, T2) in zip(
+        eltype.(eachcol(prescription[!, first.(required_headers)])),
+        last.(required_headers)
+    ))
+
+    surface_types = prescription[!, "SurfaceType"]
+
+    # check that only support surface types are listed
+    @assert issubset(surface_types, supported_surface_types)
+
+    # check that there is only one Object and that it is the first surface
+    @assert findall(s->s==="Object", surface_types) == [1]
+
+    # check that there is only one Image and that it is the last surface
+    @assert findall(s->s==="Image", surface_types) == [nrow(prescription)]
+end
+
 """
     AxisymmetricOpticalSystem{T,C<:CSGOpticalSystem{T}} <: AbstractOpticalSystem{T}
 
@@ -260,6 +291,8 @@ struct AxisymmetricOpticalSystem{T,C<:CSGOpticalSystem{T}} <: AbstractOpticalSys
         temperature::Union{T,Unitful.Temperature} = convert(T, OpticSim.GlassCat.TEMP_REF),
         pressure::T = convert(T, OpticSim.GlassCat.PRESSURE_REF)
     ) where {T<:Real,D<:Number}
+        validate_axisymmetricopticalsystem_dataframe(prescription)
+
         elements = Vector{Union{Surface{T},CSGTree{T}}}()
         systemsemidiameter = zero(T)
         sumstart = prescription[1, "SurfaceType"] == "Object" ? 2 : 1
