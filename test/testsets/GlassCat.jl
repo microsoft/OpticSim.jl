@@ -79,7 +79,7 @@ using Unitful.DefaultSymbols
         FIELDS = names(TEST_CAT_VALUES)[2:end]
 
         @testset "Parsing Tests" begin
-            cat = GlassCat.sourcefile_to_catalog(SOURCE_FILE)
+            cat = GlassCat.agffile_to_catalog(SOURCE_FILE)
 
             for glass in eachrow(TEST_CAT_VALUES)
                 name = glass["name"]

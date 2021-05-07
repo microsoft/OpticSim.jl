@@ -2,19 +2,19 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # See LICENSE in the project root for full license information.
 
-using DelimitedFiles: readdlm # used in sourcefile_to_catalog
+using DelimitedFiles: readdlm # used in agffile_to_catalog
 using StringEncodings
 using StaticArrays
 using Unitful
 import Unitful: Length, Temperature, Quantity, Units
 
 """
-    generate_jls(sourcenames::Vector{<:AbstractString}, mainfile::AbstractString, jldir::AbstractString, sourcedir::AbstractString; test::Bool = false)
+    generate_jls(sourcenames::Vector{<:AbstractString}, mainfile::AbstractString, jldir::AbstractString, agfdir::AbstractString; test::Bool = false)
 
 Generates .jl files in `jldir`: a `mainfile` and several catalog files.
 
 Each catalog file is a module representing a distinct glass catalog (e.g. NIKON, SCHOTT), generated from corresponding
-AGF files in `sourcedir`. These are then included and exported in `mainfile`.
+AGF files in `agfdir`. These are then included and exported in `mainfile`.
 
 In order to avoid re-definition of constants `AGF_GLASS_NAMES` and `AGF_GLASSES` during testing, we have an optional
 `test` argument. If `true`, we generate a .jl file that defines glasses with `GlassType.TEST` to avoid namespace/ID
@@ -24,7 +24,7 @@ function generate_jls(
     sourcenames::Vector{<:AbstractString},
     mainfile::AbstractString,
     jldir::AbstractString,
-    sourcedir::AbstractString;
+    agfdir::AbstractString;
     test::Bool = false
 )
     glasstype = test ? "TEST" : "AGF"
@@ -34,9 +34,9 @@ function generate_jls(
 
     # generate several catalog files (.jl)
     for catalogname in sourcenames
-        # parse the sourcefile (.agf) into a catalog (native Julia dictionary)
-        sourcefile = joinpath(sourcedir, "$(catalogname).agf")
-        catalog = sourcefile_to_catalog(sourcefile)
+        # parse the agffile (.agf) into a catalog (native Julia dictionary)
+        agffile = joinpath(agfdir, "$(catalogname).agf")
+        catalog = agffile_to_catalog(agffile)
 
         # parse the catalog into a module string and write it to a catalog file (.jl)
         id, modstring = catalog_to_modstring(id, catalogname, catalog, glasstype)
@@ -68,7 +68,7 @@ function generate_jls(
 end
 
 """
-Parse a `sourcefile` (.agf) into a native Dict, `catalogdict`, where each `kvp = (glassname, glassinfo)` is a glass.
+Parse a `agffile` (.agf) into a native Dict, `catalogdict`, where each `kvp = (glassname, glassinfo)` is a glass.
 
 | 1  | 2        | 3         | 4     | 5     | 6                     | 7             | 8         | 9         | 10    | 11    |
 |:---|:---------|:----------|:------|:------|:----------------------|:--------------|:----------|:----------|:------|:------|
@@ -80,7 +80,7 @@ Parse a `sourcefile` (.agf) into a native Dict, `catalogdict`, where each `kvp =
 | LD | λmin     | λmax      |
 | IT | T1       | T2        | T3    |
 """
-function sourcefile_to_catalog(sourcefile::AbstractString)
+function agffile_to_catalog(agffile::AbstractString)
     catalogdict = Dict{String,Dict{String}}()
 
     # store persistent variables between loops
@@ -154,9 +154,9 @@ function sourcefile_to_catalog(sourcefile::AbstractString)
         rowbuffer = []
     end
 
-    is_utf8 = isvalid(readuntil(sourcefile, " "))
+    is_utf8 = isvalid(readuntil(agffile, " "))
     # use DelimitedFiles.readdlm to parse the source file conveniently (with type inference)
-    for line in eachrow(readdlm(sourcefile))
+    for line in eachrow(readdlm(agffile))
         for item in line
             if !is_utf8
                 item = decode(Vector{UInt8}(item), "UTF-16")
