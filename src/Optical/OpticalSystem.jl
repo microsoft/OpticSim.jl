@@ -228,10 +228,10 @@ end
 
 Optical system which has lens elements and an image detector, created from a `DataFrame` containing prescription data.
 
-These tags are supported for columns: `:Radius`, `:SemiDiameter`, `:Surface`, `:Thickness`, `:Conic`, `:Aspherics`,
+These tags are supported for columns: `:Radius`, `:SemiDiameter`, `:SurfaceType`, `:Thickness`, `:Conic`, `:Aspherics`,
 `:Reflectance`, `:Material`, `:OptimizeRadius`, `:OptimizeThickness`, `:OptimizeConic`.
 
-These tags are supported for entries in a `:Surface` column: `:Object`, `:Image`, `:Stop`. Assumes the `:Image` row will
+These tags are supported for entries in a `SurfaceType` column: `Object`, `Image`, `Stop`. Assumes the `Image` row will
 be the last row in the `DataFrame`.
 
 In practice a [`CSGOpticalSystem`](@ref) is generated automatically and stored within this system.
@@ -248,9 +248,9 @@ AxisymmetricOpticalSystem{T}(
 ```
 """
 struct AxisymmetricOpticalSystem{T,C<:CSGOpticalSystem{T}} <: AbstractOpticalSystem{T}
-    system::C
+    system::C # CSGOpticalSystem
     prescription::DataFrame
-    semidiameter::T
+    semidiameter::T # semidiameter of first element (default = 0.0)
 
     function AxisymmetricOpticalSystem{T}(
         prescription::DataFrame,
@@ -262,70 +262,73 @@ struct AxisymmetricOpticalSystem{T,C<:CSGOpticalSystem{T}} <: AbstractOpticalSys
     ) where {T<:Real,D<:Number}
         elements = Vector{Union{Surface{T},CSGTree{T}}}()
         systemsemidiameter = zero(T)
-        sumstart = prescription[1, :Surface] == :Object ? 2 : 1
+        sumstart = prescription[1, "SurfaceType"] == "Object" ? 2 : 1
         firstelement = true
 
         for i in 1:(nrow(prescription) - 1)
-            material = prescription[i, :Material]
+            surfacetype = prescription[i, "SurfaceType"]
+            material = prescription[i, "Material"]
 
-            if prescription[i, :Surface] == :Stop
+            if surfacetype == "Stop"
                 stop = CircularAperture(
-                    convert(T, prescription[i, :SemiDiameter]),
+                    convert(T, prescription[i, "SemiDiameter"]),
                     SVector{3,T}(0.0, 0.0, 1.0),
-                    SVector{3,T}(0.0, 0.0, convert(T, -sum(prescription[sumstart:(i - 1), :Thickness])))
+                    SVector{3,T}(0.0, 0.0, convert(T, -sum(prescription[sumstart:(i - 1), "Thickness"])))
                 )
                 push!(elements, stop)
-            elseif material != OpticSim.GlassCat.Air && material !== missing
+            elseif material == OpticSim.GlassCat.Air || material === missing
+                continue
+            else
                 frontsurfacereflectance = backsurfacereflectance = frontconic = backconic = zero(T)
                 frontaspherics = backaspherics = nothing
 
-                semidiameter::T = max(prescription[i, :SemiDiameter], prescription[i + 1, :SemiDiameter])
+                semidiameter::T = max(prescription[i, "SemiDiameter"], prescription[i + 1, "SemiDiameter"])
                 if firstelement
                     systemsemidiameter = semidiameter
                     firstelement = false
                 end
 
-                vertex::T = -sum(prescription[sumstart:(i - 1), :Thickness])
-                frontradius::T = prescription[i, :Radius]
-                backradius::T = prescription[i + 1, :Radius]
+                vertex::T = -sum(prescription[sumstart:(i - 1), "Thickness"])
+                frontradius::T = prescription[i, "Radius"]
+                backradius::T = prescription[i + 1, "Radius"]
 
                 if "Reflectance" in names(prescription)
-                    temp = prescription[i, :Reflectance]
+                    temp = prescription[i, "Reflectance"]
                     if temp !== missing
                         frontsurfacereflectance = temp
                     end
-                    temp = prescription[i + 1, :Reflectance]
+                    temp = prescription[i + 1, "Reflectance"]
                     if temp !== missing
                         backsurfacereflectance = temp
                     end
                 end
 
                 if "Conic" in names(prescription)
-                    temp = prescription[i, :Conic]
+                    temp = prescription[i, "Conic"]
                     if temp !== missing
                         frontconic = temp
                     end
-                    temp = prescription[i + 1, :Conic]
+                    temp = prescription[i + 1, "Conic"]
                     if temp !== missing
                         backconic = temp
                     end
                 end
 
                 if "Aspherics" in names(prescription)
-                    temp = prescription[i, :Aspherics]
+                    temp = prescription[i, "Aspherics"]
                     if temp !== missing
                         frontaspherics = temp
                     end
-                    temp = prescription[i + 1, :Aspherics]
+                    temp = prescription[i + 1, "Aspherics"]
                     if temp !== missing
                         backaspherics = temp
                     end
                 end
 
-                lastmaterial = prescription[i - 1, :Material]
-                nextmaterial = prescription[i + 1, :Material]
+                lastmaterial = prescription[i - 1, "Material"]
+                nextmaterial = prescription[i + 1, "Material"]
 
-                thickness = convert(T, prescription[i, :Thickness])
+                thickness = convert(T, prescription[i, "Thickness"])
 
                 if frontaspherics !== nothing || backaspherics !== nothing
                     newelt = AsphericLens(
@@ -350,10 +353,10 @@ struct AxisymmetricOpticalSystem{T,C<:CSGOpticalSystem{T}} <: AbstractOpticalSys
             end
         end
 
-        indexofimage = findfirst(isequal(:Image), prescription[!, :Surface])
-        imagesize = prescription[indexofimage, :SemiDiameter]
-        vertextoimage = convert(T, -sum(prescription[sumstart:(indexofimage - 1), :Thickness]))
-        imagerad = prescription[indexofimage, :Radius]
+        indexofimage = findfirst(isequal("Image"), prescription[!, "SurfaceType"])
+        imagesize = prescription[indexofimage, "SemiDiameter"]
+        vertextoimage = convert(T, -sum(prescription[sumstart:(indexofimage - 1), "Thickness"]))
+        imagerad = prescription[indexofimage, "Radius"]
 
         if imagerad != zero(T) && imagerad != typemax(T)
             det = SphericalCap(
