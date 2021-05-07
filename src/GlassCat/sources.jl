@@ -107,7 +107,7 @@ function download_source(sourcefile::AbstractString, url::AbstractString, POST_d
     @info "Downloading source file from $url"
     try
         headers = ["Content-Type" => "application/x-www-form-urlencoded"]
-        resp = isnothing(POST_data) ? HTTP.get(url) : HTTP.post(url, headers, POST_data)
+        resp = POST_data === nothing ? HTTP.get(url) : HTTP.post(url, headers, POST_data)
 
         # save agf file, unzipping if necessary
         if endswith(url, ".agf")
