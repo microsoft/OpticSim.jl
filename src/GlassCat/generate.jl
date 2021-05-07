@@ -261,7 +261,7 @@ function glassinfo_to_argstring(glassinfo::Dict{<:AbstractString}, id::Integer, 
             push!(argstrings, repr(get(glassinfo, fn, 20.0)))
         elseif fn == "transmission"
             v = get(glassinfo, "transmission", nothing)
-            if isnothing(v)
+            if v === nothing
                 push!(argstrings, repr(nothing))
             else
                 str = join(["($(join(a, ", ")))" for a in v], ", ")
