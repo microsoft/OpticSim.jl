@@ -8,39 +8,55 @@ import ZipFile
 using Pkg
 
 """
-    add_agf(agffile::AbstractString; name::Union{Nothing,AbstractString} = nothing, rebuild::Bool = true)
+    add_agf(agffile; agfdir = AGF_DIR, sourcefile = SOURCES_PATH, name = nothing, rebuild = true)
 
-Adds an already downloaded AGF file to the sourcelist at data/sources.txt, generating the SHA256 checksum automatically.
+Copies a downloaded AGF file at `agffile` to `agfdir` and appends a corresponding entry to the source list at
+`sourcefile`.
 
-Optionally provide a `name` for the corresponding module, and `rebuild` AGFGlassCat.jl by default.
+If a `name` is not provided for the catalog, an implicit name is derived from `agffile`.
+
+If `rebuild` is true, Pkg.build is called at the end to install the new catalog.
 """
-function add_agf(agffile::AbstractString; name::Union{Nothing,AbstractString} = nothing, rebuild::Bool = true)
-    if !isfile(agffile)
-        @error "AGF file not found at $agffile"
-        return
-    end
-
-    # infer catalog name from agffile basename (alphabetical only)
+function add_agf(
+    agffile::AbstractString;
+    agfdir::AbstractString = AGF_DIR,
+    sourcefile::AbstractString = SOURCES_PATH,
+    name::Union{Nothing, AbstractString} = nothing,
+    rebuild::Bool = true
+)
+    # check name
     if name === nothing
-        name = uppercase(match(r"^([a-zA-Z]+)\.agf$"i, basename(agffile))[1])
+        m = match(r"^([a-zA-Z]+)\.(agf|AGF)$", basename(agffile))
+        if m === nothing
+            @error "invalid implicit catalog name \"$(basename(agffile))\". Should be purely alphabetical with a .agf/.AGF extension."
+            return
+        end
+        name = m[1]
+    else
+        if match(r"^([a-zA-Z]+)$", name) === nothing
+            @error "invalid catalog name \"$name\". Should be purely alphabetical."
+        end
     end
-
-    # avoid duplicate catalog names
-    if name ∈ first.(split.(readlines(SOURCES_PATH)))
-        @error "Adding the catalog name \"$name\" would create a duplicate entry in sources.txt"
+    if name ∈ first.(split.(readlines(sourcefile)))
+        @error "adding the catalog name \"$name\" would create a duplicate entry in source file $sourcefile"
         return
     end
 
-    # copy agffile to correct location
-    mkpath(AGF_DIR)
-    cp(agffile, joinpath(AGF_DIR, name * ".agf"), force=true)
+    # copy agffile to agfdir
+    if !isfile(agffile)
+        @error "file not found at $agffile"
+        return
+    end
+    mkpath(agfdir)
+    cp(agffile, joinpath(agfdir, name * ".agf"), force=true)
 
-    # append a corresponding entry to sources.txt
+    # append a corresponding entry to the source list at sourcefile
     sha256sum = SHA.bytes2hex(SHA.sha256(read(agffile)))
-    open(SOURCES_PATH, "a") do io
+    open(sourcefile, "a") do io
         write(io, join([name, sha256sum], ' ') * '\n')
     end
 
+    # optional rebuild
     if rebuild
         @info "Re-building OpticSim.jl"
         Pkg.build("OpticSim"; verbose=true)
