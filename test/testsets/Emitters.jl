@@ -44,7 +44,7 @@ using StaticArrays
             @test Emitters.generate(Directions.Constant(), 0) === unitZ3()
 
             @test Base.iterate(Directions.Constant()) === (unitZ3(), 2)
-            @test Base.iterate(Directions.Constant(), 2) |> isnothing
+            @test Base.iterate(Directions.Constant(), 2) === nothing
             @test Base.getindex(Directions.Constant(), 1) === unitZ3()
             @test Base.getindex(Directions.Constant(), 2) === unitZ3()
             @test Base.firstindex(Directions.Constant()) === 0
@@ -115,7 +115,7 @@ using StaticArrays
             @test Emitters.generate(Origins.Point(), 1) === Vec3()
 
             @test Base.iterate(Origins.Point(), 1) === (Vec3(), 2)
-            @test Base.iterate(Origins.Point(), 2) |> isnothing
+            @test Base.iterate(Origins.Point(), 2) === nothing
             @test Base.getindex(Origins.Point(), 1) === Vec3()
             @test Base.getindex(Origins.Point(), 2) === Vec3()
             @test Base.firstindex(Origins.Point()) === 0
