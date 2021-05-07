@@ -31,6 +31,10 @@ Constant(::Type{T} = Float64) where {T<:Real}
 struct Constant{T} <: AbstractDirectionDistribution{T}
     direction::Vec3{T}
 
+    function Constant(dirx::T,diry::T,dirz::T) where{T<:Real}
+        return new{T}(Vec3(dirx,diry,dirz))
+    end
+
     function Constant(direction::Vec3{T}) where {T<:Real}
         return new{T}(direction)
     end
@@ -68,13 +72,13 @@ struct RectGrid{T} <: AbstractDirectionDistribution{T}
     vvec::Vec3{T}
 
     function RectGrid(direction::Vec3{T}, halfangleu::T, halfanglev::T, numraysu::Integer, numraysv::Integer) where {T<:Real}
-        (uvec, vvec) = get_uv_vectors(direction)
+        (uvec, vvec) = get_orthogonal_vectors(direction)
         return new{T}(direction, halfangleu, halfanglev, numraysu, numraysv, uvec, vvec)
     end
 
     function RectGrid(halfangleu::T, halfanglev::T, numraysu::Integer, numraysv::Integer) where {T<:Real}
-        direction, uvec, vvec = (unitZ3(T), unitX3(T), unitY3(T))
-        return new{T}(direction, halfangleu, halfanglev, numraysu, numraysv, uvec, vvec)
+        direction = unitZ3(T)
+        return RectGrid(direction, halfangleu, halfanglev, numraysu, numraysv)
     end
 end
 
@@ -112,13 +116,13 @@ struct UniformCone{T} <: AbstractDirectionDistribution{T}
     vvec::Vec3{T}
 
     function UniformCone(direction::Vec3{T}, θmax::T, numsamples::Integer) where {T<:Real}
-        (uvec, vvec) = get_uv_vectors(direction)
+        (uvec, vvec) = get_orthogonal_vectors(direction)
         return new{T}(direction, θmax, numsamples, uvec, vvec)
     end
 
     function UniformCone(θmax::T, numsamples::Integer) where {T<:Real}
-        direction, uvec, vvec = (unitZ3(T), unitX3(T), unitY3(T))
-        return new{T}(direction, θmax, numsamples, uvec, vvec)
+        direction = unitZ3(T)
+        return UniformCone(direction, θmax, numsamples)
     end
 end
 
@@ -159,8 +163,8 @@ struct HexapolarCone{T} <: AbstractDirectionDistribution{T}
 
     # assume canonical directions
     function HexapolarCone(θmax::T, nrings::Integer = 3) where {T<:Real}
-        direction, uvec, vvec = (unitZ3(T), unitX3(T), unitY3(T))
-        return new{T}(direction, θmax, nrings, uvec, vvec)
+        direction = unitZ3(T)
+        return HexapolarCone(direction, θmax, nrings)
     end
 end
 

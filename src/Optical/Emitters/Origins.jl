@@ -14,7 +14,7 @@ using Distributions
 abstract type AbstractOriginDistribution{T<:Real} end
 
 Base.iterate(a::AbstractOriginDistribution, state = 1) = state > length(a) ? nothing : (generate(a, state - 1), state + 1)
-Base.getindex(a::AbstractOriginDistribution, index) = generateray(a, index)
+Base.getindex(a::AbstractOriginDistribution, index) = generate(a, index)
 Base.firstindex(a::AbstractOriginDistribution) = 0
 Base.lastindex(a::AbstractOriginDistribution) = length(a) - 1
 Base.copy(a::AbstractOriginDistribution) = a # most don't have any heap allocated stuff so don't really need copying
@@ -46,8 +46,8 @@ struct Point{T} <: AbstractOriginDistribution{T}
     end
 end
 
-Base.length(o::Point) = 1
-Emitters.visual_size(o::Point) = 1
+Base.length(::Point) = 1
+Emitters.visual_size(::Point) = 1
 Emitters.generate(o::Point, ::Integer) = o.origin
 
 """
@@ -56,7 +56,7 @@ Emitters.generate(o::Point, ::Integer) = o.origin
 Encapsulates a uniformly sampled rectangle with user defined number of samples.
 
 ```julia
-RectUniform(width::T, height::T, count::Integer) where {T<:Real}
+RectUniform(width::T, height::T, samples_count::Integer) where {T<:Real}
 ```
 """
 struct RectUniform{T} <: AbstractOriginDistribution{T}
@@ -64,8 +64,8 @@ struct RectUniform{T} <: AbstractOriginDistribution{T}
     height::T
     samples_count::Integer
 
-    function RectUniform(width::T, height::T, count::Integer) where {T<:Real}
-        return new{T}(width, height, count)
+    function RectUniform(width::T, height::T, samples_count::Integer) where {T<:Real}
+        return new{T}(width, height, samples_count)
     end
 end
 
@@ -97,7 +97,7 @@ struct RectGrid{T} <: AbstractOriginDistribution{T}
     ustep::T
     vstep::T
 
-    function RectGrid(width::T, height::T, usamples::Integer, vsamples::Integer) where {T<:Real} 
+    function RectGrid(width::T, height::T, usamples::Integer, vsamples::Integer) where {T<:Real}
         return new{T}(width, height, usamples, vsamples, width / (usamples - 1), height / (vsamples - 1))
     end
 end

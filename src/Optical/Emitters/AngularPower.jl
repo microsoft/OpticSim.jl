@@ -33,7 +33,7 @@ Cosine power distribution. Ray power is calculated by:
 struct Cosine{T} <: AbstractAngularPowerDistribution{T} 
     cosine_exp::T
 
-    function Cosine(cosine_exp::T = one(T)) where {T<:Real}
+    function Cosine(cosine_exp::T = one(Float64)) where {T<:Real}
         new{T}(cosine_exp)
     end
 end

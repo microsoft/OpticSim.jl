@@ -4,7 +4,7 @@
 
 using StaticArrays
 
-@enum GlassType MODEL MIL AGF OTHER AIR
+@enum GlassType MODEL MIL AGF OTHER AIR TEST
 
 """
 Object identifying a glass, containing a type (e.g. `MODEL`, `MIL`, `OTHER` or `AGF`) depending on how the glass is defined, and an integer ID.
@@ -16,13 +16,6 @@ struct GlassID
 end
 
 Base.show(io::IO, a::GlassID) = print(io, "$(string(a.type)):$(a.num)")
-type(a::GlassID) = a.type
-num(a::GlassID) = a.num
-
-ismodel(a::GlassID) = a.type === MODEL
-isMIL(a::GlassID) = a.type === MIL
-isAGF(a::GlassID) = a.type === AGF
-isother(a::GlassID) = a.type === OTHER
 
 """
 Abstract type encapsulating all glasses.
@@ -104,16 +97,21 @@ Get the name (including catalog) of the glass, or glass with this ID.
 """
 glassname(g::Glass) = glassname(g.ID)
 function glassname(ID::GlassID)
-    if ismodel(ID)
-        return "GlassCat.ModelGlass.$(num(ID))"
-    elseif isMIL(ID)
-        return "GlassCat.GlassFromMIL.$(num(ID))"
-    elseif isair(ID)
+    t, n = ID.type, ID.num
+    if t === MODEL
+        return "GlassCat.ModelGlass.$(n)"
+    elseif t === MIL
+        return "GlassCat.GlassFromMIL.$(n)"
+    elseif t === AIR
         return "GlassCat.Air"
-    elseif isother(ID)
-        return OTHER_GLASS_NAMES[num(ID)]
+    elseif t === OTHER
+        return OTHER_GLASS_NAMES[n]
+    elseif t === AGF
+        return AGF_GLASS_NAMES[n]
+    elseif t === TEST
+        return TEST_GLASS_NAMES[n]
     else
-        return AGF_GLASS_NAMES[num(ID)]
+        throw(ArgumentError("unsupported GlassID type $t"))
     end
 end
 
@@ -127,16 +125,21 @@ end
 Get the glass for a given ID.
 """
 function glassforid(ID::GlassID)
-    if ismodel(ID)
-        return MODEL_GLASSES[num(ID)]::Glass
-    elseif isMIL(ID)
-        return MIL_GLASSES[num(ID)]::Glass
-    elseif isair(ID)
+    t, n = ID.type, ID.num
+    if t === MODEL
+        return MODEL_GLASSES[n]::Glass
+    elseif t === MIL
+        return MIL_GLASSES[n]::Glass
+    elseif t === AIR
         return GlassCat.Air
-    elseif isother(ID)
-        return OTHER_GLASSES[num(ID)]::Glass
+    elseif t === OTHER
+        return OTHER_GLASSES[n]::Glass
+    elseif t === AGF
+        return AGF_GLASSES[n]::Glass
+    elseif t === TEST
+        return TEST_GLASSES[n]::Glass
     else
-        return AGF_GLASSES[num(ID)]::Glass
+        throw(ArgumentError("unsupported GlassID type $t"))
     end
 end
 
@@ -335,170 +338,3 @@ function info(io::IO, glass::Glass)
 end
 
 info(g::AbstractGlass) = info(stdout, g)
-
-function docstring(io::IO, glass::Glass)
-    D = glass.dispform
-
-    println(io, "**ID**$(glass.ID)\n")
-
-    if (D == -2)
-        println(io, "**Dispersion formula**Cauchy (-2)\n")
-    elseif (D == -1)
-        println(io, "**Dispersion formula**Fitted for model/MIL glass\n")
-    else
-        println(io, "**Dispersion formula**$(DISPFORM_NAMES[D]) ($D)\n")
-    end
-    println(io, "**Dispersion formula coefficients**\n")
-    println(io, "|Coefficient|Value|")
-    println(io, "|:----------|-----|")
-    if (D == -2) # Cauchy
-        println(io, "|A |$(glass.C1)|")
-        println(io, "|B |$(glass.C2)|")
-        println(io, "|C |$(glass.C3)|")
-        println(io, "|D |$(glass.C4)|")
-        println(io, "|E |$(glass.C5)|")
-        println(io, "|F |$(glass.C6)|")
-    elseif (D == -1)
-        println(io, "|C₀|$(glass.C1)|")
-        println(io, "|C₁|$(glass.C2)|")
-        println(io, "|C₂|$(glass.C3)|")
-        println(io, "|C₃|$(glass.C4)|")
-    elseif (D == 1) # Schott
-        println(io, "|a₀|$(glass.C1)|")
-        println(io, "|a₁|$(glass.C2)|")
-        println(io, "|a₂|$(glass.C3)|")
-        println(io, "|a₃|$(glass.C4)|")
-        println(io, "|a₄|$(glass.C5)|")
-        println(io, "|a₅|$(glass.C6)|")
-    elseif (D == 2)  # Sellmeier1
-        println(io, "|K₁|$(glass.C1)|")
-        println(io, "|L₁|$(glass.C2)|")
-        println(io, "|K₂|$(glass.C3)|")
-        println(io, "|L₂|$(glass.C4)|")
-        println(io, "|K₃|$(glass.C5)|")
-        println(io, "|L₃|$(glass.C6)|")
-    elseif (D == 3)  # Herzberger
-        println(io, "|A |$(glass.C1)|")
-        println(io, "|B |$(glass.C2)|")
-        println(io, "|C |$(glass.C3)|")
-        println(io, "|D |$(glass.C4)|")
-        println(io, "|E |$(glass.C5)|")
-        println(io, "|F |$(glass.C6)|")
-    elseif (D == 4)  # Sellmeier2
-        println(io, "|A |$(glass.C1)|")
-        println(io, "|B₁|$(glass.C2)|")
-        println(io, "|λ₁|$(glass.C3)|")
-        println(io, "|B₂|$(glass.C4)|")
-        println(io, "|λ₂|$(glass.C5)|")
-    elseif (D == 5)  # Conrady
-        println(io, "|n₀|$(glass.C1)|")
-        println(io, "|A |$(glass.C2)|")
-        println(io, "|B |$(glass.C3)|")
-    elseif (D == 6)  # Sellmeier3
-        println(io, "|K₁|$(glass.C1)|")
-        println(io, "|L₁|$(glass.C2)|")
-        println(io, "|K₂|$(glass.C3)|")
-        println(io, "|L₂|$(glass.C4)|")
-        println(io, "|K₃|$(glass.C5)|")
-        println(io, "|L₃|$(glass.C6)|")
-        println(io, "|K₄|$(glass.C7)|")
-        println(io, "|L₄|$(glass.C8)|")
-    elseif (D == 7) || (D == 8)  # HandbookOfOptics1/2
-        println(io, "|A |$(glass.C1)|")
-        println(io, "|B |$(glass.C2)|")
-        println(io, "|C |$(glass.C3)|")
-        println(io, "|D |$(glass.C4)|")
-    elseif (D == 9)  # Sellmeier4
-        println(io, "|A |$(glass.C1)|")
-        println(io, "|B |$(glass.C2)|")
-        println(io, "|C |$(glass.C3)|")
-        println(io, "|D |$(glass.C4)|")
-        println(io, "|E |$(glass.C5)|")
-    elseif (D == 10) || (D == 12) # Extended1/2
-        println(io, "|a₀|$(glass.C1)|")
-        println(io, "|a₁|$(glass.C2)|")
-        println(io, "|a₂|$(glass.C3)|")
-        println(io, "|a₃|$(glass.C4)|")
-        println(io, "|a₄|$(glass.C5)|")
-        println(io, "|a₅|$(glass.C6)|")
-        println(io, "|a₆|$(glass.C7)|")
-        println(io, "|a₇|$(glass.C8)|")
-    elseif (D == 11)  # Sellmeier5
-        println(io, "|K₁|$(glass.C1)|")
-        println(io, "|L₁|$(glass.C2)|")
-        println(io, "|K₂|$(glass.C3)|")
-        println(io, "|L₂|$(glass.C4)|")
-        println(io, "|K₃|$(glass.C5)|")
-        println(io, "|L₃|$(glass.C6)|")
-        println(io, "|K₄|$(glass.C7)|")
-        println(io, "|L₄|$(glass.C8)|")
-        println(io, "|K₅|$(glass.C9)|")
-        println(io, "|L₅|$(glass.C10)|")
-    elseif (D == 13)  # Extended3
-        println(io, "|a₀|$(glass.C1)|")
-        println(io, "|a₁|$(glass.C2)|")
-        println(io, "|a₂|$(glass.C3)|")
-        println(io, "|a₃|$(glass.C4)|")
-        println(io, "|a₄|$(glass.C5)|")
-        println(io, "|a₅|$(glass.C6)|")
-        println(io, "|a₆|$(glass.C7)|")
-        println(io, "|a₇|$(glass.C8)|")
-        println(io, "|a₈|$(glass.C9)|")
-    else
-        println(io, "     INVALID DISPERSION FORMULA!!\n")
-    end
-    println(io)
-
-    println(io, "**Valid wavelengths**$(glass.λmin)μm to $(glass.λmax)μm\n")
-    println(io, "**Reference temperature**$(glass.temp)°C\n")
-
-    if !isnan(glass.D₀) && (glass.D₀ != 0 || glass.D₁ != 0 || glass.D₂ != 0 || glass.E₀ != 0 || glass.E₁ != 0)
-        println(io, "**Thermal ΔRI coefficients**\n")
-        println(io, "|Coefficient                 |Value      |")
-        println(io, "|:---------------------------|-----------|")
-        println(io, "|D₀                          |$(glass.D₀)|")
-        println(io, "|D₁                          |$(glass.D₁)|")
-        println(io, "|D₂                          |$(glass.D₂)|")
-        println(io, "|E₀                          |$(glass.E₀)|")
-        println(io, "|E₁                          |$(glass.E₁)|")
-        println(io, "|λₜₖ                          |$(glass.λₜₖ)|")
-        println(io)
-    end
-
-    println(io, "**TCE (÷1e-6)**$(glass.TCE)\n")
-    println(io, "**Ignore thermal expansion**$(glass.ignore_thermal_exp == 1)\n")
-
-    println(io, "**Density (p)**$(glass.p)g/m³\n")
-    println(io, "**ΔPgF**$(glass.ΔPgF)\n")
-
-    println(io, "**RI at sodium D-Line (587nm)**$(glass.Nd)\n")
-    println(io, "**Abbe Number**$(glass.Vd)\n")
-
-    println(io, "**Cost relative to N_BK7**$(glass.relcost == -1 ? "?" : glass.relcost)\n")
-
-    if glass.CR != -1 || glass.FR != -1 || glass.SR != -1 || glass.AR != -1 || glass.PR != -1
-        println(io, "**Environmental resistance**\n")
-        println(io, "|Environment   |Resistance                        |")
-        println(io, "|:-------------|----------------------------------|")
-        println(io, "|Climate (CR)  |$(glass.CR == -1 ? "?" : glass.CR)|")
-        println(io, "|Stain (FR)    |$(glass.FR == -1 ? "?" : glass.FR)|")
-        println(io, "|Acid (SR)     |$(glass.SR == -1 ? "?" : glass.SR)|")
-        println(io, "|Alkaline (AR) |$(glass.AR == -1 ? "?" : glass.AR)|")
-        println(io, "|Phosphate (PR)|$(glass.PR == -1 ? "?" : glass.PR)|")
-        println(io)
-    end
-
-    println(io, "**Status**$(STATUS[glass.status + 1]) ($(glass.status))\n")
-    println(io, "**Melt frequency**$(glass.meltfreq == -1 ? "?" : glass.meltfreq)\n")
-    println(io, "**Exclude substitution**$(glass.exclude_sub == 1)\n")
-
-    if glass.transmission !== nothing
-        println(io, "**Transmission data**\n")
-        println(io, "|Wavelength|Transmission|Thickness|")
-        println(io, "|----------|------------|---------|")
-        for i in 1:(glass.transmissionN)
-            λ, t, τ = glass.transmission[i]
-            println(io, "|$(λ)μm|$t|$(τ)mm|")
-        end
-    end
-end

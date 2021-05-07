@@ -8,7 +8,7 @@ using OpticSim
 makedocs(
     sitename = "OpticSim.jl",
     format = Documenter.HTML(
-        prettyurls = get(ENV, "CI", nothing) == "true",
+        # prettyurls = get(ENV, "CI", nothing) == "true",
         assets = [asset("assets/logo.svg", class = :ico, islocal = true)],
     ),
     modules = [OpticSim],
@@ -23,7 +23,6 @@ makedocs(
         "Optical" => [
             "Systems" => "systems.md",
             "Emitters" => "emitters.md",
-            "Emitters (NEW)" => "emitters_new.md",
             "Interfaces" => "interfaces.md",
             "Lenses" => "lenses.md"
         ],

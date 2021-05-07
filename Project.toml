@@ -2,7 +2,7 @@ name = "OpticSim"
 uuid = "24114763-4efb-45e7-af0e-cde916beb153"
 authors = ["Brian Guenter", "Charlie Hewitt", "Ran Gal", "Alfred Wong"]
 repository = "https://github.com/microsoft/OpticSim.jl"
-version = "0.4.3"
+version = "0.5.0-DEV"
 
 [deps]
 Blink = "ad839575-38b3-5650-b840-f874b8c74a25"
@@ -56,11 +56,11 @@ Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
 [compat]
 CSV = "0.8"
 ColorSchemes = "3.10"
-ColorTypes = "0.10"
+ColorTypes = "0.10, 0.11"
 Colors = "0.12"
 Conda = "1.5"
-DataFrames = "0.22"
-Distributions = "0.24"
+DataFrames = "0.22, 1.0"
+Distributions = "0.24, 0.25"
 FileIO = "1.4"
 Format = "1.3"
 ForwardDiff = "0.10"
