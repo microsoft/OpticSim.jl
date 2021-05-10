@@ -11,6 +11,7 @@ module Emitters
 export generate, visual_size, apply
 export right, up, forward
 export Spectrum, Directions, Origins, AngularPower, Sources
+export pointemitter, collimatedemitter
 
 using ...OpticSim, ..Geometry
 using LinearAlgebra
