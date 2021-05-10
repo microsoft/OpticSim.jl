@@ -231,7 +231,7 @@ function validate_axisymmetricopticalsystem_dataframe(prescription::DataFrame)
         "Material" => GlassCat.AbstractGlass,
         "SemiDiameter" => Real
     ]
-    supported_surface_types = ["Object", "Stop", "Image", "Standard", "Conic", "Aspheric", "Zernike"]
+    supported_surface_types = ["Object", "Stop", "Image", "Standard", "Aspheric", "Zernike"]
 
     # check that required headers are present
     @assert issubset(first.(required_headers), names(prescription))
@@ -252,6 +252,14 @@ function validate_axisymmetricopticalsystem_dataframe(prescription::DataFrame)
 
     # check that there is only one Image and that it is the last surface
     @assert findall(s->s==="Image", surface_types) == [nrow(prescription)]
+end
+
+function get_front_back_property(prescription::DataFrame, rownum::Int, property::String, default=nothing)
+    properties = (
+        property ∈ names(prescription) ?
+        [prescription[rownum, property], prescription[rownum + 1, property]] : repeat([missing], 2)
+    )
+    return replace(properties, missing => default)
 end
 
 """
@@ -295,108 +303,92 @@ struct AxisymmetricOpticalSystem{T,C<:CSGOpticalSystem{T}} <: AbstractOpticalSys
 
         elements = Vector{Union{Surface{T},CSGTree{T}}}()
         systemsemidiameter = zero(T)
-        sumstart = prescription[1, "SurfaceType"] == "Object" ? 2 : 1
         firstelement = true
 
-        for i in 1:(nrow(prescription) - 1)
-            surfacetype = prescription[i, "SurfaceType"]
-            material = prescription[i, "Material"]
+        # track sequential movement along the z-axis
+        vertices = convert(Vector{T}, -cumsum(replace(prescription[!, "Thickness"], Inf => 0, missing => 0)))
 
-            if surfacetype == "Stop"
-                stop = CircularAperture(
+        # pre-construct list of rows which we will skip over (e.g. air gaps, but never Stop surfaces)
+        # later on, this may get more complicated as we add in compound surfaces
+        function skip_row(i::Int)
+            return (
+                prescription[i, "SurfaceType"] != "Stop" &&
+                (prescription[i, "Material"] === missing || prescription[i, "Material"] == GlassCat.Air)
+            )
+        end
+        skips = skip_row.(1:nrow(prescription))
+
+        for i in 2:nrow(prescription)-1
+            if skips[i]
+                continue
+            end
+
+            surface_type = prescription[i, "SurfaceType"]
+            lastmaterial, material, nextmaterial = prescription[i-1:i+1, "Material"]
+            thickness = convert(T, prescription[i, "Thickness"])
+
+            frontradius, backradius = get_front_back_property(prescription, i, "Radius")
+            frontsurfacereflectance, backsurfacereflectance = get_front_back_property(
+                prescription, i, "Reflectance", zero(T)
+            )
+
+            semidiameter = NaN
+
+            if surface_type == "Stop"
+                newelement = CircularAperture(
                     convert(T, prescription[i, "SemiDiameter"]),
                     SVector{3,T}(0.0, 0.0, 1.0),
-                    SVector{3,T}(0.0, 0.0, convert(T, -sum(prescription[sumstart:(i - 1), "Thickness"])))
+                    SVector{3,T}(0.0, 0.0, vertices[i-1])
                 )
-                push!(elements, stop)
-            elseif material == OpticSim.GlassCat.Air || material === missing
-                continue
-            else
-                frontsurfacereflectance = backsurfacereflectance = frontconic = backconic = zero(T)
-                frontaspherics = backaspherics = nothing
+            elseif surface_type == "Standard"
+                semidiameter = convert(T, max(get_front_back_property(prescription, i, "SemiDiameter", zero(T))...))
+                frontconic, backconic = get_front_back_property(prescription, i, "Conic", zero(T))
 
-                semidiameter::T = max(prescription[i, "SemiDiameter"], prescription[i + 1, "SemiDiameter"])
-                if firstelement
-                    systemsemidiameter = semidiameter
-                    firstelement = false
-                end
-
-                vertex::T = -sum(prescription[sumstart:(i - 1), "Thickness"])
-                frontradius::T = prescription[i, "Radius"]
-                backradius::T = prescription[i + 1, "Radius"]
-
-                if "Reflectance" in names(prescription)
-                    temp = prescription[i, "Reflectance"]
-                    if temp !== missing
-                        frontsurfacereflectance = temp
-                    end
-                    temp = prescription[i + 1, "Reflectance"]
-                    if temp !== missing
-                        backsurfacereflectance = temp
-                    end
-                end
-
-                if "Conic" in names(prescription)
-                    temp = prescription[i, "Conic"]
-                    if temp !== missing
-                        frontconic = temp
-                    end
-                    temp = prescription[i + 1, "Conic"]
-                    if temp !== missing
-                        backconic = temp
-                    end
-                end
-
-                if "Aspherics" in names(prescription)
-                    temp = prescription[i, "Aspherics"]
-                    if temp !== missing
-                        frontaspherics = temp
-                    end
-                    temp = prescription[i + 1, "Aspherics"]
-                    if temp !== missing
-                        backaspherics = temp
-                    end
-                end
-
-                lastmaterial = prescription[i - 1, "Material"]
-                nextmaterial = prescription[i + 1, "Material"]
-
-                thickness = convert(T, prescription[i, "Thickness"])
-
-                if frontaspherics !== nothing || backaspherics !== nothing
-                    newelt = AsphericLens(
-                        material, vertex, frontradius, frontconic, frontaspherics, backradius, backconic,
-                        backaspherics, thickness, semidiameter; lastmaterial, nextmaterial,
-                        frontsurfacereflectance, backsurfacereflectance
-                    )
-                elseif frontconic != zero(T) || backconic != zero(T)
-                    newelt = ConicLens(
-                        material, vertex, frontradius, frontconic, backradius, backconic, thickness,
-                        semidiameter; lastmaterial, nextmaterial, frontsurfacereflectance,
-                        backsurfacereflectance
-                    )
+                if frontconic != zero(T) || backconic != zero(T)
+                    newelement = ConicLens(
+                        material, vertices[i-1], frontradius, frontconic, backradius, backconic, thickness,
+                        semidiameter; lastmaterial, nextmaterial, frontsurfacereflectance, backsurfacereflectance
+                    )()
                 else
-                    newelt = SphericalLens(
-                        material, vertex, frontradius, backradius, thickness, semidiameter; lastmaterial,
-                        nextmaterial, frontsurfacereflectance, backsurfacereflectance
-                    )
+                    newelement = SphericalLens(
+                        material, vertices[i-1], frontradius, backradius, thickness, semidiameter;
+                        lastmaterial, nextmaterial, frontsurfacereflectance, backsurfacereflectance
+                    )()
                 end
+            elseif surface_type == "Aspheric"
+                semidiameter = convert(T, max(get_front_back_property(prescription, i, "SemiDiameter", zero(T))...))
+                frontconic, backconic = get_front_back_property(prescription, i, "Conic", zero(T))
+                frontaspherics, backaspherics = get_front_back_property(prescription, i, "Parameters")
 
-                push!(elements, newelt())
+                newelement = AsphericLens(
+                    material, vertices[i-1], frontradius, frontconic, frontaspherics, backradius, backconic,
+                    backaspherics, thickness, semidiameter; lastmaterial, nextmaterial, frontsurfacereflectance,
+                    backsurfacereflectance
+                )()
+            else
+                error(
+                    "Unsupported surface type \"$surface_type\". If you'd like to add support for this surface, ",
+                    "please create an issue at https://github.com/microsoft/OpticSim.jl/issues/new."
+                )
             end
+
+            if firstelement && semidiameter !== NaN
+                systemsemidiameter = semidiameter
+                firstelement = false
+            end
+
+            push!(elements, newelement)
         end
 
-        indexofimage = findfirst(isequal("Image"), prescription[!, "SurfaceType"])
-        imagesize = prescription[indexofimage, "SemiDiameter"]
-        vertextoimage = convert(T, -sum(prescription[sumstart:(indexofimage - 1), "Thickness"]))
-        imagerad = prescription[indexofimage, "Radius"]
-
+        # make the detector (Image)
+        imagesize = prescription[end, "SemiDiameter"]
+        imagerad = prescription[end, "Radius"]
         if imagerad != zero(T) && imagerad != typemax(T)
             det = SphericalCap(
                 abs(imagerad),
                 NaNsafeasin(imagesize / abs(imagerad)),
                 imagerad < 0 ? SVector{3,T}(0, 0, 1) : SVector{3,T}(0, 0, -1),
-                SVector{3,T}(0, 0, vertextoimage),
+                SVector{3,T}(0, 0, vertices[end-1]),
                 interface = opaqueinterface(T)
             )
         else
@@ -404,7 +396,7 @@ struct AxisymmetricOpticalSystem{T,C<:CSGOpticalSystem{T}} <: AbstractOpticalSys
                 convert(T, imagesize),
                 convert(T, imagesize),
                 SVector{3,T}(0, 0, 1),
-                SVector{3,T}(0, 0, vertextoimage),
+                SVector{3,T}(0, 0, vertices[end-1]),
                 interface = opaqueinterface(T)
             )
         end
@@ -412,7 +404,6 @@ struct AxisymmetricOpticalSystem{T,C<:CSGOpticalSystem{T}} <: AbstractOpticalSys
         system = CSGOpticalSystem(
             OpticSim.LensAssembly(elements...), det, detectorpixelsx, detectorpixelsy, D; temperature, pressure
         )
-
         return new{T,typeof(system)}(system, prescription, systemsemidiameter)
     end
 
