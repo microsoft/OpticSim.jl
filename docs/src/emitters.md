@@ -30,6 +30,7 @@ The [`OpticSim`](index.html) package comes with various implementations of each 
   * [`Emitters.Directions.RectGrid`](@ref)
   * [`Emitters.Directions.UniformCone`](@ref)
   * [`Emitters.Directions.HexapolarCone`](@ref)
+
 ## [Examples of Basic Emitters](@id basic_emitters)
 
 **Note**: All of the examples on this page assume that the following statement was executed:
@@ -37,6 +38,7 @@ The [`OpticSim`](index.html) package comes with various implementations of each 
 ```@example
 using OpticSim, OpticSim.Geometry, OpticSim.Emitters
 ```
+
 ### Simple functions for creating commonly used emitters
 Many optical systems by convention have their optical axis parallel to the z axis. These utility functions provide a simple interface to the Emitters package to create emitters that direct their rays in the negative z direction, toward the entrance of the optical system.
 
