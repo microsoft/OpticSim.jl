@@ -39,6 +39,59 @@ The [`OpticSim`](index.html) package comes with various implementations of each 
 using OpticSim, OpticSim.Geometry, OpticSim.Emitters
 ```
 
+### Simple functions for creating commonly used emitters
+Many optical systems by convention have their optical axis parallel to the z axis. These utility functions provide a simple interface to the Emitters package to create emitters that direct their rays in the negative z direction, toward the entrance of the optical system.
+
+```@docs
+Emitters.pointemitter
+```
+
+```@example
+using OpticSim, OpticSim.Geometry, OpticSim.Emitters # hide
+pt = Emitters.pointemitter([0.0,0.0,.5],.3)
+Vis.draw(pt, debug=true)
+Vis.save("assets/emitters_example_pointemitter.png") # hide
+nothing #hide
+```
+
+```@raw html
+<table><tr>
+<td>
+<a target="_blank" href="../assets/emitters_example_pointemitter.png">
+    <img width="250" src="../assets/emitters_example_pointemitter.png" style="max-width:100%;">
+</a>
+</td>
+<td valign="middle">
+An example of a standard point emitter
+</td>
+</tr></table>
+```
+
+```@docs
+Emitters.collimatedemitter
+```
+
+```@example
+using OpticSim, OpticSim.Geometry, OpticSim.Emitters # hide
+pt = Emitters.collimatedemitter([0.0,0.0,1.0],.5)
+Vis.draw(pt, debug=true)
+Vis.save("assets/emitters_example_collimatedemitter.png") # hide
+nothing #hide
+```
+
+```@raw html
+<table><tr>
+<td>
+<a target="_blank" href="../assets/emitters_example_collimatedemitter.png">
+    <img width="250" src="../assets/emitters_example_collimatedemitter.png" style="max-width:100%;">
+</a>
+</td>
+<td valign="middle">
+An example of a standard collimated emitter
+</td>
+</tr></table>
+```
+
 ### Point origin with various Direction distributions
 ```@example
 using OpticSim, OpticSim.Geometry, OpticSim.Emitters # hide
