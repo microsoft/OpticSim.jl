@@ -224,34 +224,51 @@ end
 ######################################################################################################################
 
 function validate_axisymmetricopticalsystem_dataframe(prescription::DataFrame)
-    required_headers = [
+    # note: there's a slight difference between `col_types` and `surface_types` below: the former refers to the types of
+    # the prescription DataFrame columns; the former refers to the actual `surface_type` values, which are all strings
+    required_cols = ["SurfaceType", "Radius", "Thickness", "Material", "SemiDiameter"]
+    supported_col_types = Dict(
         "SurfaceType" => String,
         "Radius" => Real,
         "Thickness" => Real,
         "Material" => GlassCat.AbstractGlass,
-        "SemiDiameter" => Real
-    ]
+        "SemiDiameter" => Real,
+        "Reflectance" => Real,
+        "Parameters" => Vector{<:Real},
+        "OptimizeRadius" => Bool,
+        "OptimizeThickness" => Bool,
+    )
+    cols = names(prescription)
+
     supported_surface_types = ["Object", "Stop", "Image", "Standard", "Aspheric", "Zernike"]
-
-    # check that required headers are present
-    @assert issubset(first.(required_headers), names(prescription))
-
-    # check that required columns have the right type (allow missing)
-    @assert all(T1 <: Union{Missing, T2} for (T1, T2) in zip(
-        eltype.(eachcol(prescription[!, first.(required_headers)])),
-        last.(required_headers)
-    ))
-
     surface_types = prescription[!, "SurfaceType"]
 
-    # check that only support surface types are listed
-    @assert issubset(surface_types, supported_surface_types)
+    comma_join(l::Vector{<:AbstractString}) = join(l, ", ", ", and ")
 
-    # check that there is only one Object and that it is the first surface
-    @assert findall(s->s==="Object", surface_types) == [1]
+    missing_cols = setdiff(required_cols, cols)
+    @assert isempty(missing_cols) "missing required columns: $(comma_join(missing_cols))"
 
-    # check that there is only one Image and that it is the last surface
-    @assert findall(s->s==="Image", surface_types) == [nrow(prescription)]
+    unsupported_cols = setdiff(cols, keys(supported_col_types))
+    @assert isempty(unsupported_cols) "unsupported columns: $(comma_join(unsupported_cols))"
+
+    col_type_errors = ["$col: $T1 should be $T2" for (col, T1, T2) in
+        [(col, eltype(prescription[!, col]), supported_col_types[col]) for col in cols]
+        if !(T1 <: Union{Missing, T2})
+    ]
+    @assert isempty(col_type_errors) "incorrect column types: $(comma_join(col_type_errors))"
+
+    unsupported_surface_types = setdiff(surface_types, supported_surface_types)
+    @assert isempty(unsupported_surface_types) "unsupported surface types: $(comma_join(unsupported_surface_types))"
+
+    @assert(
+        findall(s->s==="Object", surface_types) == [1],
+        "there should only be one Object surface and it should be the first row"
+    )
+
+    @assert(
+        findall(s->s==="Image", surface_types) == [nrow(prescription)],
+         "there should only be one Image surface and it should be the last row"
+    )
 end
 
 function get_front_back_property(prescription::DataFrame, rownum::Int, property::String, default=nothing)
