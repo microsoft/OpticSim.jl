@@ -375,7 +375,10 @@ struct AxisymmetricOpticalSystem{T,C<:CSGOpticalSystem{T}} <: AbstractOpticalSys
             elseif surface_type == "Aspheric"
                 semidiameter = convert(T, max(get_front_back_property(prescription, i, "SemiDiameter", zero(T))...))
                 frontconic, backconic = get_front_back_property(prescription, i, "Conic", zero(T))
-                frontaspherics, backaspherics = get_front_back_property(prescription, i, "Parameters")
+                frontparams, backparams = get_front_back_property(prescription, i, "Parameters", Vector{Float64}())
+                frontaspherics, backaspherics = [
+                    [(i, p[i]) for i in 1:length(p) if p[i] != 0] for p in [frontparams, backparams]
+                ]
 
                 newelement = AsphericLens(
                     material, vertices[i-1], frontradius, frontconic, frontaspherics, backradius, backconic,
