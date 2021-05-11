@@ -37,9 +37,9 @@ function cooketriplet(::Type{T} = Float64, detpix::Int = 1000) where {T<:Real}
         DataFrame(
             SurfaceType = ["Object", "Standard", "Standard", "Standard", "Stop", "Standard", "Standard", "Image"],
             Radius = [Inf, 26.777, 66.604, -35.571, 35.571, 35.571, -26.777, Inf],
-            OptimizeRadius = [false, true, true, true, true, true, true, false],
+            # OptimizeRadius = [false, true, true, true, true, true, true, false],
             Thickness = [Inf, 4.0, 2.0, 4.0, 2.0, 4.0, 44.748, missing],
-            OptimizeThickness = [false, true, true, true, true, true, true, false],
+            # OptimizeThickness = [false, true, true, true, true, true, true, false],
             Material = [Air, SCHOTT.N_SK16, Air, SCHOTT.N_SF2, Air, SCHOTT.N_SK16, Air, missing],
             SemiDiameter = [Inf, 8.580, 7.513, 7.054, 6.033, 7.003, 7.506, 15.0]
         ),
@@ -77,9 +77,9 @@ function doubleconvex(frontradius::T,rearradius::T) where{T<:Real}
         DataFrame(
             SurfaceType = ["Object", "Standard", "Standard", "Image"],
             Radius = [convert(T, Inf64), frontradius, rearradius, convert(T, Inf64)],
-            OptimizeRadius = [false, true, true, false],
+            # OptimizeRadius = [false, true, true, false],
             Thickness = [convert(T, Inf64), convert(T, 10.0), convert(T, 57.8), missing],
-            OptimizeThickness = [false, false, false, false],
+            # OptimizeThickness = [false, false, false, false],
             Material = [Air, SCHOTT.N_BK7, Air, missing],
             SemiDiameter = [convert(T, Inf64), convert(T, 9.0), convert(T, 9.0), convert(T, 15.0)]
         )
@@ -91,11 +91,11 @@ function doubleconvexconic(::Type{T} = Float64) where {T<:Real}
         DataFrame(
             SurfaceType = ["Object", "Standard", "Standard", "Image"],
             Radius = [Inf64, 60, -60, Inf64],
-            OptimizeRadius = [false, true, true, false],
+            # OptimizeRadius = [false, true, true, false],
             Thickness = [Inf64, 10.0, 57.8, missing],
-            OptimizeThickness = [false, false, false, false],
+            # OptimizeThickness = [false, false, false, false],
             Conic = [missing, 0.01, 0.01, missing],
-            OptimizeConic = [false, true, true, false],
+            # OptimizeConic = [false, true, true, false],
             Material = [Air, SCHOTT.N_BK7, Air, missing],
             SemiDiameter = [Inf64, 9.0, 9.0, 15.0]
         )
@@ -107,9 +107,9 @@ function doubleconvexlensonly(frontradius::T,rearradius::T) where{T<:Real}
         DataFrame(
             SurfaceType = ["Object", "Standard", "Standard", "Image"],
             Radius = [convert(T, Inf64), frontradius, rearradius, convert(T, Inf64)],
-            OptimizeRadius = [false, true, true, false],
+            # OptimizeRadius = [false, true, true, false],
             Thickness = [convert(T, Inf64), convert(T, 10.0), convert(T, 57.8), missing],
-            OptimizeThickness = [false, false, false, false],
+            # OptimizeThickness = [false, false, false, false],
             Material = [Air, SCHOTT.N_BK7, Air, missing],
             SemiDiameter = [convert(T, Inf64), convert(T, 9.0), convert(T, 9.0), convert(T, 15.0)]
         )
@@ -125,9 +125,9 @@ function doubleconvex(
         DataFrame(
             SurfaceType = ["Object", "Standard", "Standard", "Image"],
             Radius = [Inf64, 60, -60, Inf64],
-            OptimizeRadius = [false, true, true, false],
+            # OptimizeRadius = [false, true, true, false],
             Thickness = [Inf64, 10.0, 57.8, missing],
-            OptimizeThickness = [false, true, true, false],
+            # OptimizeThickness = [false, true, true, false],
             Material = [Air, SCHOTT.N_BK7, Air, missing],
             SemiDiameter = [Inf64, 9.0, 9.0, 15.0]
         );

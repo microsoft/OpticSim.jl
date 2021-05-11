@@ -233,17 +233,16 @@ function validate_axisymmetricopticalsystem_dataframe(prescription::DataFrame)
         "Thickness" => Real,
         "Material" => GlassCat.AbstractGlass,
         "SemiDiameter" => Real,
+        "Conic" => Real,
         "Reflectance" => Real,
         "Parameters" => Vector{<:Real},
-        "OptimizeRadius" => Bool,
-        "OptimizeThickness" => Bool,
     )
     cols = names(prescription)
 
     supported_surface_types = ["Object", "Stop", "Image", "Standard", "Aspheric", "Zernike"]
     surface_types = prescription[!, "SurfaceType"]
 
-    comma_join(l::Vector{<:AbstractString}) = join(l, ", ", ", and ")
+    comma_join(l::Vector{<:AbstractString}) = join(l, ", ", " and ")
 
     missing_cols = setdiff(required_cols, cols)
     @assert isempty(missing_cols) "missing required columns: $(comma_join(missing_cols))"
@@ -284,8 +283,8 @@ end
 
 Optical system which has lens elements and an image detector, created from a `DataFrame` containing prescription data.
 
-These tags are supported for columns: `:Radius`, `:SemiDiameter`, `:SurfaceType`, `:Thickness`, `:Conic`, `:Aspherics`,
-`:Reflectance`, `:Material`, `:OptimizeRadius`, `:OptimizeThickness`, `:OptimizeConic`.
+These tags are supported for columns: `:Radius`, `:SemiDiameter`, `:SurfaceType`, `:Thickness`, `:Conic`, `:Parameters`,
+`:Reflectance`, `:Material`.
 
 These tags are supported for entries in a `SurfaceType` column: `Object`, `Image`, `Stop`. Assumes the `Image` row will
 be the last row in the `DataFrame`.
