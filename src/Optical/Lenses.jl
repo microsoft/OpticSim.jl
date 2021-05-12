@@ -35,7 +35,7 @@ export ConicLens
 
 Cosntructs a simple cylindrical lens with front and back surfaces with a radius, conic and apsheric terms. The side walls of the lens are absorbing.
 """
-function AsphericLens(insidematerial::T, frontvertex::S, frontradius::S, frontconic::S, frontaspherics::Union{Nothing,Vector{Tuple{Int,S}}}, backradius::S, backconic::S, backaspherics::Union{Nothing,Vector{Tuple{Int,S}}}, thickness::S, semidiameter::S; lastmaterial::Q = OpticSim.GlassCat.Air, nextmaterial::R = OpticSim.GlassCat.Air, frontsurfacereflectance::S = zero(S), backsurfacereflectance::S = zero(S), nsamples::Int = 17, frontdecenter::Tuple{S,S} = (zero(S), zero(S)), backdecenter::Tuple{S,S} = (zero(S), zero(S)), interfacemode = ReflectOrTransmit) where {R<:OpticSim.GlassCat.AbstractGlass,Q<:OpticSim.GlassCat.AbstractGlass,T<:OpticSim.GlassCat.AbstractGlass,S<:Real}
+function AsphericLens(insidematerial::T, frontvertex::S, frontradius::S, frontconic::S, frontaspherics::Union{Nothing,Vector{Pair{Int,S}}}, backradius::S, backconic::S, backaspherics::Union{Nothing,Vector{Pair{Int,S}}}, thickness::S, semidiameter::S; lastmaterial::Q = OpticSim.GlassCat.Air, nextmaterial::R = OpticSim.GlassCat.Air, frontsurfacereflectance::S = zero(S), backsurfacereflectance::S = zero(S), nsamples::Int = 17, frontdecenter::Tuple{S,S} = (zero(S), zero(S)), backdecenter::Tuple{S,S} = (zero(S), zero(S)), interfacemode = ReflectOrTransmit) where {R<:OpticSim.GlassCat.AbstractGlass,Q<:OpticSim.GlassCat.AbstractGlass,T<:OpticSim.GlassCat.AbstractGlass,S<:Real}
     @assert semidiameter > zero(S)
     @assert !isnan(frontradius)
 
@@ -118,7 +118,7 @@ export AsphericLens
 Create a Fresnel lens as a CSG object, can be concave or convex. Groove positions are found iteratively based on `groovedepth`. For negative radii the vertex on the central surface is at `frontvertex`, so the total thickness of the lens is `thickness` + `groovedepth`.
 **Aspherics currently not supported**.
 """
-function FresnelLens(insidematerial::G, frontvertex::T, radius::T, thickness::T, semidiameter::T, groovedepth::T; conic::T = 0.0, aspherics::Union{Nothing,Vector{Tuple{Int,T}}} = nothing, outsidematerial::H = OpticSim.GlassCat.Air, reverse::Bool = false) where {T<:Real,G<:OpticSim.GlassCat.AbstractGlass,H<:OpticSim.GlassCat.AbstractGlass}
+function FresnelLens(insidematerial::G, frontvertex::T, radius::T, thickness::T, semidiameter::T, groovedepth::T; conic::T = 0.0, aspherics::Union{Nothing,Vector{Pair{Int,T}}} = nothing, outsidematerial::H = OpticSim.GlassCat.Air, reverse::Bool = false) where {T<:Real,G<:OpticSim.GlassCat.AbstractGlass,H<:OpticSim.GlassCat.AbstractGlass}
     @assert abs(radius) > semidiameter
     interface = FresnelInterface{T}(insidematerial, outsidematerial)
 
