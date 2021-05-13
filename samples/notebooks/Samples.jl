@@ -28,7 +28,7 @@ begin
 	
 	# defining the optical system
 	sys_cooke = AxisymmetricOpticalSystem(
-		DataFrame(Surface = [:Object, 1, 2, 3, :Stop, 5, 6, :Image],
+		DataFrame(SurfaceType= ["Object", "Standard", "Standard", "Standard", "Stop", "Standard", "Standard", "Image"],
 				  Radius = [Inf, 26.777, 66.604, -35.571, 35.571, 35.571, -26.777, Inf],
 				  Thickness = [Inf, 4.0, 2.0, 4.0, 2.0, 4.0, 44.748, missing],
 				  Material = [OpticSim.GlassCat.Air, OpticSim.GlassCat.SCHOTT.N_SK16, OpticSim.GlassCat.Air, OpticSim.GlassCat.SCHOTT.N_SF2, OpticSim.GlassCat.Air, OpticSim.GlassCat.SCHOTT.N_SK16, OpticSim.GlassCat.Air, missing],

@@ -211,21 +211,21 @@ end
 #! format: off
 
 cooketriplet(::Type{T} = Float64) where {T<:Real} = AxisymmetricOpticalSystem{T}(
-    DataFrame(Surface = [:Object, 1, 2, 3, :Stop, 5, 6, :Image],
+    DataFrame(SurfaceType = ["Object", "Standard", "Standard", "Standard", "Stop", "Standard", "Standard", "Image"],
               Radius = [Inf, 26.777, 66.604, -35.571, 35.571, 35.571, -26.777, Inf],
               Thickness = [Inf, 4.0, 2.0, 4.0, 2.0, 4.0, 44.748, missing],
               Material = [OpticSim.GlassCat.Air, OpticSim.GlassCat.SCHOTT.N_SK16, OpticSim.GlassCat.Air, OpticSim.GlassCat.SCHOTT.N_SF2, OpticSim.GlassCat.Air, OpticSim.GlassCat.SCHOTT.N_SK16, OpticSim.GlassCat.Air, missing],
               SemiDiameter = [Inf, 8.580, 7.513, 7.054, 6.033, 7.003, 7.506, 15.0]))
 
 cooketripletfirstelement(::Type{T} = Float64) where {T<:Real} = AxisymmetricOpticalSystem(
-    DataFrame(Surface = [:Object, 1, 2, :Image],
+    DataFrame(SurfaceType = ["Object", "Standard", "Standard", "Image"],
               Radius = [Inf, -35.571, 35.571, Inf],
               Thickness = [Inf, 4.0, 44.748, missing],
               Material = [OpticSim.GlassCat.Air, OpticSim.GlassCat.SCHOTT.N_SK16, OpticSim.GlassCat.Air, missing],
               SemiDiameter = [Inf, 7.054, 6.033, 15.0]))
 
 convexplano(::Type{T} = Float64) where {T<:Real} = AxisymmetricOpticalSystem{T}(
-    DataFrame(Surface = [:Object, 1, 2, :Image],
+    DataFrame(SurfaceType = ["Object", "Standard", "Standard", "Image"],
               Radius = [Inf, 60.0, Inf, Inf],
               Thickness = [Inf, 10.0, 57.8, missing],
               Material = [OpticSim.GlassCat.Air, OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air, missing],
@@ -233,7 +233,7 @@ convexplano(::Type{T} = Float64) where {T<:Real} = AxisymmetricOpticalSystem{T}(
 
 doubleconvex(frontradius::T,rearradius::T) where{T<:Real} =
 AxisymmetricOpticalSystem{T}(
-    DataFrame(Surface = [:Object, 1, 2, :Image],
+    DataFrame(SurfaceType = ["Object", "Standard", "Standard", "Image"],
               Radius = [T(Inf64), frontradius, rearradius, T(Inf64)],
               Thickness = [T(Inf64), T(10.0), T(57.8), missing],
               Material = [OpticSim.GlassCat.Air, OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air, missing],
@@ -242,7 +242,7 @@ AxisymmetricOpticalSystem{T}(
 
 doubleconvex(::Type{T} = Float64; temperature::Unitful.Temperature = OpticSim.GlassCat.TEMP_REF_UNITFUL, pressure::Float64 = OpticSim.GlassCat.PRESSURE_REF) where {T<:Real} =
 AxisymmetricOpticalSystem{T}(
-    DataFrame(Surface = [:Object, 1, 2, :Image],
+    DataFrame(SurfaceType = ["Object", "Standard", "Standard", "Image"],
               Radius = [Inf64, 60, -60, Inf64],
               Thickness = [Inf64, 10.0, 57.8, missing],
               Material = [OpticSim.GlassCat.Air, OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air, missing],
@@ -250,14 +250,14 @@ AxisymmetricOpticalSystem{T}(
               temperature = temperature, pressure = T(pressure))
 
 doubleconcave(::Type{T} = Float64) where {T<:Real} = AxisymmetricOpticalSystem{T}(
-    DataFrame(Surface = [:Object, 1, 2, :Image],
+    DataFrame(SurfaceType = ["Object", "Standard", "Standard", "Image"],
               Radius = [Inf64, -41.0, 41.0, Inf64],
               Thickness = [Inf64, 10.0, 57.8, missing],
               Material = [OpticSim.GlassCat.Air, OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air, missing],
               SemiDiameter = [Inf64, 9.0, 9.0, 15.0]))
 
 planoconcaverefl(::Type{T} = Float64) where {T<:Real} = AxisymmetricOpticalSystem{T}(
-    DataFrame(Surface = [:Object, 1, 2, :Image],
+    DataFrame(SurfaceType = ["Object", "Standard", "Standard", "Image"],
               Radius = [Inf64, Inf64, -41.0, Inf64],
               Thickness = [Inf64, 10.0, -57.8, missing],
               Material = [OpticSim.GlassCat.Air, OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air, missing],
@@ -265,14 +265,14 @@ planoconcaverefl(::Type{T} = Float64) where {T<:Real} = AxisymmetricOpticalSyste
               Reflectance = [missing, missing, 1.0, missing]))
 
 concaveplano(::Type{T} = Float64) where {T<:Real} = AxisymmetricOpticalSystem{T}(
-    DataFrame(Surface = [:Object, 1, 2, :Image],
+    DataFrame(SurfaceType = ["Object", "Standard", "Standard", "Image"],
               Radius = [Inf64, -41.0, Inf64, Inf64],
               Thickness = [Inf64, 10.0, 57.8, missing],
               Material = [OpticSim.GlassCat.Air, OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air, missing],
               SemiDiameter = [Inf64, 9.0, 9.0, 15.0]))
 
 planoplano(::Type{T} = Float64) where {T<:Real} = AxisymmetricOpticalSystem{T}(
-    DataFrame(Surface = [:Object, 1, 2, :Image],
+    DataFrame(SurfaceType = ["Object", "Standard", "Standard", "Image"],
               Radius = [Inf64, Inf64, Inf64, Inf64],
               Thickness = [Inf64, 10.0, 57.8, missing],
               Material = [OpticSim.GlassCat.Air, OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air, missing],
