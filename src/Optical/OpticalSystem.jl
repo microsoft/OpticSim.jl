@@ -597,14 +597,14 @@ function traceMT(
                         print("\rTraced: ~ $t / $(length(sources))        Elapsed: $(dif)s        Left: $(left)s           ")
                     end
                 end
-                trace(system, generateray(sources, k), test = test)
+                trace(system, sources[k]; test)
             end
         else
             for k in f:l
                 if k % update_timesteps == 0
                     Threads.atomic_add!(total_traced, update_timesteps)
                 end
-                trace(system, generateray(sources, k), test = test)
+                trace(system, sources[k]; test)
             end
         end
     end
@@ -713,7 +713,7 @@ function tracehitsMT(
                         print("\rTraced: ~ $t / $(length(sources))        Elapsed: $(dif)s        Left: $(left)s           ")
                     end
                 end
-                lt = trace(system, generateray(sources, k), test = test)
+                lt = trace(system, sources[k]; test)
                 if lt !== nothing
                     push!(results[i], lt)
                 end
@@ -723,7 +723,7 @@ function tracehitsMT(
                 if k % update_timesteps == 0
                     Threads.atomic_add!(total_traced, update_timesteps)
                 end
-                lt = trace(system, generateray(sources, k), test = test)
+                lt = trace(system, sources[k]; test)
                 if lt !== nothing
                     push!(results[i], lt)
                 end
