@@ -235,7 +235,7 @@ function validate_axisymmetricopticalsystem_dataframe(prescription::DataFrame)
         "SemiDiameter" => Real,
         "Conic" => Real,
         "Reflectance" => Real,
-        "Parameters" => Vector{<:Real},
+        "Parameters" => Vector{<:Pair{<:AbstractString,<:Real}},
     )
     cols = names(prescription)
 
@@ -374,7 +374,12 @@ struct AxisymmetricOpticalSystem{T,C<:CSGOpticalSystem{T}} <: AbstractOpticalSys
             elseif surface_type == "Aspheric"
                 semidiameter = convert(T, max(get_front_back_property(prescription, i, "SemiDiameter", zero(T))...))
                 frontconic, backconic = get_front_back_property(prescription, i, "Conic", zero(T))
-                frontaspherics, backaspherics = get_front_back_property(prescription, i, "Parameters", Vector{Pair{Int,Float64}}())
+                frontparams, backparams = get_front_back_property(
+                    prescription, i, "Parameters", Vector{Pair{String,Float64}}()
+                )
+                frontaspherics, backaspherics = [
+                    [parse(Int, k) => v for (k, v) in params] for params in [frontparams, backparams]
+                ]
 
                 newelement = AsphericLens(
                     material, vertices[i-1], frontradius, frontconic, frontaspherics, backradius, backconic,

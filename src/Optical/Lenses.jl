@@ -100,6 +100,9 @@ function AsphericLens(insidematerial::T, frontvertex::S, frontradius::S, frontco
         end
     else
         #conic or aspheric
+        if backaspherics !== nothing
+            backaspherics = Tuple{Int,S}.(backaspherics)
+        end
         surf = AcceleratedParametricSurface(ZernikeSurface(semidiameter + backdecenter_l + S(0.01), radius = backradius, conic = backconic, aspherics = backaspherics), nsamples, interface = opticinterface(S, insidematerial, nextmaterial, backsurfacereflectance, interfacemode))
         lens_rear = leaf(surf, Transform{S}(zero(S), S(π), zero(S), backdecenter[1], backdecenter[2], frontvertex - thickness))
     end
