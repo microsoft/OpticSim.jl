@@ -68,11 +68,11 @@ struct Source{
 
     function Source(
         ::Type{T} = Float64;
-        transform::Tr = Transform(),
-        spectrum::S = Spectrum.Uniform(),
-        origins::O = Origins.Point(),
-        directions::D = Directions.Constant(),
-        power::P = AngularPower.Lambertian(),
+        transform::Tr = Transform(T),
+        spectrum::S = Spectrum.Uniform(T),
+        origins::O = Origins.Point(T),
+        directions::D = Directions.Constant(T),
+        power::P = AngularPower.Lambertian(T),
         sourcenum::Integer = 0
     ) where {
         Tr<:Transform,
