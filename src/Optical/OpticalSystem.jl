@@ -2,13 +2,14 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # See LICENSE in the project root for full license information.
 
+using DataFrames
+using Unitful.DefaultSymbols
+using .OpticSim.GlassCat: AbstractGlass, TEMP_REF, PRESSURE_REF, Glass, Air
+
 export AbstractOpticalSystem
 export CSGOpticalSystem, temperature, pressure, detectorimage, resetdetector!, assembly
 export AxisymmetricOpticalSystem, semidiameter
 export trace, traceMT, tracehits, tracehitsMT
-
-using DataFrames
-using Unitful.DefaultSymbols
 
 """
     AbstractOpticalSystem{T<:Real}
@@ -55,8 +56,8 @@ struct CSGOpticalSystem{T,D<:Number,S<:Surface{T},L<:LensAssembly{T}} <: Abstrac
         detectorpixelsx::Int = 1000,
         detectorpixelsy::Int = 1000,
         ::Type{D} = Float32;
-        temperature::Union{T,Unitful.Temperature} = convert(T, OpticSim.GlassCat.TEMP_REF),
-        pressure::T = convert(T, OpticSim.GlassCat.PRESSURE_REF)
+        temperature::Union{T,Unitful.Temperature} = convert(T, TEMP_REF),
+        pressure::T = convert(T, PRESSURE_REF)
     ) where {T<:Real,S<:Surface{T},L<:LensAssembly{T},D<:Number}
         @assert hasmethod(uv, (S, SVector{3,T})) "Detector must implement uv()"
         @assert hasmethod(uvtopix, (S, SVector{2,T}, Tuple{Int,Int})) "Detector must implement uvtopix()"
@@ -180,7 +181,7 @@ function trace(
             # this will almost always not apply as the detector will be in air, but it's possible that the detector is
             # not in air, in which case this is necessary
             if !isair(m)
-                mat = glassforid(m)::OpticSim.GlassCat.Glass
+                mat::Glass = glassforid(m)
                 nᵢ = index(mat, λ, temperature = temperature(system), pressure = pressure(system))::T
                 α = absorption(mat, λ, temperature = temperature(system), pressure = pressure(system))::T
                 if α > zero(T)
@@ -228,10 +229,10 @@ function validate_axisymmetricopticalsystem_dataframe(prescription::DataFrame)
     # the prescription DataFrame columns; the former refers to the actual `surface_type` values, which are all strings
     required_cols = ["SurfaceType", "Radius", "Thickness", "Material", "SemiDiameter"]
     supported_col_types = Dict(
-        "SurfaceType" => String,
+        "SurfaceType" => AbstractString,
         "Radius" => Real,
         "Thickness" => Real,
-        "Material" => GlassCat.AbstractGlass,
+        "Material" => AbstractGlass,
         "SemiDiameter" => Real,
         "Conic" => Real,
         "Reflectance" => Real,
@@ -312,54 +313,52 @@ struct AxisymmetricOpticalSystem{T,C<:CSGOpticalSystem{T}} <: AbstractOpticalSys
         detectorpixelsx::Int = 1000,
         detectorpixelsy::Int = 1000,
         ::Type{D} = Float32;
-        temperature::Union{T,Unitful.Temperature} = convert(T, OpticSim.GlassCat.TEMP_REF),
-        pressure::T = convert(T, OpticSim.GlassCat.PRESSURE_REF)
+        temperature::Union{T,Unitful.Temperature} = convert(T, TEMP_REF),
+        pressure::T = convert(T, PRESSURE_REF)
     ) where {T<:Real,D<:Number}
         validate_axisymmetricopticalsystem_dataframe(prescription)
 
-        elements = Vector{Union{Surface{T},CSGTree{T}}}()
-        systemsemidiameter = zero(T)
-        firstelement = true
+        elements::Vector{Union{Surface{T},CSGTree{T}}} = []
+        systemsemidiameter::T = zero(T)
+        firstelement::Bool = true
 
         # track sequential movement along the z-axis
-        vertices = convert(Vector{T}, -cumsum(replace(prescription[!, "Thickness"], Inf => 0, missing => 0)))
+        vertices::Vector{T} = -cumsum(replace(prescription[!, "Thickness"], Inf => 0, missing => 0))
 
         # pre-construct list of rows which we will skip over (e.g. air gaps, but never Stop surfaces)
         # later on, this may get more complicated as we add in compound surfaces
         function skip_row(i::Int)
             return (
                 prescription[i, "SurfaceType"] != "Stop" &&
-                (prescription[i, "Material"] === missing || prescription[i, "Material"] == GlassCat.Air)
+                (prescription[i, "Material"] === missing || prescription[i, "Material"] == Air)
             )
         end
-        skips = skip_row.(1:nrow(prescription))
+        skips::Vector{Bool} = skip_row.(1:nrow(prescription))
 
         for i in 2:nrow(prescription)-1
             if skips[i]
                 continue
             end
 
-            surface_type = prescription[i, "SurfaceType"]
-            lastmaterial, material, nextmaterial = prescription[i-1:i+1, "Material"]
-            thickness = convert(T, prescription[i, "Thickness"])
+            surface_type::String = prescription[i, "SurfaceType"]
+            lastmaterial::AbstractGlass, material::AbstractGlass, nextmaterial::AbstractGlass = prescription[i-1:i+1, "Material"]
+            thickness::T = prescription[i, "Thickness"]
 
-            frontradius, backradius = get_front_back_property(prescription, i, "Radius")
-            frontsurfacereflectance, backsurfacereflectance = get_front_back_property(
+            frontradius::T, backradius::T = get_front_back_property(prescription, i, "Radius")
+            frontsurfacereflectance::T, backsurfacereflectance::T = get_front_back_property(
                 prescription, i, "Reflectance", zero(T)
             )
+            frontconic::T, backconic::T = get_front_back_property(prescription, i, "Conic", zero(T))
+            frontparams::Vector{Pair{String,T}}, backparams::Vector{Pair{String,T}} = get_front_back_property(
+                prescription, i, "Parameters", Vector{Pair{String,T}}()
+            )
 
-            semidiameter = NaN
+            semidiameter::T = max(get_front_back_property(prescription, i, "SemiDiameter", zero(T))...)
 
             if surface_type == "Stop"
-                newelement = CircularAperture(
-                    convert(T, prescription[i, "SemiDiameter"]),
-                    SVector{3,T}(0.0, 0.0, 1.0),
-                    SVector{3,T}(0.0, 0.0, vertices[i-1])
-                )
+                semidiameter = prescription[i, "SemiDiameter"]
+                newelement = CircularAperture(semidiameter, SVector{3,T}(0, 0, 1), SVector{3,T}(0, 0, vertices[i-1]))
             elseif surface_type == "Standard"
-                semidiameter = convert(T, max(get_front_back_property(prescription, i, "SemiDiameter", zero(T))...))
-                frontconic, backconic = get_front_back_property(prescription, i, "Conic", zero(T))
-
                 if frontconic != zero(T) || backconic != zero(T)
                     newelement = ConicLens(
                         material, vertices[i-1], frontradius, frontconic, backradius, backconic, thickness,
@@ -372,12 +371,7 @@ struct AxisymmetricOpticalSystem{T,C<:CSGOpticalSystem{T}} <: AbstractOpticalSys
                     )()
                 end
             elseif surface_type == "Aspheric"
-                semidiameter = convert(T, max(get_front_back_property(prescription, i, "SemiDiameter", zero(T))...))
-                frontconic, backconic = get_front_back_property(prescription, i, "Conic", zero(T))
-                frontparams, backparams = get_front_back_property(
-                    prescription, i, "Parameters", Vector{Pair{String,Float64}}()
-                )
-                frontaspherics, backaspherics = [
+                frontaspherics::Vector{Pair{Int,T}}, backaspherics::Vector{Pair{Int,T}} = [
                     [parse(Int, k) => v for (k, v) in params] for params in [frontparams, backparams]
                 ]
 
@@ -393,7 +387,7 @@ struct AxisymmetricOpticalSystem{T,C<:CSGOpticalSystem{T}} <: AbstractOpticalSys
                 )
             end
 
-            if firstelement && semidiameter !== NaN
+            if firstelement
                 systemsemidiameter = semidiameter
                 firstelement = false
             end
@@ -402,8 +396,8 @@ struct AxisymmetricOpticalSystem{T,C<:CSGOpticalSystem{T}} <: AbstractOpticalSys
         end
 
         # make the detector (Image)
-        imagesize = prescription[end, "SemiDiameter"]
-        imagerad = prescription[end, "Radius"]
+        imagesize::T = prescription[end, "SemiDiameter"]
+        imagerad::T = prescription[end, "Radius"]
         if imagerad != zero(T) && imagerad != typemax(T)
             det = SphericalCap(
                 abs(imagerad),
@@ -414,8 +408,8 @@ struct AxisymmetricOpticalSystem{T,C<:CSGOpticalSystem{T}} <: AbstractOpticalSys
             )
         else
             det = Rectangle(
-                convert(T, imagesize),
-                convert(T, imagesize),
+                imagesize,
+                imagesize,
                 SVector{3,T}(0, 0, 1),
                 SVector{3,T}(0, 0, vertices[end-1]),
                 interface = opaqueinterface(T)

@@ -72,7 +72,7 @@ function convexplano(::Type{T} = Float64) where {T<:Real}
     )
 end
 
-function doubleconvex(frontradius::T,rearradius::T) where{T<:Real}
+function doubleconvex(frontradius::T, rearradius::T) where {T<:Real}
     AxisymmetricOpticalSystem{T}(
         DataFrame(
             SurfaceType = ["Object", "Standard", "Standard", "Image"],
