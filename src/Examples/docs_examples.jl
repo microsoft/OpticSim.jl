@@ -76,19 +76,18 @@ function draw_schmidtcassegraintelescope(filename::Union{Nothing,AbstractString}
         aspherics = [(4, 3.68090959e-7), (6, 2.73643352e-11), (8, 3.20036892e-14)]),
         17,
         interface = FresnelInterface{Float64}(SCHOTT.N_BK7, Air))
-    coverlens = csgintersection(
-        leaf(Cylinder(12.00075, 1.4)),
-        csgintersection(
-            leaf(topsurf), 
-            leaf(botsurf, Transform(rotmatd(0, 180, 0), Vec3(0.0, 0.0, -0.65)))))
+    coverlens = Cylinder(12.00075, 1.4) ∩ topsurf ∩ leaf(botsurf, Transform(rotmatd(0, 180, 0), Vec3(0.0, 0.0, -0.65)))
 
     # big mirror with a hole in it
-    bigmirror = csgdifference(
-        ConicLens(SCHOTT.N_BK7, -72.65, -95.2773500000134, 0.077235, Inf, 0.0, 0.2, 12.18263, frontsurfacereflectance = 1.0),
-        leaf(Cylinder(4.0, 0.3, interface = opaqueinterface()), translation(0.0, 0.0, -72.75)))
+    frontsurfacereflectance = 1.0
+    bigmirror = (
+        ConicLens(SCHOTT.N_BK7, -72.65, -95.2773500000134, 0.077235, Inf, 0.0, 0.2, 12.18263; frontsurfacereflectance) -
+        leaf(Cylinder(4.0, 0.3, interface = opaqueinterface()), translation(0.0, 0.0, -72.75))
+    )
 
     # small mirror supported on a spider
-    smallmirror = SphericalLens(SCHOTT.N_BK7, -40.65, Inf, -49.6845, 1.13365, 4.3223859, backsurfacereflectance = 1.0)
+    backsurfacereflectance = 1.0
+    smallmirror = SphericalLens(SCHOTT.N_BK7, -40.65, Inf, -49.6845, 1.13365, 4.3223859; backsurfacereflectance)
 
     obscuration1 = Circle(4.5, SVector(0.0, 0.0, 1.0), SVector(0.0, 0.0, -40.649), interface = opaqueinterface())
     obscurations2 = Spider(3, 0.5, 12.0, SVector(0.0, 0.0, -40.65))

@@ -104,7 +104,7 @@ When the generator is evaluated, all transforms are propagated down to the [`Lea
 ```julia
 a = Cylinder(1.0,1.0)
 b = Plane([0.0,0.0,1.0], [0.0,0.0,0.0])
-generator = csgintersection(a,b)
+generator = a ∩ b
 # now make a csg object that can be ray traced
 csgobj = generator(Transform(1.0,1.0,2.0))
 ```
