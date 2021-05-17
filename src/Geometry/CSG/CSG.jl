@@ -2,7 +2,7 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # See LICENSE in the project root for full license information.
 
-import Base: ∩, ∪, -, !
+import Base: ∩, ∪, -
 
 export CSGTree, CSGGenerator, leaf, csgintersection, csgunion, csgdifference
 
@@ -133,9 +133,6 @@ end
 # Static arrays are much faster than mutable arrays so want node transforms to be static. Unfortunately the transformations cascade from the root to the leaves but the nodes have to be created from the leaves to the roots.
 # Wrap the csg operations in function that delays evaluation until the transform has been computed.
 
-!(a::CSGGenerator{T}) where {T<:Real} = CSGGenerator{T}((parenttransform) -> ComplementNode(a(parenttransform)))
-!(a::ParametricSurface) = !leaf(a)
-
 """
     csgintersection(a::CSGGenerator{T} b::CSGGenerator{T}, transform::Transform{T} = identitytransform(T)) -> CSGGenerator{T}
 
@@ -190,7 +187,7 @@ csgdifference(a::ParametricSurface{T}, b::CSGGenerator{T}, transform::Transform{
 csgdifference(a::ParametricSurface{T}, b::ParametricSurface{T}, transform::Transform{T} = identitytransform(T)) where {T<:Real} = csgdifference(leaf(a), leaf(b), transform)
 
 function -(a::CSGGenerator{T}, b::CSGGenerator{T}) where {T<:Real}
-    return CSGGenerator{T}((parenttransform) -> IntersectionNode(a(parenttransform), !b(parenttransform)))
+    return CSGGenerator{T}((parenttransform) -> IntersectionNode(a(parenttransform), ComplementNode(b(parenttransform))))
 end
 -(a::CSGGenerator, b::ParametricSurface) = a - leaf(b)
 -(a::ParametricSurface, b::CSGGenerator) = leaf(a) - b
