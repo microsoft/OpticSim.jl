@@ -4,7 +4,7 @@
 
 import Base: ∩, ∪, -
 
-export CSGTree, CSGGenerator, leaf, csgintersection, csgunion, csgdifference
+export CSGTree, CSGGenerator, leaf
 
 """Abstract type representing any evaluated CSG structure."""
 abstract type CSGTree{T} <: Primitive{T} end
@@ -145,17 +145,16 @@ end
 # Wrap the csg operations in function that delays evaluation until the transform has been computed.
 
 """
-    csgintersection(a::CSGGenerator{T} b::CSGGenerator{T}, transform::Transform{T} = identitytransform(T)) -> CSGGenerator{T}
+    ∩(a::CSGGenerator{T}, b::CSGGenerator{T}) where {T<:Real}
+    ∩(a::ParametricSurface{T}, b::ParametricSurface{T}) where {T<:Real}
+    ∩(a::CSGGenerator{T}, b::ParametricSurface{T}) where {T<:Real}
+    ∩(a::ParametricSurface{T}, b::CSGGenerator{T}) where {T<:Real}
 
-Create a binary node in the CSG tree representing an intersection between a and b.
-A shortcut method for `a` and `b` as [`ParametricSurface`](@ref)s is also available.
+Create a binary node in the CSG tree representing an intersection between `a` and `b`.
 
 ![Intersect Image](https://upload.wikimedia.org/wikipedia/commons/0/0b/Boolean_intersect.PNG)
 """
-csgintersection(a::CSGGenerator{T}, b::CSGGenerator{T}, transform::Transform{T} = identitytransform(T)) where {T<:Real} = CSGGenerator{T}((parenttransform) -> IntersectionNode(a(parenttransform * transform), b(parenttransform * transform)))
-csgintersection(a::ParametricSurface{T}, b::ParametricSurface{T}, transform::Transform{T} = identitytransform(T)) where {T<:Real} = csgintersection(leaf(a), leaf(b), transform)
-csgintersection(a::ParametricSurface{T}, b::CSGGenerator{T}, transform::Transform{T} = identitytransform(T)) where {T<:Real} = csgintersection(leaf(a), b, transform)
-csgintersection(a::CSGGenerator{T}, b::ParametricSurface{T}, transform::Transform{T} = identitytransform(T)) where {T<:Real} = csgintersection(a, leaf(b), transform)
+function ∩ end
 
 function ∩(a::CSGGenerator{T}, b::CSGGenerator{T}) where {T<:Real}
     return CSGGenerator{T}((parenttransform) -> IntersectionNode(a(parenttransform), b(parenttransform)))
@@ -165,17 +164,16 @@ end
 ∩(a::CSGGenerator, b::ParametricSurface) = a ∩ leaf(b)
 
 """
-    csgunion(a::CSGGenerator{T}, b::CSGGenerator{T}, transform::Transform{T} = identitytransform(T)) -> CSGGenerator{T}
+    ∪(a::CSGGenerator{T}, b::CSGGenerator{T}) where {T<:Real}
+    ∪(a::ParametricSurface{T}, b::ParametricSurface{T}) where {T<:Real}
+    ∪(a::CSGGenerator{T}, b::ParametricSurface{T}) where {T<:Real}
+    ∪(a::ParametricSurface{T}, b::CSGGenerator{T}) where {T<:Real}
 
-Create a binary node in the CSG tree representing a union between a and b.
-A shortcut method for `a` and `b` as [`ParametricSurface`](@ref)s is also available.
+Create a binary node in the CSG tree representing a union between `a` and `b`.
 
 ![Union Image](https://upload.wikimedia.org/wikipedia/commons/4/4a/Boolean_union.PNG)
 """
-csgunion(a::CSGGenerator{T}, b::CSGGenerator{T}, transform::Transform{T} = identitytransform(T)) where {T<:Real} = CSGGenerator{T}((parenttransform) -> UnionNode(a(parenttransform * transform), b(parenttransform * transform)))
-csgunion(a::ParametricSurface{T}, b::ParametricSurface{T}, transform::Transform{T} = identitytransform(T)) where {T<:Real} = csgunion(leaf(a), leaf(b), transform)
-csgunion(a::ParametricSurface{T}, b::CSGGenerator{T}, transform::Transform{T} = identitytransform(T)) where {T<:Real} = ccsgunion(leaf(a), b, transform)
-csgunion(a::CSGGenerator{T}, b::ParametricSurface{T}, transform::Transform{T} = identitytransform(T)) where {T<:Real} = csgunion(a, leaf(b), transform)
+function ∪ end
 
 function ∪(a::CSGGenerator{T}, b::CSGGenerator{T}) where {T<:Real}
     return CSGGenerator{T}((parenttransform) -> UnionNode(a(parenttransform), b(parenttransform)))
@@ -185,24 +183,23 @@ end
 ∪(a::CSGGenerator, b::ParametricSurface) = a ∪ leaf(b)
 
 """
-    csgdifference(a::CSGGenerator{T}, b::CSGGenerator{T}, transform::Transform{T} = identitytransform(T)) -> CSGGenerator{T}
+    -(a::CSGGenerator{T}, b::CSGGenerator{T}) where {T<:Real}
+    -(a::ParametricSurface{T}, b::ParametricSurface{T}) where {T<:Real}
+    -(a::CSGGenerator{T}, b::ParametricSurface{T}) where {T<:Real}
+    -(a::ParametricSurface{T}, b::CSGGenerator{T}) where {T<:Real}
 
-Create a binary node in the CSG tree representing the difference of a and b, essentially a - b.
-A shortcut method for `a` and `b` as [`ParametricSurface`](@ref)s is also available.
+Create a binary node in the CSG tree representing the difference of `a` and `b`, essentially `a - b`.
 
 ![Difference Image](https://upload.wikimedia.org/wikipedia/commons/8/86/Boolean_difference.PNG)
 """
-csgdifference(a::CSGGenerator{T}, b::CSGGenerator{T}, transform::Transform{T} = identitytransform(T)) where {T<:Real} = CSGGenerator{T}((parenttransform) -> IntersectionNode(a(parenttransform * transform), ComplementNode(b(parenttransform * transform))))
-csgdifference(a::CSGGenerator{T}, b::ParametricSurface{T}, transform::Transform{T} = identitytransform(T)) where {T<:Real} = csgdifference(a, leaf(b), transform)
-csgdifference(a::ParametricSurface{T}, b::CSGGenerator{T}, transform::Transform{T} = identitytransform(T)) where {T<:Real} = csgdifference(leaf(a), b, transform)
-csgdifference(a::ParametricSurface{T}, b::ParametricSurface{T}, transform::Transform{T} = identitytransform(T)) where {T<:Real} = csgdifference(leaf(a), leaf(b), transform)
+function - end
 
 function -(a::CSGGenerator{T}, b::CSGGenerator{T}) where {T<:Real}
     return CSGGenerator{T}((parenttransform) -> IntersectionNode(a(parenttransform), ComplementNode(b(parenttransform))))
 end
--(a::CSGGenerator, b::ParametricSurface) = a - leaf(b)
--(a::ParametricSurface, b::CSGGenerator) = leaf(a) - b
 -(a::ParametricSurface, b::ParametricSurface) = leaf(a) - leaf(b)
+-(a::ParametricSurface, b::CSGGenerator) = leaf(a) - b
+-(a::CSGGenerator, b::ParametricSurface) = a - leaf(b)
 
 """
     evalcsg(
