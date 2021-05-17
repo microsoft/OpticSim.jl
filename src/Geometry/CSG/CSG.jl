@@ -12,7 +12,8 @@ abstract type CSGTree{T} <: Primitive{T} end
 """
     ComplementNode{T,C<:CSGTree{T}} <: CSGTree{T}
 
-An evaluated complement node within the CSG tree, must be the second child of a [`IntersectionNode`](@ref) forming a subtraction.
+An evaluated complement node within the CSG tree, must be the second child of a [`IntersectionNode`](@ref) forming a
+subtraction.
 """
 struct ComplementNode{T,C<:CSGTree{T}} <: CSGTree{T}
     child::C
@@ -68,7 +69,8 @@ Base.show(io::IO, a::IntersectionNode{T}) where {T} = print(io, "Intersection($(
 
 An evaluated leaf node in the CSG tree, `geometry` attribute which contains a [`ParametricSurface`](@ref) of type `S`.
 The leaf node also has a transform associated which is the composition of all nodes above it in the tree.
-As such, transforming points from the geometry using this transform puts them in world space, and transforming rays by the inverse transform puts them in object space.
+As such, transforming points from the geometry using this transform puts them in world space, and transforming rays by
+the inverse transform puts them in object space.
 """
 struct LeafNode{T,S<:ParametricSurface{T,3}} <: CSGTree{T}
     geometry::S
@@ -81,7 +83,13 @@ struct LeafNode{T,S<:ParametricSurface{T,3}} <: CSGTree{T}
         return new{T,S}(a, transform, inv(transform), BoundingBox(a, transform))
     end
 end
-Base.show(io::IO, a::LeafNode{T}) where {T} = a.transform != identitytransform(T) ? print(io, "Leaf($(a.geometry), $(a.transform))") : print(io, "Leaf($(a.geometry))")
+function Base.show(io::IO, a::LeafNode{T}) where {T}
+    if a.transform == identitytransform(T)
+        print(io, "Leaf($(a.geometry))")
+    else
+        print(io, "Leaf($(a.geometry), $(a.transform))")
+    end
+end
 
 BoundingBox(a::CSGTree{T}) where {T<:Real} = a.bbox
 
@@ -117,20 +125,23 @@ end
 
 Create a leaf node from a parametric surface with a given transform.
 """
-function leaf(surf::S, transform::Transform{T} = identitytransform(T))::CSGGenerator{T} where {T<:Real,S<:ParametricSurface{T}}
+function leaf(surf::ParametricSurface{T}, transform::Transform{T} = identitytransform(T)) where {T<:Real}
     return CSGGenerator{T}((parenttransform) -> LeafNode(surf, parenttransform * transform))
 end
 """
     leaf(surf::CSGGenerator{T}, transform::Transform{T} = identitytransform(T)) -> CSGGenerator{T}
 
-Create a (pseudo) leaf node from another CSGGenerator, this is useful if you want multiple copies of a premade CSG structure with different transforms, for example in an MLA.
+Create a (pseudo) leaf node from another CSGGenerator, this is useful if you want multiple copies of a premade CSG
+structure with different transforms, for example in an MLA.
 """
-function leaf(n::CSGGenerator{T}, transform::Transform{T} = identitytransform(T))::CSGGenerator{T} where {T<:Real}
+function leaf(n::CSGGenerator{T}, transform::Transform{T} = identitytransform(T)) where {T<:Real}
     return CSGGenerator{T}((parenttransform) -> n(parenttransform * transform))
 end
 
-# CSG objects are trees, not graphs, since it makes no sense to reuse intermediate results. Hence no need to keep track of common subexpressions.
-# Static arrays are much faster than mutable arrays so want node transforms to be static. Unfortunately the transformations cascade from the root to the leaves but the nodes have to be created from the leaves to the roots.
+# CSG objects are trees, not graphs, since it makes no sense to reuse intermediate results. Hence no need to keep track
+# of common subexpressions.
+# Static arrays are much faster than mutable arrays so want node transforms to be static. Unfortunately the
+# transformations cascade from the root to the leaves but the nodes have to be created from the leaves to the roots.
 # Wrap the csg operations in function that delays evaluation until the transform has been computed.
 
 """
@@ -193,7 +204,18 @@ end
 -(a::ParametricSurface, b::CSGGenerator) = leaf(a) - b
 -(a::ParametricSurface, b::ParametricSurface) = leaf(a) - leaf(b)
 
-function evalcsg(a::UnionNode{T}, ray::AbstractRay{T,N}, normalreverse::Bool = false)::Union{EmptyInterval{T},DisjointUnion{T},Interval{T}} where {T<:Real,N}
+"""
+    evalcsg(
+        a::Union{UnionNode{T},IntersectionNode{T},ComplementNode{T},LeafNode{T}},
+        ray::AbstractRay{T,N},
+        normalreverse::Bool = false
+    )::Union{EmptyInterval{T},DisjointUnion{T},Interval{T}}
+
+[TODO]
+"""
+function evalcsg end
+
+function evalcsg(a::UnionNode{T}, ray::AbstractRay{T,N}, normalreverse::Bool = false) where {T<:Real,N}
     if !doesintersect(a.bbox, ray)
         return EmptyInterval(T)
     end
@@ -218,7 +240,7 @@ function evalcsg(a::UnionNode{T}, ray::AbstractRay{T,N}, normalreverse::Bool = f
     return intervalunion(l, r)
 end
 
-function evalcsg(a::IntersectionNode{T}, ray::AbstractRay{T,N}, normalreverse::Bool = false)::Union{EmptyInterval{T},DisjointUnion{T},Interval{T}} where {T<:Real,N}
+function evalcsg(a::IntersectionNode{T}, ray::AbstractRay{T,N}, normalreverse::Bool = false) where {T<:Real,N}
     if !doesintersect(a.bbox, ray)
         return EmptyInterval(T)
     end
@@ -235,11 +257,11 @@ function evalcsg(a::IntersectionNode{T}, ray::AbstractRay{T,N}, normalreverse::B
     end
 end
 
-function evalcsg(a::ComplementNode{T}, ray::AbstractRay{T,N}, normalreverse::Bool = false)::Union{EmptyInterval{T},DisjointUnion{T},Interval{T}} where {T<:Real,N}
+function evalcsg(a::ComplementNode{T}, ray::AbstractRay{T,N}, normalreverse::Bool = false) where {T<:Real,N}
     return intervalcomplement(evalcsg(a.child, ray, !normalreverse))
 end
 
-function evalcsg(a::LeafNode{T}, ray::AbstractRay{T,N}, normalreverse::Bool = false)::Union{EmptyInterval{T},DisjointUnion{T},Interval{T}} where {T<:Real,N}
+function evalcsg(a::LeafNode{T}, ray::AbstractRay{T,N}, normalreverse::Bool = false) where {T<:Real,N}
     # the bounding box is in global coordinates so use the un-transformed ray
     if !doesintersect(a.bbox, ray)
         return EmptyInterval(T)
@@ -269,12 +291,17 @@ end
 
 Calculates the intersection of `r` with CSG object, `obj`.
 
-Returns an [`EmptyInterval`](@ref) if there is no intersection, an [`Interval`](@ref) if there is one or two interesections and a [`DisjointUnion`](@ref) if there are more than two intersections.
+Returns an [`EmptyInterval`](@ref) if there is no intersection, an [`Interval`](@ref) if there is one or two
+interesections and a [`DisjointUnion`](@ref) if there are more than two intersections.
 
-The ray is intersected with the [`LeafNode`](@ref)s that make up the CSG object and the resulting `Interval`s and `DisjointUnion`s are composed with the same boolean operations to give a final result.
-The ray is transformed by the inverse of the transform associated with the leaf node to put it in _object space_ for that node before the intersection is carried out, typically this _object space_ is centered at the origin, but may differ for each primitive.
+The ray is intersected with the [`LeafNode`](@ref)s that make up the CSG object and the resulting `Interval`s and
+`DisjointUnion`s are composed with the same boolean operations to give a final result.
+The ray is transformed by the inverse of the transform associated with the leaf node to put it in _object space_ for
+that node before the intersection is carried out, typically this _object space_ is centered at the origin, but may
+differ for each primitive.
 
-Some intersections are culled without actually evaluating them by first checking if the ray intersects the [`BoundingBox`](@ref) of each node in the [`CSGTree`](@ref), this can substantially improve performance in some cases.
+Some intersections are culled without actually evaluating them by first checking if the ray intersects the
+[`BoundingBox`](@ref) of each node in the [`CSGTree`](@ref), this can substantially improve performance in some cases.
 """
 surfaceintersection(element::CSGTree{T}, r::AbstractRay{T,N}) where {T<:Real,N} = evalcsg(element, r)
 
@@ -293,8 +320,18 @@ Tests whether a 3D point in world space is _on_ the surface (i.e. shell) of `obj
 """
 onsurface(a::CSGTree{T}, x::T, y::T, z::T) where {T<:Real} = onsurface(a, SVector{3,T}(x, y, z))
 onsurface(a::ComplementNode{T}, point::SVector{3,T}) where {T<:Real} = onsurface(a.child, point)
-onsurface(a::IntersectionNode{T}, point::SVector{3,T}) where {T<:Real} = (onsurface(a.leftchild, point) && inside(a.rightchild, point)) || (onsurface(a.rightchild, point) && inside(a.leftchild, point))
-onsurface(a::UnionNode{T}, point::SVector{3,T}) where {T<:Real} = (onsurface(a.leftchild, point) && !inside(a.rightchild, point)) || (onsurface(a.rightchild, point) && !inside(a.leftchild, point))
+function onsurface(a::IntersectionNode{T}, point::SVector{3,T}) where {T<:Real}
+    return (
+        (onsurface(a.leftchild, point) && inside(a.rightchild, point)) ||
+        (onsurface(a.rightchild, point) && inside(a.leftchild, point))
+    )
+end
+function onsurface(a::UnionNode{T}, point::SVector{3,T}) where {T<:Real}
+    return(
+        (onsurface(a.leftchild, point) && !inside(a.rightchild, point)) ||
+        (onsurface(a.rightchild, point) && !inside(a.leftchild, point))
+    )
+end
 onsurface(a::LeafNode{T}, point::SVector{3,T}) where {T<:Real} = onsurface(a.geometry, a.invtransform * point)
 
 """
@@ -305,9 +342,15 @@ Tests whether a 3D point in world space is _inside_ `obj`.
 """
 inside(a::CSGTree{T}, x::T, y::T, z::T) where {T<:Real} = inside(a, SVector{3,T}(x, y, z))
 inside(a::ComplementNode{T}, point::SVector{3,T}) where {T<:Real} = !inside(a.child, point)
-inside(a::IntersectionNode{T}, point::SVector{3,T}) where {T<:Real} = inside(a.bbox, point) && (inside(a.leftchild, point) && inside(a.rightchild, point))
-inside(a::UnionNode{T}, point::SVector{3,T}) where {T<:Real} = inside(a.bbox, point) && (inside(a.leftchild, point) || inside(a.rightchild, point))
-inside(a::LeafNode{T}, point::SVector{3,T}) where {T<:Real} = inside(a.bbox, point) && inside(a.geometry, a.invtransform * point)
+function inside(a::IntersectionNode{T}, point::SVector{3,T}) where {T<:Real}
+    return inside(a.bbox, point) && (inside(a.leftchild, point) && inside(a.rightchild, point))
+end
+function inside(a::UnionNode{T}, point::SVector{3,T}) where {T<:Real}
+    return inside(a.bbox, point) && (inside(a.leftchild, point) || inside(a.rightchild, point))
+end
+function inside(a::LeafNode{T}, point::SVector{3,T}) where {T<:Real}
+    return inside(a.bbox, point) && inside(a.geometry, a.invtransform * point)
+end
 
 ########################################################################################################################
 
@@ -335,11 +378,12 @@ function empty!(a::TrianglePool{T}) where {T<:Real}
     end
 end
 
-# Allocate a zero length array which will be filled with Threads.nthreads() entries by the __init__ method for OpticSim module. Have to do this in the __init__ method because this captures the load time environment. const values are evaluated at precompile time and the number of threads in these two environments can be different.
+# Allocate a zero length array which will be filled with Threads.nthreads() entries by the __init__ method for OpticSim
+# module. Have to do this in the __init__ method because this captures the load time environment. const values are
+# evaluated at precompile time and the number of threads in these two environments can be different.
 const threadedtrianglepool = Vector{Dict{DataType,TrianglePool}}()
-#const threadedtrianglepool = [Dict{DataType,TrianglePool}([Float64 => TrianglePool{Float64}()]) for _ in 1:Threads.nthreads()]
 
-function newintrianglepool!(::Type{T} = Float64, tid::Int = Threads.threadid())::Vector{Triangle{T}} where {T<:Real}
+function newintrianglepool!(::Type{T} = Float64, tid::Int = Threads.threadid()) where {T<:Real}
     if T ∉ keys(threadedtrianglepool[tid])
         # if the type of the interval pool has changed then we need to refill it with the correct type
         threadedtrianglepool[tid][T] = TrianglePool{T}()
@@ -355,15 +399,19 @@ end
 
 ########################################################################################################################
 
-# currrently we assume that no triangles span 2 sides of a shape, i.e. any triangle only crosses one shape boundary and so splitting is trivial
-function uniontri!(csg::CSGTree{T}, tri::Triangle{T}, triangles::Vector{Triangle{T}}, thisforcoplanar = false) where {T<:Real}
+# currrently we assume that no triangles span 2 sides of a shape, i.e. any triangle only crosses one shape boundary and
+# so splitting is trivial
+function uniontri!(
+    csg::CSGTree{T}, tri::Triangle{T}, triangles::Vector{Triangle{T}}, thisforcoplanar::Bool = false
+) where {T<:Real}
     v1 = vertex(tri, 1)
     v2 = vertex(tri, 2)
     v3 = vertex(tri, 3)
     in1 = inside(csg, v1)
     in2 = inside(csg, v2)
     in3 = inside(csg, v3)
-    # second condition for if the vertex is in the plane of the other object, in which case we want to keep one copy of the two coplanar surfaces
+    # second condition for if the vertex is in the plane of the other object, in which case we want to keep one copy of
+    # the two coplanar surfaces
     if !thisforcoplanar
         # if we are NOT using this surface for coplanar faces then we want to count the verts on the surface as
         # being inside too in case we have coplanar faces
@@ -389,7 +437,9 @@ function uniontri!(csg::CSGTree{T}, tri::Triangle{T}, triangles::Vector{Triangle
     end
 end
 
-function intersecttri!(csg::CSGTree{T}, tri::Triangle{T}, triangles::Vector{Triangle{T}}, thisforcoplanar = false) where {T<:Real}
+function intersecttri!(
+    csg::CSGTree{T}, tri::Triangle{T}, triangles::Vector{Triangle{T}}, thisforcoplanar::Bool = false
+) where {T<:Real}
     v1 = vertex(tri, 1)
     v2 = vertex(tri, 2)
     v3 = vertex(tri, 3)
@@ -421,7 +471,14 @@ function intersecttri!(csg::CSGTree{T}, tri::Triangle{T}, triangles::Vector{Tria
     end
 end
 
-function splittri1out!(csg::CSGTree{T}, outv::SVector{3,T}, inv1::SVector{3,T}, inv2::SVector{3,T}, triangles::Vector{Triangle{T}}, recurse::Int = 0) where {T<:Real}
+function splittri1out!(
+    csg::CSGTree{T},
+    outv::SVector{3,T},
+    inv1::SVector{3,T},
+    inv2::SVector{3,T},
+    triangles::Vector{Triangle{T}},
+    recurse::Int = 0
+) where {T<:Real}
     if !validtri(outv, inv1, inv2) || recurse > VIS_RECURSION_LIMIT
         # if this triangle is invalid then just stop
         return
@@ -438,7 +495,11 @@ function splittri1out!(csg::CSGTree{T}, outv::SVector{3,T}, inv1::SVector{3,T}, 
     n2 *= 1.0 + MESH_PRECISION
     int1 = closestintersection(evalcsg(csg, Ray(outv, inv1 - outv)), false)
     int2 = closestintersection(evalcsg(csg, Ray(outv, inv2 - outv)), false)
-    if !(int1 === nothing || int2 === nothing) && validtri(outv, point(int1), point(int2)) && α(int1) <= n1 && α(int2) <= n2
+    if (!(int1 === nothing || int2 === nothing) &&
+        validtri(outv, point(int1), point(int2)) &&
+        α(int1) <= n1 &&
+        α(int2) <= n2
+    )
         mid = (inv1 + inv2) / 2
         test = closestintersection(evalcsg(csg, Ray(outv, mid - outv)), false)
         if test !== nothing
@@ -454,7 +515,15 @@ function splittri1out!(csg::CSGTree{T}, outv::SVector{3,T}, inv1::SVector{3,T}, 
     end
 end
 
-function splittri2out!(csg::CSGTree{T}, outv1::SVector{3,T}, outv2::SVector{3,T}, inv::SVector{3,T}, triangles::Vector{Triangle{T}}, flip::Bool = false, recurse::Int = 0) where {T<:Real}
+function splittri2out!(
+    csg::CSGTree{T},
+    outv1::SVector{3,T},
+    outv2::SVector{3,T},
+    inv::SVector{3,T},
+    triangles::Vector{Triangle{T}},
+    flip::Bool = false,
+    recurse::Int = 0
+) where {T<:Real}
     if !validtri(outv1, outv2, inv) || recurse > VIS_RECURSION_LIMIT
         # if this triangle is invalid then just stop
         return
