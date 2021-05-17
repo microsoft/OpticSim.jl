@@ -2,9 +2,12 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # See LICENSE in the project root for full license information.
 
+import Base: ∩, ∪, -, !
+
+export CSGTree, CSGGenerator, leaf, csgintersection, csgunion, csgdifference
+
 """Abstract type representing any evaluated CSG structure."""
 abstract type CSGTree{T} <: Primitive{T} end
-export CSGTree
 
 """
     ComplementNode{T,C<:CSGTree{T}} <: CSGTree{T}
@@ -101,7 +104,6 @@ csgobj = generator(Transform(1.0,1.0,2.0))
 struct CSGGenerator{T<:Real}
     f::Function
 end
-export CSGGenerator
 
 function (a::CSGGenerator{T})(transform::Transform{T})::CSGTree{T} where {T<:Real}
     a.f(transform)
@@ -126,11 +128,13 @@ Create a (pseudo) leaf node from another CSGGenerator, this is useful if you wan
 function leaf(n::CSGGenerator{T}, transform::Transform{T} = identitytransform(T))::CSGGenerator{T} where {T<:Real}
     return CSGGenerator{T}((parenttransform) -> n(parenttransform * transform))
 end
-export leaf
 
 # CSG objects are trees, not graphs, since it makes no sense to reuse intermediate results. Hence no need to keep track of common subexpressions.
 # Static arrays are much faster than mutable arrays so want node transforms to be static. Unfortunately the transformations cascade from the root to the leaves but the nodes have to be created from the leaves to the roots.
 # Wrap the csg operations in function that delays evaluation until the transform has been computed.
+
+!(a::CSGGenerator{T}) where {T<:Real} = CSGGenerator{T}((parenttransform) -> ComplementNode(a(parenttransform)))
+!(a::ParametricSurface) = !leaf(a)
 
 """
     csgintersection(a::CSGGenerator{T} b::CSGGenerator{T}, transform::Transform{T} = identitytransform(T)) -> CSGGenerator{T}
@@ -145,7 +149,12 @@ csgintersection(a::ParametricSurface{T}, b::ParametricSurface{T}, transform::Tra
 csgintersection(a::ParametricSurface{T}, b::CSGGenerator{T}, transform::Transform{T} = identitytransform(T)) where {T<:Real} = csgintersection(leaf(a), b, transform)
 csgintersection(a::CSGGenerator{T}, b::ParametricSurface{T}, transform::Transform{T} = identitytransform(T)) where {T<:Real} = csgintersection(a, leaf(b), transform)
 
-export csgintersection
+function ∩(a::CSGGenerator{T}, b::CSGGenerator{T}) where {T<:Real}
+    return CSGGenerator{T}((parenttransform) -> IntersectionNode(a(parenttransform), b(parenttransform)))
+end
+∩(a::ParametricSurface, b::ParametricSurface) = leaf(a) ∩ leaf(b)
+∩(a::ParametricSurface, b::CSGGenerator) = leaf(a) ∩ b
+∩(a::CSGGenerator, b::ParametricSurface) = a ∩ leaf(b)
 
 """
     csgunion(a::CSGGenerator{T}, b::CSGGenerator{T}, transform::Transform{T} = identitytransform(T)) -> CSGGenerator{T}
@@ -160,7 +169,12 @@ csgunion(a::ParametricSurface{T}, b::ParametricSurface{T}, transform::Transform{
 csgunion(a::ParametricSurface{T}, b::CSGGenerator{T}, transform::Transform{T} = identitytransform(T)) where {T<:Real} = ccsgunion(leaf(a), b, transform)
 csgunion(a::CSGGenerator{T}, b::ParametricSurface{T}, transform::Transform{T} = identitytransform(T)) where {T<:Real} = csgunion(a, leaf(b), transform)
 
-export csgunion
+function ∪(a::CSGGenerator{T}, b::CSGGenerator{T}) where {T<:Real}
+    return CSGGenerator{T}((parenttransform) -> UnionNode(a(parenttransform), b(parenttransform)))
+end
+∪(a::ParametricSurface, b::ParametricSurface) = leaf(a) ∪ leaf(b)
+∪(a::ParametricSurface, b::CSGGenerator) = leaf(a) ∪ b
+∪(a::CSGGenerator, b::ParametricSurface) = a ∪ leaf(b)
 
 """
     csgdifference(a::CSGGenerator{T}, b::CSGGenerator{T}, transform::Transform{T} = identitytransform(T)) -> CSGGenerator{T}
@@ -175,7 +189,12 @@ csgdifference(a::CSGGenerator{T}, b::ParametricSurface{T}, transform::Transform{
 csgdifference(a::ParametricSurface{T}, b::CSGGenerator{T}, transform::Transform{T} = identitytransform(T)) where {T<:Real} = csgdifference(leaf(a), b, transform)
 csgdifference(a::ParametricSurface{T}, b::ParametricSurface{T}, transform::Transform{T} = identitytransform(T)) where {T<:Real} = csgdifference(leaf(a), leaf(b), transform)
 
-export csgdifference
+function -(a::CSGGenerator{T}, b::CSGGenerator{T}) where {T<:Real}
+    return CSGGenerator{T}((parenttransform) -> IntersectionNode(a(parenttransform), !b(parenttransform)))
+end
+-(a::CSGGenerator, b::ParametricSurface) = a - leaf(b)
+-(a::ParametricSurface, b::CSGGenerator) = leaf(a) - b
+-(a::ParametricSurface, b::ParametricSurface) = leaf(a) - leaf(b)
 
 function evalcsg(a::UnionNode{T}, ray::AbstractRay{T,N}, normalreverse::Bool = false)::Union{EmptyInterval{T},DisjointUnion{T},Interval{T}} where {T<:Real,N}
     if !doesintersect(a.bbox, ray)
