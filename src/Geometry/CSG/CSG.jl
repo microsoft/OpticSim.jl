@@ -128,13 +128,14 @@ Create a leaf node from a parametric surface with a given transform.
 function leaf(surf::ParametricSurface{T}, transform::Transform{T} = identitytransform(T)) where {T<:Real}
     return CSGGenerator{T}((parenttransform) -> LeafNode(surf, parenttransform * transform))
 end
-"""
-    leaf(surf::CSGGenerator{T}, transform::Transform{T} = identitytransform(T)) -> CSGGenerator{T}
 
-Create a (pseudo) leaf node from another CSGGenerator, this is useful if you want multiple copies of a premade CSG
+"""
+    transform(surf::CSGGenerator{T}, transform::Transform{T} = identitytransform(T)) -> CSGGenerator{T}
+
+Returns a new CSGGenerator with another transform applied. This is useful if you want multiple copies of a premade CSG
 structure with different transforms, for example in an MLA.
 """
-function leaf(n::CSGGenerator{T}, transform::Transform{T} = identitytransform(T)) where {T<:Real}
+function transform(n::CSGGenerator{T}, transform::Transform{T} = identitytransform(T)) where {T<:Real}
     return CSGGenerator{T}((parenttransform) -> n(parenttransform * transform))
 end
 
