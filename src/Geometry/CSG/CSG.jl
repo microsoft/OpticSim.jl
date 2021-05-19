@@ -164,6 +164,9 @@ end
 ∩(a::ParametricSurface, b::CSGGenerator) = leaf(a) ∩ b
 ∩(a::CSGGenerator, b::ParametricSurface) = a ∩ leaf(b)
 
+@deprecate csgintersection(a, b) a ∩ b
+@deprecate csgintersection(a, b, tr) transform(a ∩ b, tr)
+
 """
     ∪(a::CSGGenerator{T}, b::CSGGenerator{T}) where {T<:Real}
     ∪(a::ParametricSurface{T}, b::ParametricSurface{T}) where {T<:Real}
@@ -183,6 +186,9 @@ end
 ∪(a::ParametricSurface, b::CSGGenerator) = leaf(a) ∪ b
 ∪(a::CSGGenerator, b::ParametricSurface) = a ∪ leaf(b)
 
+@deprecate csgunion(a, b) a ∪ b
+@deprecate csgunion(a, b, tr) transform(a ∪ b, tr)
+
 """
     -(a::CSGGenerator{T}, b::CSGGenerator{T}) where {T<:Real}
     -(a::ParametricSurface{T}, b::ParametricSurface{T}) where {T<:Real}
@@ -201,6 +207,9 @@ end
 -(a::ParametricSurface, b::ParametricSurface) = leaf(a) - leaf(b)
 -(a::ParametricSurface, b::CSGGenerator) = leaf(a) - b
 -(a::CSGGenerator, b::ParametricSurface) = a - leaf(b)
+
+@deprecate csgdifference(a, b) a - b
+@deprecate csgdifference(a, b, tr) transform(a - b, tr)
 
 """
     evalcsg(
