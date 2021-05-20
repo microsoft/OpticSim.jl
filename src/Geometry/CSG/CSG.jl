@@ -2,8 +2,6 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # See LICENSE in the project root for full license information.
 
-import Base: ∩, ∪, -
-
 export CSGTree, CSGGenerator, leaf
 
 """Abstract type representing any evaluated CSG structure."""
@@ -152,14 +150,14 @@ Create a binary node in the CSG tree representing an intersection between `a` an
 
 ![Intersect Image](https://upload.wikimedia.org/wikipedia/commons/0/0b/Boolean_intersect.PNG)
 """
-function ∩ end
+Base.:∩
 
-function ∩(a::CSGGenerator{T}, b::CSGGenerator{T}) where {T<:Real}
+function Base.:∩(a::CSGGenerator{T}, b::CSGGenerator{T}) where {T<:Real}
     return CSGGenerator{T}((parenttransform) -> IntersectionNode(a(parenttransform), b(parenttransform)))
 end
-∩(a::ParametricSurface, b::ParametricSurface) = leaf(a) ∩ leaf(b)
-∩(a::ParametricSurface, b::CSGGenerator) = leaf(a) ∩ b
-∩(a::CSGGenerator, b::ParametricSurface) = a ∩ leaf(b)
+Base.:∩(a::ParametricSurface, b::ParametricSurface) = leaf(a) ∩ leaf(b)
+Base.:∩(a::ParametricSurface, b::CSGGenerator) = leaf(a) ∩ b
+Base.:∩(a::CSGGenerator, b::ParametricSurface) = a ∩ leaf(b)
 
 @deprecate csgintersection(a, b) a ∩ b
 @deprecate csgintersection(a, b, tr) transform(a ∩ b, tr)
@@ -171,14 +169,14 @@ Create a binary node in the CSG tree representing a union between `a` and `b`.
 
 ![Union Image](https://upload.wikimedia.org/wikipedia/commons/4/4a/Boolean_union.PNG)
 """
-function ∪ end
+Base.:∪
 
-function ∪(a::CSGGenerator{T}, b::CSGGenerator{T}) where {T<:Real}
+function Base.:∪(a::CSGGenerator{T}, b::CSGGenerator{T}) where {T<:Real}
     return CSGGenerator{T}((parenttransform) -> UnionNode(a(parenttransform), b(parenttransform)))
 end
-∪(a::ParametricSurface, b::ParametricSurface) = leaf(a) ∪ leaf(b)
-∪(a::ParametricSurface, b::CSGGenerator) = leaf(a) ∪ b
-∪(a::CSGGenerator, b::ParametricSurface) = a ∪ leaf(b)
+Base.:∪(a::ParametricSurface, b::ParametricSurface) = leaf(a) ∪ leaf(b)
+Base.:∪(a::ParametricSurface, b::CSGGenerator) = leaf(a) ∪ b
+Base.:∪(a::CSGGenerator, b::ParametricSurface) = a ∪ leaf(b)
 
 @deprecate csgunion(a, b) a ∪ b
 @deprecate csgunion(a, b, tr) transform(a ∪ b, tr)
@@ -190,14 +188,14 @@ Create a binary node in the CSG tree representing the difference of `a` and `b`,
 
 ![Difference Image](https://upload.wikimedia.org/wikipedia/commons/8/86/Boolean_difference.PNG)
 """
-function - end
+Base.:-
 
-function -(a::CSGGenerator{T}, b::CSGGenerator{T}) where {T<:Real}
+function Base.:-(a::CSGGenerator{T}, b::CSGGenerator{T}) where {T<:Real}
     return CSGGenerator{T}((parenttransform) -> IntersectionNode(a(parenttransform), ComplementNode(b(parenttransform))))
 end
--(a::ParametricSurface, b::ParametricSurface) = leaf(a) - leaf(b)
--(a::ParametricSurface, b::CSGGenerator) = leaf(a) - b
--(a::CSGGenerator, b::ParametricSurface) = a - leaf(b)
+Base.:-(a::ParametricSurface, b::ParametricSurface) = leaf(a) - leaf(b)
+Base.:-(a::ParametricSurface, b::CSGGenerator) = leaf(a) - b
+Base.:-(a::CSGGenerator, b::ParametricSurface) = a - leaf(b)
 
 @deprecate csgdifference(a, b) a - b
 @deprecate csgdifference(a, b, tr) transform(a - b, tr)
