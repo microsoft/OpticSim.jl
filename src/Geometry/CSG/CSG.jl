@@ -146,10 +146,7 @@ end
 # Wrap the csg operations in function that delays evaluation until the transform has been computed.
 
 """
-    ∩(a::CSGGenerator{T}, b::CSGGenerator{T}) where {T<:Real}
-    ∩(a::ParametricSurface{T}, b::ParametricSurface{T}) where {T<:Real}
-    ∩(a::CSGGenerator{T}, b::ParametricSurface{T}) where {T<:Real}
-    ∩(a::ParametricSurface{T}, b::CSGGenerator{T}) where {T<:Real}
+    ∩(a::Union{CSGGenerator{T},ParametricSurface{T}}, b::Union{CSGGenerator{T},ParametricSurface{T}}) where {T<:Real}
 
 Create a binary node in the CSG tree representing an intersection between `a` and `b`.
 
@@ -168,10 +165,7 @@ end
 @deprecate csgintersection(a, b, tr) transform(a ∩ b, tr)
 
 """
-    ∪(a::CSGGenerator{T}, b::CSGGenerator{T}) where {T<:Real}
-    ∪(a::ParametricSurface{T}, b::ParametricSurface{T}) where {T<:Real}
-    ∪(a::CSGGenerator{T}, b::ParametricSurface{T}) where {T<:Real}
-    ∪(a::ParametricSurface{T}, b::CSGGenerator{T}) where {T<:Real}
+    ∪(a::Union{CSGGenerator{T},ParametricSurface{T}}, b::Union{CSGGenerator{T},ParametricSurface{T}}) where {T<:Real}
 
 Create a binary node in the CSG tree representing a union between `a` and `b`.
 
@@ -190,10 +184,7 @@ end
 @deprecate csgunion(a, b, tr) transform(a ∪ b, tr)
 
 """
-    -(a::CSGGenerator{T}, b::CSGGenerator{T}) where {T<:Real}
-    -(a::ParametricSurface{T}, b::ParametricSurface{T}) where {T<:Real}
-    -(a::CSGGenerator{T}, b::ParametricSurface{T}) where {T<:Real}
-    -(a::ParametricSurface{T}, b::CSGGenerator{T}) where {T<:Real}
+    -(a::Union{CSGGenerator{T},ParametricSurface{T}}, b::Union{CSGGenerator{T},ParametricSurface{T}}) where {T<:Real}
 
 Create a binary node in the CSG tree representing the difference of `a` and `b`, essentially `a - b`.
 
