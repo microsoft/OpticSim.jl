@@ -431,7 +431,7 @@ end
 function testtypesignature()
     println("here")
     a = OpticSim.Sphere(1.0)
-    b = csgintersection(csgunion(a, a), csgunion(a, a))
+    b = (a ∪ a) ∩ (a ∪ a)
 end
 
 function testoptimizationvariables()
