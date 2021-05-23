@@ -73,7 +73,7 @@ end
 """
     reversenormal(a::Intersection{T,N})
 
-Used by the CSG complement operator (i.e. [`csgdifference`](@ref)) to reverse the inside outside sense of the object.
+Used by the CSG complement operator (i.e. [`-`](@ref)) to reverse the inside outside sense of the object.
 """
 function reversenormal(a::Intersection{T,N}) where {T<:Real,N}
     return Intersection(α(a), point(a), -normal(a), u(a), v(a), interface(a), flippednormal = !flippednormal(a))

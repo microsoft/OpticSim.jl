@@ -58,6 +58,8 @@ include("AnalyticIntersection.jl")
 
 ###########################################################################################################
 
+export BoundedCylinder, Cuboid, HexagonalPrism, RectangularPrism, TriangularPrism, Spider
+
 """
     BoundedCylinder(radius::T, height::T; interface::NullOrFresnel{T} = nullinterface(T)) -> CSGGenerator{T}
 
@@ -67,9 +69,8 @@ function BoundedCylinder(radius::T, height::T; interface::NullOrFresnel{T} = Nul
     barrel = Cylinder(radius, height, interface = interface)
     top = Plane(SVector{3,T}(0.0, 0.0, 1.0), SVector{3,T}(0.0, 0.0, height / 2), vishalfsizeu = radius, vishalfsizev = radius)
     bottom = Plane(SVector{3,T}(0.0, 0.0, -1.0), SVector{3,T}(0.0, 0.0, -height / 2), vishalfsizeu = radius, vishalfsizev = radius)
-    return csgintersection(leaf(barrel), csgintersection(top, bottom))
+    return barrel ∩ top ∩ bottom
 end
-export BoundedCylinder
 
 """
     Cuboid(halfsizex::T, halfsizey::T, halfsizez::T; interface::NullOrFresnel{T} = nullinterface(T)) -> CSGGenerator{T}
@@ -77,18 +78,14 @@ export BoundedCylinder
 Create a cuboid centred at `(0, 0, 0)`.
 """
 function Cuboid(halfsizex::T, halfsizey::T, halfsizez::T; interface::NullOrFresnel{T} = NullInterface(T)) where {T<:Real}
-    xmin = Plane(SVector{3,T}(-1.0, 0.0, 0.0), SVector{3,T}(-halfsizex, 0.0, 0.0), vishalfsizeu = halfsizez, vishalfsizev = halfsizey, interface = interface)
-    xmax = Plane(SVector{3,T}(1.0, 0.0, 0.0), SVector{3,T}(halfsizex, 0.0, 0.0), vishalfsizeu = halfsizez, vishalfsizev = halfsizey, interface = interface)
-    ymin = Plane(SVector{3,T}(0.0, -1.0, 0.0), SVector{3,T}(0.0, -halfsizey, 0.0), vishalfsizeu = halfsizez, vishalfsizev = halfsizex, interface = interface)
-    ymax = Plane(SVector{3,T}(0.0, 1.0, 0.0), SVector{3,T}(0.0, halfsizey, 0.0), vishalfsizeu = halfsizez, vishalfsizev = halfsizex, interface = interface)
-    zmin = Plane(SVector{3,T}(0.0, 0.0, -1.0), SVector{3,T}(0.0, 0.0, -halfsizez), vishalfsizeu = halfsizex, vishalfsizev = halfsizey, interface = interface)
-    zmax = Plane(SVector{3,T}(0.0, 0.0, 1.0), SVector{3,T}(0.0, 0.0, halfsizez), vishalfsizeu = halfsizex, vishalfsizev = halfsizey, interface = interface)
-    xint = csgintersection(xmin, xmax)
-    yint = csgintersection(ymin, ymax)
-    zint = csgintersection(zmin, zmax)
-    return csgintersection(xint, csgintersection(yint, zint))
+    xmin = Plane(SVector{3,T}(-1.0, 0.0, 0.0), SVector{3,T}(-halfsizex, 0.0, 0.0); vishalfsizeu = halfsizez, vishalfsizev = halfsizey, interface)
+    xmax = Plane(SVector{3,T}(1.0, 0.0, 0.0), SVector{3,T}(halfsizex, 0.0, 0.0); vishalfsizeu = halfsizez, vishalfsizev = halfsizey, interface)
+    ymin = Plane(SVector{3,T}(0.0, -1.0, 0.0), SVector{3,T}(0.0, -halfsizey, 0.0); vishalfsizeu = halfsizez, vishalfsizev = halfsizex, interface)
+    ymax = Plane(SVector{3,T}(0.0, 1.0, 0.0), SVector{3,T}(0.0, halfsizey, 0.0); vishalfsizeu = halfsizez, vishalfsizev = halfsizex, interface)
+    zmin = Plane(SVector{3,T}(0.0, 0.0, -1.0), SVector{3,T}(0.0, 0.0, -halfsizez); vishalfsizeu = halfsizex, vishalfsizev = halfsizey, interface)
+    zmax = Plane(SVector{3,T}(0.0, 0.0, 1.0), SVector{3,T}(0.0, 0.0, halfsizez); vishalfsizeu = halfsizex, vishalfsizev = halfsizey, interface)
+    return xmin ∩ xmax ∩ ymin ∩ ymax ∩ zmin ∩ zmax
 end
-export Cuboid
 
 """
     HexagonalPrism(side_length::T, visheight::T = 2.0; interface::NullOrFresnel{T} = nullinterface(T)) -> CSGGenerator{T}
@@ -100,19 +97,16 @@ function HexagonalPrism(side_length::T, visheight::T = 2.0; interface::NullOrFre
     h = side_length * sqrt(3.0) / 2.0
     hcos = h * sqrt(3.0) / 2.0
     hsin = h / 2.0
-    side_length *= 1.0001
-    s1 = Plane(SVector{3,T}(0.0, 1.0, 0.0), SVector{3,T}(0.0, h, 0.0), vishalfsizeu = visheight / 2.0, vishalfsizev = side_length / 2.0, interface = interface)
-    s2 = Plane(SVector{3,T}(0.0, -1.0, 0.0), SVector{3,T}(0.0, -h, 0.0), vishalfsizeu = visheight / 2.0, vishalfsizev = side_length / 2.0, interface = interface)
-    s3 = Plane(SVector{3,T}(hcos, hsin, 0.0), SVector{3,T}(hcos, hsin, 0.0), vishalfsizeu = visheight / 2.0, vishalfsizev = side_length / 2.0, interface = interface)
-    s4 = Plane(SVector{3,T}(-hcos, -hsin, 0.0), SVector{3,T}(-hcos, -hsin, 0.0), vishalfsizeu = visheight / 2.0, vishalfsizev = side_length / 2.0, interface = interface)
-    s5 = Plane(SVector{3,T}(hcos, -hsin, 0.0), SVector{3,T}(hcos, -hsin, 0.0), vishalfsizeu = visheight / 2.0, vishalfsizev = side_length / 2.0, interface = interface)
-    s6 = Plane(SVector{3,T}(-hcos, hsin, 0.0), SVector{3,T}(-hcos, hsin, 0.0), vishalfsizeu = visheight / 2.0, vishalfsizev = side_length / 2.0, interface = interface)
-    i1 = csgintersection(s1, s2)
-    i2 = csgintersection(s3, s4)
-    i3 = csgintersection(s5, s6)
-    return csgintersection(i1, csgintersection(i2, i3))
+    vishalfsizeu = visheight / 2.0
+    vishalfsizev = side_length * 1.0001 / 2.0
+    s1 = Plane(SVector{3,T}(0.0, 1.0, 0.0), SVector{3,T}(0.0, h, 0.0); vishalfsizeu, vishalfsizev, interface)
+    s2 = Plane(SVector{3,T}(0.0, -1.0, 0.0), SVector{3,T}(0.0, -h, 0.0); vishalfsizeu, vishalfsizev, interface)
+    s3 = Plane(SVector{3,T}(hcos, hsin, 0.0), SVector{3,T}(hcos, hsin, 0.0); vishalfsizeu, vishalfsizev, interface)
+    s4 = Plane(SVector{3,T}(-hcos, -hsin, 0.0), SVector{3,T}(-hcos, -hsin, 0.0); vishalfsizeu, vishalfsizev, interface)
+    s5 = Plane(SVector{3,T}(hcos, -hsin, 0.0), SVector{3,T}(hcos, -hsin, 0.0); vishalfsizeu, vishalfsizev, interface)
+    s6 = Plane(SVector{3,T}(-hcos, hsin, 0.0), SVector{3,T}(-hcos, hsin, 0.0); vishalfsizeu, vishalfsizev, interface)
+    return s1 ∩ s2 ∩ s3 ∩ s4 ∩ s5 ∩ s6
 end
-export HexagonalPrism
 
 """
     RectangularPrism(halfsizex::T, halfsizey::T, visheight::T=2.0; interface::NullOrFresnel{T} = nullinterface(T)) -> CSGGenerator{T}
@@ -121,15 +115,13 @@ Create an infinitely tall rectangular prism with axis `(0, 0, 1)`.
 For visualization `visheight` is used, **note that this does not fully represent the surface**.
 """
 function RectangularPrism(halfsizex::T, halfsizey::T, visheight::T = 2.0; interface::NullOrFresnel{T} = NullInterface(T)) where {T<:Real}
-    s1 = Plane(SVector{3,T}(0.0, 1.0, 0.0), SVector{3,T}(0.0, halfsizey, 0.0), vishalfsizeu = visheight / 2.0, vishalfsizev = halfsizex, interface = interface)
-    s2 = Plane(SVector{3,T}(0.0, -1.0, 0.0), SVector{3,T}(0.0, -halfsizey, 0.0), vishalfsizeu = visheight / 2.0, vishalfsizev = halfsizex, interface = interface)
-    s3 = Plane(SVector{3,T}(1.0, 0.0, 0.0), SVector{3,T}(halfsizex, 0.0, 0.0), vishalfsizeu = visheight / 2.0, vishalfsizev = halfsizey, interface = interface)
-    s4 = Plane(SVector{3,T}(-1.0, 0.0, 0.0), SVector{3,T}(-halfsizex, 0.0, 0.0), vishalfsizeu = visheight / 2.0, vishalfsizev = halfsizey, interface = interface)
-    i1 = csgintersection(s1, s2)
-    i2 = csgintersection(s3, s4)
-    return csgintersection(i1, i2)
+    vishalfsizeu = visheight / 2.0
+    s1 = Plane(SVector{3,T}(0.0, 1.0, 0.0), SVector{3,T}(0.0, halfsizey, 0.0); vishalfsizeu, vishalfsizev=halfsizex, interface)
+    s2 = Plane(SVector{3,T}(0.0, -1.0, 0.0), SVector{3,T}(0.0, -halfsizey, 0.0); vishalfsizeu, vishalfsizev=halfsizex, interface)
+    s3 = Plane(SVector{3,T}(1.0, 0.0, 0.0), SVector{3,T}(halfsizex, 0.0, 0.0); vishalfsizeu, vishalfsizev=halfsizey, interface)
+    s4 = Plane(SVector{3,T}(-1.0, 0.0, 0.0), SVector{3,T}(-halfsizex, 0.0, 0.0); vishalfsizeu, vishalfsizev=halfsizey, interface)
+    return s1 ∩ s2 ∩ s3 ∩ s4
 end
-export RectangularPrism
 
 """
     TriangularPrism(side_length::T, visheight::T = 2.0; interface::NullOrFresnel{T} = nullinterface(T)) -> CSGGenerator{T}
@@ -138,13 +130,25 @@ Create an infinitely tall triangular prism with axis `(0, 0, 1)`.
 For visualization `visheight` is used, **note that this does not fully represent the surface**.
 """
 function TriangularPrism(side_length::T, visheight::T = 2.0; interface::NullOrFresnel{T} = NullInterface(T)) where {T<:Real}
-    side_length = side_length / 2
-    p1 = Plane(SVector{3,T}(-1.0, 0.0, 0.0), SVector{3,T}(-side_length / 2, 0.0, 0.0), interface = interface, vishalfsizev = side_length, vishalfsizeu = visheight / 2)
-    p2 = Plane(SVector{3,T}(sind(30), cosd(30), 0.0), SVector{3,T}(side_length / 2 * sind(30), side_length / 2 * cosd(30), 0.0), interface = interface, vishalfsizev = side_length, vishalfsizeu = visheight / 2)
-    p3 = Plane(SVector{3,T}(sind(30), -cosd(30), 0.0), SVector{3,T}(side_length / 2 * sind(30), -side_length / 2 * cosd(30), 0.0), interface = interface, vishalfsizev = side_length, vishalfsizeu = visheight / 2)
-    return csgintersection(leaf(p1), csgintersection(p2, p3))
+    vishalfsizeu = visheight / 2
+    vishalfsizev = side_length / 2
+    p1 = Plane(
+        SVector{3,T}(-1.0, 0.0, 0.0),
+        SVector{3,T}(-side_length / 4, 0.0, 0.0);
+        interface, vishalfsizeu, vishalfsizev
+    )
+    p2 = Plane(
+        SVector{3,T}(sind(30), cosd(30), 0.0),
+        SVector{3,T}(side_length / 4 * sind(30), side_length / 4 * cosd(30), 0.0);
+        interface, vishalfsizeu, vishalfsizev
+    )
+    p3 = Plane(
+        SVector{3,T}(sind(30), -cosd(30), 0.0),
+        SVector{3,T}(side_length / 4 * sind(30), -side_length / 4 * cosd(30), 0.0);
+        interface, vishalfsizeu, vishalfsizev
+    )
+    return p1 ∩ p2 ∩ p3
 end
-export TriangularPrism
 
 """
     Spider(narms::Int, armwidth::T, radius::T, origin::SVector{3,T} = SVector{3,T}(0.0, 0.0, 0.0), normal::SVector{3,T} = SVector{3,T}(0.0, 0.0, 1.0)) -> Vector{Rectangle{T}}
@@ -168,4 +172,3 @@ function Spider(narms::Int, armwidth::T, radius::T, origin::SVector{3,T} = SVect
     end
     return rects
 end
-export Spider

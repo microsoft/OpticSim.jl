@@ -43,7 +43,7 @@ These methods are all you need to build up a visualization piece by piece.
 For example:
 
 ```@example base
-obj = csgintersection(Sphere(0.5), Plane(0.0, 1.0, 0.0, 0.0, 0.1, 0.0))()
+obj = (Sphere(0.5) ∩ Plane(0.0, 1.0, 0.0, 0.0, 0.1, 0.0))()
 ray1 = Ray([0.0, -0.1, 1.0], [0.0, 0.0, -1.0])
 ray2 = Ray([0.8, 0.0, 0.0], [-1.0, 0.0, 0.0])
 Vis.draw(obj)
