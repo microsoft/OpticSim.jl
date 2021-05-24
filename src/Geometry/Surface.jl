@@ -78,7 +78,7 @@ interface(surface::ParametricSurface{T,N}) -> OpticalInterface{T}
 ```
 """
 abstract type ParametricSurface{S<:Real,N} <: Surface{S} end
-export ParametricSurface, point, partials, uvrange, inside, onsurface, uv
+export ParametricSurface, point, partials, uvrange, inside, onsurface, uv, semidiameter
 
 # all subclasses must implement one of these at least...
 """
@@ -138,6 +138,8 @@ Returns a tuple of the form: `((umin, umax), (vmin, vmax))` specifying the limit
 Also implemented for some `Surface`s which are not `ParametricSurface`s (e.g. `Rectangle`).
 """
 uvrange(::S) where {S<:ParametricSurface} = uvrange(S)
+
+semidiameter(::ParametricSurface{T}) where {T<:Real} = typemax(T)
 
 """
     samplesurface(surf::ParametricSurface{T,N}, samplefunction::Function, numsamples::Int = 30)
