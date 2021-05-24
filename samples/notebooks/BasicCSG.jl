@@ -109,7 +109,7 @@ begin
 	csg1_surf4 = leaf(csg1_surf4_1, OpticSim.rotation(deg2rad(cyl_rot_x), deg2rad(cyl_rot_y), deg2rad(cyl_rot_z)))
 	
 	# intersection result	
-	csg1_surf5 = OpticSim.csgintersection(csg1_surf2,csgintersection(csg1_surf4, csg1_surf3))()
+	csg1_surf5 = (csg1_surf2 ∩ csg1_surf4 ∩ csg1_surf3)()
 	
 	md"## Define Surfaces and Perform CSG Optrations (code)"
 end
