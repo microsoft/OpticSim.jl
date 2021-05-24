@@ -22,18 +22,18 @@ function ModelEye(assembly::LensAssembly{T}; nsamples::Int = 17, pupil_radius::T
 
     anterior_chamber_front = AcceleratedParametricSurface(ZernikeSurface(6.0, radius = -6.7, conic = -0.3), nsamples, interface = FresnelInterface{T}(OpticSim.GlassCat.EYE.AQUEOUS, OpticSim.GlassCat.EYE.CORNEA))
     anterior_chamber_rear = Plane(SVector{3,T}(0, 0, -1), SVector(0.0, 0.0, -3.2), vishalfsizeu = 6.0, vishalfsizev = 6.0, interface = FresnelInterface{T}(OpticSim.GlassCat.EYE.AQUEOUS, OpticSim.GlassCat.EYE.VITREOUS))
-    anterior_chamber = leaf(anterior_chamber_front ∩ anterior_chamber_rear, translation(0.0, 0.0, -0.52))(transform)
+    anterior_chamber = csgtransform(anterior_chamber_front ∩ anterior_chamber_rear, translation(0.0, 0.0, -0.52))(transform)
 
     pupil = Annulus(pupil_radius, 5.9, rotate(transform, SVector{3,T}(0, 0, 1)), transform * SVector{3,T}(0.0, 0.0, -3.62))
 
     lens_front = AcceleratedParametricSurface(ZernikeSurface(5.1, radius = -10.0), nsamples, interface = FresnelInterface{T}(OpticSim.GlassCat.EYE.LENS, OpticSim.GlassCat.EYE.VITREOUS))
     lens_rear = AcceleratedParametricSurface(ZernikeSurface(5.1, radius = 6.0, conic = -3.25), nsamples, interface = FresnelInterface{T}(OpticSim.GlassCat.EYE.LENS, OpticSim.GlassCat.EYE.VITREOUS))
     lens_barrel = Cylinder(5.0, 5.0, interface = FresnelInterface{T}(OpticSim.GlassCat.EYE.LENS, OpticSim.GlassCat.EYE.VITREOUS))
-    lens_csg = (lens_front - leaf(lens_rear, translation(0.0, 0.0, -3.7))) ∩ leaf(lens_barrel, translation(0.0, 0.0, -2.0))
-    lens = leaf(lens_csg, translation(0.0, 0.0, -3.72))(transform)
+    lens_csg = (lens_front - csgtransform(lens_rear, translation(0.0, 0.0, -3.7))) ∩ csgtransform(lens_barrel, translation(0.0, 0.0, -2.0))
+    lens = csgtransform(lens_csg, translation(0.0, 0.0, -3.72))(transform)
 
     vitreous_chamber_csg = (
-        leaf(
+        csgtransform(
             Sphere(11.0, interface = FresnelInterface{T}(EYE.VITREOUS, Air, reflectance = 0.0, transmission = 0.0)),
             translation(0.0, 0.0, -13.138998863513297)
         ) ∩

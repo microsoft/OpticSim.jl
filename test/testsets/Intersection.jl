@@ -694,8 +694,8 @@
         @test isa(hit, DisjointUnion) && length(hit) == 2 && a && b
 
         # failure case, had a bug where rounding error would cause o2 to fail
-        o1 = leaf(AcceleratedParametricSurface(ZernikeSurface(1.4 * 1.15)), translation(0.0, 0.0, 3.0))()
-        o2 = leaf(AcceleratedParametricSurface(ZernikeSurface(1.4 * 1.15)), translation(2.0, 0.0, 3.0))()
+        o1 = csgtransform(AcceleratedParametricSurface(ZernikeSurface(1.4 * 1.15)), translation(0.0, 0.0, 3.0))()
+        o2 = csgtransform(AcceleratedParametricSurface(ZernikeSurface(1.4 * 1.15)), translation(2.0, 0.0, 3.0))()
         r = Ray([-5.0, 0.0, 0.0], [1.0, 0.0, 0.0])
         @test !(surfaceintersection(o1, r) isa EmptyInterval)
         @test !(surfaceintersection(o2, r) isa EmptyInterval)
@@ -890,7 +890,7 @@
 
         # test simple rays for intersection, union and difference operations
         # INTERSECTION
-        intersection_obj = (leaf(Cylinder(0.5, 3.0), OpticSim.rotationd(90.0, 0.0, 0.0)) ∩ Sphere(1.0))()
+        intersection_obj = (csgtransform(Cylinder(0.5, 3.0), OpticSim.rotationd(90.0, 0.0, 0.0)) ∩ Sphere(1.0))()
         r = Ray([0.7, 0.0, 0.0], [-1.0, 0.0, 0.0])
         int = OpticSim.evalcsg(intersection_obj, r)
         @test isapprox(point(lower(int)), [0.5, 0.0, 0.0], rtol = RTOLERANCE, atol = ATOLERANCE) && isapprox(point(upper(int)), [-0.5, 0.0, 0.0], rtol = RTOLERANCE, atol = ATOLERANCE)
@@ -942,7 +942,7 @@
         @test isapprox(point(lower(int)), [0.5, 0.0, 4.0], rtol = RTOLERANCE, atol = ATOLERANCE) && isapprox(point(upper(int)), [1.5, 0.0, 4.0], rtol = RTOLERANCE, atol = ATOLERANCE)
 
         # DIFFERENCE
-        difference_obj = (Cylinder(0.5, 3.0) - leaf(Sphere(1.0), OpticSim.translation(0.75, 0.0, 0.2)))()
+        difference_obj = (Cylinder(0.5, 3.0) - csgtransform(Sphere(1.0), OpticSim.translation(0.75, 0.0, 0.2)))()
         r = Ray([0.25, 0.0, 0.0], [-1.0, 0.0, 0.0])
         int = OpticSim.evalcsg(difference_obj, r)
         @test isapprox(point(lower(int)), [-0.2297958971132712, 0.0, 0.0], rtol = RTOLERANCE, atol = ATOLERANCE) && isapprox(point(upper(int)), [-0.5, 0.0, 0.0], rtol = RTOLERANCE, atol = ATOLERANCE)
@@ -969,7 +969,7 @@
 
         # DisjointUnion result on CSG
         surf = TestData.verywavybeziersurface()
-        accelsurf = leaf(AcceleratedParametricSurface(surf, 20))()
+        accelsurf = csgtransform(AcceleratedParametricSurface(surf, 20))()
 
         # five hits starting outside
         r = Ray([0.9, 0.0, -0.3], [0.0, 1.0, 0.7])

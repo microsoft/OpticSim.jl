@@ -9,15 +9,15 @@
         surf1 = AcceleratedParametricSurface(TestData.beziersurface(), 15)
         surf2 = AcceleratedParametricSurface(TestData.upsidedownbeziersurface(), 15)
         m = (
-            leaf(surf1, translation(-0.5, -0.5, 0.0)) ∩
+            csgtransform(surf1, translation(-0.5, -0.5, 0.0)) ∩
             Cylinder(0.3, 5.0) ∩
-            leaf(surf1, Transform{Float64}(0.0, Float64(π), 0.0, 0.5, -0.5, 0.0))
+            csgtransform(surf1, Transform{Float64}(0.0, Float64(π), 0.0, 0.5, -0.5, 0.0))
         )()
         @test_nowarn Vis.draw(m)
         m = (
-            leaf(surf1, translation(-0.5, -0.5, 0.0)) ∩
+            csgtransform(surf1, translation(-0.5, -0.5, 0.0)) ∩
             Cylinder(0.3, 5.0) ∩
-            leaf(surf2, translation(-0.5, -0.5, 0.0))
+            csgtransform(surf2, translation(-0.5, -0.5, 0.0))
         )()
         @test_nowarn Vis.draw(m)
         m = (Cylinder(0.5, 3.0) ∪ Sphere(1.0))()

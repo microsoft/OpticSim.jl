@@ -145,10 +145,10 @@ begin
 	# glass entrance lens on telescope
 	topsurf = Plane(OpticSim.SVector(0.0, 0.0, 1.0), OpticSim.SVector(0.0, 0.0, 0.0), interface = FresnelInterface{Float64}(OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air), vishalfsizeu = 12.00075, vishalfsizev = 12.00075)
 	botsurf = AcceleratedParametricSurface(ZernikeSurface(12.00075, radius = -1.14659768e+4, aspherics = [(4, 3.68090959e-7), (6, 2.73643352e-11), (8, 3.20036892e-14)]), 17, interface = FresnelInterface{Float64}(OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air))
-	coverlens = Cylinder(12.00075, 1.4) ∩ topsurf ∩ leaf(botsurf, Transform(OpticSim.rotmatd(0, 180, 0), OpticSim.SVector(0.0, 0.0, -0.65)))
+	coverlens = Cylinder(12.00075, 1.4) ∩ topsurf ∩ csgtransform(botsurf, Transform(OpticSim.rotmatd(0, 180, 0), OpticSim.SVector(0.0, 0.0, -0.65)))
 	# big mirror with a hole in it
 	bigmirror = ConicLens(OpticSim.GlassCat.SCHOTT.N_BK7, -72.65, -95.2773500000134, 0.077235, Inf, 0.0, 0.2, 12.18263, frontsurfacereflectance = 1.0)
-	bigmirror = bigmirror - leaf(Cylinder(4.0, 0.3, interface = opaqueinterface()), OpticSim.translation(0.0, 0.0, -72.75))
+	bigmirror = bigmirror - csgtransform(Cylinder(4.0, 0.3, interface = opaqueinterface()), OpticSim.translation(0.0, 0.0, -72.75))
 	# small mirror supported on a spider
 	smallmirror = SphericalLens(OpticSim.GlassCat.SCHOTT.N_BK7, -40.65, Inf, -49.6845, 1.13365, 4.3223859, backsurfacereflectance = 1.0)
 	obscuration1 = OpticSim.Circle(4.5, OpticSim.SVector(0.0, 0.0, 1.0), OpticSim.SVector(0.0, 0.0, -40.649), interface = opaqueinterface())
@@ -176,9 +176,9 @@ end
 begin
 	drawing	# notebook only - create dependency on drawing backend - comment if running in REPL
 
-	topsurface = leaf(AcceleratedParametricSurface(QTypeSurface(9.0, radius = -25.0, conic = 0.3, αcoeffs = [(1, 0, 0.3), (1, 1, 1.0)], βcoeffs = [(1, 0, -0.1), (2, 0, 0.4), (3, 0, -0.6)], normradius = 9.5), interface = FresnelInterface{Float64}(OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air)), OpticSim.translation(0.0, 0.0, 5.0))
-	botsurface = leaf(Plane(0.0, 0.0, -1.0, 0.0, 0.0, -5.0, vishalfsizeu = 9.5, vishalfsizev = 9.5, interface = FresnelInterface{Float64}(OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air)))
-	barrel = leaf(Cylinder(9.0, 20.0, interface = FresnelInterface{Float64}(OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air, reflectance = zero(Float64), transmission = zero(Float64))))
+	topsurface = csgtransform(AcceleratedParametricSurface(QTypeSurface(9.0, radius = -25.0, conic = 0.3, αcoeffs = [(1, 0, 0.3), (1, 1, 1.0)], βcoeffs = [(1, 0, -0.1), (2, 0, 0.4), (3, 0, -0.6)], normradius = 9.5), interface = FresnelInterface{Float64}(OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air)), OpticSim.translation(0.0, 0.0, 5.0))
+	botsurface = csgtransform(Plane(0.0, 0.0, -1.0, 0.0, 0.0, -5.0, vishalfsizeu = 9.5, vishalfsizev = 9.5, interface = FresnelInterface{Float64}(OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air)))
+	barrel = csgtransform(Cylinder(9.0, 20.0, interface = FresnelInterface{Float64}(OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air, reflectance = zero(Float64), transmission = zero(Float64))))
 	lens = (barrel ∩ topsurface ∩ botsurface)(Transform{Float64}(0.0, Float64(π), 0.0, 0.0, 0.0, -5.0))
 	sys = CSGOpticalSystem(LensAssembly(lens), Rectangle(15.0, 15.0, [0.0, 0.0, 1.0], [0.0, 0.0, -67.8], interface = opaqueinterface()))
 	Vis.drawtracerays(sys, test = true, trackallrays = true)	

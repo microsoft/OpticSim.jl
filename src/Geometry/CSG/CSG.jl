@@ -2,7 +2,7 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # See LICENSE in the project root for full license information.
 
-export CSGTree, CSGGenerator, leaf, transform
+export CSGTree, CSGGenerator, csgtransform
 
 """Abstract type representing any evaluated CSG structure."""
 abstract type CSGTree{T} <: Primitive{T} end
@@ -119,22 +119,27 @@ function (a::CSGGenerator{T})()::CSGTree{T} where {T<:Real}
 end
 
 """
-    leaf(surf::ParametricSurface{T}, transform::Transform{T} = identitytransform(T)) -> CSGGenerator{T}
+    leaf(surf::ParametricSurface{T}) -> CSGGenerator{T}
 
-Create a leaf node from a parametric surface with a given transform.
+Create a leaf node from a parametric surface.
 """
-function leaf(surf::ParametricSurface{T}, transform::Transform{T} = identitytransform(T)) where {T<:Real}
-    return CSGGenerator{T}((parenttransform) -> LeafNode(surf, parenttransform * transform))
+leaf(surf::ParametricSurface{T}) where {T<:Real} = CSGGenerator{T}((parenttransform) -> LeafNode(surf, parenttransform))
+
+"""
+    csgtransform(surf::Union{CSGGenerator{T},ParametricSurface{T}}, transform::Transform{T} = identitytransform(T)) -> CSGGenerator{T}
+
+Returns a new CSGGenerator with a transform applied. Can take an input of either a ParametricSurface or another
+CSGGenerator, with the latter being useful if you want multiple copies of a premade CSG structure with different
+transforms, for example in an MLA.
+"""
+function csgtransform end
+
+function csgtransform(n::CSGGenerator{T}, transform::Transform{T} = identitytransform(T)) where {T<:Real}
+    return CSGGenerator{T}((parenttransform) -> n(parenttransform * transform))
 end
 
-"""
-    transform(surf::CSGGenerator{T}, transform::Transform{T} = identitytransform(T)) -> CSGGenerator{T}
-
-Returns a new CSGGenerator with another transform applied. This is useful if you want multiple copies of a premade CSG
-structure with different transforms, for example in an MLA.
-"""
-function transform(n::CSGGenerator{T}, transform::Transform{T} = identitytransform(T)) where {T<:Real}
-    return CSGGenerator{T}((parenttransform) -> n(parenttransform * transform))
+function csgtransform(surf::ParametricSurface{T}, transform::Transform{T} = identitytransform(T)) where {T<:Real}
+    return CSGGenerator{T}((parenttransform) -> LeafNode(surf, parenttransform * transform))
 end
 
 # CSG objects are trees, not graphs, since it makes no sense to reuse intermediate results. Hence no need to keep track
@@ -160,7 +165,7 @@ Base.:∩(a::ParametricSurface, b::CSGGenerator) = leaf(a) ∩ b
 Base.:∩(a::CSGGenerator, b::ParametricSurface) = a ∩ leaf(b)
 
 @deprecate csgintersection(a, b) a ∩ b
-@deprecate csgintersection(a, b, tr) transform(a ∩ b, tr)
+@deprecate csgintersection(a, b, tr) csgtransform(a ∩ b, tr)
 
 """
     ∪(a::Union{CSGGenerator{T},ParametricSurface{T}}, b::Union{CSGGenerator{T},ParametricSurface{T}}) where {T<:Real}
@@ -179,7 +184,7 @@ Base.:∪(a::ParametricSurface, b::CSGGenerator) = leaf(a) ∪ b
 Base.:∪(a::CSGGenerator, b::ParametricSurface) = a ∪ leaf(b)
 
 @deprecate csgunion(a, b) a ∪ b
-@deprecate csgunion(a, b, tr) transform(a ∪ b, tr)
+@deprecate csgunion(a, b, tr) csgtransform(a ∪ b, tr)
 
 """
     -(a::Union{CSGGenerator{T},ParametricSurface{T}}, b::Union{CSGGenerator{T},ParametricSurface{T}}) where {T<:Real}
@@ -198,7 +203,7 @@ Base.:-(a::ParametricSurface, b::CSGGenerator) = leaf(a) - b
 Base.:-(a::CSGGenerator, b::ParametricSurface) = a - leaf(b)
 
 @deprecate csgdifference(a, b) a - b
-@deprecate csgdifference(a, b, tr) transform(a - b, tr)
+@deprecate csgdifference(a, b, tr) csgtransform(a - b, tr)
 
 """
     evalcsg(

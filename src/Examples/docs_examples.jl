@@ -77,13 +77,13 @@ function draw_schmidtcassegraintelescope(filename::Union{Nothing,AbstractString}
         aspherics = [(4, 3.68090959e-7), (6, 2.73643352e-11), (8, 3.20036892e-14)]),
         17,
         interface = FresnelInterface{Float64}(SCHOTT.N_BK7, Air))
-    coverlens = Cylinder(12.00075, 1.4) ∩ topsurf ∩ leaf(botsurf, Transform(rotmatd(0, 180, 0), Vec3(0.0, 0.0, -0.65)))
+    coverlens = Cylinder(12.00075, 1.4) ∩ topsurf ∩ csgtransform(botsurf, Transform(rotmatd(0, 180, 0), Vec3(0.0, 0.0, -0.65)))
 
     # big mirror with a hole in it
     frontsurfacereflectance = 1.0
     bigmirror = (
         ConicLens(SCHOTT.N_BK7, -72.65, -95.2773500000134, 0.077235, Inf, 0.0, 0.2, 12.18263; frontsurfacereflectance) -
-        leaf(Cylinder(4.0, 0.3, interface = opaqueinterface()), translation(0.0, 0.0, -72.75))
+        csgtransform(Cylinder(4.0, 0.3, interface = opaqueinterface()), translation(0.0, 0.0, -72.75))
     )
 
     # small mirror supported on a spider
@@ -111,7 +111,7 @@ function draw_schmidtcassegraintelescope(filename::Union{Nothing,AbstractString}
 end
 
 function draw_lensconstruction(filename::Union{Nothing,AbstractString} = nothing)
-    topsurface = leaf(
+    topsurface = csgtransform(
         AcceleratedParametricSurface(
             QTypeSurface(
                 9.0,
@@ -226,25 +226,25 @@ function draw_stackedbeamsplitters(filenames::Vector{<:Union{Nothing,AbstractStr
 
     for (interfacemode, filename) in zip(interfacemodes, filenames)
         interface = FresnelInterface{Float64}(SCHOTT.N_BK7, Air; reflectance=0.5, transmission=0.5, interfacemode)
-        bs_1 = OpticSim.transform(
-            OpticSim.transform(
+        bs_1 = csgtransform(
+            csgtransform(
                 Cuboid(10.0, 20.0, 2.0; interface),
                 rotationX(π/4)
                 ),
             translation(0.0, 0.0, -30.0-2*sqrt(2))
         )
-        l1 = OpticSim.transform(
+        l1 = csgtransform(
             SphericalLens(SCHOTT.N_BK7, -70.0, 30.0, Inf, 5.0, 10.0),
             translation(0.0, -1.34, 0.0)
         )
-        bs_2 = OpticSim.transform(
-            OpticSim.transform(
+        bs_2 = csgtransform(
+            csgtransform(
                 Cuboid(10.0, 20.0, 2.0; interface),
                 rotationX(π/4)
             ),
             translation(0.0, 40.0, -30.0+2*sqrt(2))
         )
-        l2 = OpticSim.transform(
+        l2 = csgtransform(
             SphericalLens(SCHOTT.N_BK7, -70.0, 30.0, Inf, 5.0, 10.0),
             translation(0.0, 40.0, 0.0)
         )

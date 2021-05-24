@@ -44,20 +44,20 @@ function AsphericLens(insidematerial::T, frontvertex::S, frontradius::S, frontco
 
     if isinf(frontradius) && (frontaspherics === nothing)
         #planar
-        lens_front = leaf(Plane(SVector{3,S}(0, 0, 1), SVector{3,S}(0, 0, frontvertex), vishalfsizeu = semidiameter, vishalfsizev = semidiameter, interface = interface = opticinterface(S, insidematerial, lastmaterial, frontsurfacereflectance, interfacemode)))
+        lens_front = csgtransform(Plane(SVector{3,S}(0, 0, 1), SVector{3,S}(0, 0, frontvertex), vishalfsizeu = semidiameter, vishalfsizev = semidiameter, interface = interface = opticinterface(S, insidematerial, lastmaterial, frontsurfacereflectance, interfacemode)))
     elseif frontconic == zero(S) && (frontaspherics === nothing)
         #spherical
         if frontradius < zero(S)
             ϕmax = NaNsafeasin(min(abs((min(semidiameter, abs(frontradius)) + frontdecenter_l) / frontradius), one(S))) + S(π / 50)
-            lens_front = leaf(SphericalCap(abs(frontradius), ϕmax, SVector{3,S}(0, 0, 1), SVector{3,S}(frontdecenter[1], frontdecenter[2], frontvertex), interface = opticinterface(S, insidematerial, lastmaterial, frontsurfacereflectance, interfacemode)))
+            lens_front = csgtransform(SphericalCap(abs(frontradius), ϕmax, SVector{3,S}(0, 0, 1), SVector{3,S}(frontdecenter[1], frontdecenter[2], frontvertex), interface = opticinterface(S, insidematerial, lastmaterial, frontsurfacereflectance, interfacemode)))
         else
             offset = translation(S, frontdecenter[1], frontdecenter[2], frontvertex - frontradius)
             surf = Sphere(abs(frontradius), interface = opticinterface(S, insidematerial, lastmaterial, frontsurfacereflectance, interfacemode))
-            lens_front = leaf(surf, offset)
+            lens_front = csgtransform(surf, offset)
         end
         if abs(frontradius) - frontdecenter_l <= semidiameter
             # if optical surface is smaller than semidiameter then use a plane to fill the gap
-            plane = leaf(Plane(SVector{3,S}(0, 0, 1), SVector{3,S}(0, 0, frontvertex - frontradius), vishalfsizeu = semidiameter, vishalfsizev = semidiameter, interface = interface = opticinterface(S, insidematerial, lastmaterial, frontsurfacereflectance, interfacemode)))
+            plane = csgtransform(Plane(SVector{3,S}(0, 0, 1), SVector{3,S}(0, 0, frontvertex - frontradius), vishalfsizeu = semidiameter, vishalfsizev = semidiameter, interface = interface = opticinterface(S, insidematerial, lastmaterial, frontsurfacereflectance, interfacemode)))
             if frontradius > zero(S)
                 lens_front = lens_front ∪ plane
             else
@@ -70,28 +70,28 @@ function AsphericLens(insidematerial::T, frontvertex::S, frontradius::S, frontco
             frontaspherics = [(i, -k) for (i, k) in frontaspherics]
         end
         surf = AcceleratedParametricSurface(ZernikeSurface(semidiameter + frontdecenter_l + S(0.01), radius = -frontradius, conic = frontconic, aspherics = frontaspherics), nsamples, interface = opticinterface(S, insidematerial, lastmaterial, frontsurfacereflectance, interfacemode))
-        lens_front = leaf(surf, translation(S, frontdecenter[1], frontdecenter[2], frontvertex))
+        lens_front = csgtransform(surf, translation(S, frontdecenter[1], frontdecenter[2], frontvertex))
     end
     if isinf(backradius) && (backaspherics === nothing)
         #planar
-        lens_rear = leaf(Plane(SVector{3,S}(0, 0, -1), SVector{3,S}(0, 0, frontvertex - thickness), vishalfsizeu = semidiameter, vishalfsizev = semidiameter, interface = interface = opticinterface(S, insidematerial, nextmaterial, backsurfacereflectance, interfacemode)))
+        lens_rear = csgtransform(Plane(SVector{3,S}(0, 0, -1), SVector{3,S}(0, 0, frontvertex - thickness), vishalfsizeu = semidiameter, vishalfsizev = semidiameter, interface = interface = opticinterface(S, insidematerial, nextmaterial, backsurfacereflectance, interfacemode)))
     elseif backconic == zero(S) && (backaspherics === nothing)
         #spherical
         if backradius < zero(S)
             offset = translation(S, backdecenter[1], backdecenter[2], (frontvertex - thickness) - backradius)
             surf = Sphere(abs(backradius), interface = opticinterface(S, insidematerial, nextmaterial, backsurfacereflectance, interfacemode))
-            lens_rear = leaf(surf, offset)
+            lens_rear = csgtransform(surf, offset)
             if backradius == semidiameter
                 # in this case we need to clip the sphere
-                plane = leaf(Plane(SVector{3,S}(0, 0, 1), SVector{3,S}(0, 0, frontvertex - thickness + backradius)))
+                plane = csgtransform(Plane(SVector{3,S}(0, 0, 1), SVector{3,S}(0, 0, frontvertex - thickness + backradius)))
                 lens_rear = lens_rear ∩ plane
             end
         else
             ϕmax = NaNsafeasin(min(abs((min(semidiameter, abs(backradius)) + backdecenter_l) / backradius), one(S))) + S(π / 50)
-            lens_rear = leaf(SphericalCap(abs(backradius), ϕmax, SVector{3,S}(0, 0, -1), SVector{3,S}(backdecenter[1], backdecenter[2], frontvertex - thickness), interface = opticinterface(S, insidematerial, nextmaterial, backsurfacereflectance, interfacemode)))
+            lens_rear = csgtransform(SphericalCap(abs(backradius), ϕmax, SVector{3,S}(0, 0, -1), SVector{3,S}(backdecenter[1], backdecenter[2], frontvertex - thickness), interface = opticinterface(S, insidematerial, nextmaterial, backsurfacereflectance, interfacemode)))
         end
         if abs(backradius) - backdecenter_l <= semidiameter
-            plane = leaf(Plane(SVector{3,S}(0, 0, -1), SVector{3,S}(0, 0, frontvertex - thickness - backradius), vishalfsizeu = semidiameter, vishalfsizev = semidiameter, interface = interface = opticinterface(S, insidematerial, lastmaterial, backsurfacereflectance, interfacemode)))
+            plane = csgtransform(Plane(SVector{3,S}(0, 0, -1), SVector{3,S}(0, 0, frontvertex - thickness - backradius), vishalfsizeu = semidiameter, vishalfsizev = semidiameter, interface = interface = opticinterface(S, insidematerial, lastmaterial, backsurfacereflectance, interfacemode)))
             if backradius < zero(S)
                 lens_rear = lens_rear ∪ plane
             else
@@ -104,12 +104,12 @@ function AsphericLens(insidematerial::T, frontvertex::S, frontradius::S, frontco
             backaspherics = Tuple{Int,S}.(backaspherics)
         end
         surf = AcceleratedParametricSurface(ZernikeSurface(semidiameter + backdecenter_l + S(0.01), radius = backradius, conic = backconic, aspherics = backaspherics), nsamples, interface = opticinterface(S, insidematerial, nextmaterial, backsurfacereflectance, interfacemode))
-        lens_rear = leaf(surf, Transform{S}(zero(S), S(π), zero(S), backdecenter[1], backdecenter[2], frontvertex - thickness))
+        lens_rear = csgtransform(surf, Transform{S}(zero(S), S(π), zero(S), backdecenter[1], backdecenter[2], frontvertex - thickness))
     end
     extra_front = frontradius >= zero(S) || isinf(frontradius) ? zero(S) : abs(frontradius) - sqrt(frontradius^2 - semidiameter^2)
     extra_back = backradius >= zero(S) || isinf(backradius) ? zero(S) : abs(backradius) - sqrt(backradius^2 - semidiameter^2)
     barrel_center = ((frontvertex + extra_front) + (frontvertex - thickness - extra_back)) / 2
-    lens_barrel = leaf(Cylinder(semidiameter, (thickness + extra_back + extra_front) * 2, interface = FresnelInterface{S}(insidematerial, OpticSim.GlassCat.Air, reflectance = zero(S), transmission = zero(S))), translation(S, zero(S), zero(S), barrel_center))
+    lens_barrel = csgtransform(Cylinder(semidiameter, (thickness + extra_back + extra_front) * 2, interface = FresnelInterface{S}(insidematerial, OpticSim.GlassCat.Air, reflectance = zero(S), transmission = zero(S))), translation(S, zero(S), zero(S), barrel_center))
     lens_csg = lens_front ∩ lens_rear ∩ lens_barrel
     return lens_csg
 end
@@ -138,11 +138,11 @@ function FresnelLens(insidematerial::G, frontvertex::T, radius::T, thickness::T,
         n = 1
         if radius > zero(T)
             sphere = Sphere(radius, interface = interface)
-            fresnel = leaf(sphere, translation(T, zero(T), zero(T), frontvertex - radius))
+            fresnel = csgtransform(sphere, translation(T, zero(T), zero(T), frontvertex - radius))
         else
             ϕmax = NaNsafeasin(abs(semidiameter / radius)) + T(π / 50)
             sphere = SphericalCap(abs(radius), ϕmax, interface = interface)
-            fresnel = leaf(sphere, translation(T, zero(T), zero(T), frontvertex))
+            fresnel = csgtransform(sphere, translation(T, zero(T), zero(T), frontvertex))
         end
         while true
             offset = n * groovedepth
@@ -151,12 +151,12 @@ function FresnelLens(insidematerial::G, frontvertex::T, radius::T, thickness::T,
                 break
             end
             if radius > zero(T)
-                cylinder = leaf(Cylinder(cylrad, groovedepth * 1.5, interface = interface), translation(T, zero(T), zero(T), frontvertex - groovedepth / 2))
-                newsurf = leaf(sphere, translation(T, zero(T), zero(T), frontvertex - radius + offset)) - cylinder
+                cylinder = csgtransform(Cylinder(cylrad, groovedepth * 1.5, interface = interface), translation(T, zero(T), zero(T), frontvertex - groovedepth / 2))
+                newsurf = csgtransform(sphere, translation(T, zero(T), zero(T), frontvertex - radius + offset)) - cylinder
                 fresnel = newsurf ∪ fresnel
             else
-                cylinder = leaf(Cylinder(cylrad, groovedepth * 1.5, interface = interface), translation(T, zero(T), zero(T), frontvertex + groovedepth / 2))
-                newsurf = leaf(sphere, translation(T, zero(T), zero(T), frontvertex - offset)) ∪ cylinder
+                cylinder = csgtransform(Cylinder(cylrad, groovedepth * 1.5, interface = interface), translation(T, zero(T), zero(T), frontvertex + groovedepth / 2))
+                newsurf = csgtransform(sphere, translation(T, zero(T), zero(T), frontvertex - offset)) ∪ cylinder
                 fresnel = newsurf ∩ fresnel
             end
             n += 1
@@ -167,7 +167,7 @@ function FresnelLens(insidematerial::G, frontvertex::T, radius::T, thickness::T,
         end
         n = 1
         surface = AcceleratedParametricSurface(ZernikeSurface(semidiameter + T(0.01), radius = -radius, conic = conic), interface = interface)
-        fresnel = leaf(surface, translation(T, zero(T), zero(T), frontvertex))
+        fresnel = csgtransform(surface, translation(T, zero(T), zero(T), frontvertex))
         while true
             offset = n * groovedepth
             if radius < zero(T)
@@ -178,12 +178,12 @@ function FresnelLens(insidematerial::G, frontvertex::T, radius::T, thickness::T,
                 break
             end
             if radius > zero(T)
-                cylinder = leaf(Cylinder(cylrad, groovedepth * 1.5, interface = interface), translation(T, zero(T), zero(T), frontvertex - groovedepth / 2))
-                newsurf = leaf(surface, translation(T, zero(T), zero(T), frontvertex + offset)) - cylinder
+                cylinder = csgtransform(Cylinder(cylrad, groovedepth * 1.5, interface = interface), translation(T, zero(T), zero(T), frontvertex - groovedepth / 2))
+                newsurf = csgtransform(surface, translation(T, zero(T), zero(T), frontvertex + offset)) - cylinder
                 fresnel = newsurf ∪ fresnel
             else
-                cylinder = leaf(Cylinder(cylrad, groovedepth * 1.5, interface = interface), translation(T, zero(T), zero(T), frontvertex + groovedepth / 2))
-                newsurf = leaf(surface, translation(T, zero(T), zero(T), frontvertex + offset)) ∪ cylinder
+                cylinder = csgtransform(Cylinder(cylrad, groovedepth * 1.5, interface = interface), translation(T, zero(T), zero(T), frontvertex + groovedepth / 2))
+                newsurf = csgtransform(surface, translation(T, zero(T), zero(T), frontvertex + offset)) ∪ cylinder
                 fresnel = newsurf ∩ fresnel
             end
             n += 1
@@ -193,12 +193,12 @@ function FresnelLens(insidematerial::G, frontvertex::T, radius::T, thickness::T,
         @error "Ashperics not supported for Fresnel lenses"
     end
 
-    outer_barrel = leaf(Cylinder(semidiameter, thickness * 2, interface = interface), translation(T, zero(T), zero(T), frontvertex - thickness / 2))
+    outer_barrel = csgtransform(Cylinder(semidiameter, thickness * 2, interface = interface), translation(T, zero(T), zero(T), frontvertex - thickness / 2))
     fresnel = outer_barrel ∩ fresnel
-    backplane = leaf(Plane(zero(T), zero(T), -one(T), zero(T), zero(T), frontvertex - thickness, vishalfsizeu = semidiameter, vishalfsizev = semidiameter))
+    backplane = csgtransform(Plane(zero(T), zero(T), -one(T), zero(T), zero(T), frontvertex - thickness, vishalfsizeu = semidiameter, vishalfsizev = semidiameter))
     fresnel = backplane ∩ fresnel
     if !reverse
-        fresnel = leaf(fresnel, rotationd(T, zero(T), T(180.0), zero(T)))
+        fresnel = csgtransform(fresnel, rotationd(T, zero(T), T(180.0), zero(T)))
     end
     return fresnel
 end

@@ -12,7 +12,7 @@ The code for this in our system would look this this:
 ```@example
 using OpticSim # hide
 cyl = Cylinder(0.7)
-cyl_cross = cyl ∪ leaf(cyl, Geometry.rotationd(90, 0, 0)) ∪ leaf(cyl, Geometry.rotationd(0, 90, 0))
+cyl_cross = cyl ∪ csgtransform(cyl, Geometry.rotationd(90, 0, 0)) ∪ csgtransform(cyl, Geometry.rotationd(0, 90, 0))
 
 cube = Cuboid(1.0, 1.0, 1.0)
 sph = Sphere(1.3)

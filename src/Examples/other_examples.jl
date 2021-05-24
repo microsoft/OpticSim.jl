@@ -316,7 +316,7 @@ function eyetrackHOE(nrays = 5000, det = false, showhead = true, zeroorder = fal
 
     mint = MultiHologramInterface(interfaces...)
     obj = MultiHologramSurface(rect, mint)
-    cornea = leaf(Sphere(cornea_rad, interface = FresnelInterface{Float64}(EYE.CORNEA, Air, reflectance = 1.0, transmission = 0.0)), translation(0.0, er + cornea_rad, 0.0))()
+    cornea = csgtransform(Sphere(cornea_rad, interface = FresnelInterface{Float64}(EYE.CORNEA, Air, reflectance = 1.0, transmission = 0.0)), translation(0.0, er + cornea_rad, 0.0))()
 
     # cam settings
     fnum = 2.0
@@ -337,7 +337,7 @@ function eyetrackHOE(nrays = 5000, det = false, showhead = true, zeroorder = fal
     cambarrel = (
         barrelbot ∩
         barreltop ∩
-        leaf(Cylinder(camrad, barrellength, interface = opaqueinterface(Float64)), Transform(barrelrot, barrelloc))
+        csgtransform(Cylinder(camrad, barrellength, interface = opaqueinterface(Float64)), Transform(barrelrot, barrelloc))
     )()
     camdet = Circle(sensorrad, camdir_norm, camloc - barrellength * camdir_norm, interface = opaqueinterface(Float64))
 
@@ -364,10 +364,10 @@ function eyetrackHOE(nrays = 5000, det = false, showhead = true, zeroorder = fal
         Vis.drawtracerays(sys; raygenerator = source, trackallrays = true, kwargs...)
         # for θ in 0:(π / 6):(2π)
         #     ledloc = SVector(20 * cos(θ) + offset[1], 0 + offset[2], 15 * sin(θ) + offset[3])
-        #     Vis.draw!(leaf(Sphere(1.0), translation(ledloc...)), color = :red)
+        #     Vis.draw!(csgtransform(Sphere(1.0), translation(ledloc...)), color = :red)
         # end
         for d in dirs
-            # Vis.draw!(leaf(Sphere(1.0), translation((corneavertex - 10 * d)...)), color = :red)
+            # Vis.draw!(csgtransform(Sphere(1.0), translation((corneavertex - 10 * d)...)), color = :red)
             Vis.draw!((corneavertex - 50 * d, corneavertex), color = :red)
         end
         if showhead
