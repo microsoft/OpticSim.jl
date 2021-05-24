@@ -2,7 +2,7 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # See LICENSE in the project root for full license information.
 
-export CSGTree, CSGGenerator, leaf
+export CSGTree, CSGGenerator, leaf, transform
 
 """Abstract type representing any evaluated CSG structure."""
 abstract type CSGTree{T} <: Primitive{T} end
