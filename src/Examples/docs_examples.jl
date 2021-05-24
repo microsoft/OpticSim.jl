@@ -3,7 +3,8 @@
 # See LICENSE in the project root for full license information.
 
 # Group examples that are used in the docs (examples.md)
-export draw_cooketriplet, draw_schmidtcassegraintelescope, draw_lensconstruction, draw_zoomlenses, draw_HOEfocus, draw_HOEcollimate, draw_multiHOE, draw_stackedbeamsplitters
+export draw_cooketriplet, draw_schmidtcassegraintelescope, draw_lensconstruction, draw_zoomlenses, draw_HOEfocus,
+    draw_HOEcollimate, draw_multiHOE, draw_stackedbeamsplitters
 
 function draw_cooketriplet(filename::Union{Nothing,AbstractString} = nothing)
     g1, g2 = SCHOTT.N_SK16, SCHOTT.N_SF2
@@ -225,22 +226,28 @@ function draw_stackedbeamsplitters(filenames::Vector{<:Union{Nothing,AbstractStr
 
     for (interfacemode, filename) in zip(interfacemodes, filenames)
         interface = FresnelInterface{Float64}(SCHOTT.N_BK7, Air; reflectance=0.5, transmission=0.5, interfacemode)
-        bs_1 = leaf(
-            leaf(
+        bs_1 = OpticSim.transform(
+            OpticSim.transform(
                 Cuboid(10.0, 20.0, 2.0; interface),
-                rotationX(π/4)),
-            translation(0.0, 0.0, -30.0-2*sqrt(2)))
-        l1 = leaf(
+                rotationX(π/4)
+                ),
+            translation(0.0, 0.0, -30.0-2*sqrt(2))
+        )
+        l1 = OpticSim.transform(
             SphericalLens(SCHOTT.N_BK7, -70.0, 30.0, Inf, 5.0, 10.0),
-            translation(0.0, -1.34, 0.0))
-        bs_2 = leaf(
-            leaf(
+            translation(0.0, -1.34, 0.0)
+        )
+        bs_2 = OpticSim.transform(
+            OpticSim.transform(
                 Cuboid(10.0, 20.0, 2.0; interface),
-                rotationX(π/4)),
-            translation(0.0, 40.0, -30.0+2*sqrt(2)))
-        l2 = leaf(
+                rotationX(π/4)
+            ),
+            translation(0.0, 40.0, -30.0+2*sqrt(2))
+        )
+        l2 = OpticSim.transform(
             SphericalLens(SCHOTT.N_BK7, -70.0, 30.0, Inf, 5.0, 10.0),
-            translation(0.0, 40.0, 0.0))
+            translation(0.0, 40.0, 0.0)
+        )
         la = LensAssembly(bs_1(), l1(), bs_2(), l2())
         detector = Rectangle(20.0, 40.0, SVector(0.0, 0.0, 1.0), SVector(0.0, 20.0, -130.0); interface = opaqueinterface())
         sys = CSGOpticalSystem(la, detector)
