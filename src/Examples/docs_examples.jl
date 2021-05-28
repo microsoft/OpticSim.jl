@@ -41,9 +41,9 @@ function draw_zoomlenses(filenames::Vector{<:Union{Nothing,AbstractString}} = re
     raygenerator = Sources.Source(; transform, origins, directions)
 
     aspherics = [
-        [4 => 1.0386E-04, 6 => 1.4209E-07, 8 => -8.8495E-09, 10 => 1.2477E-10, 12 => -1.0367E-12, 14 => 3.6556E-15],
-        [4 => 4.2721E-05, 6 => 1.2484E-07, 8 => 9.7079E-09, 10 => -1.8444E-10, 12 => 1.8644E-12, 14 => -7.7975E-15],
-        [4 => 1.1339E-04, 6 => 4.8165E-07, 8 => 1.8778E-08, 10 => -5.7571E-10, 12 => 8.9994E-12, 14 => -4.6768E-14],
+        ["4" => 1.0386E-04, "6" => 1.4209E-07, "8" => -8.8495E-09, "10" => 1.2477E-10, "12" => -1.0367E-12, "14" => 3.6556E-15],
+        ["4" => 4.2721E-05, "6" => 1.2484E-07, "8" => 9.7079E-09, "10" => -1.8444E-10, "12" => 1.8644E-12, "14" => -7.7975E-15],
+        ["4" => 1.1339E-04, "6" => 4.8165E-07, "8" => 1.8778E-08, "10" => -5.7571E-10, "12" => 8.9994E-12, "14" => -4.6768E-14],
     ]
     syss = [
         AxisymmetricOpticalSystem{Float64}(DataFrame(
@@ -76,19 +76,18 @@ function draw_schmidtcassegraintelescope(filename::Union{Nothing,AbstractString}
         aspherics = [(4, 3.68090959e-7), (6, 2.73643352e-11), (8, 3.20036892e-14)]),
         17,
         interface = FresnelInterface{Float64}(SCHOTT.N_BK7, Air))
-    coverlens = csgintersection(
-        leaf(Cylinder(12.00075, 1.4)),
-        csgintersection(
-            leaf(topsurf), 
-            leaf(botsurf, Transform(rotmatd(0, 180, 0), Vec3(0.0, 0.0, -0.65)))))
+    coverlens = Cylinder(12.00075, 1.4) ∩ topsurf ∩ leaf(botsurf, Transform(rotmatd(0, 180, 0), Vec3(0.0, 0.0, -0.65)))
 
     # big mirror with a hole in it
-    bigmirror = csgdifference(
-        ConicLens(SCHOTT.N_BK7, -72.65, -95.2773500000134, 0.077235, Inf, 0.0, 0.2, 12.18263, frontsurfacereflectance = 1.0),
-        leaf(Cylinder(4.0, 0.3, interface = opaqueinterface()), translation(0.0, 0.0, -72.75)))
+    frontsurfacereflectance = 1.0
+    bigmirror = (
+        ConicLens(SCHOTT.N_BK7, -72.65, -95.2773500000134, 0.077235, Inf, 0.0, 0.2, 12.18263; frontsurfacereflectance) -
+        leaf(Cylinder(4.0, 0.3, interface = opaqueinterface()), translation(0.0, 0.0, -72.75))
+    )
 
     # small mirror supported on a spider
-    smallmirror = SphericalLens(SCHOTT.N_BK7, -40.65, Inf, -49.6845, 1.13365, 4.3223859, backsurfacereflectance = 1.0)
+    backsurfacereflectance = 1.0
+    smallmirror = SphericalLens(SCHOTT.N_BK7, -40.65, Inf, -49.6845, 1.13365, 4.3223859; backsurfacereflectance)
 
     obscuration1 = Circle(4.5, SVector(0.0, 0.0, 1.0), SVector(0.0, 0.0, -40.649), interface = opaqueinterface())
     obscurations2 = Spider(3, 0.5, 12.0, SVector(0.0, 0.0, -40.65))
@@ -122,25 +121,18 @@ function draw_lensconstruction(filename::Union{Nothing,AbstractString} = nothing
                 normradius = 9.5),
             interface = FresnelInterface{Float64}(SCHOTT.N_BK7, Air)),
         translation(0.0, 0.0, 5.0))
-    botsurface = leaf(
-        Plane(
-            SVector(0.0, 0.0, -1.0),
-            SVector(0.0, 0.0, -5.0),
-            vishalfsizeu = 9.5,
-            vishalfsizev = 9.5,
-            interface = FresnelInterface{Float64}(SCHOTT.N_BK7, Air)))
-    barrel = leaf(
-        Cylinder(
-            9.0,
-            20.0,
-            interface = FresnelInterface{Float64}(SCHOTT.N_BK7, Air, reflectance = 0.0, transmission = 0.0)))
-    lens = csgintersection(
-        barrel,
-        csgintersection(topsurface, botsurface),
-        Transform{Float64}(0.0, Float64(π), 0.0, 0.0, 0.0, -5.0))()
-    sys = CSGOpticalSystem(
-        LensAssembly(lens),
-        Rectangle(15.0, 15.0, [0.0, 0.0, 1.0], [0.0, 0.0, -67.8], interface = opaqueinterface()))
+    botsurface = Plane(
+        SVector(0.0, 0.0, -1.0),
+        SVector(0.0, 0.0, -5.0),
+        vishalfsizeu = 9.5,
+        vishalfsizev = 9.5,
+        interface = FresnelInterface{Float64}(SCHOTT.N_BK7, Air))
+    barrel = Cylinder(
+        9.0, 20.0, interface = FresnelInterface{Float64}(SCHOTT.N_BK7, Air, reflectance=0.0, transmission=0.0)
+    )
+    lens = (barrel ∩ topsurface ∩ botsurface)(Transform{Float64}(0.0, Float64(π), 0.0, 0.0, 0.0, -5.0))
+    detector = Rectangle(15.0, 15.0, [0.0, 0.0, 1.0], [0.0, 0.0, -67.8], interface = opaqueinterface())
+    sys = CSGOpticalSystem(LensAssembly(lens), detector)
 
     Vis.drawtracerays(sys, test = true, trackallrays = true, colorbynhits = true)
     Vis.save(filename)

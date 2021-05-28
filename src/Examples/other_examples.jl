@@ -15,7 +15,7 @@ function hemisphere()::CSGTree
     # CSV operations create a csggenerator which instantiates the csg tree after applying a rigid body transformation.
     # This allows you to make as many instances of the object as you want with different transformations. We just want
     # the CSGTree object rather than a generator.
-    return csgintersection(sph, pln)()
+    return (sph ∩ pln)()
 end
 
 """
@@ -28,7 +28,7 @@ or reflect light.
 function opticalhemisphere()::CSGOpticalSystem
     sph = Sphere(10.0, interface = FresnelInterface{Float64}(SCHOTT.N_BK7, Air))
     pln = Plane(0.0, 0.0, -1.0, 0.0, 0.0, 0.0, interface = FresnelInterface{Float64}(SCHOTT.N_BK7, Air))
-    assy = LensAssembly{Float64}(csgintersection(sph, pln)())
+    assy = LensAssembly{Float64}((sph ∩ pln)())
     return CSGOpticalSystem(assy, Rectangle(1.0, 1.0, SVector{3,Float64}(0.0, 0.0, 1.0), SVector{3,Float64}(0.0, 0.0, -11.0)))
 end
 
@@ -72,7 +72,7 @@ function convexplano(::Type{T} = Float64) where {T<:Real}
     )
 end
 
-function doubleconvex(frontradius::T,rearradius::T) where{T<:Real}
+function doubleconvex(frontradius::T, rearradius::T) where {T<:Real}
     AxisymmetricOpticalSystem{T}(
         DataFrame(
             SurfaceType = ["Object", "Standard", "Standard", "Image"],
@@ -212,7 +212,29 @@ function prism_refraction()
     # build the triangular prism
     int = FresnelInterface{Float64}(SCHOTT.N_SF14, Air)
     s = 2.0
-    prism = csgintersection(leaf(Plane(SVector(0.0, -1.0, 0.0), SVector(0.0, -s, 0.0), interface = int, vishalfsizeu = 2 * s, vishalfsizev = 2 * s)), csgintersection(Plane(SVector(0.0, sind(30), cosd(30)), SVector(0.0, s * sind(30), s * cosd(30)), interface = int, vishalfsizeu = 2 * s, vishalfsizev = 2 * s), Plane(SVector(0.0, sind(30), -cosd(30)), SVector(0.0, s * sind(30), -s * cosd(30)), interface = int, vishalfsizeu = 2 * s, vishalfsizev = 2 * s)))
+    prism = (
+        Plane(
+            SVector(0.0, -1.0, 0.0),
+            SVector(0.0, -s, 0.0),
+            interface = int,
+            vishalfsizeu = 2 * s,
+            vishalfsizev = 2 * s
+        ) ∩
+        Plane(
+            SVector(0.0, sind(30), cosd(30)),
+            SVector(0.0, s * sind(30), s * cosd(30)),
+            interface = int,
+            vishalfsizeu = 2 * s,
+            vishalfsizev = 2 * s
+        ) ∩
+        Plane(
+            SVector(0.0, sind(30), -cosd(30)),
+            SVector(0.0, s * sind(30), -s * cosd(30)),
+            interface = int,
+            vishalfsizeu = 2 * s,
+            vishalfsizev = 2 * s
+        )
+    )
     sys = CSGOpticalSystem(LensAssembly(prism()), Rectangle(15.0, 15.0, SVector(0.0, 0.0, 1.0), SVector(0.0, 0.0, -20.0), interface = opaqueinterface()))
     # create some 'white' light
     rays = Vector{OpticalRay{Float64,3}}(undef, 0)
@@ -312,7 +334,11 @@ function eyetrackHOE(nrays = 5000, det = false, showhead = true, zeroorder = fal
     barreltop = Plane(camdir_norm, camloc)
     barrelbot = Plane(-camdir_norm, camloc - 3 * barrellength * camdir_norm)
     barrelrot = OpticSim.rotmatbetween(SVector(0.0, 0.0, 1.0), camdir_norm)
-    cambarrel = csgintersection(barrelbot, csgintersection(barreltop, leaf(Cylinder(camrad, barrellength, interface = opaqueinterface(Float64)), Transform(barrelrot, barrelloc))))()
+    cambarrel = (
+        barrelbot ∩
+        barreltop ∩
+        leaf(Cylinder(camrad, barrellength, interface = opaqueinterface(Float64)), Transform(barrelrot, barrelloc))
+    )()
     camdet = Circle(sensorrad, camdir_norm, camloc - barrellength * camdir_norm, interface = opaqueinterface(Float64))
 
     # sourceleft = hoecenter[1] + hoehalfwidth - sourceloc[1]
