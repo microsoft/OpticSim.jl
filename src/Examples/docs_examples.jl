@@ -8,11 +8,11 @@ export draw_cooketriplet, draw_schmidtcassegraintelescope, draw_lensconstruction
 function draw_cooketriplet(filename::Union{Nothing,AbstractString} = nothing)
     g1, g2 = SCHOTT.N_SK16, SCHOTT.N_SF2
     sys = AxisymmetricOpticalSystem{Float64}(DataFrame(
-        Surface      = [:Object, 1,      2,      3,       :Stop,  5,      6,       :Image ],
-        Radius       = [Inf,     26.777, 66.604, -35.571, 35.571, 35.571, -26.777, Inf    ],
-        Thickness    = [Inf,     4.0,    2.0,    4.0,     2.0,    4.0,    44.748,  missing],
-        Material     = [Air,     g1,     Air,    g2,      Air,    g1,     Air,     missing],
-        SemiDiameter = [Inf,     8.580,  7.513,  7.054,   6.033,  7.003,  7.506,   15.0   ],
+        SurfaceType  = ["Object", "Standard", "Standard", "Standard", "Stop", "Standard", "Standard", "Image"],
+        Radius       = [Inf,      26.777,     66.604,     -35.571,    35.571, 35.571,     -26.777,    Inf    ],
+        Thickness    = [Inf,      4.0,        2.0,        4.0,        2.0,    4.0,        44.748,     missing],
+        Material     = [Air,      g1,         Air,        g2,         Air,    g1,         Air,        missing],
+        SemiDiameter = [Inf,      8.580,      7.513,      7.054,      6.033,  7.003,      7.506,      15.0   ],
     ))
 
     origins = Origins.Hexapolar(8, 15.0, 15.0)
@@ -40,11 +40,16 @@ function draw_zoomlenses(filenames::Vector{<:Union{Nothing,AbstractString}} = re
     directions = Directions.Constant(0.0, 0.0, -1.0)
     raygenerator = Sources.Source(; transform, origins, directions)
 
+    aspherics = [
+        ["4" => 1.0386E-04, "6" => 1.4209E-07, "8" => -8.8495E-09, "10" => 1.2477E-10, "12" => -1.0367E-12, "14" => 3.6556E-15],
+        ["4" => 4.2721E-05, "6" => 1.2484E-07, "8" => 9.7079E-09, "10" => -1.8444E-10, "12" => 1.8644E-12, "14" => -7.7975E-15],
+        ["4" => 1.1339E-04, "6" => 4.8165E-07, "8" => 1.8778E-08, "10" => -5.7571E-10, "12" => 8.9994E-12, "14" => -4.6768E-14],
+    ]
     syss = [
         AxisymmetricOpticalSystem{Float64}(DataFrame(
-            Surface = [:Object, :Stop, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, :Image],
+            SurfaceType = ["Object", "Stop", "Standard", "Standard", "Standard", "Aspheric", "Standard", "Standard", "Aspheric", "Aspheric", "Standard", "Standard", "Standard", "Standard", "Standard", "Standard", "Image"],
             Radius = [Inf64, Inf64, -1.6202203499676E+01, -4.8875855327468E+01, 1.5666614444619E+01, -4.2955326460481E+01, 1.0869565217391E+02, 2.3623907394283E+01, -1.6059097478722E+01, -4.2553191489362E+02, -3.5435861091425E+01, -1.4146272457208E+01, -2.5125628140704E+02, -2.2502250225023E+01, -1.0583130489999E+01, -4.4444444444444E+01, Inf64],
-            Aspherics = [missing, missing, missing, missing, missing, [(4, 1.0386E-04), (6, 1.4209E-07), (8, -8.8495E-09), (10, 1.2477E-10), (12, -1.0367E-12), (14, 3.6556E-15)], missing, missing, [(4, 4.2721E-05), (6, 1.2484E-07), (8, 9.7079E-09), (10, -1.8444E-10), (12, 1.8644E-12), (14, -7.7975E-15)], [(4, 1.1339E-04), (6, 4.8165E-07), (8, 1.8778E-08), (10, -5.7571E-10), (12, 8.9994E-12), (14, -4.6768E-14)], missing, missing, missing, missing, missing, missing, missing],
+            Parameters = [missing, missing, missing, missing, missing, aspherics[1], missing, missing, aspherics[2], aspherics[3], missing, missing, missing, missing, missing, missing, missing],
             Thickness = [Inf64, 0.0, 5.18, 0.10, 4.40, 0.16, 1.0, 4.96, zoom, 4.04, 1.35, 1.0, 2.80, 3.0, 1.22, dist, missing],
             Material = [Air, Air, OHARA.S_LAH66, Air, NIKON.LLF6, Air, OHARA.S_TIH6, OHARA.S_FSL5, Air, OHARA.S_FSL5, Air, OHARA.S_LAL8, OHARA.S_FSL5, Air, OHARA.S_LAH66, Air, missing],
             SemiDiameter = [Inf64, stop, 3.85433218451, 3.85433218451, 4.36304692871, 4.36304692871, 4.72505505439, 4.72505505439, 4.72505505439, 4.45240784026, 4.45240784026, 4.50974054117, 4.50974054117, 4.50974054117, 4.76271114409, 4.76271114409, 15.0]))
@@ -71,19 +76,18 @@ function draw_schmidtcassegraintelescope(filename::Union{Nothing,AbstractString}
         aspherics = [(4, 3.68090959e-7), (6, 2.73643352e-11), (8, 3.20036892e-14)]),
         17,
         interface = FresnelInterface{Float64}(SCHOTT.N_BK7, Air))
-    coverlens = csgintersection(
-        leaf(Cylinder(12.00075, 1.4)),
-        csgintersection(
-            leaf(topsurf), 
-            leaf(botsurf, Transform(rotmatd(0, 180, 0), Vec3(0.0, 0.0, -0.65)))))
+    coverlens = Cylinder(12.00075, 1.4) ∩ topsurf ∩ leaf(botsurf, Transform(rotmatd(0, 180, 0), Vec3(0.0, 0.0, -0.65)))
 
     # big mirror with a hole in it
-    bigmirror = csgdifference(
-        ConicLens(SCHOTT.N_BK7, -72.65, -95.2773500000134, 0.077235, Inf, 0.0, 0.2, 12.18263, frontsurfacereflectance = 1.0),
-        leaf(Cylinder(4.0, 0.3, interface = opaqueinterface()), translation(0.0, 0.0, -72.75)))
+    frontsurfacereflectance = 1.0
+    bigmirror = (
+        ConicLens(SCHOTT.N_BK7, -72.65, -95.2773500000134, 0.077235, Inf, 0.0, 0.2, 12.18263; frontsurfacereflectance) -
+        leaf(Cylinder(4.0, 0.3, interface = opaqueinterface()), translation(0.0, 0.0, -72.75))
+    )
 
     # small mirror supported on a spider
-    smallmirror = SphericalLens(SCHOTT.N_BK7, -40.65, Inf, -49.6845, 1.13365, 4.3223859, backsurfacereflectance = 1.0)
+    backsurfacereflectance = 1.0
+    smallmirror = SphericalLens(SCHOTT.N_BK7, -40.65, Inf, -49.6845, 1.13365, 4.3223859; backsurfacereflectance)
 
     obscuration1 = Circle(4.5, SVector(0.0, 0.0, 1.0), SVector(0.0, 0.0, -40.649), interface = opaqueinterface())
     obscurations2 = Spider(3, 0.5, 12.0, SVector(0.0, 0.0, -40.65))
@@ -117,25 +121,18 @@ function draw_lensconstruction(filename::Union{Nothing,AbstractString} = nothing
                 normradius = 9.5),
             interface = FresnelInterface{Float64}(SCHOTT.N_BK7, Air)),
         translation(0.0, 0.0, 5.0))
-    botsurface = leaf(
-        Plane(
-            SVector(0.0, 0.0, -1.0),
-            SVector(0.0, 0.0, -5.0),
-            vishalfsizeu = 9.5,
-            vishalfsizev = 9.5,
-            interface = FresnelInterface{Float64}(SCHOTT.N_BK7, Air)))
-    barrel = leaf(
-        Cylinder(
-            9.0,
-            20.0,
-            interface = FresnelInterface{Float64}(SCHOTT.N_BK7, Air, reflectance = 0.0, transmission = 0.0)))
-    lens = csgintersection(
-        barrel,
-        csgintersection(topsurface, botsurface),
-        Transform{Float64}(0.0, Float64(π), 0.0, 0.0, 0.0, -5.0))()
-    sys = CSGOpticalSystem(
-        LensAssembly(lens),
-        Rectangle(15.0, 15.0, [0.0, 0.0, 1.0], [0.0, 0.0, -67.8], interface = opaqueinterface()))
+    botsurface = Plane(
+        SVector(0.0, 0.0, -1.0),
+        SVector(0.0, 0.0, -5.0),
+        vishalfsizeu = 9.5,
+        vishalfsizev = 9.5,
+        interface = FresnelInterface{Float64}(SCHOTT.N_BK7, Air))
+    barrel = Cylinder(
+        9.0, 20.0, interface = FresnelInterface{Float64}(SCHOTT.N_BK7, Air, reflectance=0.0, transmission=0.0)
+    )
+    lens = (barrel ∩ topsurface ∩ botsurface)(Transform{Float64}(0.0, Float64(π), 0.0, 0.0, 0.0, -5.0))
+    detector = Rectangle(15.0, 15.0, [0.0, 0.0, 1.0], [0.0, 0.0, -67.8], interface = opaqueinterface())
+    sys = CSGOpticalSystem(LensAssembly(lens), detector)
 
     Vis.drawtracerays(sys, test = true, trackallrays = true, colorbynhits = true)
     Vis.save(filename)

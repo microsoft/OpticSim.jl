@@ -9,6 +9,8 @@ using ....OpticSim
 using ...Emitters
 using DataFrames
 using Distributions
+import Unitful: Length, ustrip
+using Unitful.DefaultSymbols
 
 const UNIFORMSHORT = 0.450 #um
 const UNIFORMLONG = 0.680 #um
@@ -21,7 +23,7 @@ abstract type AbstractSpectrum{T<:Real} end
 Encapsulates a flat spectrum range which is sampled uniformly. Unless stated diferrently, the range used will be 450nm to 680nm.
 
 ```julia
-Uniform(low::T, high::T) where {T<:Real}
+Uniform(low_end::T, high_end::T) where {T<:Real}
 Uniform(::Type{T} = Float64) where {T<:Real}
 ```
 """
@@ -30,8 +32,8 @@ struct Uniform{T} <: AbstractSpectrum{T}
     high_end::T 
 
     # user defined range of spectrum
-    function Uniform(low::T, high::T) where {T<:Real}
-        return new{T}(low, high)
+    function Uniform(low_end::T, high_end::T) where {T<:Real}
+        return new{T}(low_end, high_end)
     end
 
     # with no specific range we will use the constants' values
@@ -54,6 +56,8 @@ DeltaFunction{T<:Real}
 struct DeltaFunction{T} <: AbstractSpectrum{T}
     λ::T
 end
+
+DeltaFunction(λ::Length) = DeltaFunction{Float64}(ustrip(μm, λ))
 
 Emitters.generate(s::DeltaFunction{T}) where {T<:Real} = (one(T), s.λ)
 

@@ -2,26 +2,45 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # See LICENSE in the project root for full license information.
 
+using DataFrames
+using Unitful.DefaultSymbols
+using .OpticSim.GlassCat: AbstractGlass, TEMP_REF, PRESSURE_REF, Glass, Air
+
+export AbstractOpticalSystem
+export CSGOpticalSystem, temperature, pressure, detectorimage, resetdetector!, assembly
+export AxisymmetricOpticalSystem, semidiameter
+export trace, traceMT, tracehits, tracehitsMT
+
 """
     AbstractOpticalSystem{T<:Real}
 
 Abstract type for any optical system, must parameterized by the datatype of entities within the system `T`.
 """
 abstract type AbstractOpticalSystem{T<:Real} end
-export AbstractOpticalSystem
 
 """
     CSGOpticalSystem{T,D<:Real,S<:Surface{T},L<:LensAssembly{T}} <: AbstractOpticalSystem{T}
 
-An optical system containing a lens assembly with all optical elements and a detector surface with associated image. The system can be at a specified temperature and pressure.
+An optical system containing a lens assembly with all optical elements and a detector surface with associated image. The
+system can be at a specified temperature and pressure.
 
-There are two number types in the type signature. The `T` type parameter is the numeric type for geometry in the optical system, the `D` type parameter is the numeric type of the pixels in the detector image.
-This way you can have `Float64` geometry, where high precision is essential, but the pixels in the detector can be `Float32` since precision is much less critical for image data.
+There are two number types in the type signature. The `T` type parameter is the numeric type for geometry in the optical
+system, the `D` type parameter is the numeric type of the pixels in the detector image. This way you can have `Float64`
+geometry, where high precision is essential, but the pixels in the detector can be `Float32` since precision is much
+less critical for image data.
 
-The detector can be any [`Surface`](@ref) which implements [`uv`](@ref), [`uvtopix`](@ref) and [`onsurface`](@ref), typically this is one of [`Rectangle`](@ref), [`Ellipse`](@ref) or [`SphericalCap`](@ref).
+The detector can be any [`Surface`](@ref) which implements [`uv`](@ref), [`uvtopix`](@ref) and [`onsurface`](@ref),
+typically this is one of [`Rectangle`](@ref), [`Ellipse`](@ref) or [`SphericalCap`](@ref).
 
 ```julia
-CSGOpticalSystem(assembly::LensAssembly, detector::Surface, detectorpixelsx = 1000, detectorpixelsy = 1000, ::Type{D} = Float32; temperature = OpticSim.GlassCat.TEMP_REF, pressure = OpticSim.GlassCat.PRESSURE_REF)
+CSGOpticalSystem(
+    assembly::LensAssembly,
+    detector::Surface,
+    detectorpixelsx = 1000,
+    detectorpixelsy = 1000, ::Type{D} = Float32;
+    temperature = OpticSim.GlassCat.TEMP_REF,
+    pressure = OpticSim.GlassCat.PRESSURE_REF
+)
 ```
 """
 struct CSGOpticalSystem{T,D<:Number,S<:Surface{T},L<:LensAssembly{T}} <: AbstractOpticalSystem{T}
@@ -30,7 +49,16 @@ struct CSGOpticalSystem{T,D<:Number,S<:Surface{T},L<:LensAssembly{T}} <: Abstrac
     detectorimage::HierarchicalImage{D}
     temperature::T
     pressure::T
-    function CSGOpticalSystem(assembly::L, detector::S, detectorpixelsx::Int = 1000, detectorpixelsy::Int = 1000, ::Type{D} = Float32; temperature::Union{T,Unitful.Temperature} = T(OpticSim.GlassCat.TEMP_REF), pressure::T = T(OpticSim.GlassCat.PRESSURE_REF)) where {T<:Real,S<:Surface{T},L<:LensAssembly{T},D<:Number}
+
+    function CSGOpticalSystem(
+        assembly::L,
+        detector::S,
+        detectorpixelsx::Int = 1000,
+        detectorpixelsy::Int = 1000,
+        ::Type{D} = Float32;
+        temperature::Union{T,Unitful.Temperature} = convert(T, TEMP_REF),
+        pressure::T = convert(T, PRESSURE_REF)
+    ) where {T<:Real,S<:Surface{T},L<:LensAssembly{T},D<:Number}
         @assert hasmethod(uv, (S, SVector{3,T})) "Detector must implement uv()"
         @assert hasmethod(uvtopix, (S, SVector{2,T}, Tuple{Int,Int})) "Detector must implement uvtopix()"
         @assert hasmethod(onsurface, (S, SVector{3,T})) "Detector must implement onsurface()"
@@ -39,17 +67,25 @@ struct CSGOpticalSystem{T,D<:Number,S<:Surface{T},L<:LensAssembly{T}} <: Abstrac
         @assert interface(detector) !== NullInterface(T) "Detector can't have null interface"
         image = HierarchicalImage{D}(detectorpixelsy, detectorpixelsx)
         if temperature isa Unitful.Temperature
-            temperature = Unitful.ustrip(T, Unitful.u"°C", temperature)
+            temperature = Unitful.ustrip(T, °C, temperature)
         end
-        return new{T,D,S,L}(assembly, detector, image, temperature, T(pressure))
+        return new{T,D,S,L}(assembly, detector, image, temperature, convert(T, pressure))
     end
 end
-export CSGOpticalSystem
 
-Base.copy(a::CSGOpticalSystem) = CSGOpticalSystem(a.assembly, a.detector, size(a.detectorimage)..., temperature = a.temperature * Unitful.u"°C", pressure = a.pressure)
+Base.copy(a::CSGOpticalSystem) = CSGOpticalSystem(
+    a.assembly,
+    a.detector,
+    size(a.detectorimage)...,
+    temperature = (a.temperature)°C,
+    pressure = a.pressure
+)
 
-#added this show method because the type of CSGOpticalSystem is gigantic and printing it in the REPL can crash the system.
-Base.show(io::IO, a::CSGOpticalSystem{T}) where {T} = print(io, "CSGOpticalSystem{$T}($(temperature(a)), $(pressure(a)), $(assembly(a)), $(detector(a)))")
+# added this show method because the type of CSGOpticalSystem is gigantic and printing it in the REPL can crash the
+# system
+function Base.show(io::IO, a::CSGOpticalSystem{T}) where {T}
+    print(io, "CSGOpticalSystem{$T}($(temperature(a)), $(pressure(a)), $(assembly(a)), $(detector(a)))")
+end
 
 """
     assembly(system::AbstractOpticalSystem{T}) -> LensAssembly{T}
@@ -57,7 +93,9 @@ Base.show(io::IO, a::CSGOpticalSystem{T}) where {T} = print(io, "CSGOpticalSyste
 Get the [`LensAssembly`](@ref) of `system`.
 """
 assembly(system::CSGOpticalSystem{T}) where {T<:Real} = system.assembly
+
 detector(system::CSGOpticalSystem) = system.detector
+
 """
     detectorimage(system::AbstractOpticalSystem{T}) -> HierarchicalImage{D}
 
@@ -65,13 +103,16 @@ Get the detector image of `system`.
 `D` is the datatype of the detector image and is not necessarily the same as the datatype of the system `T`.
 """
 detectorimage(system::CSGOpticalSystem) = system.detectorimage
+
 detectorsize(system::CSGOpticalSystem) = size(system.detectorimage)
+
 """
     temperature(system::AbstractOpticalSystem{T}) -> T
 
 Get the temperature of `system` in °C.
 """
 temperature(system::CSGOpticalSystem{T}) where {T<:Real} = system.temperature
+
 """
     pressure(system::AbstractOpticalSystem{T}) -> T
 
@@ -84,20 +125,24 @@ pressure(system::CSGOpticalSystem{T}) where {T<:Real} = system.pressure
 Reset the deterctor image of `system` to zero.
 """
 resetdetector!(system::CSGOpticalSystem{T}) where {T<:Real} = reset!(system.detectorimage)
-export temperature, pressure, detectorimage, resetdetector!, assembly
-
 
 Base.Float32(a::T) where {T<:ForwardDiff.Dual} = Float32(ForwardDiff.value(a))
 
 """
     trace(system::AbstractOpticalSystem{T}, ray::OpticalRay{T}; trackrays = nothing, test = false)
 
-Traces `system` with `ray`, if `test` is enabled then fresnel reflections are disabled and the power distribution will not be correct.
-Returns either a [`LensTrace`](@ref) if the ray hits the detector or `nothing` otherwise.
+Traces `system` with `ray`, if `test` is enabled then fresnel reflections are disabled and the power distribution will
+not be correct. Returns either a [`LensTrace`](@ref) if the ray hits the detector or `nothing` otherwise.
 
-`trackrays` can be passed an empty vector to accumulate the `LensTrace` objects at each intersection of `ray` with a surface in the system.
+`trackrays` can be passed an empty vector to accumulate the `LensTrace` objects at each intersection of `ray` with a
+surface in the system.
 """
-function trace(system::CSGOpticalSystem{T,D}, r::OpticalRay{T,N}; trackrays::Union{Nothing,Vector{LensTrace{T,N}}} = nothing, test::Bool = false) where {T<:Real,N,D<:Number}
+function trace(
+    system::CSGOpticalSystem{T,D},
+    r::OpticalRay{T,N};
+    trackrays::Union{Nothing,Vector{LensTrace{T,N}}} = nothing,
+    test::Bool = false
+) where {T<:Real,N,D<:Number}
     if power(r) < POWER_THRESHOLD
         return nothing
     end
@@ -133,9 +178,10 @@ function trace(system::CSGOpticalSystem{T,D}, r::OpticalRay{T,N}; trackrays::Uni
 
             m = outsidematerialid(opticalinterface)
             # compute updated power based on absorption coefficient of material using Beer's law
-            # this will almost always not apply as the detector will be in air, but it's possible that the detector is not in air, in which case this is necessary
+            # this will almost always not apply as the detector will be in air, but it's possible that the detector is
+            # not in air, in which case this is necessary
             if !isair(m)
-                mat = glassforid(m)::OpticSim.GlassCat.Glass
+                mat::Glass = glassforid(m)
                 nᵢ = index(mat, λ, temperature = temperature(system), pressure = pressure(system))::T
                 α = absorption(mat, λ, temperature = temperature(system), pressure = pressure(system))::T
                 if α > zero(T)
@@ -148,16 +194,28 @@ function trace(system::CSGOpticalSystem{T,D}, r::OpticalRay{T,N}; trackrays::Uni
                 opticalpathlength = nᵢ * geometricpathlength
             end
 
-            temp = LensTrace{T,N}(OpticalRay(ray(ray(result)), pow, wavelength(result), opl = pathlength(result) + opticalpathlength, nhits = nhits(result) + 1, sourcenum = sourcenum(r), sourcepower = sourcepower(r)), detintsct)
+            temp = LensTrace{T,N}(
+                OpticalRay(
+                    ray(ray(result)),
+                    pow,
+                    wavelength(result),
+                    opl = pathlength(result) + opticalpathlength,
+                    nhits = nhits(result) + 1,
+                    sourcenum = sourcenum(r),
+                    sourcepower = sourcepower(r)),
+                detintsct
+            )
             if trackrays !== nothing
                 push!(trackrays, temp)
             end
 
-            # incerement the detector image
+            # increment the detector image
             pixu, pixv = uvtopix(detector(system), uv(detintsct), size(system.detectorimage))
-            system.detectorimage[pixv, pixu] += D(sourcepower(r)) # TODO will need to handle different detector image types a bit better than this
+            system.detectorimage[pixv, pixu] += convert(D, sourcepower(r)) # TODO will need to handle different detector
+                                                                           #      image types a bit better than this
 
-            # should be okay to assume intersection will not be a DisjointUnion for all the types of detectors we will be using.
+            # should be okay to assume intersection will not be a DisjointUnion for all the types of detectors we will
+            # be using
             emptyintervalpool!(T)
             return temp
         end
@@ -166,134 +224,222 @@ end
 
 ######################################################################################################################
 
+function validate_axisymmetricopticalsystem_dataframe(prescription::DataFrame)
+    # note: there's a slight difference between `col_types` and `surface_types` below: the former refers to the types of
+    # the prescription DataFrame columns; the former refers to the actual `surface_type` values, which are all strings
+    required_cols = ["SurfaceType", "Radius", "Thickness", "Material", "SemiDiameter"]
+    supported_col_types = Dict(
+        "SurfaceType" => AbstractString,
+        "Radius" => Real,
+        "Thickness" => Real,
+        "Material" => AbstractGlass,
+        "SemiDiameter" => Real,
+        "Conic" => Real,
+        "Reflectance" => Real,
+        "Parameters" => Vector{<:Pair{<:AbstractString,<:Real}},
+    )
+    cols = names(prescription)
+
+    supported_surface_types = ["Object", "Stop", "Image", "Standard", "Aspheric", "Zernike"]
+    surface_types = prescription[!, "SurfaceType"]
+
+    comma_join(l::Vector{<:AbstractString}) = join(l, ", ", " and ")
+
+    missing_cols = setdiff(required_cols, cols)
+    @assert isempty(missing_cols) "missing required columns: $(comma_join(missing_cols))"
+
+    unsupported_cols = setdiff(cols, keys(supported_col_types))
+    @assert isempty(unsupported_cols) "unsupported columns: $(comma_join(unsupported_cols))"
+
+    col_type_errors = ["$col: $T1 should be $T2" for (col, T1, T2) in
+        [(col, eltype(prescription[!, col]), supported_col_types[col]) for col in cols]
+        if !(T1 <: Union{Missing, T2})
+    ]
+    @assert isempty(col_type_errors) "incorrect column types: $(comma_join(col_type_errors))"
+
+    unsupported_surface_types = setdiff(surface_types, supported_surface_types)
+    @assert isempty(unsupported_surface_types) "unsupported surface types: $(comma_join(unsupported_surface_types))"
+
+    @assert(
+        findall(s->s==="Object", surface_types) == [1],
+        "there should only be one Object surface and it should be the first row"
+    )
+
+    @assert(
+        findall(s->s==="Image", surface_types) == [nrow(prescription)],
+         "there should only be one Image surface and it should be the last row"
+    )
+end
+
+function get_front_back_property(prescription::DataFrame, rownum::Int, property::String, default=nothing)
+    properties = (
+        property ∈ names(prescription) ?
+        [prescription[rownum, property], prescription[rownum + 1, property]] : repeat([missing], 2)
+    )
+    return replace(properties, missing => default)
+end
+
 """
     AxisymmetricOpticalSystem{T,C<:CSGOpticalSystem{T}} <: AbstractOpticalSystem{T}
 
 Optical system which has lens elements and an image detector, created from a `DataFrame` containing prescription data.
 
-These tags are supported for columns: `:Radius`, `:SemiDiameter`, `:Surface`, `:Thickness`, `:Conic`, `:Aspherics`, `:Reflectance`, `:Material`, `:OptimizeRadius`, `:OptimizeThickness`, `:OptimizeConic`.
-These tags are supported for entries in a `:Surface` column: `:Object`, `:Image`, `:Stop`
-Assumes the `:Image` row will be the last row in the `DataFrame`.
+These tags are supported for columns: `:Radius`, `:SemiDiameter`, `:SurfaceType`, `:Thickness`, `:Conic`, `:Parameters`,
+`:Reflectance`, `:Material`.
+
+These tags are supported for entries in a `SurfaceType` column: `Object`, `Image`, `Stop`. Assumes the `Image` row will
+be the last row in the `DataFrame`.
 
 In practice a [`CSGOpticalSystem`](@ref) is generated automatically and stored within this system.
 
 ```julia
-AxisymmetricOpticalSystem{T}(prescription::DataFrame, detectorpixelsx = 1000, detectorpixelsy:: = 1000, ::Type{D} = Float32; temperature = OpticSim.GlassCat.TEMP_REF, pressure = OpticSim.GlassCat.PRESSURE_REF)
+AxisymmetricOpticalSystem{T}(
+    prescription::DataFrame,
+    detectorpixelsx = 1000,
+    detectorpixelsy:: = 1000,
+    ::Type{D} = Float32;
+    temperature = OpticSim.GlassCat.TEMP_REF,
+    pressure = OpticSim.GlassCat.PRESSURE_REF
+)
 ```
 """
 struct AxisymmetricOpticalSystem{T,C<:CSGOpticalSystem{T}} <: AbstractOpticalSystem{T}
-    system::C
+    system::C # CSGOpticalSystem
     prescription::DataFrame
-    semidiameter::T
+    semidiameter::T # semidiameter of first element (default = 0.0)
 
-    function AxisymmetricOpticalSystem{T}(prescription::DataFrame, detectorpixelsx::Int = 1000, detectorpixelsy::Int = 1000, ::Type{D} = Float32; temperature::Union{T,Unitful.Temperature} = T(OpticSim.GlassCat.TEMP_REF), pressure::T = T(OpticSim.GlassCat.PRESSURE_REF)) where {T<:Real,D<:Number}
-        pr = prescription
-        elements = Array{Union{Surface{T},CSGTree{T}},1}(undef, 0)
-        (rows, cols) = size(pr)
-        systemsemidiameter = zero(T)
+    function AxisymmetricOpticalSystem{T}(
+        prescription::DataFrame,
+        detectorpixelsx::Int = 1000,
+        detectorpixelsy::Int = 1000,
+        ::Type{D} = Float32;
+        temperature::Union{T,Unitful.Temperature} = convert(T, TEMP_REF),
+        pressure::T = convert(T, PRESSURE_REF)
+    ) where {T<:Real,D<:Number}
+        validate_axisymmetricopticalsystem_dataframe(prescription)
 
-        let sumstart = 1
-            if pr[1, :Surface] == :Object
-                sumstart = 2
-            end
-            firstelement = true
+        elements::Vector{Union{Surface{T},CSGTree{T}}} = []
+        systemsemidiameter::T = zero(T)
+        firstelement::Bool = true
 
-            for i in 1:(rows - 1)
-                if pr[i, :Surface] == :Stop
-                    stop = CircularAperture(T(pr[i, :SemiDiameter]), SVector{3,T}(0.0, 0.0, 1.0), SVector{3,T}(0.0, 0.0, T(-sum(pr[sumstart:(i - 1), :Thickness]))))
-                    push!(elements, stop)
-                else
-                    material = pr[i, :Material]
-                    frontreflection = zero(T)
-                    backreflection = zero(T)
-                    frontconic = zero(T)
-                    backconic = zero(T)
-                    frontaspherics = nothing
-                    backaspherics = nothing
-                    if material != OpticSim.GlassCat.Air && !isequal(material, missing)
-                        semidiameter::T = max(pr[i, :SemiDiameter], pr[i + 1, :SemiDiameter])
-                        if firstelement
-                            systemsemidiameter = semidiameter
-                            firstelement = false
-                        end
+        # track sequential movement along the z-axis
+        vertices::Vector{T} = -cumsum(replace(prescription[!, "Thickness"], Inf => 0, missing => 0))
 
-                        vertex::T = -sum(pr[sumstart:(i - 1), :Thickness])
-                        frontradius::T = pr[i, :Radius]
-                        backradius::T = pr[i + 1, :Radius]
-                        if "Reflectance" in names(prescription)
-                            temp = pr[i, :Reflectance]
-                            if !ismissing(temp)
-                                frontreflection = temp
-                            end
-                            temp = pr[i + 1, :Reflectance]
-                            if !ismissing(temp)
-                                backreflection = temp
-                            end
-                        end
-                        if "Conic" in names(prescription)
-                            temp = pr[i, :Conic]
-                            if !ismissing(temp)
-                                frontconic = temp
-                            end
-                            temp = pr[i + 1, :Conic]
-                            if !ismissing(temp)
-                                backconic = temp
-                            end
-                        end
-                        if "Aspherics" in names(prescription)
-                            temp = pr[i, :Aspherics]
-                            if !ismissing(temp)
-                                frontaspherics = temp
-                            end
-                            temp = pr[i + 1, :Aspherics]
-                            if !ismissing(temp)
-                                backaspherics = temp
-                            end
-                        end
-
-                        lastmaterial = pr[i - 1, :Material]
-                        nextmaterial = pr[i + 1, :Material]
-
-                        thickness = T(pr[i, :Thickness])
-
-                        if frontaspherics !== nothing || backaspherics !== nothing
-                            newelt = AsphericLens(material, vertex, frontradius, frontconic, frontaspherics, backradius, backconic, backaspherics, thickness, semidiameter, lastmaterial = lastmaterial, nextmaterial = nextmaterial, frontsurfacereflectance = frontreflection, backsurfacereflectance = backreflection)
-                        elseif frontconic != zero(T) || backconic != zero(T)
-                            newelt = ConicLens(material, vertex, frontradius, frontconic, backradius, backconic, thickness, semidiameter, lastmaterial = lastmaterial, nextmaterial = nextmaterial, frontsurfacereflectance = frontreflection, backsurfacereflectance = backreflection)
-                        else
-                            newelt = SphericalLens(material, vertex, frontradius, backradius, thickness, semidiameter, lastmaterial = lastmaterial, nextmaterial = nextmaterial, frontsurfacereflectance = frontreflection, backsurfacereflectance = backreflection)
-                        end
-
-                        push!(elements, newelt())
-                    end
-                end
-            end
-
-            indexofimage = findfirst(isequal(:Image), prescription[!, :Surface])
-            imagesize = prescription[indexofimage, :SemiDiameter]
-            vertextoimage = T(-sum(pr[sumstart:(indexofimage - 1), :Thickness]))
-            imagerad = prescription[indexofimage, :Radius]
-
-            if imagerad != zero(T) && imagerad != typemax(T)
-                det = SphericalCap(abs(imagerad), NaNsafeasin(imagesize / abs(imagerad)), imagerad < 0 ? SVector{3,T}(0, 0, 1) : SVector{3,T}(0, 0, -1), SVector{3,T}(0, 0, vertextoimage), interface = opaqueinterface(T))
-            else
-                det = Rectangle(T(imagesize), T(imagesize), SVector{3,T}(0, 0, 1), SVector{3,T}(0, 0, vertextoimage), interface = opaqueinterface(T))
-            end
-
-            system = CSGOpticalSystem(OpticSim.LensAssembly(elements...), det, detectorpixelsx, detectorpixelsy, D, temperature = temperature, pressure = pressure)
-
-            return new{T,typeof(system)}(system, prescription, systemsemidiameter)
+        # pre-construct list of rows which we will skip over (e.g. air gaps, but never Stop surfaces)
+        # later on, this may get more complicated as we add in compound surfaces
+        function skip_row(i::Int)
+            return (
+                prescription[i, "SurfaceType"] != "Stop" &&
+                (prescription[i, "Material"] === missing || prescription[i, "Material"] == Air)
+            )
         end
+        skips::Vector{Bool} = skip_row.(1:nrow(prescription))
+
+        for i in 2:nrow(prescription)-1
+            if skips[i]
+                continue
+            end
+
+            surface_type::String = prescription[i, "SurfaceType"]
+            lastmaterial::AbstractGlass, material::AbstractGlass, nextmaterial::AbstractGlass = prescription[i-1:i+1, "Material"]
+            thickness::T = prescription[i, "Thickness"]
+
+            frontradius::T, backradius::T = get_front_back_property(prescription, i, "Radius")
+            frontsurfacereflectance::T, backsurfacereflectance::T = get_front_back_property(
+                prescription, i, "Reflectance", zero(T)
+            )
+            frontconic::T, backconic::T = get_front_back_property(prescription, i, "Conic", zero(T))
+            frontparams::Vector{Pair{String,T}}, backparams::Vector{Pair{String,T}} = get_front_back_property(
+                prescription, i, "Parameters", Vector{Pair{String,T}}()
+            )
+
+            semidiameter::T = max(get_front_back_property(prescription, i, "SemiDiameter", zero(T))...)
+
+            if surface_type == "Stop"
+                semidiameter = prescription[i, "SemiDiameter"]
+                newelement = CircularAperture(semidiameter, SVector{3,T}(0, 0, 1), SVector{3,T}(0, 0, vertices[i-1]))
+            elseif surface_type == "Standard"
+                if frontconic != zero(T) || backconic != zero(T)
+                    newelement = ConicLens(
+                        material, vertices[i-1], frontradius, frontconic, backradius, backconic, thickness,
+                        semidiameter; lastmaterial, nextmaterial, frontsurfacereflectance, backsurfacereflectance
+                    )()
+                else
+                    newelement = SphericalLens(
+                        material, vertices[i-1], frontradius, backradius, thickness, semidiameter;
+                        lastmaterial, nextmaterial, frontsurfacereflectance, backsurfacereflectance
+                    )()
+                end
+            elseif surface_type == "Aspheric"
+                frontaspherics::Vector{Pair{Int,T}}, backaspherics::Vector{Pair{Int,T}} = [
+                    [parse(Int, k) => v for (k, v) in params] for params in [frontparams, backparams]
+                ]
+
+                newelement = AsphericLens(
+                    material, vertices[i-1], frontradius, frontconic, frontaspherics, backradius, backconic,
+                    backaspherics, thickness, semidiameter; lastmaterial, nextmaterial, frontsurfacereflectance,
+                    backsurfacereflectance
+                )()
+            else
+                error(
+                    "Unsupported surface type \"$surface_type\". If you'd like to add support for this surface, ",
+                    "please create an issue at https://github.com/microsoft/OpticSim.jl/issues/new."
+                )
+            end
+
+            if firstelement
+                systemsemidiameter = semidiameter
+                firstelement = false
+            end
+
+            push!(elements, newelement)
+        end
+
+        # make the detector (Image)
+        imagesize::T = prescription[end, "SemiDiameter"]
+        imagerad::T = prescription[end, "Radius"]
+        if imagerad != zero(T) && imagerad != typemax(T)
+            det = SphericalCap(
+                abs(imagerad),
+                NaNsafeasin(imagesize / abs(imagerad)),
+                imagerad < 0 ? SVector{3,T}(0, 0, 1) : SVector{3,T}(0, 0, -1),
+                SVector{3,T}(0, 0, vertices[end-1]),
+                interface = opaqueinterface(T)
+            )
+        else
+            det = Rectangle(
+                imagesize,
+                imagesize,
+                SVector{3,T}(0, 0, 1),
+                SVector{3,T}(0, 0, vertices[end-1]),
+                interface = opaqueinterface(T)
+            )
+        end
+
+        system = CSGOpticalSystem(
+            OpticSim.LensAssembly(elements...), det, detectorpixelsx, detectorpixelsy, D; temperature, pressure
+        )
+        return new{T,typeof(system)}(system, prescription, systemsemidiameter)
     end
 
     AxisymmetricOpticalSystem(prescription::DataFrame) = AxisymmetricOpticalSystem{Float64}(prescription)
 end
-export AxisymmetricOpticalSystem
 
 Base.show(io::IO, a::AxisymmetricOpticalSystem) = print(io, a.prescription)
-Base.copy(a::AxisymmetricOpticalSystem) = AxisymmetricOpticalSystem(a.prescription, size(detectorimage(a))..., temperature = temperature(a), pressure = pressure(a))
+function Base.copy(a::AxisymmetricOpticalSystem)
+    temperature = temperature(a)
+    pressure = pressure(a)
+    AxisymmetricOpticalSystem(a.prescription, size(detectorimage(a))...; temperature, pressure)
+end
 
-trace(system::AxisymmetricOpticalSystem{T,C}, r::OpticalRay{T,N}; trackrays::Union{Nothing,Vector{LensTrace{T,N}}} = nothing, test::Bool = false) where {T<:Real,N,C<:CSGOpticalSystem{T}} = trace(system.system, r, trackrays = trackrays, test = test)
+function trace(
+    system::AxisymmetricOpticalSystem{T,C},
+    r::OpticalRay{T,N};
+    trackrays::Union{Nothing,Vector{LensTrace{T,N}}} = nothing,
+    test::Bool = false
+) where {T<:Real,N,C<:CSGOpticalSystem{T}}
+    trace(system.system, r, trackrays = trackrays, test = test)
+end
 
 """
     semidiameter(system::AxisymmetricOpticalSystem{T}) -> T
@@ -308,11 +454,18 @@ detectorsize(system::AxisymmetricOpticalSystem) = detectorsize(system.system)
 resetdetector!(system::AxisymmetricOpticalSystem) = resetdetector!(system.system)
 temperature(system::AxisymmetricOpticalSystem) = temperature(system.system)
 pressure(system::AxisymmetricOpticalSystem) = pressure(system.system)
-export semidiameter
 
 ######################################################################################################################
 
-trace(system::AxisymmetricOpticalSystem{T}, raygenerator::OpticalRayGenerator{T}; printprog::Bool = true, test::Bool = false, outpath::Union{Nothing,String} = nothing) where {T<:Real} = trace(system.system, raygenerator, printprog = printprog, test = test, outpath = outpath)
+function trace(
+    system::AxisymmetricOpticalSystem{T},
+    raygenerator::OpticalRayGenerator{T};
+    printprog::Bool = true,
+    test::Bool = false,
+    outpath::Union{Nothing,String} = nothing
+) where {T<:Real}
+    trace(system.system, raygenerator; printprog, test, outpath)
+end
 
 """
     trace(system::AbstractOpticalSystem{T}, raygenerator::OpticalRayGenerator{T}; printprog = true, test = false)
@@ -324,7 +477,13 @@ If `outpath` is specified then the result will be saved to this path.
 
 Returns the detector image of the system.
 """
-function trace(system::CSGOpticalSystem{T}, raygenerator::OpticalRayGenerator{T}; printprog::Bool = true, test::Bool = false, outpath::Union{Nothing,String} = nothing) where {T<:Real}
+function trace(
+    system::CSGOpticalSystem{T},
+    raygenerator::OpticalRayGenerator{T};
+    printprog::Bool = true,
+    test::Bool = false,
+    outpath::Union{Nothing,String} = nothing
+) where {T<:Real}
     start_time = time()
     update_timesteps = 1000
     total_traced = 0
@@ -358,8 +517,13 @@ function trace(system::CSGOpticalSystem{T}, raygenerator::OpticalRayGenerator{T}
     return det
 end
 
-
-function traceMT(system::AxisymmetricOpticalSystem{T}, raygenerator::OpticalRayGenerator{T}; printprog::Bool = true, test::Bool = false, outpath::Union{Nothing,String} = nothing) where {T<:Real}
+function traceMT(
+    system::AxisymmetricOpticalSystem{T},
+    raygenerator::OpticalRayGenerator{T};
+    printprog::Bool = true,
+    test::Bool = false,
+    outpath::Union{Nothing,String} = nothing
+) where {T<:Real}
     traceMT(system.system, raygenerator, printprog = printprog, test = test, outpath = outpath)
 end
 
@@ -373,7 +537,13 @@ If `outpath` is specified then the result will be saved to this path.
 
 Returns the accumulated detector image from all threads.
 """
-function traceMT(system::CSGOpticalSystem{T,S}, raygenerator::OpticalRayGenerator{T}; printprog::Bool = true, test::Bool = false, outpath::Union{Nothing,String} = nothing) where {T<:Real,S<:Number}
+function traceMT(
+    system::CSGOpticalSystem{T,S},
+    raygenerator::OpticalRayGenerator{T};
+    printprog::Bool = true,
+    test::Bool = false,
+    outpath::Union{Nothing,String} = nothing
+) where {T<:Real,S<:Number}
     if printprog
         println("Initialising...")
     end
@@ -426,14 +596,14 @@ function traceMT(system::CSGOpticalSystem{T,S}, raygenerator::OpticalRayGenerato
                         print("\rTraced: ~ $t / $(length(sources))        Elapsed: $(dif)s        Left: $(left)s           ")
                     end
                 end
-                trace(system, generateray(sources, k), test = test)
+                trace(system, sources[k]; test)
             end
         else
             for k in f:l
                 if k % update_timesteps == 0
                     Threads.atomic_add!(total_traced, update_timesteps)
                 end
-                trace(system, generateray(sources, k), test = test)
+                trace(system, sources[k]; test)
             end
         end
     end
@@ -465,7 +635,11 @@ function traceMT(system::CSGOpticalSystem{T,S}, raygenerator::OpticalRayGenerato
     return det
 end
 
-function tracehitsMT(system::AxisymmetricOpticalSystem{T}, raygenerator::OpticalRayGenerator{T}; printprog::Bool = true, test::Bool = false) where {T<:Real}
+function tracehitsMT(
+    system::AxisymmetricOpticalSystem{T},
+    raygenerator::OpticalRayGenerator{T};
+    printprog::Bool = true, test::Bool = false
+) where {T<:Real}
     tracehitsMT(system.system, raygenerator, printprog = printprog, test = test)
 end
 
@@ -478,7 +652,12 @@ If `test` is enabled then fresnel reflections are disabled and the power distrib
 
 Returns a list of [`LensTrace`](@ref)s which hit the detector, accumulated from all threads.
 """
-function tracehitsMT(system::CSGOpticalSystem{T}, raygenerator::OpticalRayGenerator{T}; printprog::Bool = true, test::Bool = false) where {T<:Real}
+function tracehitsMT(
+    system::CSGOpticalSystem{T},
+    raygenerator::OpticalRayGenerator{T};
+    printprog::Bool = true,
+    test::Bool = false
+) where {T<:Real}
     if printprog
         println("Initialising...")
     end
@@ -533,7 +712,7 @@ function tracehitsMT(system::CSGOpticalSystem{T}, raygenerator::OpticalRayGenera
                         print("\rTraced: ~ $t / $(length(sources))        Elapsed: $(dif)s        Left: $(left)s           ")
                     end
                 end
-                lt = trace(system, generateray(sources, k), test = test)
+                lt = trace(system, sources[k]; test)
                 if lt !== nothing
                     push!(results[i], lt)
                 end
@@ -543,7 +722,7 @@ function tracehitsMT(system::CSGOpticalSystem{T}, raygenerator::OpticalRayGenera
                 if k % update_timesteps == 0
                     Threads.atomic_add!(total_traced, update_timesteps)
                 end
-                lt = trace(system, generateray(sources, k), test = test)
+                lt = trace(system, sources[k]; test)
                 if lt !== nothing
                     push!(results[i], lt)
                 end
@@ -575,7 +754,14 @@ function tracehitsMT(system::CSGOpticalSystem{T}, raygenerator::OpticalRayGenera
 end
 
 
-tracehits(system::AxisymmetricOpticalSystem{T}, raygenerator::OpticalRayGenerator{T}; printprog::Bool = true, test::Bool = false) where {T<:Real} = tracehits(system.system, raygenerator, printprog = printprog, test = test)
+function tracehits(
+    system::AxisymmetricOpticalSystem{T},
+    raygenerator::OpticalRayGenerator{T};
+    printprog::Bool = true,
+    test::Bool = false
+) where {T<:Real}
+    tracehits(system.system, raygenerator; printprog, test)
+end
 
 """
     tracehits(system::AbstractOpticalSystem{T}, raygenerator::OpticalRayGenerator{T}; printprog = true, test = false)
@@ -586,7 +772,12 @@ If `test` is enabled then fresnel reflections are disabled and the power distrib
 
 Returns a list of [`LensTrace`](@ref)s which hit the detector.
 """
-function tracehits(system::CSGOpticalSystem{T}, raygenerator::OpticalRayGenerator{T}; printprog::Bool = true, test::Bool = false) where {T<:Real}
+function tracehits(
+    system::CSGOpticalSystem{T},
+    raygenerator::OpticalRayGenerator{T};
+    printprog::Bool = true,
+    test::Bool = false
+) where {T<:Real}
     start_time = time()
     update_timesteps = 1000
     total_traced = 0
@@ -617,6 +808,3 @@ function tracehits(system::CSGOpticalSystem{T}, raygenerator::OpticalRayGenerato
 
     return res
 end
-
-
-export trace, traceMT, tracehits, tracehitsMT

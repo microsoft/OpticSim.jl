@@ -873,8 +873,8 @@
         pln1 = Plane([0.0, 0.0, -1.0], [0.0, 0.0, -1.0])
         pln2 = Plane([0.0, 0.0, 1.0], [0.0, 0.0, 1.0])
         r = Ray([0.0, 0, 2.0], [0.0, 0.0, -1.0])
-        gen1 = csgintersection(pln1, pln2)
-        gen2 = csgunion(pln1, pln2)
+        gen1 = pln1 ∩ pln2
+        gen2 = pln1 ∪ pln2
 
         csg = gen1(identitytransform())
         intsct = evalcsg(csg, r)
@@ -890,7 +890,7 @@
 
         # test simple rays for intersection, union and difference operations
         # INTERSECTION
-        intersection_obj = csgintersection(leaf(Cylinder(0.5, 3.0), OpticSim.rotationd(90.0, 0.0, 0.0)), (leaf(Sphere(1.0))))()
+        intersection_obj = (leaf(Cylinder(0.5, 3.0), OpticSim.rotationd(90.0, 0.0, 0.0)) ∩ Sphere(1.0))()
         r = Ray([0.7, 0.0, 0.0], [-1.0, 0.0, 0.0])
         int = OpticSim.evalcsg(intersection_obj, r)
         @test isapprox(point(lower(int)), [0.5, 0.0, 0.0], rtol = RTOLERANCE, atol = ATOLERANCE) && isapprox(point(upper(int)), [-0.5, 0.0, 0.0], rtol = RTOLERANCE, atol = ATOLERANCE)
@@ -916,7 +916,7 @@
         @test isapprox(point(lower(int)), [0.0, 1.0, 0.0], rtol = RTOLERANCE, atol = ATOLERANCE) && isapprox(point(upper(int)), [0.0, -1.0, 0.0], rtol = RTOLERANCE, atol = ATOLERANCE)
 
         # UNION
-        union_obj = csgunion(leaf(Cylinder(0.5, 3.0)), (leaf(Sphere(1.0))))(OpticSim.translation(1.0, 0.0, 0.0))
+        union_obj = (Cylinder(0.5, 3.0) ∪ Sphere(1.0))(OpticSim.translation(1.0, 0.0, 0.0))
         r = Ray([1.0, 0.0, 0.0], [0.0, 0.0, 1.0])
         int = OpticSim.evalcsg(union_obj, r)
         @test (lower(int) isa RayOrigin) && (upper(int) isa Infinity)
@@ -942,7 +942,7 @@
         @test isapprox(point(lower(int)), [0.5, 0.0, 4.0], rtol = RTOLERANCE, atol = ATOLERANCE) && isapprox(point(upper(int)), [1.5, 0.0, 4.0], rtol = RTOLERANCE, atol = ATOLERANCE)
 
         # DIFFERENCE
-        difference_obj = csgdifference(leaf(Cylinder(0.5, 3.0)), leaf(Sphere(1.0), OpticSim.translation(0.75, 0.0, 0.2)))()
+        difference_obj = (Cylinder(0.5, 3.0) - leaf(Sphere(1.0), OpticSim.translation(0.75, 0.0, 0.2)))()
         r = Ray([0.25, 0.0, 0.0], [-1.0, 0.0, 0.0])
         int = OpticSim.evalcsg(difference_obj, r)
         @test isapprox(point(lower(int)), [-0.2297958971132712, 0.0, 0.0], rtol = RTOLERANCE, atol = ATOLERANCE) && isapprox(point(upper(int)), [-0.5, 0.0, 0.0], rtol = RTOLERANCE, atol = ATOLERANCE)

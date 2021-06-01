@@ -113,6 +113,7 @@ OpticSim.GlassCat.glassforid
 ```@docs
 OpticSim.GlassCat.polyfit_indices
 OpticSim.GlassCat.plot_indices
+OpticSim.GlassCat.drawglassmap
 ```
 
 ---
