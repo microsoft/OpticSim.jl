@@ -15,18 +15,20 @@ Cylinder(radius::T, visheight::T = 2.0; interface::NullOrFresnel{T} = nullinterf
 struct Cylinder{T,N} <: ParametricSurface{T,N}
     radius::T
     visheight::T # Only used for visualization purposes.
+    surface_id::UUID
     interface::NullOrFresnel{T}
 
     function Cylinder(radius::T, visheight::T = T(2.0); interface::NullOrFresnel{T} = NullInterface(T)) where {T<:Real}
         @assert radius > zero(T) && visheight > zero(T)
         @assert !isnan(radius)
-        new{T,3}(radius, visheight, interface)
+        new{T,3}(radius, visheight, uuid4(), interface)
     end
 end
 export Cylinder
 
-Base.show(io::IO, a::Cylinder{T}) where {T<:Real} = print(io, "Cylinder{$T}($(a.radius), $(interface(a)))")
+Base.show(io::IO, a::Cylinder{T}) where {T<:Real} = print(io, "Cylinder{$T}($(a.radius), $(surafce_id(a)), $(interface(a)))")
 
+surface_id(a::Cylinder{T}) where {T<:Real} = a.surface_id
 interface(a::Cylinder{T}) where {T<:Real} = a.interface
 radius(a::Cylinder{T}) where {T<:Real} = a.radius
 
@@ -91,12 +93,12 @@ function surfaceintersection(cyl::Cylinder{T,N}, r::AbstractRay{T,N}) where {T<:
     let int1 = nothing, int2 = nothing
         if pt1 !== nothing
             u, v = uv(cyl, pt1)
-            int1 = Intersection(t1, pt1, SVector{3,T}(pt1[1], pt1[2], 0.0), u, v, interface(cyl))
+            int1 = Intersection(t1, pt1, SVector{3,T}(pt1[1], pt1[2], 0.0), u, v, surface_id(cyl), interface(cyl))
         end
 
         if pt2 !== nothing
             u, v = uv(cyl, pt2)
-            int2 = Intersection(t2, pt2, SVector{3,T}(pt2[1], pt2[2], 0.0), u, v, interface(cyl))
+            int2 = Intersection(t2, pt2, SVector{3,T}(pt2[1], pt2[2], 0.0), u, v, surface_id(cyl), interface(cyl))
         end
 
         if int1 !== nothing && int2 !== nothing

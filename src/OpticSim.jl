@@ -12,6 +12,7 @@ using Images
 using Base: @.
 using ForwardDiff
 using StringEncodings
+using UUIDs: UUID, uuid4
 
 # this dependency is intentional! Revise allows OpticSim to reload AGFGlassCat.jl (the glass database) after calling
 # `add_agf` (src/GlassCat/sources.jl) with `rebuild = true`

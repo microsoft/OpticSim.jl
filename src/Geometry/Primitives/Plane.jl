@@ -19,6 +19,7 @@ struct Plane{T,N} <: ParametricSurface{T,N}
     normal::SVector{N,T}
     d::T
     pointonplane::SVector{N,T}
+    surface_id::UUID
     interface::NullOrFresnel{T}
     # below only for visualization purposes
     vishalfsizeu::T
@@ -40,7 +41,7 @@ struct Plane{T,N} <: ParametricSurface{T,N}
         end
         uvec = normalize(cross(normalize(visvec), norml))
         vvec = normalize(cross(norml, uvec))
-        return new{T,N}(norml, d, pointonplane, interface, vishalfsizeu, vishalfsizev, uvec, vvec)
+        return new{T,N}(norml, d, pointonplane, uuid4(), interface, vishalfsizeu, vishalfsizev, uvec, vvec)
     end
 
     function Plane(nx::T, ny::T, nz::T, x::T, y::T, z::T; interface::NullOrFresnel{T} = NullInterface(T), vishalfsizeu::T = zero(T), vishalfsizev::T = zero(T), visvec = SVector{3,T}(0.0, 1.0, 0.0)) where {T<:Real}
@@ -51,6 +52,7 @@ export Plane
 
 Base.show(io::IO, a::Plane{T}) where {T<:Real} = print(io, "Plane{$T}($(a.pointonplane), $(normal(a)), $(interface(a)))")
 
+surface_id(a::Plane{T,N}) where {T<:Real,N} = a.surface_id
 interface(a::Plane{T,N}) where {T<:Real,N} = a.interface
 normal(pln::Plane{T,N}) where {T<:Real,N} = pln.normal
 
@@ -87,7 +89,7 @@ function surfaceintersection(pln::Plane{T,N}, r::AbstractRay{T,N}) where {T<:Rea
             return EmptyInterval(T) # no ray plane intersection
         end
     end
-    temp = Intersection(t, point(r, t), n̂, zero(T), zero(T), interface(pln))
+    temp = Intersection(t, point(r, t), n̂, zero(T), zero(T), surface_id(pln), interface(pln))
     if nd < zero(T)
         return positivehalfspace(temp)
     else

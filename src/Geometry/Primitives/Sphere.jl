@@ -13,16 +13,18 @@ Sphere(radius::T = 1.0; interface::NullOrFresnel{T} = nullinterface(T))
 """
 struct Sphere{T,N} <: ParametricSurface{T,N}
     radius::T
+    surface_id::UUID
     interface::NullOrFresnel{T}
 
     function Sphere(radius::T; interface::NullOrFresnel{T} = NullInterface(T)) where {T<:Real}
         @assert !isnan(radius)
         @assert radius > zero(T)
-        return new{T,3}(radius, interface)
+        return new{T,3}(radius, uuid4(), interface)
     end
 end
 export Sphere
 
+surface_id(a::Sphere{T,N}) where {T<:Real,N} = a.surface_id
 interface(a::Sphere{T,N}) where {T<:Real,N} = a.interface
 radius(a::Sphere{T}) where {T<:Real} = a.radius
 
@@ -85,12 +87,12 @@ function surfaceintersection(sph::Sphere{T,N}, r::AbstractRay{T,N}) where {T<:Re
     let int1 = nothing, int2 = nothing
         if pt1 !== nothing
             θ, ρ = uv(sph, pt1)
-            int1 = Intersection(t1, pt1, pt1, θ, ρ, interface(sph))
+            int1 = Intersection(t1, pt1, pt1, θ, ρ, surface_id(sph), interface(sph))
         end
 
         if pt2 !== nothing
             θ, ρ = uv(sph, pt2)
-            int2 = Intersection(t2, pt2, pt2, θ, ρ, interface(sph))
+            int2 = Intersection(t2, pt2, pt2, θ, ρ, surface_id(sph), interface(sph))
         end
 
         if int1 !== nothing && int2 !== nothing
