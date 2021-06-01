@@ -35,7 +35,7 @@ typically this is one of [`Rectangle`](@ref), [`Ellipse`](@ref) or [`SphericalCa
 ```julia
 CSGOpticalSystem(
     assembly::LensAssembly,
-    detector::Surface,
+    detector::Pair{Surface, AbstractDetector},
     detectorpixelsx = 1000,
     detectorpixelsy = 1000, ::Type{D} = Float32;
     temperature = OpticSim.GlassCat.TEMP_REF,
@@ -45,14 +45,13 @@ CSGOpticalSystem(
 """
 struct CSGOpticalSystem{T,D<:Number,S<:Surface{T},L<:LensAssembly{T}} <: AbstractOpticalSystem{T}
     assembly::L
-    detector::S
-    detectorimage::HierarchicalImage{D}
+    detector::Pair{S, AbstractDetector{D}}
     temperature::T
     pressure::T
 
     function CSGOpticalSystem(
         assembly::L,
-        detector::S,
+        detector::Pair{S, String},
         detectorpixelsx::Int = 1000,
         detectorpixelsy::Int = 1000,
         ::Type{D} = Float32;
@@ -62,15 +61,27 @@ struct CSGOpticalSystem{T,D<:Number,S<:Surface{T},L<:LensAssembly{T}} <: Abstrac
         @assert hasmethod(uv, (S, SVector{3,T})) "Detector must implement uv()"
         @assert hasmethod(uvtopix, (S, SVector{2,T}, Tuple{Int,Int})) "Detector must implement uvtopix()"
         @assert hasmethod(onsurface, (S, SVector{3,T})) "Detector must implement onsurface()"
-        opticalinterface = interface(detector)
+        opticalinterface = interface(detector.first)
         @assert insidematerialid(opticalinterface) == outsidematerialid(opticalinterface) "Detector must have same material either side"
-        @assert interface(detector) !== NullInterface(T) "Detector can't have null interface"
-        image = HierarchicalImage{D}(detectorpixelsy, detectorpixelsx)
+        @assert interface(detector.first) !== NullInterface(T) "Detector can't have null interface"
+        image = ImageDetector(detector.second, detectorpixelsy, detectorpixelsx, D)
         if temperature isa Unitful.Temperature
             temperature = Unitful.ustrip(T, °C, temperature)
         end
-        return new{T,D,S,L}(assembly, detector, image, temperature, convert(T, pressure))
+        return new{T,D,S,L}(assembly, detector.first => image, temperature, convert(T, pressure))
     end
+end
+
+function CSGOpticalSystem(
+    assembly::L,
+    detector::S,
+    detectorpixelsx::Int = 1000,
+    detectorpixelsy::Int = 1000,
+    t::Type{D} = Float32;
+    temperature::Union{T,Unitful.Temperature} = convert(T, TEMP_REF),
+    pressure::T = convert(T, PRESSURE_REF)
+    ) where {T<:Real,S<:Surface{T},L<:LensAssembly{T},D<:Number}
+    CSGOpticalSystem(assembly, detector => "Default Detector", detectorpixelsx, detectorpixelsy, t; temperature = temperature, pressure = pressure)
 end
 
 Base.copy(a::CSGOpticalSystem) = CSGOpticalSystem(
@@ -94,7 +105,7 @@ Get the [`LensAssembly`](@ref) of `system`.
 """
 assembly(system::CSGOpticalSystem{T}) where {T<:Real} = system.assembly
 
-detector(system::CSGOpticalSystem) = system.detector
+detector(system::CSGOpticalSystem) = system.detector.first
 
 """
     detectorimage(system::AbstractOpticalSystem{T}) -> HierarchicalImage{D}
@@ -102,9 +113,9 @@ detector(system::CSGOpticalSystem) = system.detector
 Get the detector image of `system`.
 `D` is the datatype of the detector image and is not necessarily the same as the datatype of the system `T`.
 """
-detectorimage(system::CSGOpticalSystem) = system.detectorimage
+detectorimage(system::CSGOpticalSystem) = system.detector.second
 
-detectorsize(system::CSGOpticalSystem) = size(system.detectorimage)
+detectorsize(system::CSGOpticalSystem) = size(detectorimage(system))
 
 """
     temperature(system::AbstractOpticalSystem{T}) -> T
@@ -158,7 +169,6 @@ function trace(
             emptyintervalpool!(T)
             return nothing
         end
-
         detintsct = closestintersection(intsct)
         if detintsct === nothing
             emptyintervalpool!(T)
@@ -210,9 +220,7 @@ function trace(
             end
 
             # increment the detector image
-            pixu, pixv = uvtopix(detector(system), uv(detintsct), size(system.detectorimage))
-            system.detectorimage[pixv, pixu] += convert(D, sourcepower(r)) # TODO will need to handle different detector
-                                                                           #      image types a bit better than this
+            update!(detectorimage(system), detector(system), temp)
 
             # should be okay to assume intersection will not be a DisjointUnion for all the types of detectors we will
             # be using
