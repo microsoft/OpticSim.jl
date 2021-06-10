@@ -2,6 +2,8 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # See LICENSE in the project root for full license information.
 
+import Base
+
 """
     AbstractDetector{T<:Number}
 
@@ -46,10 +48,26 @@ struct ImageDetector{T} <: AbstractDetector{T}
 end
 
 function update!(d::ImageDetector{T}, s, t) where T
-    pixu, pixv = uvtopix(s, uv(intersection(t)), size(d.image))
+    pixu, pixv = uvtopix(s, uv(intersection(t)), size(d))
     d.image[pixv, pixu] += T(sourcepower(ray(t)))
 end
 
 function name(d::ImageDetector)
     d.name
+end
+
+function reset!(d::ImageDetector{T}) where T
+    reset!(d.image)
+end
+
+function Base.size(d::ImageDetector{T}) where T
+    size(d.image)
+end
+
+function Base.getindex(d::ImageDetector{T}, a, b) where T
+    getindex(d.image, a, b)
+end
+
+function Base.iterate(d::ImageDetector{T}, args...) where T
+    Base.iterate(d.image, args...)
 end
