@@ -135,7 +135,7 @@ pressure(system::CSGOpticalSystem{T}) where {T<:Real} = system.pressure
 
 Reset the deterctor image of `system` to zero.
 """
-resetdetector!(system::CSGOpticalSystem{T}) where {T<:Real} = reset!(system.detectorimage)
+resetdetector!(system::CSGOpticalSystem{T}) where {T<:Real} = reset!(detectorimage(system))
 
 Base.Float32(a::T) where {T<:ForwardDiff.Dual} = Float32(ForwardDiff.value(a))
 
