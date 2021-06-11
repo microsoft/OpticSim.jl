@@ -158,76 +158,7 @@ function trace(
         return nothing
     end
 
-    result = trace(system.assembly, r, temperature(system), pressure(system), trackrays = trackrays, test = test)
-
-    if result === nothing || result === nopower
-        emptyintervalpool!(T)
-        return nothing
-    else #ray intersected lens assembly so continue to see if ray intersects detector
-        intsct = surfaceintersection(detector(system), ray(result))
-        if intsct === nothing # no intersection of final ray with detector
-            emptyintervalpool!(T)
-            return nothing
-        end
-        detintsct = closestintersection(intsct)
-        if detintsct === nothing
-            emptyintervalpool!(T)
-            return nothing
-        else
-            # need to modify power and path length accordingly for the intersection with the detector
-            surfintsct = point(detintsct)
-            nml = normal(detintsct)
-            opticalinterface = interface(detintsct)::FresnelInterface{T}
-            λ = wavelength(r)
-
-            # Optical path length is measured in mm
-            # in this case the result ray is exact so no correction for RAY_OFFSET is needed
-            geometricpathlength = norm(surfintsct - origin(ray(result)))
-            opticalpathlength = geometricpathlength
-            pow = power(result)
-
-            m = outsidematerialid(opticalinterface)
-            # compute updated power based on absorption coefficient of material using Beer's law
-            # this will almost always not apply as the detector will be in air, but it's possible that the detector is
-            # not in air, in which case this is necessary
-            if !isair(m)
-                mat::Glass = glassforid(m)
-                nᵢ = index(mat, λ, temperature = temperature(system), pressure = pressure(system))::T
-                α = absorption(mat, λ, temperature = temperature(system), pressure = pressure(system))::T
-                if α > zero(T)
-                    internal_trans = exp(-α * geometricpathlength)
-                    if rand() >= internal_trans
-                        return nothing
-                    end
-                    pow = pow * internal_trans
-                end
-                opticalpathlength = nᵢ * geometricpathlength
-            end
-
-            temp = LensTrace{T,N}(
-                OpticalRay(
-                    ray(ray(result)),
-                    pow,
-                    wavelength(result),
-                    opl = pathlength(result) + opticalpathlength,
-                    nhits = nhits(result) + 1,
-                    sourcenum = sourcenum(r),
-                    sourcepower = sourcepower(r)),
-                detintsct
-            )
-            if trackrays !== nothing
-                push!(trackrays, temp)
-            end
-
-            # increment the detector image
-            update!(detectorimage(system), detector(system), temp)
-
-            # should be okay to assume intersection will not be a DisjointUnion for all the types of detectors we will
-            # be using
-            emptyintervalpool!(T)
-            return temp
-        end
-    end
+    trace(system, system.assembly, r, temperature(system), pressure(system), trackrays = trackrays, test = test)
 end
 
 ######################################################################################################################
