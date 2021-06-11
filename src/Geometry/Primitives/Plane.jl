@@ -41,7 +41,7 @@ struct Plane{T,N} <: ParametricSurface{T,N}
         end
         uvec = normalize(cross(normalize(visvec), norml))
         vvec = normalize(cross(norml, uvec))
-        return new{T,N}(norml, d, pointonplane, uuid4(), interface, vishalfsizeu, vishalfsizev, uvec, vvec)
+        return new{T,N}(norml, d, pointonplane, uuid1(Random.GLOBAL_RNG), interface, vishalfsizeu, vishalfsizev, uvec, vvec)
     end
 
     function Plane(nx::T, ny::T, nz::T, x::T, y::T, z::T; interface::NullOrFresnel{T} = NullInterface(T), vishalfsizeu::T = zero(T), vishalfsizev::T = zero(T), visvec = SVector{3,T}(0.0, 1.0, 0.0)) where {T<:Real}

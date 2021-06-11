@@ -21,7 +21,7 @@ struct Cylinder{T,N} <: ParametricSurface{T,N}
     function Cylinder(radius::T, visheight::T = T(2.0); interface::NullOrFresnel{T} = NullInterface(T)) where {T<:Real}
         @assert radius > zero(T) && visheight > zero(T)
         @assert !isnan(radius)
-        new{T,3}(radius, visheight, uuid4(), interface)
+        new{T,3}(radius, visheight, uuid4(Random.GLOBAL_RNG), interface)
     end
 end
 export Cylinder

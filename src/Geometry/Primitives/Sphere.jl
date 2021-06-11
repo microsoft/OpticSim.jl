@@ -19,7 +19,7 @@ struct Sphere{T,N} <: ParametricSurface{T,N}
     function Sphere(radius::T; interface::NullOrFresnel{T} = NullInterface(T)) where {T<:Real}
         @assert !isnan(radius)
         @assert radius > zero(T)
-        return new{T,3}(radius, uuid4(), interface)
+        return new{T,3}(radius, uuid1(Random.GLOBAL_RNG), interface)
     end
 end
 export Sphere
