@@ -14,10 +14,11 @@ using Unitful.DefaultSymbols
 @testset "GlassCat" begin
     @testset "Build Tests" begin
         # check that all automatic downloads are working
-        for catname in split("HOYA NIKON OHARA SCHOTT Sumita")
-            agffile = joinpath(GlassCat.AGF_DIR, catname * ".agf")
-            @test isfile(agffile)
-        end
+        # this shouldn't be a test because we cannot guarantee that all downloads will work. Random network issues, changes in webpages, etc. can temporarily prevent downloads.
+        # for catname in split("HOYA NIKON OHARA SCHOTT Sumita")
+        #     agffile = joinpath(GlassCat.AGF_DIR, catname * ".agf")
+        #     @test isfile(agffile)
+        # end
 
         # check that particularly problematic glasses are parsing correctly
         @test !isnan(NIKON.LLF6.C10)
