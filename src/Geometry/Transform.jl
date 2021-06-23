@@ -177,7 +177,11 @@ end
 Costruct a transform from the input columns.     
 """
 function Transform(colx::Vec3{T}, coly::Vec3{T}, colz::Vec3{T}, colw::Vec3{T} = zero(Vec3{T})) where {T<:Real}
-    return vcat(hcat(colx,coly,colz,colw),SMatrix{1,4,T}(zero(T),zero(T),zero(T),one(T)) )
+    return SMatrix{4,4,T}(
+        colx[1],colx[2],colx[3],zero(T),
+        coly[1],coly[2],coly[3],zero(T),
+        colz[1],colz[2],colz[3],zero(T),
+        colw[1],colw[2],colw[3],one(T))
 end
 
 
@@ -186,8 +190,9 @@ end
 
 Costruct a transform from the input columns.     
 """
+
 function Transform(colx::Vec4{T}, coly::Vec4{T}, colz::Vec4{T}, colw::Vec4{T}) where {T<:Real}
-    return hcat(colx,coly,colz,colw)
+    return hcat(colx,coly,colz,colw)::SMatrix{4,4,T} #appears to generate zero allocation code even without the SMatrix{4,4,T} but safer to leave it in.
 end
 
 """
