@@ -192,7 +192,12 @@ Costruct a transform from the input columns.
 """
 
 function Transform(colx::Vec4{T}, coly::Vec4{T}, colz::Vec4{T}, colw::Vec4{T}) where {T<:Real}
-    return hcat(colx,coly,colz,colw)::SMatrix{4,4,T} #appears to generate zero allocation code even without the SMatrix{4,4,T} but safer to leave it in.
+    return SMatrix{4,4,T}(
+        colx[1],colx[2],colx[3],colx[4],
+        coly[1],coly[2],coly[3],coly[4],
+        colz[1],colz[2],colz[3],colz[4],
+        colw[1],colw[2],colw[3],colw[4])
+    # return hcat(colx,coly,colz,colw)::SMatrix{4,4,T} #appears to generate zero allocation code even without the SMatrix{4,4,T} but safer to leave it in.
 end
 
 """
