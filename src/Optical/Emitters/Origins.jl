@@ -62,7 +62,7 @@ RectUniform(width::T, height::T, samples_count::Integer) where {T<:Real}
 struct RectUniform{T} <: AbstractOriginDistribution{T}
     width::T
     height::T
-    samples_count::Integer
+    samples_count::Int64
 
     function RectUniform(width::T, height::T, samples_count::Integer) where {T<:Real}
         return new{T}(width, height, samples_count)
@@ -92,8 +92,8 @@ RectGrid(width::T, height::T, usamples::Integer, vsamples::Integer) where {T<:Re
 struct RectGrid{T} <: AbstractOriginDistribution{T}
     width::T
     height::T
-    usamples::Integer
-    vsamples::Integer
+    usamples::Int64
+    vsamples::Int64
     ustep::T
     vstep::T
 
