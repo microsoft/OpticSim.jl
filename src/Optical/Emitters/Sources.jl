@@ -42,7 +42,7 @@ Source(::Type{T} = Float64;
             P<:AngularPower.AbstractAngularPowerDistribution,
             T<:Real}
 
-Source(transform::Tr, spectrum::S, origins::O, directions::D, power::P, ::Type{T} = Float64; sourcenum::Integer = 0) where {   
+Source(transform::Tr, spectrum::S, origins::O, directions::D, power::P, ::Type{T} = Float64; sourcenum::Int64 = 0) where {   
             Tr<:Transform,
             S<:Spectrum.AbstractSpectrum,
             O<:Origins.AbstractOriginDistribution,
@@ -64,7 +64,7 @@ struct Source{
     origins::O
     directions::D
     power_distribution::P
-    sourcenum::Integer
+    sourcenum::Int64
 
     function Source(
         ::Type{T} = Float64;
@@ -107,8 +107,8 @@ end
 
 # used to not generate new origin points if we can use last points - mainly to keep consistency of origin generation when randomness is involved
 struct SourceGenerationState{T<:Real}
-    n::Integer
-    last_index_used::Integer
+    n::Int64
+    last_index_used::Int64
     last_point_generated::Vec3{T}
 end
 

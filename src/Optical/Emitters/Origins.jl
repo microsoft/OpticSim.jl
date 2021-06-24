@@ -125,7 +125,7 @@ Hexapolar(nrings::Integer, halfsizeu::T, halfsizev::T) where {T<:Real}
 struct Hexapolar{T} <: AbstractOriginDistribution{T}
     halfsizeu::T
     halfsizev::T
-    nrings::Integer
+    nrings::Int64
 
     function Hexapolar(nrings::Integer, halfsizeu::T, halfsizev::T) where {T<:Real} 
         return new{T}(halfsizeu, halfsizev, nrings)
