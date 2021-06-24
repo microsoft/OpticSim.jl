@@ -10,12 +10,33 @@ module TestData
 using OpticSim
 using OpticSim: tobeziersegments # try to use only exported functions so this list should stay short
 using OpticSim.Geometry
+using OpticSim.Emitters
 using StaticArrays
 using DataFrames
 using Unitful
 using Images
 using Base: @.
 using LinearAlgebra
+using BenchmarkTools
+
+
+### Emitters
+
+function RectGridAllocations()
+    directions = Emitters.Directions.RectGrid(π/4, π/4, 150, 150)
+    function f()
+        let result
+            for point in directions
+                result = point
+            end
+            return result
+        end
+    end
+
+    result = @benchmark $f() 
+    return result
+    # return allocations(result)
+end
 
 ### CURVES
 
