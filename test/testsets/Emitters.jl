@@ -6,7 +6,6 @@ using Test
 using OpticSim
 using OpticSim.Emitters
 using OpticSim.Geometry
-using BenchmarkTools
 
 using Random
 using StaticArrays
