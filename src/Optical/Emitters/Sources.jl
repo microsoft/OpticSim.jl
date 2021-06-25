@@ -34,7 +34,7 @@ Source(::Type{T} = Float64;
        origins::O = Origins.Point(),
        directions::D = Directions.Constant(),
        power::P = AngularPower.Lambertian(),
-       sourcenum::Integer = 0) where {
+       sourcenum::Int64 = 0) where {
             Tr<:Transform,
             S<:Spectrum.AbstractSpectrum,
             O<:Origins.AbstractOriginDistribution,
@@ -42,7 +42,7 @@ Source(::Type{T} = Float64;
             P<:AngularPower.AbstractAngularPowerDistribution,
             T<:Real}
 
-Source(transform::Tr, spectrum::S, origins::O, directions::D, power::P, ::Type{T} = Float64; sourcenum::Integer = 0) where {   
+Source(transform::Tr, spectrum::S, origins::O, directions::D, power::P, ::Type{T} = Float64; sourcenum::Int64 = 0) where {   
             Tr<:Transform,
             S<:Spectrum.AbstractSpectrum,
             O<:Origins.AbstractOriginDistribution,
@@ -64,7 +64,7 @@ struct Source{
     origins::O
     directions::D
     power_distribution::P
-    sourcenum::Integer
+    sourcenum::Int64
 
     function Source(
         ::Type{T} = Float64;
@@ -73,7 +73,7 @@ struct Source{
         origins::O = Origins.Point(T),
         directions::D = Directions.Constant(T),
         power::P = AngularPower.Lambertian(T),
-        sourcenum::Integer = 0
+        sourcenum::Int64 = 0
     ) where {
         Tr<:Transform,
         S<:Spectrum.AbstractSpectrum,
@@ -92,7 +92,7 @@ struct Source{
         directions::D,
         power::P,
         ::Type{T} = Float64;
-        sourcenum::Integer = 0
+        sourcenum::Int64 = 0
     ) where {
         Tr<:Transform,
         S<:Spectrum.AbstractSpectrum,
@@ -107,8 +107,8 @@ end
 
 # used to not generate new origin points if we can use last points - mainly to keep consistency of origin generation when randomness is involved
 struct SourceGenerationState{T<:Real}
-    n::Integer
-    last_index_used::Integer
+    n::Int64
+    last_index_used::Int64
     last_point_generated::Vec3{T}
 end
 
@@ -116,14 +116,14 @@ Base.length(s::Source) = length(s.origins) * length(s.directions)
 Base.iterate(s::Source{T}) where {T<:Real} = iterate(s, SourceGenerationState(1, -1, zeros(Vec3{T})))
 Base.iterate(s::Source, state::SourceGenerationState) = state.n > length(s) ? nothing : generate(s, state)
 
-function Emitters.generate(s::Source{T}, n::Integer) where {T<:Real}
+function Emitters.generate(s::Source{T}, n::Int64) where {T<:Real}
     return generate(s, SourceGenerationState(n+1, -1, zeros(Vec3{T})))[1]
 end
 
 function Emitters.generate(s::Source{T}, state::SourceGenerationState{T} = SourceGenerationState(-1, -1, zeros(Vec3{T}))) where {T<:Real}
     # @info "New State Generation"
-    n::Integer = state.n - 1
-    origin_index = floor(Integer, (n / length(s.directions))) 
+    n::Int64 = state.n - 1
+    origin_index = floor(Int64, (n / length(s.directions))) 
     direction_index = mod(n, length(s.directions)) 
 
     if (origin_index == state.last_index_used)
@@ -196,16 +196,16 @@ Base.length(s::CompositeSource) = s.total_length
 Base.iterate(s::CompositeSource{T}) where {T<:Real} = iterate(s, SourceGenerationState(1, -1, zeros(Vec3{T})))
 Base.iterate(s::CompositeSource, state::SourceGenerationState) = state.n > length(s) ? nothing : generate(s, state)
 
-function Emitters.generate(s::CompositeSource{T}, n::Integer) where {T<:Real}
+function Emitters.generate(s::CompositeSource{T}, n::Int64) where {T<:Real}
     return generate(s, SourceGenerationState(n+1, -1, zeros(Vec3{T})))[1]
 end
 
 function Emitters.generate(s::CompositeSource{T}, state::SourceGenerationState{T} = SourceGenerationState(-1, -1, zeros(Vec3{T}))) where {T<:Real}
     # @info "New Composite State Generation"
-    n::Integer = state.n - 1
+    n::Int64 = state.n - 1
 
     if (s.uniform_length != -1)
-        source_index = floor(Integer, (n / s.uniform_length)) 
+        source_index = floor(Int64, (n / s.uniform_length)) 
         ray_index = mod(n, s.uniform_length) 
         # @info "New Composite State Generation: source=$source_index  ray=$ray_index  ($(length(s.sources)))"
     else
@@ -216,7 +216,7 @@ function Emitters.generate(s::CompositeSource{T}, state::SourceGenerationState{T
         high = length(s.start_indexes) - 1    # last cell in this vector is a dummy cell containing the index after the last ray
         source_index = -1
         while (low <= high) 
-            mid = floor(Integer, (low + high) / 2)
+            mid = floor(Int64, (low + high) / 2)
 
             if (n < s.start_indexes[mid])
                 high = mid - 1
