@@ -24,21 +24,24 @@ julia> a[1,2]
 struct LatticeBasis{N,T<:Real}
     basisvectors::SVector{N,SVector{N,T}}
 
-    function LatticeBasis(vectors::Vector{T}...) where{T}
+    function LatticeBasis{N}(vectors::Vector{T}...) where{T,N}
         dim = length(vectors[1])
+        @assert N == dim
         for i in 2:length(vectors)
             @assert length(vectors[i])==dim "Vectors for the lattice basis were not all the same dimension"
         end
-        temp = Vector{SVector{dim,T}}(undef,dim)
-
+        
+        temp = MVector{N,SVector{N,T}}(undef) #MVector is slightly faster and has slightly fewer allocations than Vector
+ 
         for (i,val) in pairs(vectors)
-            temp[i] = SVector{dim,T}(val...)
+            temp[i] = SVector{N,T}(ntuple((j)->val[j],N)) #using ntuple is significantly faster than val... No idea why this should be true.
         end
         
-        return new{dim,T}(SVector{dim,SVector{dim,T}}(temp...))
+        # return new{N,T}(SVector{N,SVector{N,T}}(temp...))
+        return new{N,T}(SVector{N,SVector{N,T}}(ntuple((j)->temp[j],N)))
     end
 
-    LatticeBasis(vectors::SVector{N,T}...) where{N,T} = new{N,T}(SVector{N,SVector{N,T}}(vectors...))
+    LatticeBasis(vectors::SVector{N,T}...) where{N,T} = new{N,T}(SVector{N,SVector{N,T}}(vectors...)) #this function is considerably faster than the other constructor
 end
 export LatticeBasis
 
