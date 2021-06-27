@@ -7,30 +7,30 @@ abstract type InfiniteLattice{T<:Real} <: Lattice{T} end
 abstract type FiniteLattice{T<:Real,L<:InfiniteLattice{T}} <: Lattice{T} end
 
 """returns a Tuple = (2D coordinates of emitter in the lattice,emitter)"""
-emitter(a::L, x::Int, y::Int) where {L<:InfiniteLattice} = (a.origin + x * a.e1 + y * a.e2, a.emitter)
+emitter(a::L, i::Int, j::Int) where {L<:InfiniteLattice} = (a.origin + i * a.e1 + j * a.e2, a.emitter)
 
-emitterpitchx(a::L) where {L<:Lattice} = norm(a.e₁)
-emitterpitchy(a::L) where {L<:Lattice} = norm(a.e₂)
+emitterpitch_e₁(a::L) where {L<:Lattice} = norm(a.e₁)
+emitterpitch_e₂(a::L) where {L<:Lattice} = norm(a.e₂)
 
 struct SizedLattice{T<:Real,L<:InfiniteLattice{T}} <: FiniteLattice{T,L}
     lattice::L
-    e₁emitters::Int
-    e₂emitters::Int
+    e₁::Int
+    e₂::Int
 
-    function SizedLattice(lattice::L, e₁emitters::Int, e₂emitters::Int) where {T<:Real,L<:InfiniteLattice{T}}
-        @assert e₁emitters >= T(0)
-        @assert e₂emitters >= T(0)
-        return new{T,L}(lattice, e₁emitters, e₂emitters)
+    function SizedLattice(lattice::L, e₁::Int, e₂::Int) where {T<:Real,L<:InfiniteLattice{T}}
+        @assert e₁ >= T(0)
+        @assert e₂ >= T(0)
+        return new{T,L}(lattice, e₁, e₂)
     end
 end
 
 emitterpitchx(a::SizedLattice) = emitterpitchx(norm(a.lattice.e₁))
 emitterpitchy(a::SizedLattice) = emitterpitchy(norm(a.lattice.e₂))
 
-function emitter(a::FiniteLattice{T,L}, x::Int, y::Int) where {T<:Real,L<:InfiniteLattice{T}}
-    @assert T(0) <= x <= a.e₁emitters
-    @assert T(0) <= y <= a.e₂emitters
-    return emitter(a.lattice, x, y) #because L is of type InfiteLattice and not FiniteLattice this call will not cause infinite recursion.
+function emitter(a::FiniteLattice{T,L}, i::Int, j::Int) where {T<:Real,L<:InfiniteLattice{T}}
+    @assert T(0) <= i <= a.e₁emitters
+    @assert T(0) <= j <= a.e₂emitters
+    return emitter(a.lattice, i, j) #because L is of type InfiteLattice and not FiniteLattice this call will not cause infinite recursion.
 end
 
 struct PrimitiveLattice{S<:AbstractSpectrum,P<:AbstractAngularPowerDistribution,T<:Real} <: InfiniteLattice{T}
