@@ -2,17 +2,63 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # See LICENSE in the project root for full license information.
 
-struct LatticeBasis{T<:Real}
-    e₁::SVector{2,T}
-    e₂::SVector{2,T}
+""" Base class for defining points on a lattice. Lattice points are defined by basis vectors eᵢ and lattice indices:
+
+point = Σᵢ indexᵢ*eᵢ
+
+Example: define a 2D basis. 
+
+julia> a = LatticeBasis([1,2],[3,4])
+
+LatticeBasis{2, Int64}(SVector{2, Int64}[[1, 2], [3, 4]])
+
+Array indexing is used to generate a lattice point: a[1,2] = 1*[1,2] + 2*[3,4] 
+
+julia> a[1,2]
+
+2-element SVector{2, Int64} with indices SOneTo(2):
+  7
+ 10
+
+"""
+struct LatticeBasis{N,T<:Real}
+    basisvectors::SVector{N,SVector{N,T}}
+
+    function LatticeBasis(vectors::Vector{T}...) where{T}
+        dim = length(vectors[1])
+        for i in 2:length(vectors)
+            @assert length(vectors[i])==dim "Vectors for the lattice basis were not all the same dimension"
+        end
+        temp = Vector{SVector{dim,T}}(undef,dim)
+
+        for (i,val) in pairs(vectors)
+            temp[i] = SVector{dim,T}(val...)
+        end
+        
+        return new{dim,T}(SVector{dim,SVector{dim,T}}(temp...))
+    end
+
+    LatticeBasis(vectors::SVector{N,T}...) where{N,T} = new{N,T}(SVector{N,SVector{N,T}}(vectors...))
+end
+export LatticeBasis
+
+function Base.size(a::LatticeBasis{N,T}) where{N,T}
+    return ntuple((i)->Base.IsInfinite(),N)
 end
 
-latticepoint(basis::LatticeBasis,i::Int,j::Int) = i*basis.e₁ + j*basis.e₂
-export latticepoint
+function getindex(A::LatticeBasis{N,T}, indices::Vararg{Int, N}) where{T,N}
+    sum = MVector{N,T}(zeros(T,N))
+    for i in 1:N
+        sum += A.basisvectors[i]*indices[i]
+    end
+    return SVector{N,T}(sum)
+end
 
-hexagonallattice(pitch::T = 1.0) where{T<:Real} = LatticeBasis{T}(pitch*SVector{2,T}(T(1.5),T(.5)*sqrt(T(3))),pitch*SVector{2,T}(T(1.5),T(-.5)*sqrt(T((3)))))
+setindex!(A::LatticeBasis, v, I::Vararg{Int, N1}) where{T,N1} = nothing #can't set lattice points
+
+hexagonallattice(pitch::T = 1.0) where{T<:Real} = LatticeBasis(pitch*SVector{2,T}(T(1.5),T(.5)*sqrt(T(3))),pitch*SVector{2,T}(T(1.5),T(-.5)*sqrt(T((3)))))
 export hexagonallattice
-rectangularlattice(ipitch::T = 1.0,jpitch::T = 1.0) where{T<:Real} = LatticeBasis{T}(ipitch*SVector{2,T}(1,0),jpitch*SVector{2,T}(0,1))
+rectangularlattice(ipitch::T = 1.0,jpitch::T = 1.0) where{T<:Real} = LatticeBasis(ipitch*SVector{2,T}(1,0),jpitch*SVector{2,T}(0,1))
 export rectangularlattice
 
 
