@@ -72,6 +72,12 @@ const downleft = -upright
 const downright = hexe₂
 const upleft = -downright
 
+#constants used for generating 1 and 2 hexagonal rings.
+const hexoffsets = (
+    (upright,up,upleft,downleft,down),
+    (upright,upright,up,up,upleft,upleft,downleft,downleft,down,down,downright)
+)
+
 function ring(latticepoint::SVector{2,T}, startingoffsets, ringoffsets) where{T<:Real}
     ringlength = length(ringoffsets) + 1
     result = MVector{ringlength,SVector{2,T}}(undef)
@@ -83,11 +89,15 @@ function ring(latticepoint::SVector{2,T}, startingoffsets, ringoffsets) where{T<
     return result
 end
 
-hexring1(latticepoint::SVector{2,T}) where{T<:Real} = ring(latticepoint,(down,), (upright,up,upleft,downleft,down)) #sequence of offsets to centers of ring 1 hexagons. First hexagon in ring is down from center hexagon.
-export hexring1
+""" Returns an array of the lattice points that form the n ring about the center latticepoint """
+hexring(latticepoint::SVector{2,T},ringnumber) where{T<:Real} = ring(latticepoint,ntuple((i)->down,ringnumber), hexoffsets[ringnumber]) #sequence of offsets to centers of ring n hexagons. First hexagon in ring is down from center hexagon.
+export hexring
 
-hexring2(latticepoint::SVector{2,T}) where{T<:Real} = ring(latticepoint,(down,down),(upright,upright,up,up,upleft,upleft,downleft,downleft,down,down,downright)) #sequence of offsets to centers of ring 2 hexagons. First hexagon in ring is down,down from center hexagon.
-export hexring2
+hex7(latticepoint::SVector{2,T}) where{T} = SVector{7,SVector{2,T}}(latticepoint,hexring(latticepoint,1)...)
+export hex7
+
+hex13(latticepoint::SVector{2,T}) where{T} = SVector{13,SVector{2,T}}(latticepoint,hexring(latticepoint,2)...)
+export hex13
 
 hexagonallattice(pitch::T = 1.0) where{T<:Real} = LatticeBasis(pitch*SVector{2,T}(T(1.5),T(.5)*sqrt(T(3))),pitch*SVector{2,T}(T(1.5),T(-.5)*sqrt(T((3)))))
 export hexagonallattice
