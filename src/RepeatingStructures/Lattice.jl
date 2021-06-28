@@ -2,7 +2,7 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # See LICENSE in the project root for full license information.
 
-""" Base class for defining points on a lattice. Lattice points are defined by basis vectors eᵢ and lattice indices:
+""" Base class for defining points on a lattice. Lattice points are defined by basis vectors eᵢ and lattice indices indexᵢ:
 
 point = Σᵢ indexᵢ*eᵢ
 
@@ -49,7 +49,7 @@ function Base.size(a::LatticeBasis{N,T}) where{N,T}
     return ntuple((i)->Base.IsInfinite(),N)
 end
 
-function getindex(A::LatticeBasis{N,T}, indices::Vararg{Int, N}) where{T,N}
+function Base.getindex(A::LatticeBasis{N,T}, indices::Vararg{Int, N}) where{T,N}
     sum = MVector{N,T}(zeros(T,N))
     for i in 1:N
         sum += A.basisvectors[i]*indices[i]
@@ -57,7 +57,7 @@ function getindex(A::LatticeBasis{N,T}, indices::Vararg{Int, N}) where{T,N}
     return SVector{N,T}(sum)
 end
 
-setindex!(A::LatticeBasis, v, I::Vararg{Int, N1}) where{T,N1} = nothing #can't set lattice points
+setindex!(A::LatticeBasis, v, I::Vararg{Int, N1}) where{T,N1} = nothing #can't set lattice points. Might want to throw an exception instead.
 
 hexagonallattice(pitch::T = 1.0) where{T<:Real} = LatticeBasis(pitch*SVector{2,T}(T(1.5),T(.5)*sqrt(T(3))),pitch*SVector{2,T}(T(1.5),T(-.5)*sqrt(T((3)))))
 export hexagonallattice
