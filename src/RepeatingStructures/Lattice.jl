@@ -83,11 +83,11 @@ function ring(latticepoint::SVector{2,T}, startingoffsets, ringoffsets) where{T<
     return result
 end
 
-ring1(latticepoint::SVector{2,T}) where{T<:Real} = ring(latticepoint,(down,), (upright,up,upleft,downleft,down)) #sequence of offsets to centers of ring 1 hexagons. First hexagon in ring is down from center hexagon.
-export ring1
+hexring1(latticepoint::SVector{2,T}) where{T<:Real} = ring(latticepoint,(down,), (upright,up,upleft,downleft,down)) #sequence of offsets to centers of ring 1 hexagons. First hexagon in ring is down from center hexagon.
+export hexring1
 
-ring2(latticepoint::SVector{2,T}) where{T<:Real} = ring(latticepoint,(down,down),(upright,upright,up,up,upleft,upleft,downleft,downleft,down,down,downright)) #sequence of offsets to centers of ring 2 hexagons. First hexagon in ring is down,down from center hexagon.
-export ring2
+hexring2(latticepoint::SVector{2,T}) where{T<:Real} = ring(latticepoint,(down,down),(upright,upright,up,up,upleft,upleft,downleft,downleft,down,down,downright)) #sequence of offsets to centers of ring 2 hexagons. First hexagon in ring is down,down from center hexagon.
+export hexring2
 
 hexagonallattice(pitch::T = 1.0) where{T<:Real} = LatticeBasis(pitch*SVector{2,T}(T(1.5),T(.5)*sqrt(T(3))),pitch*SVector{2,T}(T(1.5),T(-.5)*sqrt(T((3)))))
 export hexagonallattice
