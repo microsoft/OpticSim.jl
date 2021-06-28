@@ -63,14 +63,31 @@ setindex!(A::LatticeBasis, v, I::Vararg{Int, N}) where{T,N} = nothing #can't set
 
 const hexe₁ = SVector{2,Float64}(1.5,.5*sqrt(3))
 const hexe₂ = SVector{2,Float64}(1.5,-.5(sqrt(3)))
-const ↑ = hexe₁ - hexe₂
-const ↓ = -↑
-const ↗ = hexe₁
-const ↙ = -↖
-const ↘ = hexe₂
-const ↖ = -↘
-const ring1 = [↗,↑,↖,↙,↓] #sequence of offsets to centers of ring 1 hexagons. First hexagon in ring is ↓ from center hexagon.
-const ring2 = [↗,↗,↑,↑,↖,↖,↙,↙,↓,↓,↘] #sequence of offsets to centers of ring 2 hexagons. First hexagon in ring is ↓,↓ from center hexagon.
+#the documentation and source don't seem to agree about which unicode characters can be used as identifiers. Inconsistent results with Unicode arrow symbols so decided not to use them.
+# \:arrow_up: = ⬆, \:arrow_down: = ⬇, \:arrow_lower_left: = downleft,\:arrow_lower_right: = downright, \:arrow_upper_left: = upleft, \:arrow_upper_right: = upright
+const up = hexe₁ - hexe₂
+const down = -up
+const upright = hexe₁
+const downleft = -upright
+const downright = hexe₂
+const upleft = -downright
+
+function ring(latticepoint::SVector{2,T}, startingoffsets, ringoffsets) where{T<:Real}
+    ringlength = length(ringoffsets) + 1
+    result = MVector{ringlength,SVector{2,T}}(undef)
+
+    result[1] = latticepoint + reduce(+,startingoffsets)
+    for i in 1:ringlength -1
+        result[i+1] = result[i] + ringoffsets[i]
+    end
+    return result
+end
+
+ring1(latticepoint::SVector{2,T}) where{T<:Real} = ring(latticepoint,(down,), (upright,up,upleft,downleft,down)) #sequence of offsets to centers of ring 1 hexagons. First hexagon in ring is down from center hexagon.
+export ring1
+
+ring2(latticepoint::SVector{2,T}) where{T<:Real} = ring(latticepoint,(down,down),(upright,upright,up,up,upleft,upleft,downleft,downleft,down,down,downright)) #sequence of offsets to centers of ring 2 hexagons. First hexagon in ring is down,down from center hexagon.
+export ring2
 
 hexagonallattice(pitch::T = 1.0) where{T<:Real} = LatticeBasis(pitch*SVector{2,T}(T(1.5),T(.5)*sqrt(T(3))),pitch*SVector{2,T}(T(1.5),T(-.5)*sqrt(T((3)))))
 export hexagonallattice
@@ -134,3 +151,4 @@ export rectangularlattice
 #         return new{R,G,B,P,T}(PrimitiveLattice(e1, e2, PlanarEmitter{R,P,T}(subemitterwidth, rgbemitterpitch)), PrimitiveLattice(e1, e2, PlanarEmitter{G,P,T}(subemitterwidth, rgbemitterpitch), origin = SVector{2,T}(subemitterpitch, T(0.0))), PrimitiveLattice(e1, e2, PlanarEmitter{B,P,T}(subemitterwidth, rgbemitterpitch), origin = SVector{2,T}(2 * subemitterpitch, T(0.0))))
 #     end
 # end
+S
