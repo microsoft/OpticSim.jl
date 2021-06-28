@@ -61,6 +61,17 @@ end
 
 setindex!(A::LatticeBasis, v, I::Vararg{Int, N}) where{T,N} = nothing #can't set lattice points. Might want to throw an exception instead.
 
+const hexe₁ = SVector{2,Float64}(1.5,.5*sqrt(3))
+const hexe₂ = SVector{2,Float64}(1.5,-.5(sqrt(3)))
+const ↑ = hexe₁ - hexe₂
+const ↓ = -↑
+const ↗ = hexe₁
+const ↙ = -↖
+const ↘ = hexe₂
+const ↖ = -↘
+const ring1 = [↗,↑,↖,↙,↓] #sequence of offsets to centers of ring 1 hexagons. First hexagon in ring is ↓ from center hexagon.
+const ring2 = [↗,↗,↑,↑,↖,↖,↙,↙,↓,↓,↘] #sequence of offsets to centers of ring 2 hexagons. First hexagon in ring is ↓,↓ from center hexagon.
+
 hexagonallattice(pitch::T = 1.0) where{T<:Real} = LatticeBasis(pitch*SVector{2,T}(T(1.5),T(.5)*sqrt(T(3))),pitch*SVector{2,T}(T(1.5),T(-.5)*sqrt(T((3)))))
 export hexagonallattice
 rectangularlattice(ipitch::T = 1.0,jpitch::T = 1.0) where{T<:Real} = LatticeBasis(ipitch*SVector{2,T}(1,0),jpitch*SVector{2,T}(0,1))
