@@ -2,24 +2,26 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # See LICENSE in the project root for full license information.
 
+
 """ Base class for defining points on a lattice. Lattice points are defined by basis vectors eᵢ and lattice indices indexᵢ:
 
 point = Σᵢ indexᵢ*eᵢ
 
 Example: define a 2D basis. 
 
+```julia
 julia> a = LatticeBasis([1,2],[3,4])
-
 LatticeBasis{2, Int64}(SVector{2, Int64}[[1, 2], [3, 4]])
+```
 
 Array indexing is used to generate a lattice point: a[1,2] = 1*[1,2] + 2*[3,4] 
 
+```julia
 julia> a[1,2]
-
 2-element SVector{2, Int64} with indices SOneTo(2):
   7
  10
-
+````
 """
 struct LatticeBasis{N,T<:Real}
     basisvectors::SVector{N,SVector{N,T}}
@@ -57,7 +59,7 @@ function Base.getindex(A::LatticeBasis{N,T}, indices::Vararg{Int, N}) where{T,N}
     return SVector{N,T}(sum)
 end
 
-setindex!(A::LatticeBasis, v, I::Vararg{Int, N1}) where{T,N1} = nothing #can't set lattice points. Might want to throw an exception instead.
+setindex!(A::LatticeBasis, v, I::Vararg{Int, N}) where{T,N} = nothing #can't set lattice points. Might want to throw an exception instead.
 
 hexagonallattice(pitch::T = 1.0) where{T<:Real} = LatticeBasis(pitch*SVector{2,T}(T(1.5),T(.5)*sqrt(T(3))),pitch*SVector{2,T}(T(1.5),T(-.5)*sqrt(T((3)))))
 export hexagonallattice
