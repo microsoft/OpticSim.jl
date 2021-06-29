@@ -63,14 +63,24 @@ setindex!(A::LatticeBasis, v, I::Vararg{Int, N}) where{T,N} = nothing #can't set
 
 const hexe₁ = SVector{2,Float64}(1.5,.5*sqrt(3))
 const hexe₂ = SVector{2,Float64}(1.5,-.5(sqrt(3)))
+const hexbasis1 = LatticeBasis(hexe₁,hexe₂)
+
 #the documentation and source don't seem to agree about which unicode characters can be used as identifiers. Inconsistent results with Unicode arrow symbols so decided not to use them.
 # \:arrow_up: = ⬆, \:arrow_down: = ⬇, \:arrow_lower_left: = downleft,\:arrow_lower_right: = downright, \:arrow_upper_left: = upleft, \:arrow_upper_right: = upright
-const up = hexe₁ - hexe₂
+# const up = hexe₁ - hexe₂
+# const down = -up
+# const upright = hexe₁
+# const downleft = -upright
+# const downright = hexe₂
+# const upleft = -downright
+
+const up = SVector{2,Int64}(1,-1)
 const down = -up
-const upright = hexe₁
+const upright =  SVector{2,Int64}(1,0)
 const downleft = -upright
-const downright = hexe₂
+const downright = SVector{2,Int64}(0,1)
 const upleft = -downright
+
 
 #constants used for generating 1 and 2 hexagonal rings.
 const hexoffsets = (
@@ -78,11 +88,11 @@ const hexoffsets = (
     (upright,upright,up,up,upleft,upleft,downleft,downleft,down,down,downright)
 )
 
-function ring(latticepoint::SVector{2,T}, startingoffsets, ringoffsets) where{T<:Real}
+function ring(basis::LatticeBasis{N,T}, startingoffsets, ringoffsets) where{T<:Real,N}
     ringlength = length(ringoffsets) + 1
     result = MVector{ringlength,SVector{2,T}}(undef)
 
-    result[1] = latticepoint + reduce(+,startingoffsets)
+    result[1] = latticepoint(0,0) + mapreduce(latticepoint(offset), +,startingoffsets)
     for i in 1:ringlength -1
         result[i+1] = result[i] + ringoffsets[i]
     end
@@ -93,9 +103,14 @@ end
 hexring(latticepoint::SVector{2,T},ringnumber) where{T<:Real} = ring(latticepoint,ntuple((i)->down,ringnumber), hexoffsets[ringnumber]) #sequence of offsets to centers of ring n hexagons. First hexagon in ring is down from center hexagon.
 export hexring
 
+"""returns latticpoints in a hex7 pattern about latticepoint"""
 hex7(latticepoint::SVector{2,T}) where{T} = SVector{7,SVector{2,T}}(latticepoint,hexring(latticepoint,1)...)
 export hex7
 
+hex7(i,j) where{T} = SVector{7,SVector{2,T}}(latticepoint,hexring(latticepoint,1)...)
+export hex7
+
+"""returns latticpoints in a hex13 pattern about latticepoint"""
 hex13(latticepoint::SVector{2,T}) where{T} = SVector{13,SVector{2,T}}(latticepoint,hexring(latticepoint,2)...)
 export hex13
 
