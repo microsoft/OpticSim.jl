@@ -108,6 +108,7 @@ export hexring
 hex7() = SVector{7,NTuple{2,Int64}}((0,0),hexring(1)...)
 export hex7
 
+""" returns lattices positions rather than lattice indices in a hex7 pattern about latticepoint"""
 hex7points(latticepoint::SVector{N,T}) where{N,T<:Real} = map(offset -> hexbasis1[offset[1],offset[2]] + latticepoint,hex7())
 export hex7points
 
@@ -115,6 +116,7 @@ export hex7points
 hex13() = SVector{13,NTuple{2,Int64}}((0,0),hexring(2)...)
 export hex13
 
+""" returns lattices positions rather than lattice indices in a hex13 pattern about latticepoint"""
 hex13points(latticepoint::SVector{N,T}) where{N,T<:Real} = map(offset -> hexbasis1[offset[1],offset[2]] + latticepoint,hex13())
 export hex13points
 
