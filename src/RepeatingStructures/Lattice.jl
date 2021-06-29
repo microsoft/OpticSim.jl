@@ -74,12 +74,12 @@ const hexbasis1 = LatticeBasis(hexe₁,hexe₂)
 # const downright = hexe₂
 # const upleft = -downright
 
-const up = SVector{2,Int64}(1,-1)
-const down = -up
-const upright =  SVector{2,Int64}(1,0)
-const downleft = -upright
-const downright = SVector{2,Int64}(0,1)
-const upleft = -downright
+const up = (1,-1)
+const down = (-1,1)
+const upright = (1,0)
+const downleft = (-1,0)
+const downright = (0,1)
+const upleft = (0,-1)
 
 
 #constants used for generating 1 and 2 hexagonal rings.
@@ -88,31 +88,35 @@ const hexoffsets = (
     (upright,upright,up,up,upleft,upleft,downleft,downleft,down,down,downright)
 )
 
-function ring(basis::LatticeBasis{N,T}, startingoffsets, ringoffsets) where{T<:Real,N}
+"""returns i,j coordinates of tiles in the ring"""
+function ring(startingoffsets::NTuple{N1,S}, ringoffsets::NTuple{N2,S}) where{T<:Int,N3,S<:NTuple{N3,T},N1,N2}
     ringlength = length(ringoffsets) + 1
-    result = MVector{ringlength,SVector{2,T}}(undef)
+    result = MVector{ringlength,S}(undef)
 
-    result[1] = latticepoint(0,0) + mapreduce(latticepoint(offset), +,startingoffsets)
+    result[1] = ntuple(x->0,N3) .+ reduce(.+,startingoffsets)
     for i in 1:ringlength -1
-        result[i+1] = result[i] + ringoffsets[i]
+        result[i+1] = result[i] .+ ringoffsets[i]
     end
     return result
 end
 
 """ Returns an array of the lattice points that form the n ring about the center latticepoint """
-hexring(latticepoint::SVector{2,T},ringnumber) where{T<:Real} = ring(latticepoint,ntuple((i)->down,ringnumber), hexoffsets[ringnumber]) #sequence of offsets to centers of ring n hexagons. First hexagon in ring is down from center hexagon.
+hexring(ringnumber) = ring(ntuple((i)->down,ringnumber), hexoffsets[ringnumber]) #sequence of offsets to centers of ring n hexagons. First hexagon in ring is down from center hexagon.
 export hexring
 
-"""returns latticpoints in a hex7 pattern about latticepoint"""
-hex7(latticepoint::SVector{2,T}) where{T} = SVector{7,SVector{2,T}}(latticepoint,hexring(latticepoint,1)...)
+"""returns lattice offsets (i,j) in a hex7 pattern about (0,0)"""
+hex7() = SVector{7,NTuple{2,Int64}}((0,0),hexring(1)...)
 export hex7
 
-hex7(i,j) where{T} = SVector{7,SVector{2,T}}(latticepoint,hexring(latticepoint,1)...)
-export hex7
+hex7points(latticepoint::SVector{N,T}) where{N,T<:Real} = map(offset -> hexbasis1[offset[1],offset[2]] + latticepoint,hex7())
+export hex7points
 
-"""returns latticpoints in a hex13 pattern about latticepoint"""
-hex13(latticepoint::SVector{2,T}) where{T} = SVector{13,SVector{2,T}}(latticepoint,hexring(latticepoint,2)...)
+"""returns lattice offsets (i,j) in a hex13 pattern about latticepoint"""
+hex13() = SVector{13,NTuple{2,Int64}}((0,0),hexring(2)...)
 export hex13
+
+hex13points(latticepoint::SVector{N,T}) where{N,T<:Real} = map(offset -> hexbasis1[offset[1],offset[2]] + latticepoint,hex13())
+export hex13points
 
 hexagonallattice(pitch::T = 1.0) where{T<:Real} = LatticeBasis(pitch*SVector{2,T}(T(1.5),T(.5)*sqrt(T(3))),pitch*SVector{2,T}(T(1.5),T(-.5)*sqrt(T((3)))))
 export hexagonallattice
