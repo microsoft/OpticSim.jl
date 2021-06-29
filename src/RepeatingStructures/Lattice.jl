@@ -116,12 +116,13 @@ export hex7points
 hex13() = SVector{13,NTuple{2,Int64}}((0,0),hexring(2)...)
 export hex13
 
-""" returns lattices positions rather than lattice indices in a hex13 pattern about latticepoint"""
+""" returns lattice positions rather than lattice indices in a hex13 pattern about latticepoint"""
 hex13points(latticepoint::SVector{N,T}) where{N,T<:Real} = map(offset -> hexbasis1[offset[1],offset[2]] + latticepoint,hex13())
 export hex13points
 
 hexagonallattice(pitch::T = 1.0) where{T<:Real} = LatticeBasis(pitch*SVector{2,T}(T(1.5),T(.5)*sqrt(T(3))),pitch*SVector{2,T}(T(1.5),T(-.5)*sqrt(T((3)))))
 export hexagonallattice
+
 rectangularlattice(ipitch::T = 1.0,jpitch::T = 1.0) where{T<:Real} = LatticeBasis(ipitch*SVector{2,T}(1,0),jpitch*SVector{2,T}(0,1))
 export rectangularlattice
 
