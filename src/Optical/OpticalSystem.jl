@@ -432,7 +432,7 @@ function trace(
             dif = round(time() - start_time, digits = 1)
             left = round((time() - start_time) * (length(raygenerator) / total_traced - 1), digits = 1)
             if printprog
-                print("\rTraced: ~ $t / $(length(raygenerator))        Elapsed: $(dif)s        Left: $(left)s           ")
+                print("\rTraced: ~ $k / $(length(raygenerator))        Elapsed: $(dif)s        Left: $(left)s           ")
             end
         end
         trace(system, r, test = test)
