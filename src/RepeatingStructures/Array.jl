@@ -1,7 +1,7 @@
 struct UnitCell
     coordinateframe #this should be computed once when the UnitCell is created. It incorporates the parent coordinateframe transformation and the transformation from the parent to the unit cell.
     emitter
-    lens::LensAssembly
+    # lens::LensAssembly
     detectors #have multiple eye positions that get computed all at once. Maybe. Lots of space so might be inefficient.
 end
 

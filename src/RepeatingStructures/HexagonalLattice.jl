@@ -18,15 +18,16 @@ hexe₂(::Type{T}=Float64) where{T<:Real} = SVector{2,T}(T(1.5),T(-.5)*(sqrt(T(3
 
 
 #Alternative basis which makes it a bit easier to figure out how coordinates correspond with movements in the hex lattice
-const hex2e₁(::Type{T}=Float64) where{T<:Real} = SVector{2,T}(T(-1.5),sqrt(T(3)))
-const hex2e₂(::Type{T}=Float64) where{T<:Real} = SVector{2,T}(T(0),T(2)*sqrt(T(3)))
+const hex2e₁(::Type{T}=Float64) where{T<:Real} = SVector{2,T}(T(-1.5),T(.5)*sqrt(T(3)))
+const hex2e₂(::Type{T}=Float64) where{T<:Real} = SVector{2,T}(T(0),sqrt(T(3)))
 
 struct HexBasis1{N,T} <: HexagonalLattice{N,T}
     HexBasis1(::Type{T} = Float64) where{T<:Real} = new{2,T}()
 end
 export HexBasis1
 
-basis(a::HexBasis1{2,T}) where{T<:Real} = LatticeBasis(hexe₁(T),hexe₂(T))
+basis(a::HexBasis1{2,T}) where{T} = SVector{2,SVector{2,T}}(hexe₁(T),hexe₂(T))
+
 # coordinate offsets to move up, down, etc., one hex cell in a hex lattice defined in HexBasis2
 hexup(a::HexBasis1) = (1,-1)
 hexdown(a::HexBasis1) = (-1,1)
@@ -41,8 +42,7 @@ struct HexBasis2{N,T} <: HexagonalLattice{N,T}
 end
 export HexBasis2
 
-basis(a::HexBasis2{N,T}) where{N,T} = LatticeBasis(hex2e₁(T),hex2e₂(T))
-
+basis(a::HexBasis2{2,T}) where{T} = SVector{2,SVector{2,T}}(hex2e₁(T),hex2e₂(T))
 
 hexagonallattice(pitch::T = 1.0) where{T<:Real} = LatticeBasis(pitch*SVector{2,T}(T(1.5),T(.5)*sqrt(T(3))),pitch*SVector{2,T}(T(1.5),T(-.5)*sqrt(T((3)))))
 export hexagonallattice
@@ -133,7 +133,7 @@ end
 
 """computes the basis coordinates of hexagonal cells in a rectangular pattern 2*numi+1 by 2*numj+1 wide and high respectively."""
 function hexcells(numi,numj)
-    result = Array{2,Tuple{Int64,Int64}}(undef,2*numi+1,2*numj+1)
+    result = Array{Tuple{Int64,Int64},2,}(undef,2*numi+1,2*numj+1)
     for i in -numi:numi
         let offsetj
             if i < 0
@@ -141,9 +141,10 @@ function hexcells(numi,numj)
             else
                 offsetj = div(i+1,2)
             end
-            for j in -numj-offsetj:numj-offsetj
-                result[numi+1 + i, numj + 1 + j] = (i,j)
+            for j in -numj:numj
+                result[i+numi+1,j+numj+1] = (i, j - offsetj)
             end
         end
     end
+    return result
 end

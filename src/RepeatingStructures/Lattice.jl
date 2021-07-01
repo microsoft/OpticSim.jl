@@ -3,7 +3,7 @@
 # See LICENSE in the project root for full license information.
 
 abstract type Basis{N,T<:Real} end
-
+export Basis
 """ Base class for defining points on a lattice. Lattice points are defined by basis vectors eᵢ and lattice indices indexᵢ:
 
 point = Σᵢ indexᵢ*eᵢ
@@ -24,6 +24,22 @@ julia> a[1,2]
  10
 ````
 """
+
+"""wrote this function because type inference couldn't handle argument types of Basis{N,T}. Not sure why"""
+numbertype(a::Basis{N,T}) where{N,T} = T
+
+function Base.getindex(A::Basis, indices::Vararg{Int, N}) where{N}
+    T = numbertype(A)
+    sum = MVector{N,T}(zeros(T,N))
+    basisvecs = basis(A)
+    for (i,index) in pairs(indices)
+        sum += basisvecs[i]*index
+    end
+    return SVector{N,T}(sum)
+end
+
+Base.setindex!(A::Basis{N,T}, v, I::Vararg{Int, N}) where{T,N} = nothing #can't set lattice points. Might want to throw an exception instead.
+
 struct LatticeBasis{N,T<:Real} <: Basis{N,T}
     basisvectors::SVector{N,SVector{N,T}}
 
@@ -34,7 +50,7 @@ struct LatticeBasis{N,T<:Real} <: Basis{N,T}
     basis = LatticeBasis{2}([1.0,0.0],[0.0,1.0]) #basis for rectangular lattice
     ```
     """
-    function LatticeBasis{N}(vectors::Vector{T}...) where{T,N}
+    function LatticeBasis(vectors::Vararg{Vector{T},N}) where{T,N}
         dim = length(vectors[1])
         @assert N == dim
         for i in 2:length(vectors)
@@ -51,23 +67,16 @@ struct LatticeBasis{N,T<:Real} <: Basis{N,T}
         return new{N,T}(SVector{N,SVector{N,T}}(ntuple((j)->temp[j],N)))
     end
 
-    LatticeBasis(vectors::SVector{N,T}...) where{N,T} = new{N,T}(SVector{N,SVector{N,T}}(vectors...)) #this function is considerably faster than the other constructor
+    LatticeBasis(vectors::Vararg{SVector{N,T},N}) where{N,T} = new{N,T}(SVector{N,SVector{N,T}}(vectors)) #this function is considerably faster than the other constructor
 end
 export LatticeBasis
+
+basis(a::LatticeBasis) = a.basisvectors
 
 function Base.size(a::LatticeBasis{N,T}) where{N,T}
     return ntuple((i)->Base.IsInfinite(),N)
 end
 
-function Base.getindex(A::LatticeBasis{N,T}, indices::Vararg{Int, N}) where{T,N}
-    sum = MVector{N,T}(zeros(T,N))
-    for i in 1:N
-        sum += A.basisvectors[i]*indices[i]
-    end
-    return SVector{N,T}(sum)
-end
-
-setindex!(A::LatticeBasis, v, I::Vararg{Int, N}) where{T,N} = nothing #can't set lattice points. Might want to throw an exception instead.
 
 
 
@@ -127,4 +136,3 @@ setindex!(A::LatticeBasis, v, I::Vararg{Int, N}) where{T,N} = nothing #can't set
 #         return new{R,G,B,P,T}(PrimitiveLattice(e1, e2, PlanarEmitter{R,P,T}(subemitterwidth, rgbemitterpitch)), PrimitiveLattice(e1, e2, PlanarEmitter{G,P,T}(subemitterwidth, rgbemitterpitch), origin = SVector{2,T}(subemitterpitch, T(0.0))), PrimitiveLattice(e1, e2, PlanarEmitter{B,P,T}(subemitterwidth, rgbemitterpitch), origin = SVector{2,T}(2 * subemitterpitch, T(0.0))))
 #     end
 # end
-S

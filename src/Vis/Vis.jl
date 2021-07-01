@@ -29,6 +29,7 @@ __init__() = AbstractPlotting.__init__()
 
 include("Visualization.jl")
 include("Emitters.jl")
+include("VisRepeatingStructures.jl")
 
 end # module Vis
 export Vis
