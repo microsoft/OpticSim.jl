@@ -254,34 +254,6 @@ function fresnel(convex = true; kwargs...)
     Vis.drawtracerays(sys; test = true, trackallrays = true, numdivisions = 30, kwargs...)
 end
 
-function grating(; period = 1.0, θ = 0.0, λ = 0.55, kwargs...)
-    int = ThinGratingInterface(SVector(0.0, 1.0, 0.0), period, Air, Air, minorder = -2, maxorder = 2, reflectance = [0.0, 0.0, 0.1, 0.0, 0.0], transmission = [0.05, 0.1, 0.4, 0.1, 0.05])
-    grating = ThinGratingSurface(Rectangle(5.0, 5.0, SVector(0.0, 0.0, 1.0), SVector(0.0, 0.0, 0.0)), int)
-    back = Rectangle(30.0, 30.0, SVector(0.0, 0.0, 1.0), SVector(0.0, 0.0, 25.0))
-    sys = CSGOpticalSystem(LensAssembly(grating, back), Rectangle(30.0, 30.0, SVector(0.0, 0.0, 1.0), SVector(0.0, 0.0, -25.0), interface = opaqueinterface()))
-    Vis.drawtracerays(sys; raygenerator = UniformOpticalSource(CollimatedSource(OriginPoint{Float64}(100, position = SVector(0.0, 0.0, 10.0), direction = SVector(0.0, sind(θ), -cosd(θ)))), λ), trackallrays = true, rayfilter = nothing, kwargs...)
-end
-
-function reflgrating(; period = 1.0, θ = 0.0, λ = 0.55, kwargs...)
-    int = ThinGratingInterface(SVector(0.0, 1.0, 0.0), period, Air, Air, minorder = -2, maxorder = 2, transmission = [0.0, 0.0, 0.1, 0.0, 0.0], reflectance = [0.05, 0.1, 0.4, 0.1, 0.05])
-    grating = ThinGratingSurface(Rectangle(5.0, 5.0, SVector(0.0, 0.0, 1.0), SVector(0.0, 0.0, 0.0)), int)
-    back = Rectangle(30.0, 30.0, SVector(0.0, 0.0, 1.0), SVector(0.0, 0.0, -25.0))
-    sys = CSGOpticalSystem(LensAssembly(grating, back), Rectangle(30.0, 30.0, SVector(0.0, 0.0, 1.0), SVector(0.0, 0.0, 25.0), interface = opaqueinterface()))
-    Vis.drawtracerays(sys; raygenerator = UniformOpticalSource(CollimatedSource(OriginPoint{Float64}(100, position = SVector(0.0, 0.0, 10.0), direction = SVector(0.0, sind(θ), -cosd(θ)))), λ), trackallrays = true, rayfilter = nothing, kwargs...)
-end
-
-function HOE(refl = false, firstorderonly = false; kwargs...)
-    rect = Rectangle(5.0, 5.0, SVector(0.0, 0.0, 1.0), SVector(0.0, 0.0, 0.0))
-    if refl
-        int = HologramInterface(SVector(0.0, -10.0, 20.0), ConvergingBeam, SVector(0.0, 0.0, -200), ConvergingBeam, 0.55, 9.0, Air, SCHOTT.N_BK7, Air, Air, Air, 0.05, !firstorderonly)
-    else
-        int = HologramInterface(SVector(0.0, -10.0, -20.0), ConvergingBeam, SVector(0.0, 0.0, -200), ConvergingBeam, 0.55, 5.0, Air, SCHOTT.N_BK7, Air, Air, Air, 0.05, !firstorderonly)
-    end
-    obj = HologramSurface(rect, int)
-    back = Rectangle(50.0, 50.0, SVector(0.0, 0.0, 1.0), SVector(0.0, 0.0, 25.0))
-    sys = CSGOpticalSystem(LensAssembly(obj, back), Rectangle(50.0, 50.0, SVector(0.0, 0.0, 1.0), SVector(0.0, 0.0, -25.0), interface = opaqueinterface()))
-    Vis.drawtracerays(sys; raygenerator = UniformOpticalSource(GridSource(OriginPoint{Float64}(10, position = SVector(0.0, 0.0, 10.0), direction = SVector(0.0, 0.0, -1.0)), 1, 15, 0.0, π / 6), 0.55), trackallrays = true, rayfilter = nothing, kwargs...)
-end
 
 function eyetrackHOE(nrays = 5000, det = false, showhead = true, zeroorder = false; kwargs...)
     # TODO update for new specs from Chris
