@@ -27,7 +27,14 @@ end
 export HexBasis1
 
 basis(a::HexBasis1{2,T}) where{T<:Real} = LatticeBasis(hexe₁(T),hexe₂(T))
-
+# coordinate offsets to move up, down, etc., one hex cell in a hex lattice defined in HexBasis2
+hexup(a::HexBasis1) = (1,-1)
+hexdown(a::HexBasis1) = (-1,1)
+hexupright(a::HexBasis1) = (1,0)
+hexdownleft(a::HexBasis1) = (-1,0)
+hexdownright(a::HexBasis1) = (0,1)
+hexupleft(a::HexBasis1) = (0,-1)
+export hexup,hexdown,hexupright,hexdownleft,hexdownright,hexupleft
 
 struct HexBasis2{N,T} <: HexagonalLattice{N,T}
     HexBasis2(::Type{T} = Float64) where{T<:Real} = new{2,T}()
@@ -35,34 +42,34 @@ end
 export HexBasis2
 
 basis(a::HexBasis2{N,T}) where{N,T} = LatticeBasis(hex2e₁(T),hex2e₂(T))
-# coordinate offsets to move up, down, etc., one hex cell in a hex lattice defined in HexBasis2
-hexup(a::HexBasis2) = (1,-1)
-hexdown(a::HexBasis2) = (-1,1)
-hexupright(a::HexBasis2) = (1,0)
-hexdownleft(a::HexBasis2) = (-1,0)
-hexdownright(a::HexBasis2) = (0,1)
-hexupleft(a::HexBasis2) = (0,-1)
-export hexup,hexdown,hexupright,hexdownleft,hexdownright,hexupleft
+
 
 hexagonallattice(pitch::T = 1.0) where{T<:Real} = LatticeBasis(pitch*SVector{2,T}(T(1.5),T(.5)*sqrt(T(3))),pitch*SVector{2,T}(T(1.5),T(-.5)*sqrt(T((3)))))
 export hexagonallattice
 
 #offset constants used for generating 1 and 2 hexagonal rings. 
-ring1offsets(a::HexagonalLattice) = (hexdown(a),hexupright(a),hexup(a),hexupleft(a),hexdownleft(a),hexdown(a))
-ring2offsets(a::HexagonalLattice) = (hexdown(a),hexdown(a),(hexupright(a),hexupright(a),hexup(a),hexup(a),hexupleft(a),hexupleft(a),hexdownleft(a),hexdownleft(a),hexdown(a),hexdown(a),hexdownright(a))
+const ringoffsets = (
+    (a::HexagonalLattice) -> (hexdown(a),hexupright(a),hexup(a),hexupleft(a),hexdownleft(a),hexdown(a)),
+    (a::HexagonalLattice) -> (hexdown(a),hexupright(a),hexupright(a),hexup(a),hexup(a),hexupleft(a),hexupleft(a),hexdownleft(a),hexdownleft(a),hexdown(a),hexdown(a),hexdownright(a))
 )
+
+
 export ring1offsets,ring2offsets
 
 """returns i,j coordinates of tiles in the ring"""
-function ring(startingoffset::NTuple{N1,T}, ringoffsets::NTuple{N2,S}) where{T<:Int,N1,S<:NTuple{N1,T},N2}
-    ringlength = length(ringoffsets) + 1
-    result = MVector{ringlength,S}(undef)
-
-    result[1] = ntuple(x->0,N1) .+ reduce(.+,startingoffset)
-    for i in 1:ringlength -1
-        result[i+1] = result[i] .+ ringoffsets[i]
+function ring(a::HexagonalLattice, startingcoordinates::NTuple{N,T}, ringnum) where{T<:Int,N}
+    offsets = ringoffsets[ringnum](a)
+    ringlength = length(offsets)
+    result = MVector{ringlength,NTuple{N,T}}(undef)
+    result[1] = startingcoordinates
+    for i in 1:ringnum
+        result[1] = result[1] .+ hexdown(a)
     end
-    return result
+
+    for i in 2:ringlength
+        result[i] = result[i-1] .+ offsets[i]
+    end
+    return SVector{ringlength,NTuple{N,T}}(result)
 end
 export ring
 
