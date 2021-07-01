@@ -2,23 +2,7 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # See LICENSE in the project root for full license information.
 
-using ..OpticSim
-using ..OpticSim: euclideancontrolpoints, evalcsg, vertex, makiemesh, detector, centroid, lower, upper, intervals, α
-using ..OpticSim.Geometry
 
-using Unitful
-using ImageView
-using Images
-using ColorTypes
-using ColorSchemes
-using StaticArrays
-using LinearAlgebra
-import Makie
-import Makie.AbstractPlotting
-import Makie.AbstractPlotting.MakieLayout
-import Plots
-import Luxor
-using FileIO
 
 #############################################################################
 
