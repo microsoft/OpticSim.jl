@@ -72,9 +72,9 @@ Measured(samples::DataFrame)
 ```
 """
 struct Measured{T} <: AbstractSpectrum{T}
-    low_wave_length::Integer
-    high_wave_length::Integer
-    wave_length_step::Integer
+    low_wave_length::Int64
+    high_wave_length::Int64
+    wave_length_step::Int64
     power_samples::Vector{T}
 
     function Measured(samples::DataFrame)
@@ -82,7 +82,7 @@ struct Measured{T} <: AbstractSpectrum{T}
         @assert "Wavelength" in colnames
         @assert "Power" in colnames
         wavelengths = samples[!, :Wavelength]
-        @assert eltype(wavelengths) <: Integer
+        @assert eltype(wavelengths) <: Int64
 
         power::Vector{T} where {T<:Real} = samples[!, :Power] # no missing values allowed and must be real numbers
         maxpower = maximum(power)
@@ -118,7 +118,7 @@ function spectrumpower(spectrum::Measured{T}, λ::T) where {T<:Real}
         return nothing
     end
 
-    lowindex = floor(Integer, (λ - spectrum.low_wave_length)) ÷ spectrum.wave_length_step + 1
+    lowindex = floor(Int64, (λ - spectrum.low_wave_length)) ÷ spectrum.wave_length_step + 1
 
     if lowindex == length(spectrum.power_samples)
         return convert(T, spectrum.power_samples[end])
