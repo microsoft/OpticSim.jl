@@ -1,2 +1,5 @@
 include("Lattice.jl")
+include("HexagonalLattice.jl")
+include("RectangularLattice.jl")
 include("Array.jl")
+include("Projections.jl")

@@ -2,6 +2,7 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # See LICENSE in the project root for full license information.
 
+abstract type Basis{N,T<:Real} end
 
 """ Base class for defining points on a lattice. Lattice points are defined by basis vectors eᵢ and lattice indices indexᵢ:
 
@@ -23,9 +24,16 @@ julia> a[1,2]
  10
 ````
 """
-struct LatticeBasis{N,T<:Real}
+struct LatticeBasis{N,T<:Real} <: Basis{N,T}
     basisvectors::SVector{N,SVector{N,T}}
 
+    """ Convenience constructor that lets you use Vector arguments to describe the basis instead of SVector 
+    
+    Example:
+    ```
+    basis = LatticeBasis{2}([1.0,0.0],[0.0,1.0]) #basis for rectangular lattice
+    ```
+    """
     function LatticeBasis{N}(vectors::Vector{T}...) where{T,N}
         dim = length(vectors[1])
         @assert N == dim
@@ -61,70 +69,6 @@ end
 
 setindex!(A::LatticeBasis, v, I::Vararg{Int, N}) where{T,N} = nothing #can't set lattice points. Might want to throw an exception instead.
 
-const hexe₁ = SVector{2,Float64}(1.5,.5*sqrt(3))
-const hexe₂ = SVector{2,Float64}(1.5,-.5(sqrt(3)))
-const hexbasis1 = LatticeBasis(hexe₁,hexe₂)
-
-#the documentation and source don't seem to agree about which unicode characters can be used as identifiers. Inconsistent results with Unicode arrow symbols so decided not to use them.
-# \:arrow_up: = ⬆, \:arrow_down: = ⬇, \:arrow_lower_left: = downleft,\:arrow_lower_right: = downright, \:arrow_upper_left: = upleft, \:arrow_upper_right: = upright
-# const up = hexe₁ - hexe₂
-# const down = -up
-# const upright = hexe₁
-# const downleft = -upright
-# const downright = hexe₂
-# const upleft = -downright
-
-const up = (1,-1)
-const down = (-1,1)
-const upright = (1,0)
-const downleft = (-1,0)
-const downright = (0,1)
-const upleft = (0,-1)
-
-
-#constants used for generating 1 and 2 hexagonal rings.
-const hexoffsets = (
-    (upright,up,upleft,downleft,down),
-    (upright,upright,up,up,upleft,upleft,downleft,downleft,down,down,downright)
-)
-
-"""returns i,j coordinates of tiles in the ring"""
-function ring(startingoffsets::NTuple{N1,S}, ringoffsets::NTuple{N2,S}) where{T<:Int,N3,S<:NTuple{N3,T},N1,N2}
-    ringlength = length(ringoffsets) + 1
-    result = MVector{ringlength,S}(undef)
-
-    result[1] = ntuple(x->0,N3) .+ reduce(.+,startingoffsets)
-    for i in 1:ringlength -1
-        result[i+1] = result[i] .+ ringoffsets[i]
-    end
-    return result
-end
-
-""" Returns an array of the lattice points that form the n ring about the center latticepoint """
-hexring(ringnumber) = ring(ntuple((i)->down,ringnumber), hexoffsets[ringnumber]) #sequence of offsets to centers of ring n hexagons. First hexagon in ring is down from center hexagon.
-export hexring
-
-"""returns lattice offsets (i,j) in a hex7 pattern about (0,0)"""
-hex7() = SVector{7,NTuple{2,Int64}}((0,0),hexring(1)...)
-export hex7
-
-""" returns lattices positions rather than lattice indices in a hex7 pattern about latticepoint"""
-hex7points(latticepoint::SVector{N,T}) where{N,T<:Real} = map(offset -> hexbasis1[offset[1],offset[2]] + latticepoint,hex7())
-export hex7points
-
-"""returns lattice offsets (i,j) in a hex13 pattern about latticepoint"""
-hex13() = SVector{13,NTuple{2,Int64}}((0,0),hexring(2)...)
-export hex13
-
-""" returns lattice positions rather than lattice indices in a hex13 pattern about latticepoint"""
-hex13points(latticepoint::SVector{N,T}) where{N,T<:Real} = map(offset -> hexbasis1[offset[1],offset[2]] + latticepoint,hex13())
-export hex13points
-
-hexagonallattice(pitch::T = 1.0) where{T<:Real} = LatticeBasis(pitch*SVector{2,T}(T(1.5),T(.5)*sqrt(T(3))),pitch*SVector{2,T}(T(1.5),T(-.5)*sqrt(T((3)))))
-export hexagonallattice
-
-rectangularlattice(ipitch::T = 1.0,jpitch::T = 1.0) where{T<:Real} = LatticeBasis(ipitch*SVector{2,T}(1,0),jpitch*SVector{2,T}(0,1))
-export rectangularlattice
 
 
 # """returns a Tuple = (2D coordinates of emitter in the lattice,emitter)"""
