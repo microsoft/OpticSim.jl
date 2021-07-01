@@ -71,3 +71,7 @@ end
         return acos(x)
     end
 end
+
+
+# some place holders for package level function names
+function origin end
