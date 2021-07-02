@@ -28,7 +28,7 @@ export HexBasis1
 
 basis(a::HexBasis1{2,T}) where{T} = SVector{2,SVector{2,T}}(hexe₁(T),hexe₂(T))
 
-# coordinate offsets to move up, down, etc., one hex cell in a hex lattice defined in HexBasis2
+# coordinate offsets to move up, down, etc., one hex cell in a hex lattice defined in HexBasis1
 hexup(a::HexBasis1) = (1,-1)
 hexdown(a::HexBasis1) = (-1,1)
 hexupright(a::HexBasis1) = (1,0)
