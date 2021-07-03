@@ -62,7 +62,6 @@ end
 #-------------------------------------
 # draw point origin
 #-------------------------------------
-# function OpticSim.Vis.draw!(scene::MakieLayout.LScene, o::Origins.Point; transform::Geometry.Transform = Transform(), kwargs...) where {T<:Real}
 function OpticSim.Vis.draw!(scene::Makie.LScene, o::Origins.Point; transform::Geometry.Transform = Transform(), kwargs...) where {T<:Real}
         maybe_draw_debug_info(scene, o; transform=transform, kwargs...)
 end

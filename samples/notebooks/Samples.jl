@@ -202,9 +202,9 @@ end
 begin
 	function Vis.scene(resolution = (1000, 1000))
 		# @info "RG: Vis.Scene Replacement"
-		scene, layout = MakieLayout.layoutscene(resolution = resolution)
+		scene, layout = Makie.layoutscene(resolution = resolution)
 		Vis.set_current_main_scene(scene)
-		lscene = layout[1, 1] = MakieLayout.LScene(scene, scenekw = (camera = Makie.cam3d_cad!, axis_type = Makie.axis3d!, raw = false))
+		lscene = layout[1, 1] = Makie.LScene(scene, scenekw = (camera = Makie.cam3d_cad!, axis_type = Makie.axis3d!, raw = false))
 		Vis.set_current_3d_scene(lscene)
 		return scene, lscene
 	end
