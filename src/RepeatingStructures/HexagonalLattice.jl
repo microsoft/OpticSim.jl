@@ -40,7 +40,7 @@ function ringoffsets(::Type{Val{N}}) where N
 end
 export ringoffsets
 
-"""Returns the positions of all the cells in ring n centered at ```centerpoint``` plus all cells enclosed by this ring. This is a hexagonal region of the lattice n times as large as the unit hexagon cell.
+"""Returns ```centerpoint``` plus all its neighbors in a ring of size n. This is a hexagonal region of the lattice n times as large as the unit hexagon cell.
 
 Example:
 
@@ -49,13 +49,13 @@ Vis.@wrapluxor Vis.drawhexcells(50,filledhexagon((0,0),2))
 ```
 """
 function cellsenclosedbyring(centerpoint::Tuple{Int64,Int64}, n::Int64) 
-    f(i) = i==0 ? () : (ringcells(centerpoint,i)...,f(i-1)...)
+    f(i) = i==0 ? () : (neighbors(centerpoint,i)...,f(i-1)...)
     return (centerpoint,f(n)...)
 end
 export cellsenclosedbyring
 
-"""Returns all hex cells contained in the ring of size n centered around centerpoint"""
-function ringcells(centerpoint::Tuple{Int64,Int64},n) where{T}
+"""Returns all hex cells contained in the rings up to size n centered around centerpoint"""
+function neighbors(centerpoint::Tuple{Int64,Int64},n) where{T}
     temp = MVector{n*6,Tuple{Int64,Int64}}(undef)
     hoffsets = ringoffsets(Val{n})
     latticepoint = centerpoint .+ n .* (hexdown())
@@ -67,7 +67,7 @@ function ringcells(centerpoint::Tuple{Int64,Int64},n) where{T}
     end
     return SVector{n*6,Tuple{Int64,Int64}}(temp)
 end
-export ringcells
+export neighbors
 
 function xbounds(numi)
     numevens = div(numi,2)
