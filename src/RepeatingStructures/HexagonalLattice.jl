@@ -45,16 +45,16 @@ export ringoffsets
 Example:
 
 ```
-Vis.@wrapluxor Vis.drawhexcells(50,filledhexagon((0,0),2))
+Vis.@wrapluxor Vis.drawhexcells(50, hexregion((0,0),2))
 ```
 """
-function cellsenclosedbyring(centerpoint::Tuple{Int64,Int64}, n::Int64) 
+function hexregion(centerpoint::Tuple{Int64,Int64}, n::Int64) 
     f(i) = i==0 ? () : (neighbors(centerpoint,i)...,f(i-1)...)
     return (centerpoint,f(n)...)
 end
-export cellsenclosedbyring
+export hexregion
 
-"""Returns all hex cells contained in the rings up to size n centered around centerpoint"""
+"""Returns all hex cells contained in the rings up to size n centered around centerpoint. Does not include centerpoint. Use neighborsandcenterpoint for that."""
 function neighbors(centerpoint::Tuple{Int64,Int64},n) where{T}
     temp = MVector{n*6,Tuple{Int64,Int64}}(undef)
     hoffsets = ringoffsets(Val{n})
