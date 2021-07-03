@@ -65,6 +65,22 @@ function ring(a::HexagonalLattice, startingcoordinates::NTuple{N,T}, ringnum) wh
 end
 export ring
 
+hexcycle = SVector{6,NTuple{2,Int64}}(hexupright(),hexup(),hexupleft(),hexdownleft(),hexdown(),hexdownleft())
+
+ring(n::Int64) = ring(Val{n})
+function ring(::Type{Val{N}}) where N
+    temp = MVector{N*6,NTuple{2,Int64}}(undef)
+
+    for i in 1:6
+        for j in 1:N
+            temp[(i-1)*N + j] = hexcycle[i]
+        end
+    end
+    
+    return SVector{N*6,NTuple{2,Int64}}(temp)
+end
+export ring
+
 hexoffsets(::Type{Val{1}}) = SVector{6,NTuple{2,Int64}}((hexdown(),hexupright(),hexup(),hexupleft(),hexdownleft(),hexdown()))
 hexoffsets(::Type{Val{2}}) = SVector{12,NTuple{2,Int64}}(hexdown() .+ hexdown(),hexupright(),hexupright(),hexup(),hexup(),hexupleft(),hexupleft(),hexdownleft(),hexdownleft(),hexdown(),hexdown(),hexdownright())
 
