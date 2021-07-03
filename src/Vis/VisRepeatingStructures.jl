@@ -59,7 +59,6 @@ function drawhexcells(hexsize,cells, color = nothing)
     if color === nothing
         colors = Colors.distinguishable_colors(length(cells))
         for (i,cell) in pairs(cells)
-            println(i)
             drawhex(Repeat.HexBasis1(),hexsize,cell[1],cell[2],colors[i])
         end
     else

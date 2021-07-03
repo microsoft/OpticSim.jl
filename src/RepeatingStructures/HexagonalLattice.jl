@@ -65,6 +65,10 @@ function ring(a::HexagonalLattice, startingcoordinates::NTuple{N,T}, ringnum) wh
 end
 export ring
 
+"""offsets of a ring in hexagonal grid starting from the bottom center hex cell. To generate larger rings repeat this pattern
+ ring 1 = (1, 0)      (1, -1)       (0, -1)       (-1, 0)       (-1, 1)       (0, 1)
+ ring 2 = (1, 0)(1, 0)(1, -1)(1, -1)(0, -1)(0, -1)(-1, 0)(-1, 0)(-1, 1)(-1, 1)(0, 1)(0, 1)
+"""
 const hexcycle = SVector{6,NTuple{2,Int64}}(hexupright(),hexup(),hexupleft(),hexdownleft(),hexdown(),hexdownright())
 
 ring(n::Int64) = ring(Val{n})
