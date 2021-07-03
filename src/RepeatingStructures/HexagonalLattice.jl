@@ -94,10 +94,8 @@ function hexpoints(latticepoint::Tuple{Int64,Int64},n) where{T}
     temp = MVector{n*6,Tuple{Int64,Int64}}(undef)
     hoffsets = ring(Val{n})
     latticepoint = latticepoint .+ n .* (hexdown())
-    println(hoffsets)
-    println()
+
     for i in 1:length(temp)
-        println(latticepoint)
         temp[i] = latticepoint
         latticepoint = latticepoint .+ hoffsets[i] #last computed value of latticepoint won't be used
     end
@@ -154,10 +152,10 @@ end
 hexbasis2to1(i,j) = (i+j,-j)
 
 """computes the basis coordinates of hexagonal cells defined in the Hex1Basis in a rectangular pattern 2*numi+1 by 2*numj+1 wide and high respectively."""
-function hexcells(numi,numj)
+function hexcellsinbox(numi,numj)
     #i and j are coordinates in the Hex2Basis. The conditional tests are simpler in this basis. Convert back to
     #Hex1Basis coordinates before returning.
-    result = Array{Tuple{Int64,Int64},2,}(undef,2*numi+1,2*numj+1)
+    result = Array{Tuple{Int64,Int64},1}(undef,(2*numi+1)*(2*numj+1))
     for i2 in -numi:numi
         let offsetj
             if i2 < 0
@@ -171,7 +169,7 @@ function hexcells(numi,numj)
                 jtemp = j2-offsetj
                 # i1 = i2 + jtemp
                 # j1 = -jtemp
-                result[i2+numi+1,j2+numj+1] = hexbasis2to1(i2,jtemp)
+                result[(i2+numi)*(2*numj+1) + j2+numj+1] = hexbasis2to1(i2,jtemp)
             end
         end
     end

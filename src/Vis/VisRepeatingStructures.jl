@@ -55,25 +55,18 @@ function drawhex(hexbasis::Repeat.Basis,hexsize,i,j,color)
     Luxor.translate(-offset)
 end
 
-function drawhexcells(hexsize,cells)
-    colors = Colors.distinguishable_colors(length(cells))
-
-    for (cell, color) in zip(cells,colors)
-        
-        drawhex(Repeat.HexBasis1(),hexsize,cell[1],cell[2],color)
-    end
-end
-
-function drawhexcellsinbox(hexsize, numi, numj)
-        cells = Repeat.hexcells(numi,numj)
-        for cell in cells
-            drawhex(Repeat.HexBasis1(), hexsize,cell[1],cell[2],"yellow")
+function drawhexcells(hexsize,cells, color = nothing)
+    if color === nothing
+        colors = Colors.distinguishable_colors(length(cells))
+        for (i,cell) in pairs(cells)
+            println(i)
+            drawhex(Repeat.HexBasis1(),hexsize,cell[1],cell[2],colors[i])
         end
-         
-        (minx,maxx),(miny,maxy) = bbox(numi,numj)
-        Luxor.sethue("black")
-        
-        Luxor.box(Luxor.Point(hexsize*minx,hexsize*miny),Luxor.Point(hexsize*maxx,hexsize*maxy), :stroke)
+    else
+        for cell in cells
+            drawhex(Repeat.HexBasis1(),hexsize,cell[1],cell[2],color)
+        end
+    end
 end
 
 macro wrapluxor(f...)
