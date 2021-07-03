@@ -65,7 +65,7 @@ function ring(a::HexagonalLattice, startingcoordinates::NTuple{N,T}, ringnum) wh
 end
 export ring
 
-hexcycle = SVector{6,NTuple{2,Int64}}(hexupright(),hexup(),hexupleft(),hexdownleft(),hexdown(),hexdownright())
+const hexcycle = SVector{6,NTuple{2,Int64}}(hexupright(),hexup(),hexupleft(),hexdownleft(),hexdown(),hexdownright())
 
 ring(n::Int64) = ring(Val{n})
 function ring(::Type{Val{N}}) where N
