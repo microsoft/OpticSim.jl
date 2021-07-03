@@ -236,10 +236,35 @@ end
 
 
 # define some utility functions 
+
+"""
+    right(t::Transform{<:Real}) -> Vec3
+
+Assuming t is a 3D rigid transform representing a local left-handed coordinate system, this function will return the first column, representing the "X" axis.
+"""
 right(t::Transform{<:Real}) = normalize(Vec3(t[1,1], t[2,1], t[3,1]))
+
+"""
+    up(t::Transform{<:Real}) -> Vec3
+
+Assuming t is a 3D rigid transform representing a local left-handed coordinate system, this function will return the second column, representing the "Y" axis.
+"""
 up(t::Transform{<:Real}) = normalize(Vec3(t[1,2], t[2,2], t[3,2]))
+
+"""
+    forward(t::Transform{<:Real}) -> Vec3
+
+Assuming t is a 3D rigid transform representing a local left-handed coordinate system, this function will return the third column, representing the "Z" axis.
+"""
 forward(t::Transform{<:Real}) = normalize(Vec3(t[1,3], t[2,3], t[3,3]))
+
+"""
+    origin(t::Transform{<:Real}) -> Vec3
+
+Assuming t is a 3D rigid transform representing a local left-handed coordinate system, this function will return the fourth column, containing the translation part of the transform in 3D.
+"""
 OpticSim.origin(t::Transform{<:Real}) = Vec3(t[1,4], t[2,4], t[3,4])
+
 export right, up, forward, origin
 
 

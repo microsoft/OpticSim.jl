@@ -398,14 +398,14 @@
         t = identitytransform()
     
         local_points_2d = [
-            [-1.0, -1.0],
-            [1.0, -1.0],
-            [2.0, 0.0],
-            [1.0, 1.0],
-            [-1.0, 1.0],
-            [-2.0, 0.0]
+            SVector(-1.0, -1.0),
+            SVector(1.0, -1.0),
+            SVector(2.0, 0.0),
+            SVector(1.0, 1.0),
+            SVector(-1.0, 1.0),
+            SVector(-2.0, 0.0)
         ]
-        
+            
         @test_nowarn ConvexPolygon(t, local_points_2d)
     
         rinplane = Ray([0.0, 0.0, 0.0], [1.0, 1.0, 0.0])

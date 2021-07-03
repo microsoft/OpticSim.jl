@@ -25,16 +25,17 @@ struct ConvexPolygon{T} <: Surface{T}
     local_points::Vector{Vector{T}}
 
     # for efficency
+    _local_frame_inv::Transform{T}                                 # cache the inverse matrix to avoid computing it for every intersection test
     _poly2d::GeometricalPredicates.Polygon2D{GeometricalPredicates.Point2D}
 
     function ConvexPolygon(
             local_frame::Transform{T},
-            local_polygon_points::Vector{Vector{T}}, 
+            local_polygon_points::Vector{SVector{2, T}}, 
             interface::NullOrFresnel{T} = NullInterface(T)
         ) where {T<:Real}
 
-        @assert length(local_polygon_points) > 3         # need at least 3 points to define apolygon
-        @assert size(local_polygon_points[1])[1] == 2    # check that first point is a 2D point
+        # need at least 3 points to define apolygon
+        @assert length(local_polygon_points) > 3         
 
         local_center = Statistics.mean(local_polygon_points)
         world_center = local2world(local_frame) * Vec3(local_center[1], local_center[2], zero(T))
@@ -43,7 +44,7 @@ struct ConvexPolygon{T} <: Surface{T}
         poly = GeometricalPredicates.Polygon2D(poly_points...)
 
         plane = Plane(forward(local_frame), world_center, interface = interface)
-        new{T}(plane, local_frame, local_polygon_points, poly)
+        new{T}(plane, local_frame, local_polygon_points, inv(local_frame), poly)
     end
 end
 export ConvexPolygon
@@ -63,8 +64,8 @@ function surfaceintersection(poly::ConvexPolygon{T}, r::AbstractRay{T,3}) where 
         intersect = halfspaceintersection(interval)
         p = point(intersect)
 
-        local_p = world2local(poly.local_frame) * p
-        @assert abs(local_p[3]) < 0.00001   # need to find a general epsilon - check that the point lies on the plain
+        local_p = poly._local_frame_inv * p
+        
         in_poly = GeometricalPredicates.inpolygon(poly._poly2d, GeometricalPredicates.Point(local_p[1], local_p[2]))
 
         if !in_poly
@@ -80,16 +81,21 @@ function surfaceintersection(poly::ConvexPolygon{T}, r::AbstractRay{T,3}) where 
 end
 
 
+"""
+    makemesh(poly::ConvexPolygon{T}, ::Int = 0) where {T<:Real} -> TriangleMesh
+
+Create a triangle mesh that can be rendered by iterating on the polygon's edges and for each edge use the centroid as the third vertex of the triangle.
+"""
 function makemesh(poly::ConvexPolygon{T}, ::Int = 0) where {T<:Real}
     c = centroid(poly)
 
     l2w = local2world(poly.local_frame)
-    l = length(poly.local_points)
+    len = length(poly.local_points)
 
     triangles = []
-    for i in 1:l
+    for i in 1:len
         p1 = poly.local_points[i]
-        p2 = poly.local_points[mod(i,l) + 1]
+        p2 = poly.local_points[mod(i,len) + 1]
 
         tri = Triangle(
             Vector(l2w * Vec3(p2[1], p2[2], zero(T))), 
