@@ -65,7 +65,7 @@ function ring(a::HexagonalLattice, startingcoordinates::NTuple{N,T}, ringnum) wh
 end
 export ring
 
-hexcycle = SVector{6,NTuple{2,Int64}}(hexupright(),hexup(),hexupleft(),hexdownleft(),hexdown(),hexdownleft())
+hexcycle = SVector{6,NTuple{2,Int64}}(hexupright(),hexup(),hexupleft(),hexdownleft(),hexdown(),hexdownright())
 
 ring(n::Int64) = ring(Val{n})
 function ring(::Type{Val{N}}) where N
@@ -81,22 +81,31 @@ function ring(::Type{Val{N}}) where N
 end
 export ring
 
-hexoffsets(::Type{Val{1}}) = SVector{6,NTuple{2,Int64}}((hexdown(),hexupright(),hexup(),hexupleft(),hexdownleft(),hexdown()))
-hexoffsets(::Type{Val{2}}) = SVector{12,NTuple{2,Int64}}(hexdown() .+ hexdown(),hexupright(),hexupright(),hexup(),hexup(),hexupleft(),hexupleft(),hexdownleft(),hexdownleft(),hexdown(),hexdown(),hexdownright())
+function allhexcells(latticecoord, n::Int64) 
+    f(i) = i==0 ? () : (hexpoints(latticecoord,i)...,f(i-1)...)
+    return ((0,0),f(n)...)
+end
+export allhexcells
+
+# hexoffsets(::Type{Val{1}}) = SVector{6,NTuple{2,Int64}}((hexdown(),hexupright(),hexup(),hexupleft(),hexdownleft(),hexdown()))
+# hexoffsets(::Type{Val{2}}) = SVector{12,NTuple{2,Int64}}(hexdown() .+ hexdown(),hexupright(),hexupright(),hexup(),hexup(),hexupleft(),hexupleft(),hexdownleft(),hexdownleft(),hexdown(),hexdown(),hexdownright())
 
 function hexpoints(latticepoint::Tuple{Int64,Int64},n) where{T}
     temp = MVector{n*6,Tuple{Int64,Int64}}(undef)
-    hoffsets = hexoffsets(Val{n})
+    hoffsets = ring(Val{n})
+    latticepoint = latticepoint .+ n .* (hexdown())
+    println(hoffsets)
+    println()
     for i in 1:length(temp)
-        latticepoint = latticepoint .+ hoffsets[i]
         println(latticepoint)
         temp[i] = latticepoint
+        latticepoint = latticepoint .+ hoffsets[i] #last computed value of latticepoint won't be used
     end
     return SVector{n*6,Tuple{Int64,Int64}}(temp)
 end
 
-ring1(latticepoint) = ((0,0),hexpoints(latticepoint,1)...)
-ring2(latticepoint) = (ring1(latticepoint)...,hexpoints(latticepoint,2)...)
+# ring1(latticepoint) = ((0,0),hexpoints(latticepoint,1)...)
+# ring2(latticepoint) = (ring1(latticepoint)...,hexpoints(latticepoint,2)...)
 
 # const hexagon = hexsize*[Luxor.Point(hexcoords[i,:]...) for i in 1:6]
 

@@ -59,6 +59,7 @@ function drawhexcells(hexsize,cells)
     colors = Colors.distinguishable_colors(length(cells))
 
     for (cell, color) in zip(cells,colors)
+        
         drawhex(Repeat.HexBasis1(),hexsize,cell[1],cell[2],color)
     end
 end
