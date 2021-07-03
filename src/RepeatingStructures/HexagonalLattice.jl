@@ -1,25 +1,7 @@
 abstract type HexagonalLattice{N,T} <: Basis{N,T} end
 
-const sin60 = .5*sqrt(3)
-const cos60 = .5
-
-const hexcoords = [
-    1 0;
-    cos60 -sin60;
-    -cos60 -sin60;
-    -1 0;
-    -cos60 sin60;
-    cos60 sin60
-    ]
-
-
 hexe₁(::Type{T}=Float64) where{T<:Real} = SVector{2,T}(T(1.5),T(.5)*sqrt(T(3)))
 hexe₂(::Type{T}=Float64) where{T<:Real} = SVector{2,T}(T(1.5),T(-.5)*(sqrt(T(3))))
-
-
-#Alternative basis which makes it a bit easier to figure out how coordinates correspond with movements in the hex lattice
-const hex2e₁(::Type{T}=Float64) where{T<:Real} = SVector{2,T}(T(-1.5),T(.5)*sqrt(T(3)))
-const hex2e₂(::Type{T}=Float64) where{T<:Real} = SVector{2,T}(T(0),sqrt(T(3)))
 
 struct HexBasis1{N,T} <: HexagonalLattice{N,T}
     HexBasis1(::Type{T} = Float64) where{T<:Real} = new{2,T}()
@@ -35,44 +17,17 @@ hexupright() = (1,0)
 hexdownleft() = (-1,0)
 hexdownright() = (0,1)
 hexupleft() = (0,-1)
-export hexup,hexdown,hexupright,hexdownleft,hexdownright,hexupleft
 
-"""HexBasis2 is defined because certainly conditional tests, such as determing which hex coordinates lie inside a rectangula box, are more easily performed in this basis. For all other purposes use HexBasis1"""
-struct HexBasis2{N,T} <: HexagonalLattice{N,T}
-    HexBasis2(::Type{T} = Float64) where{T<:Real} = new{2,T}()
-end
-
-
-basis(a::HexBasis2{2,T}) where{T} = SVector{2,SVector{2,T}}(hex2e₁(T),hex2e₂(T))
-
-
-export ring1offsets,ring2offsets
-
-"""returns i,j coordinates of tiles in the ring"""
-function ring(a::HexagonalLattice, startingcoordinates::NTuple{N,T}, ringnum) where{T<:Int,N}
-    offsets = ringoffsets[ringnum]()
-    ringlength = length(offsets)
-    result = MVector{ringlength,NTuple{N,T}}(undef)
-    result[1] = startingcoordinates
-    for i in 1:ringnum
-        result[1] = result[1] .+ hexdown()
-    end
-
-    for i in 2:ringlength
-        result[i] = result[i-1] .+ offsets[i]
-    end
-    return SVector{ringlength,NTuple{N,T}}(result)
-end
-export ring
-
-"""offsets of a ring in hexagonal grid starting from the bottom center hex cell. To generate larger rings repeat this pattern
+""" (i,j) offsets of a ring represented in the HexBasis1 lattice basis. The hexagonal grid is assumed to start from the bottom center hex cell. To generate larger rings repeat this pattern
  ring 1 = (1, 0)      (1, -1)       (0, -1)       (-1, 0)       (-1, 1)       (0, 1)
  ring 2 = (1, 0)(1, 0)(1, -1)(1, -1)(0, -1)(0, -1)(-1, 0)(-1, 0)(-1, 1)(-1, 1)(0, 1)(0, 1)
 """
 const hexcycle = SVector{6,NTuple{2,Int64}}(hexupright(),hexup(),hexupleft(),hexdownleft(),hexdown(),hexdownright())
 
-ring(n::Int64) = ring(Val{n})
-function ring(::Type{Val{N}}) where N
+
+"""returns (i,j) offsets of ring n defined in the HexBasis1 lattice basis."""
+ringoffsets(n::Int64) = ringoffsets(Val{n})
+function ringoffsets(::Type{Val{N}}) where N
     temp = MVector{N*6,NTuple{2,Int64}}(undef)
 
     for i in 1:6
@@ -83,49 +38,36 @@ function ring(::Type{Val{N}}) where N
     
     return SVector{N*6,NTuple{2,Int64}}(temp)
 end
-export ring
+export ringoffsets
 
-function allhexcells(latticecoord, n::Int64) 
-    f(i) = i==0 ? () : (hexpoints(latticecoord,i)...,f(i-1)...)
-    return ((0,0),f(n)...)
+"""Returns the positions of all the cells in ring n centered at ```centerpoint``` plus all cells enclosed by this ring. This is a hexagonal region of the lattice n times as large as the unit hexagon cell.
+
+Example:
+
+```
+Vis.@wrapluxor Vis.drawhexcells(50,filledhexagon((0,0),2))
+```
+"""
+function cellsenclosedbyring(centerpoint::Tuple{Int64,Int64}, n::Int64) 
+    f(i) = i==0 ? () : (ringcells(centerpoint,i)...,f(i-1)...)
+    return (centerpoint,f(n)...)
 end
-export allhexcells
+export cellsenclosedbyring
 
-# hexoffsets(::Type{Val{1}}) = SVector{6,NTuple{2,Int64}}((hexdown(),hexupright(),hexup(),hexupleft(),hexdownleft(),hexdown()))
-# hexoffsets(::Type{Val{2}}) = SVector{12,NTuple{2,Int64}}(hexdown() .+ hexdown(),hexupright(),hexupright(),hexup(),hexup(),hexupleft(),hexupleft(),hexdownleft(),hexdownleft(),hexdown(),hexdown(),hexdownright())
-
-function hexpoints(latticepoint::Tuple{Int64,Int64},n) where{T}
+"""Returns all hex cells contained in the ring of size n centered around centerpoint"""
+function ringcells(centerpoint::Tuple{Int64,Int64},n) where{T}
     temp = MVector{n*6,Tuple{Int64,Int64}}(undef)
-    hoffsets = ring(Val{n})
-    latticepoint = latticepoint .+ n .* (hexdown())
+    hoffsets = ringoffsets(Val{n})
+    latticepoint = centerpoint .+ n .* (hexdown())
 
+    #convert hexoffsets to absolute coordinate positions
     for i in 1:length(temp)
         temp[i] = latticepoint
         latticepoint = latticepoint .+ hoffsets[i] #last computed value of latticepoint won't be used
     end
     return SVector{n*6,Tuple{Int64,Int64}}(temp)
 end
-
-# ring1(latticepoint) = ((0,0),hexpoints(latticepoint,1)...)
-# ring2(latticepoint) = (ring1(latticepoint)...,hexpoints(latticepoint,2)...)
-
-# const hexagon = hexsize*[Luxor.Point(hexcoords[i,:]...) for i in 1:6]
-
-# function drawhex(i,j,color)
-#     Luxor.arrow(Luxor.Point(0.0,0.0),hexsize*Luxor.Point(e₁...))
-#     Luxor.sethue("blue")
-#     Luxor.arrow(Luxor.Point(0.0,0.0),hexsize*Luxor.Point(e₂...))
-#     Luxor.sethue("black")
-#     offset = Luxor.Point(hexsize*(i*e₁ + j*e₂)...)
-#     Luxor.translate(offset)
-    
-#     Luxor.sethue(color)
-#     Luxor.poly(hexagon, :fill, close=true)
-#     Luxor.sethue("black")
-#     Luxor.poly(hexagon, :stroke, close=true)
-#     Luxor.text("$i, $j")
-#     Luxor.translate(-offset)
-# end
+export ringcells
 
 function xbounds(numi)
     numevens = div(numi,2)
@@ -147,18 +89,19 @@ function ybounds(numj)
     return (-maxy,maxy-sin60)
 end
 
-"""only works for [-1.5,sin60],[0.0],2.0*sin60] basis"""
+"""computes bounding box of hex tiles arranged in an approximately rectangular layout, with 2*numj+1 hexagons in a row, and 2*numi+1 hexagons in a column"""
 function bbox(numi,numj)
     return (xbounds(numi),ybounds(numj))
     
 end
+export bbox
 
-hexbasis2to1(i,j) = (i+j,-j)
 
 """computes the basis coordinates of hexagonal cells defined in the Hex1Basis in a rectangular pattern 2*numi+1 by 2*numj+1 wide and high respectively."""
 function hexcellsinbox(numi,numj)
-    #i and j are coordinates in the Hex2Basis. The conditional tests are simpler in this basis. Convert back to
-    #Hex1Basis coordinates before returning.
+    #i2 and j2 are coordinates in the basis (1.5,.5√3),(0,-√3). The conditional tests are simpler in this basis. Convert to Hex1Basis1 coordinates before returning.
+    hexbasis2to1(i,j) = (i+j,-j)
+
     result = Array{Tuple{Int64,Int64},1}(undef,(2*numi+1)*(2*numj+1))
     for i2 in -numi:numi
         let offsetj
@@ -179,3 +122,4 @@ function hexcellsinbox(numi,numj)
     end
     return result
 end
+export Repeat

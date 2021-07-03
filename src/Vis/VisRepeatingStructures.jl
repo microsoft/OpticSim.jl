@@ -1,5 +1,6 @@
 const sin60 = .5*sqrt(3)
 const cos60 = .5
+"""coordinates of a hexagon with unit length sides centered about the point (0,0)"""
 const hexcoords = [
 		1 0;
 		cos60 -sin60;
@@ -8,32 +9,6 @@ const hexcoords = [
 		-cos60 sin60;
 		cos60 sin60
 		]
-
-function xbounds(numi)
-    numevens = div(numi,2)
-    numodds = numevens + mod(numi,2)
-    basewidth = numodds + 2*numevens + 1
-    
-    if iseven(numi)
-        maxx = basewidth
-    else
-        maxx = basewidth + sin(deg2rad(30))
-    end
-    
-    minx  = -maxx
-    return (minx,maxx)
-end
-
-function ybounds(numj)
-    maxy = 2*sin60*(numj + 1)
-    return (-maxy,maxy-sin60)
-end
-
-"""only works for [-1.5,sin60],[0.0],2.0*sin60] basis"""
-function bbox(numi,numj)
-    return (xbounds(numi),ybounds(numj))
-    
-end
 
 
 function drawhex(hexbasis::Repeat.Basis,hexsize,i,j,color)
