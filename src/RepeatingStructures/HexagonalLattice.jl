@@ -10,13 +10,13 @@ export HexBasis1
 
 basis(a::HexBasis1{2,T}) where{T} = SVector{2,SVector{2,T}}(hexe₁(T),hexe₂(T))
 
-# coordinate offsets to move up, down, etc., one hex cell in a hex lattice defined in HexBasis1
-hexup() = (1,-1)
-hexdown() = (-1,1)
-hexupright() = (1,0)
-hexdownleft() = (-1,0)
-hexdownright() = (0,1)
-hexupleft() = (0,-1)
+# coordinate offsets to move up, down, etc., numsteps hex cells in a hex lattice defined in HexBasis1
+hexup(numsteps = 1) = numsteps .* (1,-1)
+hexdown(numsteps = 1) = numsteps .* (-1,1)
+hexupright(numsteps = 1) = numsteps .* (1,0)
+hexdownleft(numsteps = 1) = numsteps .* (-1,0)
+hexdownright(numsteps = 1) = numsteps .* (0,1)
+hexupleft(numsteps = 1) = numsteps .* (0,-1)
 
 """ (i,j) offsets of a ring represented in the HexBasis1 lattice basis. The hexagonal grid is assumed to start from the bottom center hex cell. To generate larger rings repeat this pattern
  ring 1 = (1, 0)      (1, -1)       (0, -1)       (-1, 0)       (-1, 1)       (0, 1)
