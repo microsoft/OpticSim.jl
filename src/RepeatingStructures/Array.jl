@@ -1,3 +1,7 @@
+# MIT license
+# Copyright (c) Microsoft Corporation. All rights reserved.
+# See LICENSE in the project root for full license information.
+
 struct UnitCell
     coordinateframe #this should be computed once when the UnitCell is created. It incorporates the parent coordinateframe transformation and the transformation from the parent to the unit cell.
     emitter

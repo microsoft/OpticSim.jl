@@ -1,3 +1,7 @@
+# MIT license
+# Copyright (c) Microsoft Corporation. All rights reserved.
+# See LICENSE in the project root for full license information.
+
 abstract type HexagonalLattice{N,T} <: Basis{N,T} end
 
 hexe₁(::Type{T}=Float64) where{T<:Real} = SVector{2,T}(T(1.5),T(.5)*sqrt(T(3)))
