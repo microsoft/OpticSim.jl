@@ -29,41 +29,33 @@ export HexBasis1
 basis(a::HexBasis1{2,T}) where{T} = SVector{2,SVector{2,T}}(hexe₁(T),hexe₂(T))
 
 # coordinate offsets to move up, down, etc., one hex cell in a hex lattice defined in HexBasis1
-hexup(a::HexBasis1) = (1,-1)
-hexdown(a::HexBasis1) = (-1,1)
-hexupright(a::HexBasis1) = (1,0)
-hexdownleft(a::HexBasis1) = (-1,0)
-hexdownright(a::HexBasis1) = (0,1)
-hexupleft(a::HexBasis1) = (0,-1)
+hexup() = (1,-1)
+hexdown() = (-1,1)
+hexupright() = (1,0)
+hexdownleft() = (-1,0)
+hexdownright() = (0,1)
+hexupleft() = (0,-1)
 export hexup,hexdown,hexupright,hexdownleft,hexdownright,hexupleft
 
+"""HexBasis2 is defined because certainly conditional tests, such as determing which hex coordinates lie inside a rectangula box, are more easily performed in this basis. For all other purposes use HexBasis1"""
 struct HexBasis2{N,T} <: HexagonalLattice{N,T}
     HexBasis2(::Type{T} = Float64) where{T<:Real} = new{2,T}()
 end
-export HexBasis2
+
 
 basis(a::HexBasis2{2,T}) where{T} = SVector{2,SVector{2,T}}(hex2e₁(T),hex2e₂(T))
-
-hexagonallattice(pitch::T = 1.0) where{T<:Real} = LatticeBasis(pitch*SVector{2,T}(T(1.5),T(.5)*sqrt(T(3))),pitch*SVector{2,T}(T(1.5),T(-.5)*sqrt(T((3)))))
-export hexagonallattice
-
-#offset constants used for generating 1 and 2 hexagonal rings. 
-const ringoffsets = (
-    (a::HexagonalLattice) -> (hexdown(a),hexupright(a),hexup(a),hexupleft(a),hexdownleft(a),hexdown(a)),
-    (a::HexagonalLattice) -> (hexdown(a),hexupright(a),hexupright(a),hexup(a),hexup(a),hexupleft(a),hexupleft(a),hexdownleft(a),hexdownleft(a),hexdown(a),hexdown(a),hexdownright(a))
-)
 
 
 export ring1offsets,ring2offsets
 
 """returns i,j coordinates of tiles in the ring"""
 function ring(a::HexagonalLattice, startingcoordinates::NTuple{N,T}, ringnum) where{T<:Int,N}
-    offsets = ringoffsets[ringnum](a)
+    offsets = ringoffsets[ringnum]()
     ringlength = length(offsets)
     result = MVector{ringlength,NTuple{N,T}}(undef)
     result[1] = startingcoordinates
     for i in 1:ringnum
-        result[1] = result[1] .+ hexdown(a)
+        result[1] = result[1] .+ hexdown()
     end
 
     for i in 2:ringlength
@@ -73,19 +65,22 @@ function ring(a::HexagonalLattice, startingcoordinates::NTuple{N,T}, ringnum) wh
 end
 export ring
 
-""" returns lattices positions rather than lattice indices in a hex7 pattern about latticepoint"""
-hex7points(latticepoint::SVector{N,T},basis::HexagonalLattice) where{N,T<:Real} = map(offset -> basis[offset[1],offset[2]] + latticepoint,hex7basiscoordinates(basis))
-export hex7points
+hexoffsets(::Type{Val{1}}) = SVector{6,NTuple{2,Int64}}((hexdown(),hexupright(),hexup(),hexupleft(),hexdownleft(),hexdown()))
+hexoffsets(::Type{Val{2}}) = SVector{12,NTuple{2,Int64}}(hexdown() .+ hexdown(),hexupright(),hexupright(),hexup(),hexup(),hexupleft(),hexupleft(),hexdownleft(),hexdownleft(),hexdown(),hexdown(),hexdownright())
 
-"""returns lattice offsets (i,j) in a hex13 pattern about latticepoint"""
-hex13() = SVector{13,NTuple{2,Int64}}((0,0),hexring(2)...)
-export hex13
+function hexpoints(latticepoint::Tuple{Int64,Int64},n) where{T}
+    temp = MVector{n*6,Tuple{Int64,Int64}}(undef)
+    hoffsets = hexoffsets(Val{n})
+    for i in 1:length(temp)
+        latticepoint = latticepoint .+ hoffsets[i]
+        println(latticepoint)
+        temp[i] = latticepoint
+    end
+    return SVector{n*6,Tuple{Int64,Int64}}(temp)
+end
 
-""" returns lattice positions rather than lattice indices in a hex13 pattern about latticepoint"""
-hex13points(latticepoint::SVector{N,T}) where{N,T<:Real} = map(offset -> hexbasis1[offset[1],offset[2]] + latticepoint,hex13())
-export hex13points
-	
-	
+ring1(latticepoint) = ((0,0),hexpoints(latticepoint,1)...)
+ring2(latticepoint) = (ring1(latticepoint)...,hexpoints(latticepoint,2)...)
 
 # const hexagon = hexsize*[Luxor.Point(hexcoords[i,:]...) for i in 1:6]
 
@@ -131,18 +126,27 @@ function bbox(numi,numj)
     
 end
 
-"""computes the basis coordinates of hexagonal cells in a rectangular pattern 2*numi+1 by 2*numj+1 wide and high respectively."""
+hexbasis2to1(i,j) = (i+j,-j)
+
+"""computes the basis coordinates of hexagonal cells defined in the Hex1Basis in a rectangular pattern 2*numi+1 by 2*numj+1 wide and high respectively."""
 function hexcells(numi,numj)
+    #i and j are coordinates in the Hex2Basis. The conditional tests are simpler in this basis. Convert back to
+    #Hex1Basis coordinates before returning.
     result = Array{Tuple{Int64,Int64},2,}(undef,2*numi+1,2*numj+1)
-    for i in -numi:numi
+    for i2 in -numi:numi
         let offsetj
-            if i < 0
-            offsetj = -abs(div(i,2))
+            if i2 < 0
+            offsetj = -abs(div(i2,2))
             else
-                offsetj = div(i+1,2)
+                offsetj = div(i2+1,2)
             end
-            for j in -numj:numj
-                result[i+numi+1,j+numj+1] = (i, j - offsetj)
+            for j2 in -numj:numj
+                # conversion from Hex2Basis i2,j2 to Hex1Basis i,j is 
+                # (i,j) = (i2,0) + j2*(1,-1)
+                jtemp = j2-offsetj
+                # i1 = i2 + jtemp
+                # j1 = -jtemp
+                result[i2+numi+1,j2+numj+1] = hexbasis2to1(i2,jtemp)
             end
         end
     end

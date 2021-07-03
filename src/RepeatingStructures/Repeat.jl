@@ -1,5 +1,8 @@
 module Repeat
 
+export basis
+
+using Base: offset_if_vec
 using StaticArrays:SVector,MVector
 
 include("Lattice.jl")

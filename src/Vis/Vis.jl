@@ -4,6 +4,7 @@
 
 module Vis
 
+using Base: byte_string_classify
 using ..OpticSim
 using ..OpticSim: euclideancontrolpoints, evalcsg, vertex, makiemesh, detector, centroid, lower, upper, intervals, α
 using ..OpticSim.Geometry
