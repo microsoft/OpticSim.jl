@@ -7,7 +7,7 @@ export Uniform, DeltaFunction, Measured
 
 using ....OpticSim
 using ...Emitters
-using DataFrames
+using DataFrames: DataFrame
 using Distributions
 import Unitful: Length, ustrip
 using Unitful.DefaultSymbols

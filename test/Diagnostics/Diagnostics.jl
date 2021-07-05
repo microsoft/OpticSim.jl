@@ -129,7 +129,7 @@ end
 
 using FiniteDifferences
 using ForwardDiff
-using DataFrames
+using DataFrames: DataFrame
 using Optim
 using JuMP
 using Ipopt
