@@ -12,7 +12,7 @@ using ..OpticSim.GlassCat
 using ..OpticSim.Repeat
 
 using StaticArrays
-using DataFrames
+using DataFrames: DataFrame
 using Images
 using Unitful
 using Plots

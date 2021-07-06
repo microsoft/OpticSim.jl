@@ -2,7 +2,7 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # See LICENSE in the project root for full license information.
 
-using DataFrames
+using DataFrames: nrow
 using Unitful.DefaultSymbols
 using .OpticSim.GlassCat: AbstractGlass, TEMP_REF, PRESSURE_REF, Glass, Air
 

@@ -19,7 +19,7 @@ using Revise
 
 # included here to allow a call to the activate! during the initialization
 import GLMakie
-import Makie.AbstractPlotting
+import Makie
 
 include("constants.jl")
 include("utilities.jl")
@@ -44,7 +44,14 @@ function __init__()
     # this call is to try and keep the original behevior of Makie's default backend after adding the WGLMakie backend to the package
     try
         GLMakie.activate!()
-        AbstractPlotting.__init__()
+        # this try and catch is for Makie versions below 0.13 (where Abstract Plotting was removed and renamed to Makie)
+        # the display stack used to get shuffled around such that the Makie display did not take priority.
+        # with Makie v0.13 and above is should not be nececery but i didn't find a clean way to test for the Makie version
+        try
+            Makie.AbstractPlotting.__init__()
+        catch e
+            # do nothing
+        end        
     catch e
         @warn "Unable to activate! the GLMakie backend\n$e"
     end
