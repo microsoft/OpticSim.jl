@@ -1,3 +1,11 @@
+# MIT license
+# Copyright (c) Microsoft Corporation. All rights reserved.
+# See LICENSE in the project root for full license information.
+
+
+
+#############################################################################
+
 const sin60 = .5*sqrt(3)
 const cos60 = .5
 """coordinates of a hexagon with unit length sides centered about the point (0,0)"""
