@@ -17,10 +17,10 @@ ParaxialLensConvexPoly(focaldistance, local_frame, local_polygon_points, local_c
 ```
 """
 struct ParaxialLens{T} <: Surface{T}
-    shape::Union{Rectangle{T},Ellipse{T},Hexagon{T},ConvexPolygon{T}}
+    shape::Union{Rectangle{T},Ellipse{T},Hexagon{T},ConvexPolygon}
     interface::ParaxialInterface{T}
 
-    function ParaxialLens(shape::Union{Rectangle{T},Ellipse{T},Hexagon{T},ConvexPolygon{T}}, interface::ParaxialInterface{T}) where {T<:Real}
+    function ParaxialLens(shape::Union{Rectangle{T},Ellipse{T},Hexagon{T},ConvexPolygon}, interface::ParaxialInterface{T}) where {T<:Real}
         new{T}(shape, interface)
     end
 end
@@ -47,7 +47,7 @@ function ParaxialLensHex(focaldistance::T, side_length::T, surfacenormal::SVecto
     return ParaxialLens(h, ParaxialInterface(focaldistance, centrepoint, outsidematerial))
 end
 
-function ParaxialLensConvexPoly(focaldistance::T, local_frame::Transform{T}, local_polygon_points::Vector{SVector{2, T}}, local_center_point::SVector{2, T}; outsidematerial::OpticSim.GlassCat.AbstractGlass = OpticSim.GlassCat.Air) where {T<:Real}
+function ParaxialLensConvexPoly(focaldistance::T, local_frame::Transform{T}, local_polygon_points::SVector{N, SVector{2, T}}, local_center_point::SVector{2, T}; outsidematerial::OpticSim.GlassCat.AbstractGlass = OpticSim.GlassCat.Air) where {N, T<:Real}
     poly = ConvexPolygon(local_frame, local_polygon_points)
     centrepoint = SVector{3, T}(local2world(local_frame) * Vec3(local_center_point[1], local_center_point[2], zero(T)))
     return ParaxialLens(poly, ParaxialInterface(focaldistance, centrepoint, outsidematerial))
