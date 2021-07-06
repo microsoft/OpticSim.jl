@@ -9,6 +9,7 @@ using ..OpticSim.Vis
 using ..OpticSim.Geometry
 using ..OpticSim.Emitters
 using ..OpticSim.GlassCat
+using ..OpticSim.Repeat
 
 using StaticArrays
 using DataFrames
@@ -19,6 +20,7 @@ using LinearAlgebra
 
 include("docs_examples.jl")
 include("other_examples.jl")
+include("ExamplesRepeatingStructures.jl")
 
 end #module Examples
 export Examples

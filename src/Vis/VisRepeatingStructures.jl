@@ -53,11 +53,12 @@ function drawhexcells(hexsize,cells, color = nothing)
     end
 end
 
-macro wrapluxor(f...)
-    :(Luxor.@draw begin
-        $(f...)
+macro wrapluxor(f)
+    return :(Luxor.@draw begin
+        $f
     end 1000 1000)
 end
 export @wrapluxor
+
 
 function drawhexring() end

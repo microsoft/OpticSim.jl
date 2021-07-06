@@ -2,8 +2,6 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # See LICENSE in the project root for full license information.
 
-abstract type Basis{N,T<:Real} end
-export Basis
 """ Base class for defining points on a lattice. Lattice points are defined by basis vectors eᵢ and lattice indices indexᵢ:
 
 point = Σᵢ indexᵢ*eᵢ
@@ -22,8 +20,22 @@ julia> a[1,2]
 2-element SVector{2, Int64} with indices SOneTo(2):
   7
  10
-````
+```
+
+Subtypes supporting the Basis interface should implement these functions:
+
+Returns the n neighbors surrounding centerpoint, excluding centerpoint
+```
+neighbors(::Type{B},centerpoint::Tuple{T,T},neighborhoodsize::Int) where{T<:Real,B<:Basis}
+```
+Returns the lattice basis vectors that define the lattice
+```
+basis(a::S) where{S<:Basis}
+```
 """
+abstract type Basis{N,T<:Real} end
+export Basis
+
 
 """wrote this function because type inference couldn't handle argument types of Basis{N,T}. Not sure why"""
 numbertype(a::Basis{N,T}) where{N,T} = T

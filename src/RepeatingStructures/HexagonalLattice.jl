@@ -53,13 +53,13 @@ Vis.@wrapluxor Vis.drawhexcells(50, hexregion((0,0),2))
 ```
 """
 function hexregion(centerpoint::Tuple{Int64,Int64}, n::Int64) 
-    f(i) = i==0 ? () : (neighbors(centerpoint,i)...,f(i-1)...)
+    f(i) = i==0 ? () : (neighbors(HexBasis1,centerpoint,i)...,f(i-1)...)
     return (centerpoint,f(n)...)
 end
 export hexregion
 
-"""Returns all hex cells contained in the rings up to size n centered around centerpoint. Does not include centerpoint. Use neighborsandcenterpoint for that."""
-function neighbors(centerpoint::Tuple{Int64,Int64},n) where{T}
+"""Returns all hex cells contained in the rings up to size n centered around centerpoint. Does not include centerpoint. Use hexregion for that."""
+function neighbors(::Type{HexBasis1}, centerpoint::Tuple{Int64,Int64},n) where{T}
     temp = MVector{n*6,Tuple{Int64,Int64}}(undef)
     hoffsets = ringoffsets(Val{n})
     latticepoint = centerpoint .+ n .* (hexdown())
