@@ -12,7 +12,7 @@ export drawneighbors
 drawhexregion() = Vis.@wrapluxor Vis.drawhexcells(50,Repeat.hexregion((0,0),2))
 export drawhexregion
 
-drawhexrect() = Vis.@wrapluxor Vis.drawhexcells(50,Repeat.hexcellsinbox(4,4),"yellow")
+drawhexrect(color) = Vis.@wrapluxor :(Vis.drawhexcells(50,Repeat.hexcellsinbox(4,4),$color)
 export drawhexrect
 
 drawhexrectcolors() = Vis.@wrapluxor Vis.drawhexcells(50,Repeat.hexcellsinbox(4,4))
