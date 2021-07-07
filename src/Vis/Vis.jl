@@ -4,7 +4,7 @@
 
 module Vis
 
-using Base: byte_string_classify
+
 using ..OpticSim
 using ..OpticSim: euclideancontrolpoints, evalcsg, vertex, makiemesh, detector, centroid, lower, upper, intervals, α
 using ..OpticSim.Geometry
@@ -17,11 +17,11 @@ using ColorSchemes
 using StaticArrays
 using LinearAlgebra
 import Makie
-import Makie.AbstractPlotting
-import Makie.AbstractPlotting.MakieLayout
+import GeometryBasics
 import Plots
 import Luxor
 using FileIO
+
 
 # If using precompiled system image (which we always are) you have to run AbstractPlotting.__init__() after loading Makie
 # during precompilation, the display stack gets shuffled around such that the Makie display does not take priority.
