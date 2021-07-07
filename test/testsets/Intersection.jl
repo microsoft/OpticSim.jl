@@ -397,14 +397,14 @@
 
         t = identitytransform()
     
-        local_points_2d = SVector(
+        local_points_2d = [
             SVector(-1.0, -1.0),
             SVector(1.0, -1.0),
             SVector(2.0, 0.0),
             SVector(1.0, 1.0),
             SVector(-1.0, 1.0),
             SVector(-2.0, 0.0)
-        )
+        ]
             
         @test_nowarn ConvexPolygon(t, local_points_2d)
     

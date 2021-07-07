@@ -14,36 +14,34 @@ The rotation of the polygon around its normal is defined by `rotationvec`.
 `rotationvec×surfacenormal` is taken as the vector along the u axis.
 
 ```julia
-ConvexPolygon(local_frame::Transform{T}, local_polygon_points::SVector{N, SVector{2, T}}, interface::NullOrFresnel{T} = nullinterface(T))
+ConvexPolygon(local_frame::Transform{T}, local_polygon_points::Vector{SVector{2, T}}, interface::NullOrFresnel{T} = nullinterface(T))
 ```
 
 The local frame defines the plane (spans by the right and up vectors) with the plane normal given by the forward vector.
 the local_polygon_points are given with respect to the local frame and are 2D points.
 NOTE: This class uses static vectors to hold the points which will lead to more efficient performance, but should not be used with polygons with more than 20-30 points.
 """
-struct ConvexPolygon{N, T<:Real}  <: Surface{T} 
+struct ConvexPolygon{T<:Real}  <: Surface{T} 
     plane::Plane{T,3}
     local_frame::Transform{T}
-    local_points::SVector{N, SVector{2, T}}
+    local_points::Vector{SVector{2, T}}
 
     # for efficency
     _local_frame_inv::Transform{T}                                  # cache the inverse matrix to avoid computing it for every intersection test
-    _local_lines::SVector{N, SVector{3, SVector{2, T}}}             # defines the edges + a third point representing the slopes in order to save some calculationsduring ray checking
-    _length::Int64
-    # _poly2d::GeometricalPredicates.Polygon2D{GeometricalPredicates.Point2D}
+    _local_lines::Vector{SVector{3, SVector{2, T}}}                 # defines the edge points + a third point representing the slopes in order to save some calculationsduring ray checking
+    _length::Int64                                                  # cache the length of the polygon 
 
     function ConvexPolygon(
             local_frame::Transform{T},
-            local_polygon_points::SVector{N, SVector{2, T}}, 
+            local_polygon_points::Vector{SVector{2, T}}, 
             interface::NullOrFresnel{T} = NullInterface(T)
-        ) where {N, T<:Real}
+        ) where {T<:Real}
 
         # need at least 3 points to define apolygon
         @assert length(local_polygon_points) > 3         
 
         local_center = Statistics.mean(local_polygon_points)
         world_center = local2world(local_frame) * Vec3(local_center[1], local_center[2], zero(T))
-
         
         # poly_points = [GeometricalPredicates.Point2D(p[1], p[2]) for p in local_polygon_points]
         # poly = GeometricalPredicates.Polygon2D(poly_points...)
@@ -58,18 +56,18 @@ struct ConvexPolygon{N, T<:Real}  <: Surface{T}
         )
 
         plane = Plane(forward(local_frame), world_center, interface = interface)
-        new{N, T}(plane, local_frame, local_polygon_points, inv(local_frame), local_lines, length(local_lines))
+        new{T}(plane, local_frame, local_polygon_points, inv(local_frame), local_lines, length(local_lines))
     end
 end
 export ConvexPolygon
 
 # Base.show(io::IO, poly::ConvexPolygon{T}) where {T<:Real} = print(io, "ConvexPolygon{$T}($(centroid(hex)), $(normal(hex)), $(hex.side_length), $(interface(hex)))")
-centroid(poly::ConvexPolygon{N, T}) where {N, T<:Real} = poly.plane.pointonplane
-interface(poly::ConvexPolygon{N, T}) where {N, T<:Real} = interface(poly.plane)
-normal(poly::ConvexPolygon{N, T}) where {N, T<:Real} = normal(poly.plane)
-normal(poly::ConvexPolygon{N, T}, ::T, ::T) where {N, T<:Real} = normal(poly)
+centroid(poly::ConvexPolygon{T}) where {T<:Real} = poly.plane.pointonplane
+interface(poly::ConvexPolygon{T}) where {T<:Real} = interface(poly.plane)
+normal(poly::ConvexPolygon{T}) where {T<:Real} = normal(poly.plane)
+normal(poly::ConvexPolygon{T}, ::T, ::T) where {T<:Real} = normal(poly)
 
-function surfaceintersection(poly::ConvexPolygon{N, T}, r::AbstractRay{T,3}) where {N, T<:Real}
+function surfaceintersection(poly::ConvexPolygon{T}, r::AbstractRay{T,3}) where {T<:Real}
     interval = surfaceintersection(poly.plane, r)
     if interval isa EmptyInterval{T} || isinfiniteinterval(interval)
         return EmptyInterval(T) # no ray plane intersection or inside plane but no hit
@@ -118,7 +116,7 @@ end
 
 Create a triangle mesh that can be rendered by iterating on the polygon's edges and for each edge use the centroid as the third vertex of the triangle.
 """
-function makemesh(poly::ConvexPolygon{N, T}, ::Int = 0) where {N, T<:Real}
+function makemesh(poly::ConvexPolygon{T}, ::Int = 0) where {T<:Real}
     c = centroid(poly)
 
     l2w = local2world(poly.local_frame)
