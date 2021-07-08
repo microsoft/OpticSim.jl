@@ -225,23 +225,24 @@ function draw_stackedbeamsplitters(filenames::Vector{<:Union{Nothing,AbstractStr
 
     for (interfacemode, filename) in zip(interfacemodes, filenames)
         interface = FresnelInterface{Float64}(SCHOTT.N_BK7, Air; reflectance=0.5, transmission=0.5, interfacemode)
-        bs_1 = leaf(
-            leaf(
-                Cuboid(10.0, 20.0, 2.0; interface),
-                rotationX(π/4)),
-            translation(0.0, 0.0, -30.0-2*sqrt(2)))
-        l1 = leaf(
+        bs_1 = OpticSim.transform(
+                Cuboid(10.0, 20.0, 2.0, interface=interface),
+                translation(0.0, 0.0, -30.0-2*sqrt(2))*rotationX(π/4))
+
+        l1 = OpticSim.transform(
             SphericalLens(SCHOTT.N_BK7, -70.0, 30.0, Inf, 5.0, 10.0),
             translation(0.0, -1.34, 0.0))
-        bs_2 = leaf(
-            leaf(
-                Cuboid(10.0, 20.0, 2.0; interface),
-                rotationX(π/4)),
-            translation(0.0, 40.0, -30.0+2*sqrt(2)))
-        l2 = leaf(
+
+        bs_2 = OpticSim.transform(
+            Cuboid(10.0, 20.0, 2.0, interface=interface),
+            translation(0.0, 40.0, -30.0+2*sqrt(2))*rotationX(π/4))
+            
+        l2 = OpticSim.transform(
             SphericalLens(SCHOTT.N_BK7, -70.0, 30.0, Inf, 5.0, 10.0),
             translation(0.0, 40.0, 0.0))
+
         la = LensAssembly(bs_1(), l1(), bs_2(), l2())
+        
         detector = Rectangle(20.0, 40.0, SVector(0.0, 0.0, 1.0), SVector(0.0, 20.0, -130.0); interface = opaqueinterface())
         sys = CSGOpticalSystem(la, detector)
 
