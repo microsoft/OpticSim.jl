@@ -20,7 +20,7 @@ using LinearAlgebra
 
 include("docs_examples.jl")
 include("other_examples.jl")
-include("ExamplesRepeatingStructures.jl")
+include("repeating_structure_examples.jl.jl")
 
 end #module Examples
 export Examples
