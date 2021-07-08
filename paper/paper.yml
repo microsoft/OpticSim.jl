@@ -1,0 +1,27 @@
+title: "OpticSim.jl: Design of complex optical systems at scale"
+keywords:
+  - Julia
+  - Optics
+  - Optical
+  - Simulation
+authors:
+  - name: Charlie Hewitt
+    orcid: 0000-0003-3943-6015
+    affiliation: 1
+  - name: Brian Guenter
+    affiliation: 2
+  - name: Ran Gal
+    affiliation: 2
+  - name: Alfred Wong
+    affiliation: 1
+  - name: Andreas Georgiou
+    affiliation: 1
+  - name: Joel Kollin
+    affiliation: 2
+affiliations:
+  - name: IMG, Microsoft Research, Cambridge, UK
+    index: 1
+  - name: IMG, Microsoft Research, Redmond, WA, USA
+    index: 2
+date: 8 July 2020
+bibliography: ref.bib
