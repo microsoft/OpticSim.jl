@@ -69,7 +69,6 @@ export ParaxialLens, ParaxialLensRect, ParaxialLensEllipse, ParaxialLensHex, Par
 interface(r::ParaxialLens{T}) where {T<:Real} = r.interface
 centroid(r::ParaxialLens{T}) where {T<:Real} = centroid(r.shape)
 normal(r::ParaxialLens{T}) where {T<:Real} = normal(r.shape)
-normal(r::ParaxialLens{T}, ::T, ::T) where {T<:Real} = normal(r)
 point(r::ParaxialLens{T}, u::T, v::T) where {T<:Real} = point(r.shape, u, v)
 uv(r::ParaxialLens{T}, x::T, y::T, z::T) where {T<:Real} = uv(r, SVector{3,T}(x, y, z))
 uv(r::ParaxialLens{T}, p::SVector{3,T}) where {T<:Real} = uv(r.shape, p)
