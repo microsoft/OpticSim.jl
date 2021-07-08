@@ -32,6 +32,10 @@ Returns the lattice basis vectors that define the lattice
 ```
 basis(a::S) where{S<:Basis}
 ```
+Returns the vertices of the unit polygon that tiles the plane for the basis
+```
+tilevertices(a::S) where{S<:Basis}
+````
 """
 abstract type Basis{N,T<:Real} end
 export Basis

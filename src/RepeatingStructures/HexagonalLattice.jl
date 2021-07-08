@@ -4,6 +4,19 @@
 
 abstract type HexagonalLattice{N,T} <: Basis{N,T} end
 
+const sin60 = .5*sqrt(3)
+const cos60 = .5
+"""coordinates of a unit hexagon tile polygon with unit length sides centered about the point (0,0)"""
+const hexcoords = [
+		1 0;
+		cos60 -sin60;
+		-cos60 -sin60;
+		-1 0;
+		-cos60 sin60;
+		cos60 sin60
+		]
+
+
 hexe₁(::Type{T}=Float64) where{T<:Real} = SVector{2,T}(T(1.5),T(.5)*sqrt(T(3)))
 hexe₂(::Type{T}=Float64) where{T<:Real} = SVector{2,T}(T(1.5),T(-.5)*(sqrt(T(3))))
 
@@ -12,7 +25,21 @@ struct HexBasis1{N,T} <: HexagonalLattice{N,T}
 end
 export HexBasis1
 
-basis(a::HexBasis1{2,T}) where{T} = SVector{2,SVector{2,T}}(hexe₁(T),hexe₂(T))
+basis(::HexBasis1{2,T}) where{T} = SVector{2,SVector{2,T}}(hexe₁(T),hexe₂(T))
+
+"""Returns the vertices of the unit tile polygon for the basis"""
+function tilevertices(::HexBasis1{2,T}) where{T}
+sin60 = T(.5)*sqrt(T(3))
+cos60 = T(.5)
+return T.([
+		1 0;
+		cos60 -sin60;
+		-cos60 -sin60;
+		-1 0;
+		-cos60 sin60;
+		cos60 sin60
+		])
+end
 
 # coordinate offsets to move up, down, etc., numsteps hex cells in a hex lattice defined in HexBasis1
 hexup(numsteps = 1) = numsteps .* (1,-1)
