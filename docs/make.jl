@@ -18,7 +18,7 @@ makedocs(
         "Geometry" => [
             "Basic Types" => "basic_types.md",
             "Primitives" => "primitives.md",
-            "CSG" => "csg.md"
+            "CSG" => "csg.md",
             "Repeating Structures" => "repeat.md"
         ],
         "Optical" => [
