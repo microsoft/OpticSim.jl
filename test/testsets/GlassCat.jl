@@ -6,7 +6,7 @@ using Test
 using OpticSim.GlassCat
 
 using Base.Filesystem
-using DataFrames
+using DataFrames: DataFrame
 using StaticArrays
 using Unitful
 using Unitful.DefaultSymbols

@@ -28,7 +28,7 @@ and pop it from the set
         OpticSim.Vis => [
             (OpticSim.Vis.drawcurves, Tuple{Vararg{Spline{P,S,N,M},N1} where N1} where {M} where {N} where {S} where {P}),
             (OpticSim.Vis.draw, Tuple{Vararg{S,N} where N} where {S<:Union{OpticSim.Surface{T},OpticSim.TriangleMesh{T}}} where {T<:Real}),
-            (OpticSim.Vis.draw!, Tuple{OpticSim.Vis.MakieLayout.LScene,Vararg{S,N} where N} where {S<:Union{OpticSim.Surface{T},OpticSim.TriangleMesh{T}}} where {T<:Real})
+            (OpticSim.Vis.draw!, Tuple{OpticSim.Vis.Makie.LScene,Vararg{S,N} where N} where {S<:Union{OpticSim.Surface{T},OpticSim.TriangleMesh{T}}} where {T<:Real})
         ],
         OpticSim.Examples => [],
         OpticSim.Chebyshev => [],

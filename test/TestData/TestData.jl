@@ -12,7 +12,7 @@ using OpticSim: tobeziersegments # try to use only exported functions so this li
 using OpticSim.Geometry
 using OpticSim.Emitters
 using StaticArrays
-using DataFrames
+using DataFrames: DataFrame
 using Unitful
 using Images
 using Base: @.
