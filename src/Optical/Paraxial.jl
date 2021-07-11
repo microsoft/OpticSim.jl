@@ -13,14 +13,15 @@ Create with the following functions
 ParaxialLensEllipse(focaldistance, halfsizeu, halfsizev, surfacenormal, centrepoint; rotationvec = [0.0, 1.0, 0.0], outsidematerial = OpticSim.GlassCat.Air, decenteruv = (0.0, 0.0))
 ParaxialLensRect(focaldistance, halfsizeu, halfsizev, surfacenormal, centrepoint; rotationvec = [0.0, 1.0, 0.0], outsidematerial = OpticSim.GlassCat.Air, decenteruv = (0.0, 0.0))
 ParaxialLensHex(focaldistance, side_length, surfacenormal, centrepoint; rotationvec = [0.0, 1.0, 0.0], outsidematerial = OpticSim.GlassCat.Air, decenteruv = (0.0, 0.0))
+ParaxialLensConvexPoly(focaldistance, local_frame, local_polygon_points, local_center_point; outsidematerial = OpticSim.GlassCat.Air)
 ```
 """
 struct ParaxialLens{T} <: Surface{T}
-    shape::Union{Rectangle{T},Ellipse{T},Hexagon{T}}
+    shape::Union{Rectangle{T},Ellipse{T},Hexagon{T},ConvexPolygon{T}}
     interface::ParaxialInterface{T}
 
-    function ParaxialLens(shape::Union{Rectangle{T},Ellipse{T},Hexagon{T}}, interface::ParaxialInterface{T}) where {T<:Real}
-        new{T}(shape, interface)
+    function ParaxialLens(shape::Union{Rectangle{T},Ellipse{T},Hexagon{T},ConvexPolygon{T}}, interface::ParaxialInterface{T}) where {T<:Real}
+            new{T}(shape, interface)
     end
 end
 
@@ -46,6 +47,12 @@ function ParaxialLensHex(focaldistance::T, side_length::T, surfacenormal::SVecto
     return ParaxialLens(h, ParaxialInterface(focaldistance, centrepoint, outsidematerial))
 end
 
+function ParaxialLensConvexPoly(focaldistance::T, local_frame::Transform{T}, local_polygon_points::Vector{SVector{2, T}}, local_center_point::SVector{2, T}; outsidematerial::OpticSim.GlassCat.AbstractGlass = OpticSim.GlassCat.Air) where {N, T<:Real}
+    poly = ConvexPolygon(local_frame, local_polygon_points)
+    centrepoint = SVector{3, T}(local2world(local_frame) * Vec3(local_center_point[1], local_center_point[2], zero(T)))
+    return ParaxialLens(poly, ParaxialInterface(focaldistance, centrepoint, outsidematerial))
+end
+
 function ParaxialLensEllipse(focaldistance::T, halfsizeu::T, halfsizev::T, surfacenormal::AbstractArray{T,1}, centrepoint::AbstractArray{T,1}; rotationvec::AbstractArray{T,1} = SVector{3,T}(0.0, 1.0, 0.0), outsidematerial::OpticSim.GlassCat.AbstractGlass = OpticSim.GlassCat.Air, decenteruv::Tuple{T,T} = (zero(T), zero(T))) where {T<:Real}
     @assert length(surfacenormal) == 3 && length(centrepoint) == 3
     return ParaxialLensEllipse(focaldistance, halfsizeu, halfsizev, SVector{3,T}(surfacenormal), SVector{3,T}(centrepoint), rotationvec = SVector{3,T}(rotationvec), outsidematerial = outsidematerial, decenteruv = decenteruv)
@@ -57,12 +64,11 @@ function ParaxialLensEllipse(focaldistance::T, halfsizeu::T, halfsizev::T, surfa
     return ParaxialLens(e, ParaxialInterface(focaldistance, centrepoint, outsidematerial))
 end
 
-export ParaxialLens, ParaxialLensRect, ParaxialLensEllipse, ParaxialLensHex
+export ParaxialLens, ParaxialLensRect, ParaxialLensEllipse, ParaxialLensHex, ParaxialLensConvexPoly
 
 interface(r::ParaxialLens{T}) where {T<:Real} = r.interface
 centroid(r::ParaxialLens{T}) where {T<:Real} = centroid(r.shape)
 normal(r::ParaxialLens{T}) where {T<:Real} = normal(r.shape)
-normal(r::ParaxialLens{T}, ::T, ::T) where {T<:Real} = normal(r)
 point(r::ParaxialLens{T}, u::T, v::T) where {T<:Real} = point(r.shape, u, v)
 uv(r::ParaxialLens{T}, x::T, y::T, z::T) where {T<:Real} = uv(r, SVector{3,T}(x, y, z))
 uv(r::ParaxialLens{T}, p::SVector{3,T}) where {T<:Real} = uv(r.shape, p)

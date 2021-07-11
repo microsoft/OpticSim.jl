@@ -71,3 +71,8 @@ end
         return acos(x)
     end
 end
+
+
+# some place holders for package level function names.
+# these names need to exist before any internal module can override them.
+function origin end    
