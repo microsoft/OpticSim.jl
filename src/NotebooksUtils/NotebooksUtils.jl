@@ -4,6 +4,8 @@
 
 module NotebooksUtils   
 
+import ...OpticSim
+
 # import Pluto
 import PlutoUI
 # import Markdown
@@ -12,6 +14,7 @@ import Format
 import Makie
 import WGLMakie
 import GLMakie
+import JSServe
 
 mutable struct Defs
     authors::String     # authors
@@ -248,27 +251,56 @@ function SetBackend(defs::Defs, be::String)
     if (be == "Web")
         @info "Makie backend set to WEB (WGLMakie)"
         WGLMakie.activate!()
-        # this try and catch is for Makie versions below 0.13 (where Abstract Plotting was removed and renamed to Makie)
-        # the display stack used to get shuffled around such that the Makie display did not take priority.
-        # with Makie v0.13 and above is should not be nececery but i didn't find a clean way to test for the Makie version
-        try
-            Makie.AbstractPlotting.__init__()
-            Makie.AbstractPlotting.inline!(true)
-        catch e
-            Makie.inline!(true)                     # for version 0.13 and above
-        end        
+        Makie.inline!(true)                     # for version 0.13 and above
     else 
         @info "Makie backend set to STATIC (GLMakie)"
         GLMakie.activate!()
-        try
-            Makie.AbstractPlotting.__init__()
-            Makie.AbstractPlotting.inline!(true)
-        catch e
-            Makie.inline!(true)                     # for version 0.13 and above
-        end        
+        Makie.inline!(true)                     # for version 0.13 and above
     end
 
 end
+
+"""
+    function SetDocsBackend(be::String)
+
+    Sets the backend for documantation images.
+"""
+function SetDocsBackend(be::String)
+    if (be == "Web")
+        WGLMakie.activate!()  
+        Makie.__init__();
+        Makie.inline!(true)   
+
+        return JSServe.Page(exportable=true, offline=true)
+    else 
+        GLMakie.activate!()
+        Makie.__init__();
+        Makie.inline!(false)    
+        return nothing
+    end
+end
+
+"""
+    function PrepareForDocs()
+
+Internal function!!! Override some code functions to be able to produce interactive figure for the documentation.
+"""
+function PrepareForDocs()
+    @eval begin
+        function Makie.display(obj)
+            return obj
+        end
+
+        function OpticSim.Vis.scene(resolution = (800, 400))
+            scene, layout = Makie.layoutscene(0, resolution = resolution)
+            OpticSim.Vis.set_current_main_scene(scene)
+            lscene = layout[1, 1] = Makie.LScene(scene, scenekw = (camera = Makie.cam3d_cad!, axis_type = Makie.axis3d!, raw = false))  # hide
+            OpticSim.Vis.set_current_3d_scene(lscene)
+            return scene, lscene
+        end
+    end
+end
+
 
 """
     InitNotebook(; port=8449)

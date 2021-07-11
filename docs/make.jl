@@ -4,6 +4,11 @@
 
 using Documenter
 using OpticSim
+import Makie
+
+# override certain functions to allow production of interactive figures
+OpticSim.NotebooksUtils.PrepareForDocs()
+
 
 makedocs(
     sitename = "OpticSim.jl",

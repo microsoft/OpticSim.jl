@@ -149,13 +149,22 @@ function make2dy(scene::Makie.LScene = current_3d_scene)
     s = scene.scene
     # use 2d camera
     Makie.cam2d!(s)
+
+    scene_transform = Makie.qrotation(Makie.Vec3f0(0, 1, 0), 0.5pi)
+    scene_transform_inv = Makie.qrotation(Makie.Vec3f0(0, 1, 0), -0.5pi)    # to use with the ticks and names
+
     # set rotation to look onto yz plane
-    s.transformation.rotation[] = Makie.qrotation(Makie.Vec3f0(0, 1, 0), 0.5pi)
+    s.transformation.rotation[] = scene_transform
     # hide x ticks
-    s[Makie.OldAxis].attributes.showticks[] = (false, true, true)
+
+    # there is a bug in Makie 0.14.2 which cause an exception setting the X showticks to false. 
+    # we work wround it by making sure the labels we want to turn off are ortogonal to the view direction 
+    # s[Makie.OldAxis].attributes.showticks[] = (false, true, true)
+    s[Makie.OldAxis].attributes.showticks[] = (true, true, true)
+
     # set tick and axis label rotation and position
-    s[Makie.OldAxis].attributes.ticks.rotation[] = (0.0, 0.0, 0.0)
-    s[Makie.OldAxis].attributes.names.rotation[] = (0.0, 0.0, 0.0)
+    s[Makie.OldAxis].attributes.ticks.rotation[] = (0.0, scene_transform_inv, scene_transform_inv)
+    s[Makie.OldAxis].attributes.names.rotation[] = s[Makie.OldAxis].attributes.ticks.rotation[]
     s[Makie.OldAxis].attributes.ticks.align = ((:right, :center), (:right, :center), (:center, :right))
     s[Makie.OldAxis].attributes.names.align = ((:left, :center), (:left, :center), (:center, :left))
     # update the scene limits automatically to get true reference values
@@ -173,13 +182,21 @@ function make2dx(scene::Makie.LScene = current_3d_scene)
     s = scene.scene
     # use 2d camera
     Makie.cam2d!(s)
+
+    scene_transform= Makie.qrotation(Makie.Vec3f0(0, 0, 1), 0.5pi) * Makie.qrotation(Makie.Vec3f0(1, 0, 0), 0.5pi)
+    scene_transform_inv=Makie.qrotation(Makie.Vec3f0(1, 0, 0), -0.5pi) * Makie.qrotation(Makie.Vec3f0(0, 0, 1), -0.5pi) 
+
     # set rotation to look onto yz plane
-    s.transformation.rotation[] = Makie.Quaternion(0.5, 0.5, 0.5, 0.5)
+    s.transformation.rotation[] = scene_transform
     # hide y ticks
+
+    # there is a bug in Makie 0.14.2 which cause an exception setting the X showticks to false. 
+    # we work wround it by making sure the labels we want to turn off are ortogonal to the view direction 
     s[Makie.OldAxis].attributes.showticks[] = (true, false, true)
+
     # set tick and axis label rotation and position
-    s[Makie.OldAxis].attributes.ticks.rotation[] = (0.0, 0.0, 0.0)
-    s[Makie.OldAxis].attributes.names.rotation[] = (0.0, 0.0, 0.0)
+    s[Makie.OldAxis].attributes.ticks.rotation[] = (scene_transform_inv, 0.0, scene_transform_inv)
+    s[Makie.OldAxis].attributes.names.rotation[] = s[Makie.OldAxis].attributes.ticks.rotation[]
     s[Makie.OldAxis].attributes.ticks.align = ((:right, :center), (:right, :center), (:center, :center))
     s[Makie.OldAxis].attributes.names.align = ((:left, :center), (:right, :center), (:center, :center))
     # update the scene limits automatically to get true reference values
@@ -582,7 +599,8 @@ Draw a [`Ray`](@ref) in a given `color` optionally scaling the size using `raysc
 `kwargs` are passed to [`Makie.arrows`](http://makie.juliaplots.org/stable/plotting_functions.html#arrows).
 """
 function draw!(scene::Makie.LScene, ray::AbstractRay{T,N}; color = :yellow, rayscale = 1.0, kwargs...) where {T<:Real,N}
-    Makie.arrows!(scene, [Makie.Point3f0(origin(ray))], [Makie.Point3f0(rayscale * direction(ray))]; kwargs..., arrowsize = min(0.05, rayscale * 0.05), arrowcolor = color, linecolor = color, linewidth = 2)
+    arrow_size = min(0.05, rayscale * 0.05)
+    Makie.arrows!(scene, [Makie.Point3f0(origin(ray))], [Makie.Point3f0(rayscale * direction(ray))]; kwargs..., arrowsize = arrow_size, arrowcolor = color, linecolor = color, linewidth=arrow_size * 0.5)
 end
 
 """

@@ -96,7 +96,3 @@ Here is a full list of the available drawing function and their associated optio
 ```@docs
 OpticSim.Vis.draw!
 ```
-
-## Known Issues
-
-If the Makie plot is printing to the console rather than showing properly in a separate window then call `Vis.AbstractPlotting.__init__()`. This will only occur when using a system image including the OpticSim package.
