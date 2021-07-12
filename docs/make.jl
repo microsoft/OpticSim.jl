@@ -7,7 +7,7 @@ using OpticSim
 import Makie
 
 # override certain functions to allow production of interactive figures
-OpticSim.NotebooksUtils.PrepareForDocs()
+OpticSim.Vis.set_current_mode(:docs)
 
 
 makedocs(

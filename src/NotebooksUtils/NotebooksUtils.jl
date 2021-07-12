@@ -280,26 +280,6 @@ function SetDocsBackend(be::String)
     end
 end
 
-"""
-    function PrepareForDocs()
-
-Internal function!!! Override some code functions to be able to produce interactive figure for the documentation.
-"""
-function PrepareForDocs()
-    @eval begin
-        function Makie.display(obj)
-            return obj
-        end
-
-        function OpticSim.Vis.scene(resolution = (800, 400))
-            scene, layout = Makie.layoutscene(0, resolution = resolution)
-            OpticSim.Vis.set_current_main_scene(scene)
-            lscene = layout[1, 1] = Makie.LScene(scene, scenekw = (camera = Makie.cam3d_cad!, axis_type = Makie.axis3d!, raw = false))  # hide
-            OpticSim.Vis.set_current_3d_scene(lscene)
-            return scene, lscene
-        end
-    end
-end
 
 
 """

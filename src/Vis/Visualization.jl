@@ -75,14 +75,27 @@ end
 # the second case draws the object in an existing scene, draw!(obj) can also be used to draw the object in the current scene
 
 global current_main_scene = nothing
+global current_layout_scene = nothing
 global current_3d_scene = nothing
+global current_mode = nothing           # modes:    nothing, :default  -> Original Vis beheviour    
+                                        #           :pluto             -> support pluto notebooks 
+                                        #           :docs              -> support documenter figures 
 
 # added the following 2 functions to allow us to hack the drawing mechanisim while in a pluto notebook
 set_current_main_scene(scene) = (global current_main_scene = scene)
 set_current_3d_scene(lscene) = (global current_3d_scene = lscene)
 
+get_current_mode() = begin global current_mode; return current_mode end
+set_current_mode(mode) = (global current_mode = mode)
+
 show(image) = imshow(image)
-display(scene = current_main_scene) = Makie.display(scene)
+display(scene = current_main_scene) = begin 
+    global current_mode; 
+    if (get_current_mode() == :pluto || get_current_mode() == :docs)
+        return scene
+    end
+    Makie.display(scene)
+end
 
 """
     scene(resolution = (1000, 1000))
@@ -94,8 +107,14 @@ function scene(resolution = (1000, 1000))
 
     scene, layout = Makie.layoutscene(resolution = resolution)
     global current_main_scene = scene
+    global current_layout_scene = layout
     lscene = layout[1, 1] = Makie.LScene(scene, scenekw = (camera = Makie.cam3d_cad!, axis_type = Makie.axis3d!, raw = false))
     global current_3d_scene = lscene
+
+    # in these modes we want to skip the creation of the utility buttons as these modes are not interactive
+    if (get_current_mode() == :pluto || get_current_mode() == :docs)
+        return scene, lscene
+    end
 
     threedbutton = Makie.Button(scene, label = "3D", buttoncolor = RGB(0.8, 0.8, 0.8), height = 40, width = 80)
     twodxbutton = Makie.Button(scene, label = "2D-x", buttoncolor = RGB(0.8, 0.8, 0.8), height = 40, width = 80)
@@ -220,6 +239,10 @@ function draw(ob; resolution = (1000, 1000), kwargs...)
     scene, lscene = Vis.scene(resolution)
     draw!(lscene, ob; kwargs...)
     display(scene)
+
+    if (get_current_mode() == :pluto || get_current_mode() == :docs)
+        return scene
+    end
 end
 
 """
@@ -237,6 +260,10 @@ function draw!(ob; kwargs...)
     end
     draw!(lscene, ob; kwargs...)
     display(scene)
+
+    if (get_current_mode() == :pluto || get_current_mode() == :docs)
+        return scene
+    end
 end
 
 """
@@ -395,6 +422,9 @@ function draw(meshes::Vararg{S}; kwargs...) where {T<:Real,S<:Union{TriangleMesh
     scene, lscene = Vis.scene()
     draw!(lscene, meshes...; kwargs...)
     Makie.display(scene)
+    if (get_current_mode() == :pluto || get_current_mode() == :docs)
+        return scene
+    end
 end
 
 """
@@ -469,6 +499,9 @@ function drawtracerays(system::Q; raygenerator::S = Source(transform = translati
     drawtracerays!(ls, system, raygenerator = raygenerator, test = test, colorbysourcenum = colorbysourcenum, colorbynhits = colorbynhits, rayfilter = rayfilter, trackallrays = trackallrays, verbose = verbose, drawsys = true, drawgen = true; kwargs...)
 
     display(s)
+    if (get_current_mode() == :pluto || get_current_mode() == :docs)
+        return s
+    end
 end
 
 drawtracerays!(system::Q; kwargs...) where {T<:Real,Q<:AbstractOpticalSystem{T}} = drawtracerays!(current_3d_scene, system; kwargs...)
