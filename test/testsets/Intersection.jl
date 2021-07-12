@@ -392,6 +392,77 @@
         @test surfaceintersection(hex2, raymiss) isa EmptyInterval
     end # testset Hexagon
 
+    
+    @testset "Convex Polygon" begin
+
+        t = identitytransform()
+    
+        local_points_2d = [
+            SVector(-1.0, -1.0),
+            SVector(1.0, -1.0),
+            SVector(2.0, 0.0),
+            SVector(1.0, 1.0),
+            SVector(-1.0, 1.0),
+            SVector(-2.0, 0.0)
+        ]
+            
+        @test_nowarn ConvexPolygon(t, local_points_2d)
+    
+        rinplane = Ray([0.0, 0.0, 0.0], [1.0, 1.0, 0.0])
+        routside = Ray([0.0, 0.0, 1.0], [1.0, 1.0, 1.0])
+        rinside = Ray([0.0, 0.0, -1.0], [1.0, 1.0, -1.0])
+        routintersects = Ray([0.0, 0.0, 1.0], [0.0, 0.0, -1.0])
+        rinintersects = Ray([0.0, 0.0, -1.0], [0.0, 0.0, 1.0])
+        routmiss = Ray([0.0, 2.0, 1.0], [0.0, 0.0, -1.0])
+        rinmiss = Ray([0.0, 2.0, -1.0], [0.0, 0.0, 1.0])
+        rinbounds = Ray([sqrt(3) / 2, 0.0, -1.0], [0.0, 0.0, 1.0])
+        routbounds = Ray([sqrt(3) / 2, 0.0, 1.0], [0.0, 0.0, -1.0])
+        rasymhit = Ray([0.0, 0.9, 1.0], [0.0, 0.0, -1.0])
+        rasymmiss = Ray([3.0, 0.0, 1.0], [0.0, 0.0, -1.0])
+    
+        poly = ConvexPolygon(t, local_points_2d)
+    
+        # parallel to plane and outside
+        @test surfaceintersection(poly, routside) isa EmptyInterval
+    
+        # parallel and on plane
+        @test surfaceintersection(poly, rinplane) isa EmptyInterval
+    
+        # inside but not hitting
+        @test surfaceintersection(poly, rinside) isa EmptyInterval
+    
+        # starts outside and hits
+        res = surfaceintersection(poly, routintersects)
+        @test isapprox(point(lower(res)), [0.0, 0.0, 0.0], rtol = RTOLERANCE, atol = ATOLERANCE) && OpticSim.upper(res) isa Infinity
+    
+        # starts inside and hits
+        res = surfaceintersection(poly, rinintersects)
+        @test lower(res) isa RayOrigin && isapprox(point(upper(res)), [0.0, 0.0, 0.0], rtol = RTOLERANCE, atol = ATOLERANCE)
+    
+        # starts inside and misses bounds
+        @test surfaceintersection(poly, rinmiss) isa EmptyInterval
+    
+        # starts outside and misses bounds
+        @test surfaceintersection(poly, routmiss) isa EmptyInterval
+    
+        # starts outside and hits bounds
+        res = surfaceintersection(poly, routbounds)
+        @test isapprox(point(lower(res)), [sqrt(3) / 2, 0.0, 0.0], rtol = RTOLERANCE, atol = ATOLERANCE) && upper(res) isa Infinity
+    
+        # starts inside and hits bounds
+        res = surfaceintersection(poly, rinbounds)
+        @test lower(res) isa RayOrigin && isapprox(point(upper(res)), [sqrt(3) / 2, 0.0, 0.0], rtol = RTOLERANCE, atol = ATOLERANCE)
+    
+        # asymmetric hit
+        res = surfaceintersection(poly, rasymhit)
+        @test isapprox(point(lower(res)), [0.0, 0.9, 0.0], rtol = RTOLERANCE, atol = ATOLERANCE) && upper(res) isa Infinity
+    
+        # asymmetric miss
+        @test surfaceintersection(poly, rasymmiss) isa EmptyInterval
+    
+    end # testset Convex Polygon
+    
+
     @testset "Stops" begin
         infiniterect = RectangularAperture(0.4, 0.8, SVector(0.0, 1.0, 0.0), SVector(0.0, 0.0, 1.0))
         finiterect = RectangularAperture(0.4, 0.8, 1.0, 2.0, SVector(0.0, 1.0, 0.0), SVector(0.0, 0.0, 1.0))

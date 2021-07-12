@@ -34,6 +34,7 @@ include("Primitives/SphericalCap.jl")
 
 include("Primitives/NonCSG/Rectangle.jl")
 include("Primitives/NonCSG/Hexagon.jl")
+include("Primitives/NonCSG/ConvexPolygon.jl")
 include("Primitives/NonCSG/Ellipse.jl")
 include("Primitives/NonCSG/Stop.jl")
 

@@ -10,8 +10,6 @@ import PlutoUI
 import Format
 
 import Makie
-import Makie.AbstractPlotting
-import Makie.AbstractPlotting.MakieLayout
 import WGLMakie
 import GLMakie
 
@@ -250,13 +248,24 @@ function SetBackend(defs::Defs, be::String)
     if (be == "Web")
         @info "Makie backend set to WEB (WGLMakie)"
         WGLMakie.activate!()
-        AbstractPlotting.__init__()
-        AbstractPlotting.inline!(true)
+        # this try and catch is for Makie versions below 0.13 (where Abstract Plotting was removed and renamed to Makie)
+        # the display stack used to get shuffled around such that the Makie display did not take priority.
+        # with Makie v0.13 and above is should not be nececery but i didn't find a clean way to test for the Makie version
+        try
+            Makie.AbstractPlotting.__init__()
+            Makie.AbstractPlotting.inline!(true)
+        catch e
+            Makie.inline!(true)                     # for version 0.13 and above
+        end        
     else 
         @info "Makie backend set to STATIC (GLMakie)"
         GLMakie.activate!()
-        AbstractPlotting.__init__()
-        AbstractPlotting.inline!(true)
+        try
+            Makie.AbstractPlotting.__init__()
+            Makie.AbstractPlotting.inline!(true)
+        catch e
+            Makie.inline!(true)                     # for version 0.13 and above
+        end        
     end
 
 end

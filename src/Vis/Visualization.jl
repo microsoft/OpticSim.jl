@@ -14,8 +14,7 @@ using ColorSchemes
 using StaticArrays
 using LinearAlgebra
 import Makie
-import Makie.AbstractPlotting
-import Makie.AbstractPlotting.MakieLayout
+import GeometryBasics
 import Plots
 import Luxor
 using FileIO
@@ -93,101 +92,101 @@ Create a new Makie scene with the given resolution including control buttons.
 function scene(resolution = (1000, 1000))
     @assert resolution[1] > 0 && resolution[2] > 0
 
-    scene, layout = MakieLayout.layoutscene(resolution = resolution)
+    scene, layout = Makie.layoutscene(resolution = resolution)
     global current_main_scene = scene
-    lscene = layout[1, 1] = MakieLayout.LScene(scene, scenekw = (camera = Makie.cam3d_cad!, axis_type = Makie.axis3d!, raw = false))
+    lscene = layout[1, 1] = Makie.LScene(scene, scenekw = (camera = Makie.cam3d_cad!, axis_type = Makie.axis3d!, raw = false))
     global current_3d_scene = lscene
 
-    threedbutton = MakieLayout.Button(scene, label = "3D", buttoncolor = RGB(0.8, 0.8, 0.8), height = 40, width = 80)
-    twodxbutton = MakieLayout.Button(scene, label = "2D-x", buttoncolor = RGB(0.8, 0.8, 0.8), height = 40, width = 80)
-    twodybutton = MakieLayout.Button(scene, label = "2D-y", buttoncolor = RGB(0.8, 0.8, 0.8), height = 40, width = 80)
-    savebutton = MakieLayout.Button(scene, label = "Screenshot", buttoncolor = RGB(0.8, 0.8, 0.8), height = 40, width = 160)
+    threedbutton = Makie.Button(scene, label = "3D", buttoncolor = RGB(0.8, 0.8, 0.8), height = 40, width = 80)
+    twodxbutton = Makie.Button(scene, label = "2D-x", buttoncolor = RGB(0.8, 0.8, 0.8), height = 40, width = 80)
+    twodybutton = Makie.Button(scene, label = "2D-y", buttoncolor = RGB(0.8, 0.8, 0.8), height = 40, width = 80)
+    savebutton = Makie.Button(scene, label = "Screenshot", buttoncolor = RGB(0.8, 0.8, 0.8), height = 40, width = 160)
 
-    MakieLayout.on(threedbutton.clicks) do nclicks
+    Makie.on(threedbutton.clicks) do nclicks
         make3d(lscene)
         yield()
     end
 
-    MakieLayout.on(twodybutton.clicks) do nclicks
+    Makie.on(twodybutton.clicks) do nclicks
         make2dy(lscene)
         yield()
     end
 
-    MakieLayout.on(twodxbutton.clicks) do nclicks
+    Makie.on(twodxbutton.clicks) do nclicks
         make2dx(lscene)
         yield()
     end
 
-    MakieLayout.on(savebutton.clicks) do nclicks
+    Makie.on(savebutton.clicks) do nclicks
         Vis.save("screenshot.png")
         yield()
     end
 
-    layout[2, 1] = MakieLayout.grid!(hcat(threedbutton, twodxbutton, twodybutton, savebutton), tellwidth = false, tellheight = true)
+    layout[2, 1] = Makie.grid!(hcat(threedbutton, twodxbutton, twodybutton, savebutton), tellwidth = false, tellheight = true)
     return scene, lscene
 end
 
-function make3d(scene::MakieLayout.LScene = current_3d_scene)
+function make3d(scene::Makie.LScene = current_3d_scene)
     s = scene.scene
     # use 3d camera
     Makie.cam3d_cad!(s)
     # reset scene rotation
-    s.transformation.rotation[] = AbstractPlotting.Quaternion(0.0, 0.0, 0.0, 1.0)
+    s.transformation.rotation[] = Makie.Quaternion(0.0, 0.0, 0.0, 1.0)
     # show all the axis ticks
-    s[AbstractPlotting.OldAxis].attributes.showticks[] = (true, true, true)
+    s[Makie.OldAxis].attributes.showticks[] = (true, true, true)
     # reset tick and axis label rotation and position
-    rot = (AbstractPlotting.Quaternion(0.0, 0.0, -0.7071067811865476, -0.7071067811865475), AbstractPlotting.Quaternion(0.0, 0.0, 1.0, 0.0), AbstractPlotting.Quaternion(0.0, 0.7071067811865475, 0.7071067811865476, 0.0))
-    s[AbstractPlotting.OldAxis].attributes.ticks.rotation[] = rot
-    s[AbstractPlotting.OldAxis].attributes.names.rotation[] = rot
-    s[AbstractPlotting.OldAxis].attributes.ticks.align = ((:left, :center), (:right, :center), (:right, :center))
-    s[AbstractPlotting.OldAxis].attributes.names.align = ((:left, :center), (:right, :center), (:right, :center))
+    rot = (Makie.Quaternion(0.0, 0.0, -0.7071067811865476, -0.7071067811865475), Makie.Quaternion(0.0, 0.0, 1.0, 0.0), Makie.Quaternion(0.0, 0.7071067811865475, 0.7071067811865476, 0.0))
+    s[Makie.OldAxis].attributes.ticks.rotation[] = rot
+    s[Makie.OldAxis].attributes.names.rotation[] = rot
+    s[Makie.OldAxis].attributes.ticks.align = ((:left, :center), (:right, :center), (:right, :center))
+    s[Makie.OldAxis].attributes.names.align = ((:left, :center), (:right, :center), (:right, :center))
     # reset scene limits to automatic
-    s.limits[] = AbstractPlotting.Automatic()
+    s.limits[] = Makie.Automatic()
     Makie.update!(s)
 end
 
-function make2dy(scene::MakieLayout.LScene = current_3d_scene)
+function make2dy(scene::Makie.LScene = current_3d_scene)
     s = scene.scene
     # use 2d camera
     Makie.cam2d!(s)
     # set rotation to look onto yz plane
     s.transformation.rotation[] = Makie.qrotation(Makie.Vec3f0(0, 1, 0), 0.5pi)
     # hide x ticks
-    s[AbstractPlotting.OldAxis].attributes.showticks[] = (false, true, true)
+    s[Makie.OldAxis].attributes.showticks[] = (false, true, true)
     # set tick and axis label rotation and position
-    s[AbstractPlotting.OldAxis].attributes.ticks.rotation[] = (0.0, 0.0, 0.0)
-    s[AbstractPlotting.OldAxis].attributes.names.rotation[] = (0.0, 0.0, 0.0)
-    s[AbstractPlotting.OldAxis].attributes.ticks.align = ((:right, :center), (:right, :center), (:center, :right))
-    s[AbstractPlotting.OldAxis].attributes.names.align = ((:left, :center), (:left, :center), (:center, :left))
+    s[Makie.OldAxis].attributes.ticks.rotation[] = (0.0, 0.0, 0.0)
+    s[Makie.OldAxis].attributes.names.rotation[] = (0.0, 0.0, 0.0)
+    s[Makie.OldAxis].attributes.ticks.align = ((:right, :center), (:right, :center), (:center, :right))
+    s[Makie.OldAxis].attributes.names.align = ((:left, :center), (:left, :center), (:center, :left))
     # update the scene limits automatically to get true reference values
-    s.limits[] = AbstractPlotting.Automatic()
+    s.limits[] = Makie.Automatic()
     Makie.update_limits!(s)
     # manually set the scene limits to draw the axes correctly
-    o, w = AbstractPlotting.origin(s.data_limits[]), AbstractPlotting.widths(s.data_limits[])
+    o, w = Makie.origin(s.data_limits[]), Makie.widths(s.data_limits[])
     s.limits[] = Makie.FRect3D((1000.0f0, o[2], o[3]), (w[2], w[2], w[3]))
     # set the eye (i.e. light) position to behind the camera
     s.camera.eyeposition[] = (0, 0, -100)
     Makie.update!(s)
 end
 
-function make2dx(scene::MakieLayout.LScene = current_3d_scene)
+function make2dx(scene::Makie.LScene = current_3d_scene)
     s = scene.scene
     # use 2d camera
     Makie.cam2d!(s)
     # set rotation to look onto yz plane
-    s.transformation.rotation[] = AbstractPlotting.Quaternion(0.5, 0.5, 0.5, 0.5)
+    s.transformation.rotation[] = Makie.Quaternion(0.5, 0.5, 0.5, 0.5)
     # hide y ticks
-    s[AbstractPlotting.OldAxis].attributes.showticks[] = (true, false, true)
+    s[Makie.OldAxis].attributes.showticks[] = (true, false, true)
     # set tick and axis label rotation and position
-    s[AbstractPlotting.OldAxis].attributes.ticks.rotation[] = (0.0, 0.0, 0.0)
-    s[AbstractPlotting.OldAxis].attributes.names.rotation[] = (0.0, 0.0, 0.0)
-    s[AbstractPlotting.OldAxis].attributes.ticks.align = ((:right, :center), (:right, :center), (:center, :center))
-    s[AbstractPlotting.OldAxis].attributes.names.align = ((:left, :center), (:right, :center), (:center, :center))
+    s[Makie.OldAxis].attributes.ticks.rotation[] = (0.0, 0.0, 0.0)
+    s[Makie.OldAxis].attributes.names.rotation[] = (0.0, 0.0, 0.0)
+    s[Makie.OldAxis].attributes.ticks.align = ((:right, :center), (:right, :center), (:center, :center))
+    s[Makie.OldAxis].attributes.names.align = ((:left, :center), (:right, :center), (:center, :center))
     # update the scene limits automatically to get true reference values
-    s.limits[] = AbstractPlotting.Automatic()
+    s.limits[] = Makie.Automatic()
     Makie.update_limits!(s)
     # manually set the scene limits to draw the axes correctly
-    o, w = AbstractPlotting.origin(s.data_limits[]), AbstractPlotting.widths(s.data_limits[])
+    o, w = Makie.origin(s.data_limits[]), Makie.widths(s.data_limits[])
     s.limits[] = Makie.FRect3D((o[1], -1000.0f0, o[3]), (w[1], w[1], w[3]))
     # set the eye (i.e. light) position to behind the camera
     s.camera.eyeposition[] = (0, 0, -100)
@@ -231,9 +230,9 @@ Save the current Makie scene to an image file.
 function save(path::String)
     # save closes the window so just display it again as a work-around
     # for some reason the size isn't maintained automatically so we just reset it manually
-    size = AbstractPlotting.size(current_main_scene)
+    size = Makie.size(current_main_scene)
     Makie.save(path, current_3d_scene.scene)
-    AbstractPlotting.resize!(current_main_scene, size)
+    Makie.resize!(current_main_scene, size)
     display(current_main_scene)
 end
 function save(::Nothing) end
@@ -283,18 +282,18 @@ indexedcolor2(i::Int) = ColorSchemes.hsv[1.0 - rem(i / (2.1 * π), 1.0)] .* 0.5
 
 ## displaying imported meshes
 
-Base.:*(a::Transform, p::Makie.AbstractPlotting.GeometryBasics.PointMeta) = a * p.main
-Base.:*(a::Real, p::Makie.AbstractPlotting.GeometryBasics.PointMeta{N,S}) where {S<:Real,N} = Makie.AbstractPlotting.GeometryBasics.Point{N,S}((a * SVector{N,S}(p))...)
-Base.:*(a::Transform, p::Makie.AbstractPlotting.GeometryBasics.Point{N,S}) where {S<:Real,N} = Makie.AbstractPlotting.GeometryBasics.Point{N,S}((a.rotation * SVector{N,S}(p) + a.translation)...)
+Base.:*(a::Transform, p::GeometryBasics.PointMeta) = a * p.main
+Base.:*(a::Real, p::GeometryBasics.PointMeta{N,S}) where {S<:Real,N} = GeometryBasics.Point{N,S}((a * SVector{N,S}(p))...)
+Base.:*(a::Transform, p::GeometryBasics.Point{N,S}) where {S<:Real,N} = GeometryBasics.Point{N,S}((a.rotation * SVector{N,S}(p) + a.translation)...)
 
-function draw!(scene::MakieLayout.LScene, ob::AbstractString; color = :gray, linewidth = 3, shaded::Bool = true, wireframe::Bool = false, transform::Transform{Float64} = identitytransform(Float64), scale::Float64 = 1.0, kwargs...)
+function draw!(scene::Makie.LScene, ob::AbstractString; color = :gray, linewidth = 3, shaded::Bool = true, wireframe::Bool = false, transform::Transform{Float64} = identitytransform(Float64), scale::Float64 = 1.0, kwargs...)
     if any(endswith(lowercase(ob), x) for x in [".obj", "ply", ".2dm", ".off", ".stl"])
         meshdata = FileIO.load(ob)
         if transform != identitytransform(Float64) || scale != 1.0
-            coords = [transform * (scale * p) for p in Makie.AbstractPlotting.GeometryBasics.coordinates(meshdata)]
-            meshdata = Makie.AbstractPlotting.GeometryBasics.Mesh(coords, Makie.AbstractPlotting.GeometryBasics.faces(meshdata))
+            coords = [transform * (scale * p) for p in GeometryBasics.coordinates(meshdata)]
+            meshdata = GeometryBasics.Mesh(coords, GeometryBasics.faces(meshdata))
         end
-        Makie.mesh!(Makie.AbstractPlotting.GeometryBasics.normal_mesh(meshdata); kwargs..., color = color, shading = shaded, visible = shaded)
+        Makie.mesh!(GeometryBasics.normal_mesh(meshdata); kwargs..., color = color, shading = shaded, visible = shaded)
         if wireframe
             if shaded
                 Makie.wireframe!(scene[end][1], color = (:black, 0.1), linewidth = linewidth)
@@ -310,14 +309,14 @@ end
 ## GEOMETRY
 
 """
-    draw!(scene::MakieLayout.LScene, surf::Surface{T}; numdivisions = 20, normals = false, normalcolor = :blue, kwargs...)
+    draw!(scene::Makie.LScene, surf::Surface{T}; numdivisions = 20, normals = false, normalcolor = :blue, kwargs...)
 
 Transforms `surf` into a mesh using [`makemesh`](@ref) and draws the result.
 `normals` of the surface can be drawn at evenly sampled points with provided `normalcolor`.
 `numdivisions` determines the resolution with which the mesh is triangulated.
 `kwargs` is passed on to the [`TriangleMesh`](@ref) drawing function.
 """
-function draw!(scene::MakieLayout.LScene, surf::Surface{T}; numdivisions::Int = 30, normals::Bool = false, normalcolor = :blue, kwargs...) where {T<:Real}
+function draw!(scene::Makie.LScene, surf::Surface{T}; numdivisions::Int = 30, normals::Bool = false, normalcolor = :blue, kwargs...) where {T<:Real}
     mesh = makemesh(surf, numdivisions)
     if nothing === mesh
         return
@@ -331,11 +330,11 @@ function draw!(scene::MakieLayout.LScene, surf::Surface{T}; numdivisions::Int = 
 end
 
 """
-    draw!(scene::MakieLayout.LScene, tmesh::TriangleMesh{T}; linewidth = 3, shaded = true, wireframe = false, color = :orange, normals = false, normalcolor = :blue, transparency = false, kwargs...)
+    draw!(scene::Makie.LScene, tmesh::TriangleMesh{T}; linewidth = 3, shaded = true, wireframe = false, color = :orange, normals = false, normalcolor = :blue, transparency = false, kwargs...)
 
 Draw a [`TriangleMesh`](@ref), optionially with a visible `wireframe`. `kwargs` are passed on to [`Makie.mesh`](http://makie.juliaplots.org/stable/plotting_functions.html#mesh).
 """
-function draw!(scene::MakieLayout.LScene, tmesh::TriangleMesh{T}; linewidth = 3, shaded::Bool = true, wireframe::Bool = false, color = :orange, normals::Bool = false, normalcolor = :blue, transparency::Bool = false, kwargs...) where {T<:Real}
+function draw!(scene::Makie.LScene, tmesh::TriangleMesh{T}; linewidth = 3, shaded::Bool = true, wireframe::Bool = false, color = :orange, normals::Bool = false, normalcolor = :blue, transparency::Bool = false, kwargs...) where {T<:Real}
     points, indices = makiemesh(tmesh)
     if length(points) > 0 && length(indices) > 0
         Makie.mesh!(scene, points, indices; kwargs..., color = color, shading = shaded, transparency = transparency, visible = shaded)
@@ -359,12 +358,12 @@ function draw!(scene::MakieLayout.LScene, tmesh::TriangleMesh{T}; linewidth = 3,
 end
 
 """
-    draw!(scene::MakieLayout.LScene, meshes::Vararg{S}; colors::Bool = false, kwargs...) where {T<:Real,S<:Union{TriangleMesh{T},Surface{T}}}
+    draw!(scene::Makie.LScene, meshes::Vararg{S}; colors::Bool = false, kwargs...) where {T<:Real,S<:Union{TriangleMesh{T},Surface{T}}}
 
 Draw a series of [`TriangleMesh`](@ref) or [`Surface`](@ref) objects, if `colors` is true then each mesh will be colored automatically with a diverse series of colors.
 `kwargs` are is passed on to the drawing function for each element.
 """
-function draw!(scene::MakieLayout.LScene, meshes::Vararg{S}; colors::Bool = false, kwargs...) where {T<:Real,S<:Union{TriangleMesh{T},Surface{T}}}
+function draw!(scene::Makie.LScene, meshes::Vararg{S}; colors::Bool = false, kwargs...) where {T<:Real,S<:Union{TriangleMesh{T},Surface{T}}}
     for i in 1:length(meshes)
         if colors
             col = indexedcolor2(i)
@@ -382,19 +381,19 @@ function draw(meshes::Vararg{S}; kwargs...) where {T<:Real,S<:Union{TriangleMesh
 end
 
 """
-    draw!(scene::MakieLayout.LScene, csg::Union{CSGTree,CSGGenerator}; numdivisions::Int = 20, kwargs...)
+    draw!(scene::Makie.LScene, csg::Union{CSGTree,CSGGenerator}; numdivisions::Int = 20, kwargs...)
 
 Convert a CSG object ([`CSGTree`](@ref) or [`CSGGenerator`](@ref)) to a mesh using [`makemesh`](@ref) with resolution set by `numdivisions` and draw the resulting [`TriangleMesh`](@ref).
 """
-draw!(scene::MakieLayout.LScene, csg::CSGTree{T}; numdivisions::Int = 30, kwargs...) where {T<:Real} = draw!(scene, makemesh(csg, numdivisions); kwargs...)
-draw!(scene::MakieLayout.LScene, csg::CSGGenerator{T}; kwargs...) where {T<:Real} = draw!(scene, csg(); kwargs...)
+draw!(scene::Makie.LScene, csg::CSGTree{T}; numdivisions::Int = 30, kwargs...) where {T<:Real} = draw!(scene, makemesh(csg, numdivisions); kwargs...)
+draw!(scene::Makie.LScene, csg::CSGGenerator{T}; kwargs...) where {T<:Real} = draw!(scene, csg(); kwargs...)
 
 """
-    draw!(scene::MakieLayout.LScene, bbox::BoundingBox{T}; kwargs...)
+    draw!(scene::Makie.LScene, bbox::BoundingBox{T}; kwargs...)
 
 Draw a [`BoundingBox`](@ref) as a wireframe, ie series of lines.
 """
-function draw!(scene::MakieLayout.LScene, bbox::BoundingBox{T}; kwargs...) where {T<:Real}
+function draw!(scene::Makie.LScene, bbox::BoundingBox{T}; kwargs...) where {T<:Real}
     p1 = SVector{3,T}(bbox.xmin, bbox.ymin, bbox.zmin)
     p2 = SVector{3,T}(bbox.xmin, bbox.ymax, bbox.zmin)
     p3 = SVector{3,T}(bbox.xmin, bbox.ymax, bbox.zmax)
@@ -409,27 +408,27 @@ end
 ## OPTICS
 
 """
-    draw!(scene::MakieLayout.LScene, ass::LensAssembly; kwargs...)
+    draw!(scene::Makie.LScene, ass::LensAssembly; kwargs...)
 
 Draw each element in a [`LensAssembly`](@ref), with each element automatically colored differently.
 """
-function draw!(scene::MakieLayout.LScene, ass::LensAssembly{T}; kwargs...) where {T<:Real}
+function draw!(scene::Makie.LScene, ass::LensAssembly{T}; kwargs...) where {T<:Real}
     for (i, e) in enumerate(elements(ass))
         draw!(scene, e; kwargs..., color = indexedcolor2(i))
     end
 end
 
 """
-    draw!(scene::MakieLayout.LScene, sys::AbstractOpticalSystem; kwargs...)
+    draw!(scene::Makie.LScene, sys::AbstractOpticalSystem; kwargs...)
 
 Draw each element in the lens assembly of an [`AbstractOpticalSystem`](@ref), with each element automatically colored differently, as well as the detector of the system.
 """
-function draw!(scene::MakieLayout.LScene, sys::CSGOpticalSystem{T}; kwargs...) where {T<:Real}
+function draw!(scene::Makie.LScene, sys::CSGOpticalSystem{T}; kwargs...) where {T<:Real}
     draw!(scene, sys.assembly; kwargs...)
     draw!(scene, detector(sys); kwargs...)
 end
 
-draw!(scene::MakieLayout.LScene, sys::AxisymmetricOpticalSystem{T}; kwargs...) where {T<:Real} = draw!(scene, sys.system; kwargs...)
+draw!(scene::Makie.LScene, sys::AxisymmetricOpticalSystem{T}; kwargs...) where {T<:Real} = draw!(scene, sys.system; kwargs...)
 
 onlydetectorrays(system::Q, tracevalue::LensTrace{T,3}) where {T<:Real,Q<:AbstractOpticalSystem{T}} = onsurface(detector(system), point(tracevalue))
 
@@ -457,7 +456,7 @@ end
 
 drawtracerays!(system::Q; kwargs...) where {T<:Real,Q<:AbstractOpticalSystem{T}} = drawtracerays!(current_3d_scene, system; kwargs...)
 
-function drawtracerays!(scene::MakieLayout.LScene, system::Q; raygenerator::S = Source(transform = translation(0.0,0.0,10.0), origins = Origins.RectGrid(10.0,10.0,25,25),directions = Constant(0.0,0.0,-1.0)), test::Bool = false, trackallrays::Bool = false, colorbysourcenum::Bool = false, colorbynhits::Bool = false, rayfilter::Union{Nothing,Function} = onlydetectorrays, verbose::Bool = false, drawsys::Bool = false, drawgen::Bool = false, kwargs...) where {T<:Real,Q<:AbstractOpticalSystem{T},S<:AbstractRayGenerator{T}}
+function drawtracerays!(scene::Makie.LScene, system::Q; raygenerator::S = Source(transform = translation(0.0,0.0,10.0), origins = Origins.RectGrid(10.0,10.0,25,25),directions = Constant(0.0,0.0,-1.0)), test::Bool = false, trackallrays::Bool = false, colorbysourcenum::Bool = false, colorbynhits::Bool = false, rayfilter::Union{Nothing,Function} = onlydetectorrays, verbose::Bool = false, drawsys::Bool = false, drawgen::Bool = false, kwargs...) where {T<:Real,Q<:AbstractOpticalSystem{T},S<:AbstractRayGenerator{T}}
     raylines = Vector{LensTrace{T,3}}(undef, 0)
 
     drawgen && draw!(scene, raygenerator, norays = true; kwargs...)
@@ -520,34 +519,34 @@ end
 ## RAYS, LINES AND POINTS
 
 """
-    draw!(scene::MakieLayout.LScene, rays::AbstractVector{<:AbstractRay{T,N}}; kwargs...)
+    draw!(scene::Makie.LScene, rays::AbstractVector{<:AbstractRay{T,N}}; kwargs...)
 
 Draw a vector of [`Ray`](@ref) or [`OpticalRay`](@ref) objects.
 """
-function draw!(scene::MakieLayout.LScene, rays::AbstractVector{<:AbstractRay{T,N}}; kwargs...) where {T<:Real,N}
+function draw!(scene::Makie.LScene, rays::AbstractVector{<:AbstractRay{T,N}}; kwargs...) where {T<:Real,N}
     for r in rays
         draw!(scene, r; kwargs...)
     end
 end
 
 """
-    draw!(scene::MakieLayout.LScene, traces::AbstractVector{LensTrace{T,N}}; kwargs...)
+    draw!(scene::Makie.LScene, traces::AbstractVector{LensTrace{T,N}}; kwargs...)
 
 Draw a vector of [`LensTrace`](@ref) objects.
 """
-function draw!(scene::MakieLayout.LScene, traces::AbstractVector{LensTrace{T,N}}; kwargs...) where {T<:Real,N}
+function draw!(scene::Makie.LScene, traces::AbstractVector{LensTrace{T,N}}; kwargs...) where {T<:Real,N}
     for t in traces
         draw!(scene, t; kwargs...)
     end
 end
 
 """
-    draw!(scene::MakieLayout.LScene, trace::LensTrace{T,N}; colorbysourcenum::Bool = false, colorbynhits::Bool = false, kwargs...)
+    draw!(scene::Makie.LScene, trace::LensTrace{T,N}; colorbysourcenum::Bool = false, colorbynhits::Bool = false, kwargs...)
 
 Draw a [`LensTrace`](@ref) as a line which can be colored automatically by its `sourcenum` or `nhits` attributes.
 The alpha is determined by the `power` attribute of `trace`.
 """
-function draw!(scene::MakieLayout.LScene, trace::LensTrace{T,N}; colorbysourcenum::Bool = false, colorbynhits::Bool = false, kwargs...) where {T<:Real,N}
+function draw!(scene::Makie.LScene, trace::LensTrace{T,N}; colorbysourcenum::Bool = false, colorbynhits::Bool = false, kwargs...) where {T<:Real,N}
     if colorbysourcenum
         color = indexedcolor(sourcenum(trace))
     elseif colorbynhits
@@ -559,13 +558,13 @@ function draw!(scene::MakieLayout.LScene, trace::LensTrace{T,N}; colorbysourcenu
 end
 
 """
-    draw!(scene::MakieLayout.LScene, ray::OpticalRay{T,N}; colorbysourcenum::Bool = false, colorbynhits::Bool = false, kwargs...)
+    draw!(scene::Makie.LScene, ray::OpticalRay{T,N}; colorbysourcenum::Bool = false, colorbynhits::Bool = false, kwargs...)
 
 Draw an [`OpticalRay`](@ref) which can be colored automatically by its `sourcenum` or `nhits` attributes.
 The alpha of the ray is determined by the `power` attribute of `ray`.
 `kwargs` are passed to `draw!(scene, ray::Ray)`.
 """
-function draw!(scene::MakieLayout.LScene, r::OpticalRay{T,N}; colorbysourcenum::Bool = false, colorbynhits::Bool = false, kwargs...) where {T<:Real,N}
+function draw!(scene::Makie.LScene, r::OpticalRay{T,N}; colorbysourcenum::Bool = false, colorbynhits::Bool = false, kwargs...) where {T<:Real,N}
     if colorbysourcenum
         color = indexedcolor(sourcenum(r))
     elseif colorbynhits
@@ -577,41 +576,41 @@ function draw!(scene::MakieLayout.LScene, r::OpticalRay{T,N}; colorbysourcenum::
 end
 
 """
-    draw!(scene::MakieLayout.LScene, ray::Ray{T,N}; color = :yellow, rayscale = 1.0, kwargs...)
+    draw!(scene::Makie.LScene, ray::Ray{T,N}; color = :yellow, rayscale = 1.0, kwargs...)
 
 Draw a [`Ray`](@ref) in a given `color` optionally scaling the size using `rayscale`.
 `kwargs` are passed to [`Makie.arrows`](http://makie.juliaplots.org/stable/plotting_functions.html#arrows).
 """
-function draw!(scene::MakieLayout.LScene, ray::AbstractRay{T,N}; color = :yellow, rayscale = 1.0, kwargs...) where {T<:Real,N}
+function draw!(scene::Makie.LScene, ray::AbstractRay{T,N}; color = :yellow, rayscale = 1.0, kwargs...) where {T<:Real,N}
     Makie.arrows!(scene, [Makie.Point3f0(origin(ray))], [Makie.Point3f0(rayscale * direction(ray))]; kwargs..., arrowsize = min(0.05, rayscale * 0.05), arrowcolor = color, linecolor = color, linewidth = 2)
 end
 
 """
-    draw!(scene::MakieLayout.LScene, du::DisjointUnion{T}; kwargs...)
+    draw!(scene::Makie.LScene, du::DisjointUnion{T}; kwargs...)
 
 Draw each [`Interval`](@ref) in a [`DisjointUnion`](@ref).
 """
-function draw!(scene::MakieLayout.LScene, du::DisjointUnion{T}; kwargs...) where {T<:Real}
+function draw!(scene::Makie.LScene, du::DisjointUnion{T}; kwargs...) where {T<:Real}
     draw!(scene, intervals(du); kwargs...)
 end
 
 """
-    draw!(scene::MakieLayout.LScene, intervals::AbstractVector{Interval{T}}; kwargs...)
+    draw!(scene::Makie.LScene, intervals::AbstractVector{Interval{T}}; kwargs...)
 
 Draw a vector of [`Interval`](@ref)s.
 """
-function draw!(scene::MakieLayout.LScene, intervals::AbstractVector{Interval{T}}; kwargs...) where {T<:Real}
+function draw!(scene::Makie.LScene, intervals::AbstractVector{Interval{T}}; kwargs...) where {T<:Real}
     for i in intervals
         draw!(scene, i; kwargs...)
     end
 end
 
 """
-    draw!(scene::MakieLayout.LScene, interval::Interval{T}; kwargs...)
+    draw!(scene::Makie.LScene, interval::Interval{T}; kwargs...)
 
 Draw an [`Interval`](@ref) as a line with circles at each [`Intersection`](@ref) point.
 """
-function draw!(scene::MakieLayout.LScene, interval::Interval{T}; kwargs...) where {T<:Real}
+function draw!(scene::Makie.LScene, interval::Interval{T}; kwargs...) where {T<:Real}
     if !(interval isa EmptyInterval)
         l = lower(interval)
         u = upper(interval)
@@ -632,11 +631,11 @@ function draw!(scene::MakieLayout.LScene, interval::Interval{T}; kwargs...) wher
 end
 
 """
-    draw!(scene::MakieLayout.LScene, intersection::Intersection; normal::Bool = false, kwargs...)
+    draw!(scene::Makie.LScene, intersection::Intersection; normal::Bool = false, kwargs...)
 
 Draw an [`Intersection`](@ref) as a circle, optionally showing the surface normal at the point.
 """
-function draw!(scene::MakieLayout.LScene, intersection::Intersection; normal::Bool = false, kwargs...)
+function draw!(scene::Makie.LScene, intersection::Intersection; normal::Bool = false, kwargs...)
     draw!(scene, point(intersection); kwargs...)
     if normal
         draw!(scene, Ray(point(intersection), normal(intersection)); kwargs...)
@@ -644,41 +643,41 @@ function draw!(scene::MakieLayout.LScene, intersection::Intersection; normal::Bo
 end
 
 """
-    draw!(scene::MakieLayout.LScene, lines::AbstractVector{Tuple{AbstractVector{T},AbstractVector{T}}}; kwargs...)
+    draw!(scene::Makie.LScene, lines::AbstractVector{Tuple{AbstractVector{T},AbstractVector{T}}}; kwargs...)
 
 Draw a vector of lines.
 """
-function draw!(scene::MakieLayout.LScene, lines::AbstractVector{Tuple{P,P}}; kwargs...) where {T<:Real,P<:AbstractVector{T}}
+function draw!(scene::Makie.LScene, lines::AbstractVector{Tuple{P,P}}; kwargs...) where {T<:Real,P<:AbstractVector{T}}
     for l in lines
         draw!(scene, l; kwargs...)
     end
 end
 
 """
-    draw!(scene::MakieLayout.LScene, line::Tuple{AbstractVector{T},AbstractVector{T}}; color = :yellow, kwargs...)
+    draw!(scene::Makie.LScene, line::Tuple{AbstractVector{T},AbstractVector{T}}; color = :yellow, kwargs...)
 
 Draw a line between two points, `kwargs` are passed to [`Makie.linesegments`](http://makie.juliaplots.org/stable/plotting_functions.html#linesegments).
 """
-function draw!(scene::MakieLayout.LScene, line::Tuple{P,P}; color = :yellow, kwargs...) where {T<:Real,P<:AbstractVector{T}}
+function draw!(scene::Makie.LScene, line::Tuple{P,P}; color = :yellow, kwargs...) where {T<:Real,P<:AbstractVector{T}}
     Makie.linesegments!(scene, [line[1], line[2]]; kwargs..., color = color)
 end
 
 """
-    draw!(s::MakieLayout.LScene, point::AbstractVector{T}; kwargs...)
+    draw!(s::Makie.LScene, point::AbstractVector{T}; kwargs...)
 
 Draw a single point, `kwargs` are passed to `draw!(scene, points::AbstractVector{AbstractVector{T}})`.
 """
-function draw!(s::MakieLayout.LScene, point::AbstractVector{T}; kwargs...) where {T<:Real}
+function draw!(s::Makie.LScene, point::AbstractVector{T}; kwargs...) where {T<:Real}
     draw!(s, [point]; kwargs...)
 end
 
 """
-    draw!(scene::MakieLayout.LScene, points::AbstractVector{AbstractVector{T}}; markersize = 20, color = :black, kwargs...)
+    draw!(scene::Makie.LScene, points::AbstractVector{AbstractVector{T}}; markersize = 20, color = :black, kwargs...)
 
 Draw a vector of points.
 `kwargs` are passed to [`Makie.scatter`](http://makie.juliaplots.org/stable/plotting_functions.html#scatter).
 """
-function draw!(scene::MakieLayout.LScene, points::AbstractVector{P}; markersize = 20, color = :black, kwargs...) where {T<:Real,P<:AbstractVector{T}}
+function draw!(scene::Makie.LScene, points::AbstractVector{P}; markersize = 20, color = :black, kwargs...) where {T<:Real,P<:AbstractVector{T}}
     Makie.scatter!(scene, points, markersize = markersize, color = color, strokewidth = 0; kwargs...)
 end
 
