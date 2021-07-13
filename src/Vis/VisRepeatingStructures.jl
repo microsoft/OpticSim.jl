@@ -16,16 +16,17 @@ function drawhex(hexbasis::Repeat.Basis,hexsize,i,j,color)
     offset = Luxor.Point(pt[1],-pt[2]) #flip y so indices show up correctly
     Luxor.translate(offset)
     
-     Luxor.sethue(color)
+    Luxor.sethue(color)
    
     Luxor.poly(hexagon, :fill, close=true)
-    Luxor.sethue("black")
+    Luxor.sethue("grey")
+    # Luxor.setdash("dash")
     Luxor.poly(hexagon, :stroke, close=true)
     Luxor.sethue("black")
     Luxor.circle(Luxor.Point(0,0),2.0,:fill)
     #scale and offset text so coordinates are readable
     Luxor.fontsize(hexsize/3)
-    Luxor.text("$i, $j",Luxor.Point(-hexsize/3,hexsize/9))
+    Luxor.text("$i, $j",Luxor.Point(-hexsize/3,hexsize/2.5))
 
     # arrowlength = hexsize*.5*sqrt(3)/norm(e₁)
     # Luxor.arrow(Luxor.Point(0.0,0.0),arrowlength*Luxor.Point(e₁...))
@@ -38,6 +39,7 @@ end
 function drawhexcells(hexsize,cells, color = nothing)
     if color === nothing
         colors = Colors.distinguishable_colors(length(cells),lchoices = range(40,stop=100,length = 15))
+        println("lencol $(length(colors)) lencells = $(length(cells))")
         for (i,cell) in pairs(cells)
             drawhex(Repeat.HexBasis1(),hexsize,cell[1],cell[2],colors[i])
         end

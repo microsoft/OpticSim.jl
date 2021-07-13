@@ -2,6 +2,7 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # See LICENSE in the project root for full license information.
 
+""" Special type for 2D hexagonal lattices """
 abstract type HexagonalLattice{N,T} <: Basis{N,T} end
 
 const sin60 = .5*sqrt(3)
