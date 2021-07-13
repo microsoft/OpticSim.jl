@@ -24,7 +24,7 @@ a = LatticeBasis([1.0,5.0],[0.0,1.0])
 a[3,3]
 ```
 
-The Lattice points are are defined by a weighted sum of the basis vectors:
+The Lattice points are defined by a weighted sum of the basis vectors:
 ```
 latticepoint = ∑αᵢ*eᵢ
 ```
@@ -45,6 +45,10 @@ There are a few visualization functions for special 2D lattices. [`Vis.drawhexce
 There is also a function to draw the n rings of a cell x, i.e., the cells which can be reached by taking no more than n steps along the lattice from x:
 ```@example example
  using OpticSim
- @svg Vis.drawhexcells(50,Repeat.hexcellsinbox(2,2))
+ @svg Vis.drawhexcells(50,Repeat.neighbors(HexBasis1,(0,0),2))
+ ```
+ You can also draw all the cells contained with an n ring:
+ ```@example example
+ @svg Vis.drawhexcells(50,Repeat.region(HexBasis1,(0,0),2))
  ```
 
