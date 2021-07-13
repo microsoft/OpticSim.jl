@@ -18,7 +18,7 @@ using .Emitters.Sources
 
 const ARRROW_LENGTH = 0.5
 const ARRROW_SIZE = 0.01
-const MARKER_SIZE = 15
+const MARKER_SIZE = 1
 
 
 #-------------------------------------
@@ -39,13 +39,14 @@ function maybe_draw_debug_info(scene::Makie.LScene, o::Origins.AbstractOriginDis
         Makie.scatter!(scene, pos, color=:blue, markersize = MARKER_SIZE * visual_size(o))
 
         # normal
+        arrow_size = ARRROW_SIZE * visual_size(o)
         arrow_start = pos
         arrow_end = dir * ARRROW_LENGTH * visual_size(o) 
-        Makie.arrows!(scene.scene, [Makie.Point3f0(arrow_start)], [Makie.Point3f0(arrow_end)], arrowsize=ARRROW_SIZE * visual_size(o), arrowcolor=:blue)
+        Makie.arrows!(scene.scene, [Makie.Point3f0(arrow_start)], [Makie.Point3f0(arrow_end)], arrowsize=arrow_size, linewidth=arrow_size * 0.5, linecolor=:blue, arrowcolor=:blue)
         arrow_end = uv * 0.5 * ARRROW_LENGTH * visual_size(o) 
-        Makie.arrows!(scene.scene, [Makie.Point3f0(arrow_start)], [Makie.Point3f0(arrow_end)], arrowsize= 0.5 * ARRROW_SIZE * visual_size(o), arrowcolor=:red)
+        Makie.arrows!(scene.scene, [Makie.Point3f0(arrow_start)], [Makie.Point3f0(arrow_end)], arrowsize= 0.5 * arrow_size, linewidth=arrow_size * 0.5, linecolor=:red, arrowcolor=:red)
         arrow_end = vv * 0.5 * ARRROW_LENGTH * visual_size(o) 
-        Makie.arrows!(scene.scene, [Makie.Point3f0(arrow_start)], [Makie.Point3f0(arrow_end)], arrowsize= 0.5 * ARRROW_SIZE * visual_size(o), arrowcolor=:green)
+        Makie.arrows!(scene.scene, [Makie.Point3f0(arrow_start)], [Makie.Point3f0(arrow_end)], arrowsize= 0.5 * arrow_size, linewidth=arrow_size * 0.5, linecolor=:green, arrowcolor=:green)
 
         # draw all the samples origins
         positions = map(x -> transform*x, collect(o))
@@ -122,7 +123,8 @@ function OpticSim.Vis.draw!(scene::Makie.LScene, s::Sources.Source{T}; parent_tr
 
         # Makie.arrows!(scene, [Makie.Point3f0(origin(ray))], [Makie.Point3f0(rayscale * direction(ray))]; kwargs..., arrowsize = min(0.05, rayscale * 0.05), arrowcolor = color, linecolor = color, linewidth = 2)
         color = :yellow
-        Makie.arrows!(scene, m[:,1], m[:,2], m[:,3], m[:,4], m[:,5], m[:,6]; kwargs...,  arrowcolor = color, linecolor = color, linewidth = 2, arrowsize=ARRROW_SIZE * visual_size(s.origins))
+        arrow_size = ARRROW_SIZE * visual_size(s.origins)
+        Makie.arrows!(scene, m[:,1], m[:,2], m[:,3], m[:,4], m[:,5], m[:,6]; kwargs...,  arrowcolor=color, linecolor=color, arrowsize=arrow_size, linewidth=arrow_size*0.5)
     end
 
     # for ray in o
