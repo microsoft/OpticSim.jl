@@ -24,7 +24,7 @@ julia> a[1,2]
 
 Subtypes supporting the Basis interface should implement these functions:
 
-Returns the n neighbors surrounding centerpoint, excluding centerpoint
+Returns the neighbors in ring n surrounding centerpoint, excluding centerpoint
 ```
 neighbors(::Type{B},centerpoint::Tuple{T,T},neighborhoodsize::Int) where{T<:Real,B<:Basis}
 ```
@@ -35,7 +35,7 @@ basis(a::S) where{S<:Basis}
 Returns the vertices of the unit polygon that tiles the plane for the basis
 ```
 tilevertices(a::S) where{S<:Basis}
-````
+```
 """
 abstract type Basis{N,T<:Real} end
 export Basis

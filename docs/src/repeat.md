@@ -1,22 +1,39 @@
 # Repeating Structures
 
-The Repeat module contains functions for creating regular repeated patterns. This could be pixels in a display grid, or mirrors in an active optics telescope.
+The Repeat module contains functions for creating regular repeated patterns. This could be pixels in a display grid, or mirrors in an active optics telescope. 
 
-Patterns are described by a set of lattice vectors. The ([`LatticeBasis`])(@ref sources)) type allows you to create bases in any dimension. The currently defined lattices are all 2D. There are functions for visualizing lattices defined in the visualization package.
+A lattice is described by a set of lattice vectors eᵢ which are stored in a ([`LatticeBasis`])(@ref sources)) object. The ([`LatticeBasis`])(@ref sources)) type allows you to create bases in any dimension. Points in the lattice are indexed by integer coordinates. These lattice coordinates can be converted to Cartesian coordinates by indexing the LatticeBasis object. 
+``` @example example
+using OpticSim, OpticSim.Repeat
+a = LatticeBasis([1.0,0.0],[0.0,1.0]
+a[3,3]
+```
 
+The Lattice points are are defined by a weighted sum of the basis vectors:
+```
+latticepoint = ∑αᵢ*eᵢ
+```
+where the αᵢ are integer weights.
+
+The ([`HexBasis1`])(@ref sources)) defines defines a symmetric basis for hexagonal lattices 
 ```@example example
-Using OpticSim, OpticSim.Repeat
-hexlattice = HexBasis1()
-println(basis(hexlattice))
-println(hexlattice[1,1])
+using OpticSim, OpticSim.Repeat
+basis(HexBasis1())
 ```
+The ([`rectangularlattice`])(@ref sources)) function creates a rectangular lattice basis. 
 
-```@example highlight
-mdparse(@code_string OpticSim.Examples.drawhexregion()) #hide
-```
-```@example example
-using OpticSim, OpticSim.Examples, OpticSim.Repeat; drawhexregion();  #hide
-nothing #hide
-```
 
-![Hex regions visualization](assets/repeat_example_hexregion.png)
+Subtypes supporting the Basis interface should implement these functions:
+
+Returns the neighbors in ring n surrounding centerpoint, excluding centerpoint
+```
+neighbors(::Type{B},centerpoint::Tuple{T,T},neighborhoodsize::Int) where{T<:Real,B<:Basis}
+```
+Returns the lattice basis vectors that define the lattice
+```
+basis(a::S) where{S<:Basis}
+```
+Returns the vertices of the unit polygon for the basis that tiles the plane 
+```
+tilevertices(a::S) where{S<:Basis}
+```

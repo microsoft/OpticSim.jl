@@ -6,14 +6,18 @@
 
 #############################################################################
 
-drawhexneighbors() = Vis.@wrapluxor Vis.drawhexcells(50,Repeat.neighbors(Repeat.HexBasis1,(0,0),2))
+"""draw the 2 neighbors of the hex cell at coordinates (0,0)"""
+drawhexneighbors() =  Luxor.@svg Vis.drawhexcells(50,Repeat.neighbors(Repeat.HexBasis1,(0,0),2))
 export drawneighbors
 
-drawhexregion() = Vis.@wrapluxor Vis.drawhexcells(50,Repeat.region(Repeat.HexBasis1,(0,0),2))
+"""draw hex cell at coordinates (0,0) and the 1 and 2 neighbors"""
+drawhexregion() = Luxor.@svg Vis.drawhexcells(50,Repeat.region(Repeat.HexBasis1,(0,0),2))
 export drawhexregion
 
-drawhexrect() = Vis.@wrapluxor Vis.drawhexcells(50,Repeat.hexcellsinbox(4,4),"yellow")
+"""draw hex cells that fit within a rectangular box centered at coordinates (0,0). Use fill color yellow."""
+drawhexrect() = Luxor.@svg Vis.drawhexcells(50,Repeat.hexcellsinbox(2,2),"yellow")
 export drawhexrect
 
-drawhexrectcolors() = Vis.@wrapluxor Vis.drawhexcells(50,Repeat.hexcellsinbox(4,4))
+"""draw hex cells that fit within a rectangular box centered at coordinates (0,0). Use random fill colors selected for maximum distinguishability."""
+drawhexrectcolors() =  Luxor.@svg Vis.drawhexcells(50,Repeat.hexcellsinbox(4,4))
 export drawhexrectcolors

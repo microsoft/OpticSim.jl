@@ -17,6 +17,7 @@ using Images
 using Unitful
 using Plots
 using LinearAlgebra
+import Luxor
 
 include("docs_examples.jl")
 include("other_examples.jl")
