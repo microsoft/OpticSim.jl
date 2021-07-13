@@ -15,10 +15,14 @@ function drawhex(hexbasis::Repeat.Basis,hexsize,i,j,color)
     pt = hexsize*hexbasis[i,j]
     offset = Luxor.Point(pt[1],-pt[2]) #flip y so indices show up correctly
     Luxor.translate(offset)
-    Luxor.sethue(color)
+    
+     Luxor.sethue(color)
+   
     Luxor.poly(hexagon, :fill, close=true)
     Luxor.sethue("black")
     Luxor.poly(hexagon, :stroke, close=true)
+    Luxor.sethue("black")
+    Luxor.circle(Luxor.Point(0,0),2.0,:fill)
     #scale and offset text so coordinates are readable
     Luxor.fontsize(hexsize/3)
     Luxor.text("$i, $j",Luxor.Point(-hexsize/3,hexsize/9))
@@ -43,6 +47,18 @@ function drawhexcells(hexsize,cells, color = nothing)
         end
     end
 end
+
+function draw(lattice::Repeat.Basis, scale = 50.0)
+    Luxor.
+    Luxor.sethue("black")
+    pt = scale*lattice[i,j]
+    offset = Luxor.Point(pt[1],-pt[2]) #flip y so indices show up correctly
+    luxor.circle(offset,scale*.1,:fill)
+     #scale and offset text so coordinates are readable
+     Luxor.fontsize(scale/3)
+     Luxor.text("$i, $j",Luxor.Point(-scale/3,scale/9))
+end
+export draw
 
 macro wrapluxor(f)
     return :(Luxor.@draw begin

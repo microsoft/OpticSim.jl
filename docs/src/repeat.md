@@ -5,7 +5,7 @@ The Repeat module contains functions for creating regular repeated patterns. Thi
 A lattice is described by a set of lattice vectors eᵢ which are stored in a ([`LatticeBasis`])(@ref sources)) object. The ([`LatticeBasis`])(@ref sources)) type allows you to create bases in any dimension. Points in the lattice are indexed by integer coordinates. These lattice coordinates can be converted to Cartesian coordinates by indexing the LatticeBasis object. 
 ``` @example example
 using OpticSim, OpticSim.Repeat
-a = LatticeBasis([1.0,0.0],[0.0,1.0]
+a = LatticeBasis([1.0,5.0],[0.0,1.0])
 a[3,3]
 ```
 
@@ -15,7 +15,7 @@ latticepoint = ∑αᵢ*eᵢ
 ```
 where the αᵢ are integer weights.
 
-The ([`HexBasis1`])(@ref sources)) defines defines a symmetric basis for hexagonal lattices 
+The ([`HexBasis1`])(@ref sources)) constructor defines a symmetric basis for hexagonal lattices 
 ```@example example
 using OpticSim, OpticSim.Repeat
 basis(HexBasis1())
