@@ -15,7 +15,7 @@ println(hexlattice[1,1])
 mdparse(@code_string OpticSim.Examples.drawhexregion()) #hide
 ```
 ```@example example
-using OpticSim, OpticSim.Examples, OpticSim.Repeat; drawhexregion(); Vis.save("assets/repeat_example_hexregion.png") #hide
+using OpticSim, OpticSim.Examples, OpticSim.Repeat; drawhexregion();  #hide
 nothing #hide
 ```
 
