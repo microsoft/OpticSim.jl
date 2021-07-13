@@ -87,7 +87,7 @@ end
 export region
 
 """Returns all hex cells contained in the ring of size n centered around centerpoint. Use region if you want all the cells contained in the ring of size n."""
-function neighbors(::Type{HexBasis1}, centerpoint::Tuple{Int64,Int64},n) where{T}
+function neighbors(::Type{HexBasis1}, centerpoint::Tuple{Int64,Int64},n::Int) where{T}
     temp = MVector{n*6,Tuple{Int64,Int64}}(undef)
     hoffsets = ringoffsets(Val{n})
     latticepoint = centerpoint .+ n .* (hexdown())
