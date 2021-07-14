@@ -51,7 +51,7 @@ There is also a function to compute the n rings of a cell x, i.e., the cells whi
  @svg Vis.drawhexcells(50,Repeat.neighbors(Repeat.HexBasis1,(0,0),2))
  ```
  
- You can also draw all the cells contained with an n ring:
+ You can also draw all the cells contained within an n ring:
  
  ```@example 
  using Opticsim, Luxor
