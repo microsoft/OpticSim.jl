@@ -36,16 +36,15 @@ function drawhex(hexbasis::Repeat.Basis,hexsize,i,j,color)
     Luxor.translate(-offset)
 end
 
-function drawhexcells(hexsize,cells, color = nothing)
+function drawhexcells(hexsize,cells, color::Union{AbstractArray,Nothing} = nothing)
     if color === nothing
-        colors = Colors.distinguishable_colors(length(cells),lchoices = range(40,stop=100,length = 15))
-        println("lencol $(length(colors)) lencells = $(length(cells))")
-        for (i,cell) in pairs(cells)
-            drawhex(Repeat.HexBasis1(),hexsize,cell[1],cell[2],colors[i])
+        distcolors = Colors.distinguishable_colors(length(cells),lchoices = range(40,stop=100,length = 15))
+            for (i,cell) in pairs(cells)
+            drawhex(Repeat.HexBasis1(),hexsize,cell[1],cell[2],distcolors[i])
         end
     else
-        for cell in cells
-            drawhex(Repeat.HexBasis1(),hexsize,cell[1],cell[2],color)
+        for (i,cell) in pairs(cells)
+            drawhex(Repeat.HexBasis1(),hexsize,cell[1],cell[2],color[i])
         end
     end
 end
