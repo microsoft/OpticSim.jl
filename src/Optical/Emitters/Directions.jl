@@ -9,6 +9,7 @@ using ....OpticSim
 using ...Emitters
 using ...Geometry
 using LinearAlgebra
+using Random
 
 abstract type AbstractDirectionDistribution{T<:Real} end
 
@@ -110,15 +111,16 @@ struct UniformCone{T} <: AbstractDirectionDistribution{T}
     numsamples::Int64
     uvec::Vec3{T}
     vvec::Vec3{T}
+    rng::Random.AbstractRNG
 
-    function UniformCone(direction::Vec3{T}, θmax::T, numsamples::Int64) where {T<:Real}
+    function UniformCone(direction::Vec3{T}, θmax::T, numsamples::Int64; rng=Random.GLOBAL_RNG) where {T<:Real}
         (uvec, vvec) = get_orthogonal_vectors(direction)
-        return new{T}(direction, θmax, numsamples, uvec, vvec)
+        return new{T}(direction, θmax, numsamples, uvec, vvec, rng)
     end
 
-    function UniformCone(θmax::T, numsamples::Int64) where {T<:Real}
+    function UniformCone(θmax::T, numsamples::Int64; rng=Random.GLOBAL_RNG) where {T<:Real}
         direction = unitZ3(T)
-        return UniformCone(direction, θmax, numsamples)
+        return UniformCone(direction, θmax, numsamples, rng=rng)
     end
 end
 
@@ -129,8 +131,8 @@ function Emitters.generate(d::UniformCone{T}, ::Int64) where {T<:Real}
     uvec = d.uvec
     vvec = d.vvec
 
-    ϕ = rand(T) * 2π
-    θ = acos(clamp(one(T) + rand(T) * (cos(θmax) - 1), -one(T), one(T)))
+    ϕ = rand(d.rng, T) * 2π
+    θ = acos(clamp(one(T) + rand(d.rng, T) * (cos(θmax) - 1), -one(T), one(T)))
     return normalize(sin(θ) * (cos(ϕ) * uvec + sin(ϕ) * vvec) + cos(θ) * direction)
 end
 
