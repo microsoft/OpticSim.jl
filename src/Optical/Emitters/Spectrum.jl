@@ -11,6 +11,7 @@ using DataFrames: DataFrame
 using Distributions
 import Unitful: Length, ustrip
 using Unitful.DefaultSymbols
+using Random
 
 const UNIFORMSHORT = 0.450 #um
 const UNIFORMLONG = 0.680 #um
@@ -30,19 +31,20 @@ Uniform(::Type{T} = Float64) where {T<:Real}
 struct Uniform{T} <: AbstractSpectrum{T}
     low_end::T
     high_end::T 
+    rng::Random.AbstractRNG
 
     # user defined range of spectrum
-    function Uniform(low_end::T, high_end::T) where {T<:Real}
-        return new{T}(low_end, high_end)
+    function Uniform(low_end::T, high_end::T; rng=Random.GLOBAL_RNG) where {T<:Real}
+        return new{T}(low_end, high_end, rng)
     end
 
     # with no specific range we will use the constants' values
-    function Uniform(::Type{T} = Float64) where {T<:Real}
-        return new{T}(UNIFORMSHORT, UNIFORMLONG)
+    function Uniform(::Type{T} = Float64; rng=Random.GLOBAL_RNG) where {T<:Real}
+        return new{T}(UNIFORMSHORT, UNIFORMLONG, rng)
     end
 end
 
-Emitters.generate(s::Uniform{T}) where {T<:Real} = (one(T), rand(Distributions.Uniform(s.low_end, s.high_end)))
+Emitters.generate(s::Uniform{T}) where {T<:Real} = (one(T), rand(s.rng, Distributions.Uniform(s.low_end, s.high_end)))
 
 """
     DeltaFunction{T} <: AbstractSpectrum{T}
