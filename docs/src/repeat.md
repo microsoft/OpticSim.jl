@@ -54,7 +54,7 @@ There is also a function to compute the n rings of a cell x, i.e., the cells whi
  You can also draw all the cells contained within an n ring:
  
  ```@example 
- using Opticsim, Luxor
+ using OpticSim, Luxor
  @svg Vis.drawhexcells(50,Repeat.region(Repeat.HexBasis1,(0,0),2))
  ```
 

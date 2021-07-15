@@ -37,6 +37,7 @@ function drawhex(hexbasis::Repeat.Basis,hexsize,i,j,color)
 end
 
 function drawhexcells(hexsize,cells, color::Union{AbstractArray,Nothing} = nothing)
+    Luxor.Drawing(500, 500, :svg)
     if color === nothing
         distcolors = Colors.distinguishable_colors(length(cells),lchoices = range(40,stop=100,length = 15))
             for (i,cell) in pairs(cells)
@@ -47,10 +48,10 @@ function drawhexcells(hexsize,cells, color::Union{AbstractArray,Nothing} = nothi
             drawhex(Repeat.HexBasis1(),hexsize,cell[1],cell[2],color[i])
         end
     end
+    Luxor.finish()
 end
 
 function draw(lattice::Repeat.Basis, scale = 50.0)
-    Luxor.
     Luxor.sethue("black")
     pt = scale*lattice[i,j]
     offset = Luxor.Point(pt[1],-pt[2]) #flip y so indices show up correctly
@@ -61,12 +62,3 @@ function draw(lattice::Repeat.Basis, scale = 50.0)
 end
 export draw
 
-macro wrapluxor(f)
-    return :(Luxor.@draw begin
-        $f
-    end 1000 1000)
-end
-export @wrapluxor
-
-
-function drawhexring() end
