@@ -36,8 +36,9 @@ function drawhex(hexbasis::Repeat.Basis,hexsize,i,j,color)
     Luxor.translate(-offset)
 end
 
-function drawhexcells(hexsize,cells, color::Union{AbstractArray,Nothing} = nothing)
-    Luxor.Drawing(500, 500, :svg)
+function drawhexcells(hexsize,cells, color::Union{AbstractArray,Nothing} = nothing; format=:png)
+    Luxor.Drawing(500, 500, format)
+    Luxor.origin()
     if color === nothing
         distcolors = Colors.distinguishable_colors(length(cells),lchoices = range(40,stop=100,length = 15))
             for (i,cell) in pairs(cells)
@@ -48,7 +49,14 @@ function drawhexcells(hexsize,cells, color::Union{AbstractArray,Nothing} = nothi
             drawhex(Repeat.HexBasis1(),hexsize,cell[1],cell[2],color[i])
         end
     end
+    if (format == :png)
+        res = RGB.(Luxor.image_as_matrix())
+    end
     Luxor.finish()
+    if (format == :svg)
+        res = Luxor.svgstring()
+    end
+    return res
 end
 
 function draw(lattice::Repeat.Basis, scale = 50.0)

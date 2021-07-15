@@ -40,21 +40,24 @@ The [`rectangularlattice`](@ref sources) function creates a rectangular lattice 
 There are a few visualization functions for special 2D lattices. [`Vis.drawhexcells`](@ref sources) draws a set of hexagonal cells. Using [`Repeat.hexcellsinbox`](@ref sources) we can draw all the hexagonal cells that fit in a rectangular box:
 
 ```@example 
- using OpticSim, Luxor
- @svg Vis.drawhexcells(50,Repeat.hexcellsinbox(2,2))
+using OpticSim
+Vis.drawhexcells(50,Repeat.hexcellsinbox(2,2))
+HTML(Vis.drawhexcells(50,Repeat.hexcellsinbox(2,2), format=:svg)) #hide
 ```
 
 There is also a function to compute the n rings of a cell x, i.e., the cells which can be reached by taking no more than n steps along the lattice from x:
 
 ```@example 
- using OpticSim, Luxor
- @svg Vis.drawhexcells(50,Repeat.neighbors(Repeat.HexBasis1,(0,0),2))
- ```
+using OpticSim
+Vis.drawhexcells(50,Repeat.neighbors(Repeat.HexBasis1,(0,0),2))
+HTML(Vis.drawhexcells(50,Repeat.neighbors(Repeat.HexBasis1,(0,0),2), format=:svg)) #hide
+```
  
- You can also draw all the cells contained within an n ring:
+You can also draw all the cells contained within an n ring:
  
- ```@example 
- using OpticSim, Luxor
- @svg Vis.drawhexcells(50,Repeat.region(Repeat.HexBasis1,(0,0),2))
- ```
+```@example 
+using OpticSim
+Vis.drawhexcells(50,Repeat.region(Repeat.HexBasis1,(0,0),2))
+HTML(Vis.drawhexcells(50,Repeat.region(Repeat.HexBasis1,(0,0),2), format=:svg)) #hide
+```
 
