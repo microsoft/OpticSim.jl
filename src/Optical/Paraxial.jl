@@ -25,6 +25,9 @@ struct ParaxialLens{T} <: Surface{T}
     end
 end
 
+opticalcenter(a::ParaxialLens) = opticalcenter(a.interface)
+
+
 function ParaxialLensRect(focaldistance::T, halfsizeu::T, halfsizev::T, surfacenormal::AbstractArray{T,1}, centrepoint::AbstractArray{T,1}; rotationvec::AbstractArray{T,1} = SVector{3,T}(0.0, 1.0, 0.0), outsidematerial::OpticSim.GlassCat.AbstractGlass = OpticSim.GlassCat.Air, decenteruv::Tuple{T,T} = (zero(T), zero(T))) where {T<:Real}
     @assert length(surfacenormal) == 3 && length(centrepoint) == 3
     return ParaxialLensRect(focaldistance, halfsizeu, halfsizev, SVector{3,T}(surfacenormal), SVector{3,T}(centrepoint), rotationvec = SVector{3,T}(rotationvec), outsidematerial = outsidematerial, decenteruv = decenteruv)
