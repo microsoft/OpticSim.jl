@@ -28,3 +28,11 @@ function project(coordinateframe::Geometry.Transform{T},points::Vector{V}) where
     return map((x)-> SVector{2,T}(x[1],x[2]),result)
 end
 export project
+
+function virtualimagedistance(lens::ParaxialLens, pixelposition::AbstractVector)
+    fl = focallength(lens)
+    normal = normal(a)
+
+end
+
+function beamenergy()
