@@ -30,6 +30,10 @@ export opticalcenter
 focallength(a::ParaxialLens) = focallength(a.interface)
 export focallength
 
+"""computes the virtual point position corresponding to the input `point`, or returns nothing for points at infinity. `point` is specified in the local coordinate frame of the ParaxialLens"""
+function virtualpoint(a::ParaxialLens, point::AbstractVector) 
+
+end
 
 function ParaxialLensRect(focaldistance::T, halfsizeu::T, halfsizev::T, surfacenormal::AbstractArray{T,1}, centrepoint::AbstractArray{T,1}; rotationvec::AbstractArray{T,1} = SVector{3,T}(0.0, 1.0, 0.0), outsidematerial::OpticSim.GlassCat.AbstractGlass = OpticSim.GlassCat.Air, decenteruv::Tuple{T,T} = (zero(T), zero(T))) where {T<:Real}
     @assert length(surfacenormal) == 3 && length(centrepoint) == 3
@@ -80,11 +84,14 @@ uv(r::ParaxialLens{T}, x::T, y::T, z::T) where {T<:Real} = uv(r, SVector{3,T}(x,
 uv(r::ParaxialLens{T}, p::SVector{3,T}) where {T<:Real} = uv(r.shape, p)
 
 function surfaceintersection(l::ParaxialLens{T}, r::AbstractRay{T,3}) where {T<:Real}
+    #this code seems unnecessary. If the ParaxialInterface is stored in the shape instead of the ParaxialLens then can do this: 
+    #surfaceintersection(l::ParaxialLens....) = surfaceintersection(l.shape). Should be much faster than this code.
     itvl = surfaceintersection(l.shape, r)
     if itvl isa EmptyInterval{T}
         return EmptyInterval(T)
     else
         intsct = halfspaceintersection(itvl)
+        println(intsct)
         u, v = uv(intsct)
         intsct = Intersection(α(intsct), point(intsct), normal(intsct), u, v, interface(l), flippednormal = flippednormal(intsct))
         return positivehalfspace(intsct)

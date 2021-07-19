@@ -36,3 +36,4 @@ function virtualimagedistance(lens::ParaxialLens, pixelposition::AbstractVector)
 end
 
 function beamenergy()
+end
