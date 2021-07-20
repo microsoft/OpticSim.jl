@@ -30,10 +30,29 @@ export opticalcenter
 focallength(a::ParaxialLens) = focallength(a.interface)
 export focallength
 
-"""computes the virtual point position corresponding to the input `point`, or returns nothing for points at infinity. `point` is specified in the local coordinate frame of the ParaxialLens"""
-function virtualpoint(a::ParaxialLens, point::AbstractVector) 
+distancefromplane(lens::ParaxialLens,point::AbstractVector) = distancefromplane(lens.shape,point)
 
+"""returns the virtual distance of the point from the lens plane. Assumes that |distance| < focallength. When |distance| == focallength then virtualdistance = ∞"""
+function virtualdistance(focallength,distance)
+    @assert abs(distance) < focallength
+    distance*focallength/(focallength-distance)
 end
+
+"""computes the virtual point position corresponding to the input `point`, or returns nothing for points at infinity. `point` is specified in the local coordinate frame of the ParaxialLens"""
+function virtualpoint(lens::ParaxialLens{T}, point::AbstractVector{T}) where{T}
+    fl = focallength(lens)
+    oc = opticalcenter(lens)
+    distance = distancefromplane(lens,point)
+    if distance == focallength(lens) 
+        return T(Inf)
+    end
+    vdistance = virtualdistance(focallength(lens),distance)
+    println(vdistance)
+    point_oc = point - oc
+    scale = vdistance/distance
+    return oc + scale .* (point_oc)
+end
+export virtualpoint
 
 function ParaxialLensRect(focaldistance::T, halfsizeu::T, halfsizev::T, surfacenormal::AbstractArray{T,1}, centrepoint::AbstractArray{T,1}; rotationvec::AbstractArray{T,1} = SVector{3,T}(0.0, 1.0, 0.0), outsidematerial::OpticSim.GlassCat.AbstractGlass = OpticSim.GlassCat.Air, decenteruv::Tuple{T,T} = (zero(T), zero(T))) where {T<:Real}
     @assert length(surfacenormal) == 3 && length(centrepoint) == 3

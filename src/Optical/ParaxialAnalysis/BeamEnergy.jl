@@ -17,7 +17,7 @@ struct LensCoordinateFrame{T<:Real}
         #create local coordinate frame where n̂ is the z axis
        xaxis,yaxis = Geometry.get_orthogonal_vectors(n̂)
         Geometry.Transform()
-        return new{T}(lens,Geometry.Transform(xaxis,yaxis,n̂,optcenter))
+        return new{T}(lens,Geometry.Transform(xaxis,yaxis,n̂,optcenter)) #need to make sure this is a right handed system)
     end
 end
 export LensCoordinateFrame
@@ -29,11 +29,7 @@ function project(coordinateframe::Geometry.Transform{T},points::Vector{V}) where
 end
 export project
 
-function virtualimagedistance(lens::ParaxialLens, pixelposition::AbstractVector)
-    fl = focallength(lens)
-    normal = normal(a)
 
-end
 
 function beamenergy()
 end

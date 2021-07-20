@@ -15,7 +15,7 @@ Hexagon(side_length::T, [surfacenormal::SVector{3,T}, centrepoint::SVector{3,T}]
 
 The minimal case returns a rectangle centered at the origin with `surfacenormal = [0, 0, 1]`.
 """
-struct Hexagon{T} <: Surface{T}
+struct Hexagon{T} <: PlanarShapes{T}
     plane::Plane{T,3}
     side_length::T
     uvec::SVector{3,T}

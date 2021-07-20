@@ -86,6 +86,7 @@ outsidematerialid(a::ParaxialInterface{T}) where {T<:Real} = a.outsidematerial
 reflectance(::ParaxialInterface{T}) where {T<:Real} = zero(T)
 transmission(::ParaxialInterface{T}) where {T<:Real} = one(T)
 opticalcenter(a::ParaxialInterface) = a.centroid
+focallength(a::ParaxialInterface) = a.focallength
 
 ######################################################################
 

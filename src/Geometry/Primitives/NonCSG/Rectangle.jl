@@ -17,7 +17,7 @@ Rectangle(halfsizeu::T, halfsizev::T, [surfacenormal::SVector{3,T}, centrepoint:
 
 The minimal case returns a rectangle centered at the origin with `surfacenormal = [0, 0, 1]`.
 """
-struct Rectangle{T} <: Surface{T}
+struct Rectangle{T} <: PlanarShapes{T}
     plane::Plane{T,3}
     halfsizeu::T
     halfsizev::T
@@ -66,6 +66,8 @@ partials(r::Rectangle{T}, ::T, ::T) where {T<:Real} = r.halfsizeu * r.uvec, r.ha
 uv(r::Rectangle{T}, p::SVector{3,T}) where {T<:Real} = SVector{2,T}(dot(p - centroid(r), r.uvec) / r.halfsizeu, dot(p - centroid(r), r.vvec) / r.halfsizev)
 
 onsurface(a::Rectangle{T}, point::SVector{3,T}) where {T<:Real} = onsurface(a.plane, point) && abs(uv(a, point)[1]) <= one(T) && abs(uv(a, point)[2]) <= one(T)
+
+
 
 """
     uvtopix(surf::Surface{T}, uv::SVector{2,T}, imsize::Tuple{Int,Int}) -> Tuple{Int,Int}
