@@ -42,7 +42,6 @@ There are a few visualization functions for special 2D lattices. [`Vis.drawhexce
 ```@example 
 using OpticSim
 Vis.drawhexcells(50,Repeat.hexcellsinbox(2,2))
-HTML(Vis.drawhexcells(50,Repeat.hexcellsinbox(2,2), format=:svg)) #hide
 ```
 
 There is also a function to compute the n rings of a cell x, i.e., the cells which can be reached by taking no more than n steps along the lattice from x:
@@ -50,7 +49,6 @@ There is also a function to compute the n rings of a cell x, i.e., the cells whi
 ```@example 
 using OpticSim
 Vis.drawhexcells(50,Repeat.neighbors(Repeat.HexBasis1,(0,0),2))
-HTML(Vis.drawhexcells(50,Repeat.neighbors(Repeat.HexBasis1,(0,0),2), format=:svg)) #hide
 ```
  
 You can also draw all the cells contained within an n ring:
@@ -58,6 +56,5 @@ You can also draw all the cells contained within an n ring:
 ```@example 
 using OpticSim
 Vis.drawhexcells(50,Repeat.region(Repeat.HexBasis1,(0,0),2))
-HTML(Vis.drawhexcells(50,Repeat.region(Repeat.HexBasis1,(0,0),2), format=:svg)) #hide
 ```
 
