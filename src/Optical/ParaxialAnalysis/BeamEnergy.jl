@@ -29,6 +29,9 @@ function project(coordinateframe::Geometry.Transform{T},points::Vector{V}) where
 end
 export project
 
+function beam(lens::ParaxialLens,point::AbstractVector)
+    
+end
 
 
 function beamenergy()

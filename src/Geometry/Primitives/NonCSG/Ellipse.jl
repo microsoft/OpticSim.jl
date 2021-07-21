@@ -15,7 +15,7 @@ The rotation of the rectangle around its normal is defined by `rotationvec`.
 Ellipse(halfsizeu::T, halfsizev::T, [surfacenormal::SVector{3,T}, centrepoint::SVector{3,T}]; interface::NullOrFresnel{T} = nullinterface(T))
 ```
 
-The minimal case returns a ellipse centered at the origin with `surfacenormal = [0, 0, 1]`.
+The minimal case returns an ellipse centered at the origin with `surfacenormal = [0, 0, 1]`.
 """
 struct Ellipse{T} <: PlanarShapes{T}
     plane::Plane{T,3}
