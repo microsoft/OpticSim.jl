@@ -2,22 +2,6 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # See LICENSE in the project root for full license information.
 
-using ..OpticSim
-using ..OpticSim: euclideancontrolpoints, evalcsg, vertex, makiemesh, detector, centroid, lower, upper, intervals, α
-using ..OpticSim.Geometry
-
-using Unitful
-using ImageView
-using Images
-using ColorTypes
-using ColorSchemes
-using StaticArrays
-using LinearAlgebra
-import Makie
-import GeometryBasics
-import Plots
-import Luxor
-using FileIO
 
 #############################################################################
 
@@ -75,14 +59,27 @@ end
 # the second case draws the object in an existing scene, draw!(obj) can also be used to draw the object in the current scene
 
 global current_main_scene = nothing
+global current_layout_scene = nothing
 global current_3d_scene = nothing
+global current_mode = nothing           # modes:    nothing, :default  -> Original Vis beheviour    
+                                        #           :pluto             -> support pluto notebooks 
+                                        #           :docs              -> support documenter figures 
 
 # added the following 2 functions to allow us to hack the drawing mechanisim while in a pluto notebook
 set_current_main_scene(scene) = (global current_main_scene = scene)
 set_current_3d_scene(lscene) = (global current_3d_scene = lscene)
 
+get_current_mode() = begin global current_mode; return current_mode end
+set_current_mode(mode) = (global current_mode = mode)
+
 show(image) = imshow(image)
-display(scene = current_main_scene) = Makie.display(scene)
+display(scene = current_main_scene) = begin 
+    global current_mode; 
+    if (get_current_mode() == :pluto || get_current_mode() == :docs)
+        return scene
+    end
+    Makie.display(scene)
+end
 
 """
     scene(resolution = (1000, 1000))
@@ -94,8 +91,14 @@ function scene(resolution = (1000, 1000))
 
     scene, layout = Makie.layoutscene(resolution = resolution)
     global current_main_scene = scene
+    global current_layout_scene = layout
     lscene = layout[1, 1] = Makie.LScene(scene, scenekw = (camera = Makie.cam3d_cad!, axis_type = Makie.axis3d!, raw = false))
     global current_3d_scene = lscene
+
+    # in these modes we want to skip the creation of the utility buttons as these modes are not interactive
+    if (get_current_mode() == :pluto || get_current_mode() == :docs)
+        return scene, lscene
+    end
 
     threedbutton = Makie.Button(scene, label = "3D", buttoncolor = RGB(0.8, 0.8, 0.8), height = 40, width = 80)
     twodxbutton = Makie.Button(scene, label = "2D-x", buttoncolor = RGB(0.8, 0.8, 0.8), height = 40, width = 80)
@@ -149,13 +152,22 @@ function make2dy(scene::Makie.LScene = current_3d_scene)
     s = scene.scene
     # use 2d camera
     Makie.cam2d!(s)
+
+    scene_transform = Makie.qrotation(Makie.Vec3f0(0, 1, 0), 0.5pi)
+    scene_transform_inv = Makie.qrotation(Makie.Vec3f0(0, 1, 0), -0.5pi)    # to use with the ticks and names
+
     # set rotation to look onto yz plane
-    s.transformation.rotation[] = Makie.qrotation(Makie.Vec3f0(0, 1, 0), 0.5pi)
+    s.transformation.rotation[] = scene_transform
     # hide x ticks
-    s[Makie.OldAxis].attributes.showticks[] = (false, true, true)
+
+    # there is a bug in Makie 0.14.2 which cause an exception setting the X showticks to false. 
+    # we work wround it by making sure the labels we want to turn off are ortogonal to the view direction 
+    # s[Makie.OldAxis].attributes.showticks[] = (false, true, true)
+    s[Makie.OldAxis].attributes.showticks[] = (true, true, true)
+
     # set tick and axis label rotation and position
-    s[Makie.OldAxis].attributes.ticks.rotation[] = (0.0, 0.0, 0.0)
-    s[Makie.OldAxis].attributes.names.rotation[] = (0.0, 0.0, 0.0)
+    s[Makie.OldAxis].attributes.ticks.rotation[] = (0.0, scene_transform_inv, scene_transform_inv)
+    s[Makie.OldAxis].attributes.names.rotation[] = s[Makie.OldAxis].attributes.ticks.rotation[]
     s[Makie.OldAxis].attributes.ticks.align = ((:right, :center), (:right, :center), (:center, :right))
     s[Makie.OldAxis].attributes.names.align = ((:left, :center), (:left, :center), (:center, :left))
     # update the scene limits automatically to get true reference values
@@ -173,13 +185,21 @@ function make2dx(scene::Makie.LScene = current_3d_scene)
     s = scene.scene
     # use 2d camera
     Makie.cam2d!(s)
+
+    scene_transform= Makie.qrotation(Makie.Vec3f0(0, 0, 1), 0.5pi) * Makie.qrotation(Makie.Vec3f0(1, 0, 0), 0.5pi)
+    scene_transform_inv=Makie.qrotation(Makie.Vec3f0(1, 0, 0), -0.5pi) * Makie.qrotation(Makie.Vec3f0(0, 0, 1), -0.5pi) 
+
     # set rotation to look onto yz plane
-    s.transformation.rotation[] = Makie.Quaternion(0.5, 0.5, 0.5, 0.5)
+    s.transformation.rotation[] = scene_transform
     # hide y ticks
+
+    # there is a bug in Makie 0.14.2 which cause an exception setting the X showticks to false. 
+    # we work wround it by making sure the labels we want to turn off are ortogonal to the view direction 
     s[Makie.OldAxis].attributes.showticks[] = (true, false, true)
+
     # set tick and axis label rotation and position
-    s[Makie.OldAxis].attributes.ticks.rotation[] = (0.0, 0.0, 0.0)
-    s[Makie.OldAxis].attributes.names.rotation[] = (0.0, 0.0, 0.0)
+    s[Makie.OldAxis].attributes.ticks.rotation[] = (scene_transform_inv, 0.0, scene_transform_inv)
+    s[Makie.OldAxis].attributes.names.rotation[] = s[Makie.OldAxis].attributes.ticks.rotation[]
     s[Makie.OldAxis].attributes.ticks.align = ((:right, :center), (:right, :center), (:center, :center))
     s[Makie.OldAxis].attributes.names.align = ((:left, :center), (:right, :center), (:center, :center))
     # update the scene limits automatically to get true reference values
@@ -203,6 +223,10 @@ function draw(ob; resolution = (1000, 1000), kwargs...)
     scene, lscene = Vis.scene(resolution)
     draw!(lscene, ob; kwargs...)
     display(scene)
+
+    if (get_current_mode() == :pluto || get_current_mode() == :docs)
+        return scene
+    end
 end
 
 """
@@ -220,6 +244,10 @@ function draw!(ob; kwargs...)
     end
     draw!(lscene, ob; kwargs...)
     display(scene)
+
+    if (get_current_mode() == :pluto || get_current_mode() == :docs)
+        return scene
+    end
 end
 
 """
@@ -378,6 +406,9 @@ function draw(meshes::Vararg{S}; kwargs...) where {T<:Real,S<:Union{TriangleMesh
     scene, lscene = Vis.scene()
     draw!(lscene, meshes...; kwargs...)
     Makie.display(scene)
+    if (get_current_mode() == :pluto || get_current_mode() == :docs)
+        return scene
+    end
 end
 
 """
@@ -452,6 +483,9 @@ function drawtracerays(system::Q; raygenerator::S = Source(transform = translati
     drawtracerays!(ls, system, raygenerator = raygenerator, test = test, colorbysourcenum = colorbysourcenum, colorbynhits = colorbynhits, rayfilter = rayfilter, trackallrays = trackallrays, verbose = verbose, drawsys = true, drawgen = true; kwargs...)
 
     display(s)
+    if (get_current_mode() == :pluto || get_current_mode() == :docs)
+        return s
+    end
 end
 
 drawtracerays!(system::Q; kwargs...) where {T<:Real,Q<:AbstractOpticalSystem{T}} = drawtracerays!(current_3d_scene, system; kwargs...)
@@ -582,7 +616,8 @@ Draw a [`Ray`](@ref) in a given `color` optionally scaling the size using `raysc
 `kwargs` are passed to [`Makie.arrows`](http://makie.juliaplots.org/stable/plotting_functions.html#arrows).
 """
 function draw!(scene::Makie.LScene, ray::AbstractRay{T,N}; color = :yellow, rayscale = 1.0, kwargs...) where {T<:Real,N}
-    Makie.arrows!(scene, [Makie.Point3f0(origin(ray))], [Makie.Point3f0(rayscale * direction(ray))]; kwargs..., arrowsize = min(0.05, rayscale * 0.05), arrowcolor = color, linecolor = color, linewidth = 2)
+    arrow_size = min(0.05, rayscale * 0.05)
+    Makie.arrows!(scene, [Makie.Point3f0(origin(ray))], [Makie.Point3f0(rayscale * direction(ray))]; kwargs..., arrowsize = arrow_size, arrowcolor = color, linecolor = color, linewidth=arrow_size * 0.5)
 end
 
 """

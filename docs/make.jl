@@ -4,6 +4,11 @@
 
 using Documenter
 using OpticSim
+import Makie
+
+# override certain functions to allow production of interactive figures
+OpticSim.Vis.set_current_mode(:docs)
+
 
 makedocs(
     sitename = "OpticSim.jl",
@@ -18,7 +23,8 @@ makedocs(
         "Geometry" => [
             "Basic Types" => "basic_types.md",
             "Primitives" => "primitives.md",
-            "CSG" => "csg.md"
+            "CSG" => "csg.md",
+            "Repeating Structures" => "repeat.md"
         ],
         "Optical" => [
             "Systems" => "systems.md",
