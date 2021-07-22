@@ -85,7 +85,15 @@ function area(poly::SphericalPolygon{T,N}) where{T<:Real,N}
         accum += acos(poly.ptvectors[i]⋅centroid)
     end
     accum *= 2
-    return (accum + 2π - N*π)*poly.radius^2
+
+    for i in 1:N-1
+        temp = acos(poly.ptvectors[i]⋅poly.ptvectors[i+1])
+        println(temp)
+        accum  += acos(poly.ptvectors[i]⋅poly.ptvectors[i+1]) #add the spherical angles between the vertices
+    end
+    accum += acos(poly.ptvectors[N]⋅poly.ptvectors[1]) #add in last spherical angle between the vertices.
+
+    return (accum - N*π)*poly.radius^2
 end
 
 typetest(poly::SphericalPolygon{T,N}) where{T<:Real,N} = T(0)
