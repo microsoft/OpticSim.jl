@@ -4,8 +4,11 @@
 
 module ParaxialAnalysis
 
+using StaticArrays: promote_tuple_eltype
 using ..OpticSim
 using ..OpticSim.Geometry
+using StaticArrays
+using LinearAlgebra
 
 include("BeamEnergy.jl")
 
