@@ -85,7 +85,7 @@ function area(poly::SphericalPolygon{T,N}) where{T<:Real,N}
         accum += acos(poly.ptvectors[i]⋅centroid)
     end
     accum *= 2
-    return accum + 2π - N*π
+    return (accum + 2π - N*π)*poly.radius^2
 end
 
 typetest(poly::SphericalPolygon{T,N}) where{T<:Real,N} = T(0)
