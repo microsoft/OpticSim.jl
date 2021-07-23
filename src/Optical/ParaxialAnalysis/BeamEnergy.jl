@@ -29,9 +29,6 @@ function project(coordinateframe::Geometry.Transform{T},points::Vector{V}) where
 end
 export project
 
-function beam(lens::ParaxialLens,point::AbstractVector)
-    
-end
 
 """project points along the direction of the plane normal onto plane"""
 function project(plane::Plane{T,N},points::SVector{M,SVector{3,T}}) where{T<:Real,M,N}
@@ -92,16 +89,14 @@ export SphericalTriangle
 
 SphericalTriangle(points::Vector{Vector{T}},spherecenter::Vector{T},radius::T) where{T<:Real} = SphericalTriangle(SVector{3,SVector{3,T}}(points),SVector{3,T}(spherecenter),radius)
 
-"""Computes the area of a spherical triangle formed by three unit vectors"""
-function area(vec1::UnitVector{3,T},vec2::UnitVector{3,T},vec3::UnitVector{3,T}, radius::T) where{T<:Real}
+function area(tri::SphericalTriangle{T}) where{T<:Real}
+    vec1,vec2,vec3 = tri.ptvectors[1],tri.ptvectors[2],tri.ptvectors[3]
     sum = T(0)
     sum += sphericalangle(vec1,vec3,vec2)
     sum += sphericalangle(vec2,vec1,vec3)
     sum += sphericalangle(vec3,vec2,vec1)
-    return (sum-π) * radius^2
+    return (sum-π) * tri.radius^2
 end
-
-area(tri::SphericalTriangle{T}) where{T<:Real} = area(tri.ptvectors[1],tri.ptvectors[2],tri.ptvectors[3],tri.radius)
 
 struct SphericalPolygon{T<:Real,N}
     ptvectors::SVector{N,UnitVector{3,T}}
@@ -135,8 +130,8 @@ function area(poly::SphericalPolygon{T,N}) where{T<:Real,N}
     return accum
 end
 
-"""projects a planar 3D polygon (points are assumed to define a convex polygon) onto the surface of a sphere and returns a spherical polygon"""
-project(spherecenter::SVector{3,T},points::SVector{N,SVector{3,T}}, radius = 1) where{T<:Real,N} = return SphericalPolygon(points,spherecenter,radius)
+testtri() = SphericalTriangle(SVector{3,SVector{3,Float64}}(SVector{3,Float64}(0.0,1.0,0.),SVector{3,Float64}(1.0,0.0,0.0),SVector{3,Float64}(0.0,0.0,1.0)),SVector{3,Float64}(0.0,0.0,0.0),1.0)
+export testtri
 
 testdatapoly() = SphericalPolygon(SVector{3,SVector{3,Float64}}(SVector{3,Float64}(0.0,1.0,0.),SVector{3,Float64}(1.0,0.0,0.0),SVector{3,Float64}(0.0,0.0,1.0)),SVector{3,Float64}(0.0,0.0,0.0),1.0)
 export testdatapoly
@@ -151,5 +146,3 @@ function testarea()
 end
 export testarea
 
-function beamenergy()
-end
