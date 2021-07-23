@@ -38,7 +38,7 @@ function virtualdistance(focallength,distance)
     distance*focallength/(focallength-distance)
 end
 
-"""computes the virtual point position corresponding to the input `point`, or returns nothing for points at infinity. `point` is specified in the local coordinate frame of the ParaxialLens"""
+"""computes the virtual point position corresponding to the input `point`, or returns nothing for points at infinity. `point` is specified in the world coordinate frame"""
 function virtualpoint(lens::ParaxialLens{T}, point::AbstractVector{T}) where{T}
     fl = focallength(lens)
     oc = opticalcenter(lens)
@@ -47,7 +47,6 @@ function virtualpoint(lens::ParaxialLens{T}, point::AbstractVector{T}) where{T}
         return T(Inf)
     end
     vdistance = virtualdistance(focallength(lens),distance)
-    println(vdistance)
     point_oc = point - oc
     scale = vdistance/distance
     return oc + scale .* (point_oc)
