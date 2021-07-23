@@ -92,6 +92,7 @@ export SphericalTriangle
 
 SphericalTriangle(points::Vector{Vector{T}},spherecenter::Vector{T},radius::T) where{T<:Real} = SphericalTriangle(SVector{3,SVector{3,T}}(points),SVector{3,T}(spherecenter),radius)
 
+"""Computes the area of a spherical triangle formed by three unit vectors"""
 function area(vec1::UnitVector{3,T},vec2::UnitVector{3,T},vec3::UnitVector{3,T}, radius::T) where{T<:Real}
     sum = T(0)
     sum += sphericalangle(vec1,vec3,vec2)
@@ -101,7 +102,6 @@ function area(vec1::UnitVector{3,T},vec2::UnitVector{3,T},vec3::UnitVector{3,T},
 end
 
 area(tri::SphericalTriangle{T}) where{T<:Real} = area(tri.ptvectors[1],tri.ptvectors[2],tri.ptvectors[3],tri.radius)
-
 
 struct SphericalPolygon{T<:Real,N}
     ptvectors::SVector{N,UnitVector{3,T}}
@@ -119,19 +119,19 @@ struct SphericalPolygon{T<:Real,N}
 end
 
 
-"""Breaks the convex spherical polygon into spherical triangles and computes the sum of the angles of all the triangles. Because the edges from the centroid to the poly vertices are shared by 2 spherical triangles these angles are multiplied by 2. The sum of all the angles around the centroid is 2π. Have to subtract π for each of the N triangles so total polygon area is 2π -Nπ + 2∑(angle from centroid vector to vertex vector)."""
+"""Conceptually breaks the convex spherical polygon into spherical triangles and computes the sum of the angles of all the triangles. The sum of all the angles around the centroid is 2π. Have to subtract π for each of the N triangles. Rather than compute the angles of triangles formed by taking edges from the centroid to each vertex, can instead just compute the internal angle of neighboring edges. Total polygon area is 2π -Nπ + ∑(interior angles)."""
 function area(poly::SphericalPolygon{T,N}) where{T<:Real,N}
     accum = T(0)
     ptvecs = poly.ptvectors
 
-    #point somewhere in the middle of the convex spherical polygon, assuming the polygon isn't more than a hemisphere, which it never should be.
-    centroid = UnitVector(sum(ptvecs))
-
-    for i in 1:N-1  
-        accum += area(centroid,ptvecs[i],ptvecs[i+1],poly.radius)
+    for i in 2:N-1  
+        accum += sphericalangle(ptvecs[i],ptvecs[i-1],ptvecs[i+1])
     end
-    # finish up the last triangle
-    accum += area(centroid,ptvecs[N],ptvecs[1],poly.radius)
+    # finish up first and last interior angles which have different indexing because of wraparound
+    accum += sphericalangle(ptvecs[N],ptvecs[N-1],ptvecs[1])
+    accum += sphericalangle(ptvecs[1],ptvecs[N],ptvecs[2])
+
+    accum = (2π -N*π + accum)*poly.radius^2
     return accum
 end
 
