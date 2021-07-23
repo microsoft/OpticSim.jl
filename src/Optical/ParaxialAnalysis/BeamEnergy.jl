@@ -130,6 +130,17 @@ function area(poly::SphericalPolygon{T,N}) where{T<:Real,N}
     return accum
 end
 
+function circlepoly(nsides; offset = [0.0,0.0,1.0])
+    step = 2π/nsides
+    result = MVector{nsides,SVector{3,Float64}}(undef)
+    for i in 0:nsides-1
+        y,x = sincos(step*i)
+        result[i+1] = [x,y,0.0] .+ offset
+    end
+    return SVector{nsides,SVector{3,Float64}}(result)
+end
+export circlepoly
+
 testtri() = SphericalTriangle(SVector{3,SVector{3,Float64}}(SVector{3,Float64}(0.0,1.0,0.),SVector{3,Float64}(1.0,0.0,0.0),SVector{3,Float64}(0.0,0.0,1.0)),SVector{3,Float64}(0.0,0.0,0.0),1.0)
 export testtri
 
@@ -137,6 +148,9 @@ testdatapoly() = SphericalPolygon(SVector{3,SVector{3,Float64}}(SVector{3,Float6
 export testdatapoly
 
 foursidedpoly() = SphericalPolygon(SVector{4,SVector{3,Float64}}(SVector{3,Float64}(0.0,1.0,0.0),SVector{3,Float64}(1.0,1.0,-.9),SVector{3,Float64}(1.0,0.0,0.0),SVector{3,Float64}(0.0,0.0,1.0)),SVector{3,Float64}(0.0,0.0,0.0),1.0)
+
+sphericalcircle(nsides = 10) = SphericalPolygon(circlepoly(nsides),SVector(0.0,0.0,0.0),1.0)
+export sphericalcircle
 
 function testarea()
     tri = SphericalTriangle(SVector{3,SVector{3,Float64}}(SVector{3,Float64}(0.0,1.0,0.),SVector{3,Float64}(1.0,0.0,0.0),SVector{3,Float64}(0.0,0.0,1.0)),SVector{3,Float64}(0.0,0.0,0.0),1.0)
