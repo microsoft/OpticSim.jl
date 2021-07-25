@@ -1,7 +1,14 @@
 """Encapsulates the lens assembly and the display for one lenslet."""
+
+struct Display{T}
+    surface::Rectangle{T}
+    #pixels::
+end
+
+
 struct LensletAssembly{T}
-    lens #need to figure out how to type this
-    transform::Geometry.Transform
+    lens::ParaxialLens{T}
+    transform::Geometry.Transform{T}
     display #composite emitter array maybe? See if emitter arrays are greedily or lazily constructed.
 end
 
