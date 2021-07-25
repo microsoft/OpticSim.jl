@@ -77,3 +77,27 @@ function beamenergy(lens::ParaxialLens{T},displaypoint::AbstractVector{T},pupilp
     end
 end
 
+"""Compute the bounding box in the display plane of the image of the worldpoly on the display plane. Pixels inside this area, conservatively, need to be turned on because some of their rays may pass through the worldpoly"""
+function activebox(lenslet::LensletAssembly{T},worldpoly::SVector{N,SVector{3,T}}) where{T<:Real,N}
+    maxx = typemin(T)
+    maxy = typemin(T)
+    minx = typemax(T)
+    miny = typemax(T)
+    lens = lens(lenslet)
+    display = display(lenslet)
+
+    for point in worldpoly
+        locpoint = transform(lenslet)*point
+
+        for lenspoint in vertices(lens)
+            ray = Ray(locpoint,lenspoint-locpoint)
+            refractedray,_,_ = processintersection(interface(lens),lenspoint,ray, T(OpticSim.GlassCat.TEMP_REF), T(OpticSim.GlassCat.PRESSURE_REF))
+            displaypoint = surfaceintersection(display,refractedray)
+            maxx = max(maxx,displaypoint[1])
+            minx = min(minx,displaypoint[1])
+            maxy = max(maxy,displaypoint[2])
+            miny = min(miny,displaypoint[2])
+        end
+    end 
+    return minx,miny,maxx,maxy
+end

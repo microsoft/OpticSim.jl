@@ -11,6 +11,7 @@ using StaticArrays
 using LinearAlgebra
 using LazySets
 
+include("LensletAssembly.jl")
 include("SphericalPolygon.jl")
 include("BeamEnergy.jl")
 
