@@ -28,8 +28,8 @@ include("GlassCat/GlassCat.jl")
 import .GlassCat: plot_indices, index, polyfit_indices, absairindex, absorption, info, glassid, glassname, glassforid, isair, findglass, modelglass, glassfromMIL, GlassID
 
 include("Geometry/Geometry.jl")
-include("Optical/Optical.jl")
 include("RepeatingStructures/Repeat.jl")
+include("Optical/Optical.jl")
 include("Vis/Vis.jl")
 include("Examples/Examples.jl")
 include("Optimization/Optimization.jl")

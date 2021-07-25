@@ -45,7 +45,7 @@ function project(lens::ParaxialLens{T},displaypoint::SVector{3,T},pupilpoints::S
     projectedpoints = MVector{N,SVector{2,T}}(undef)
     locpupil = map(x->lens.transform*x,pupilpoints) #transform pupil vertices into local coordinate frame of lens
     virtpoint = virtualpoint(lens, displaypoint) #compute virtual point corresponding to physical display point
-    for (i,ppoint) in pairs(pupilpoints)
+    for (i,ppoint) in pairs(localpupil)
         vec = ppoint-virtpoint
         vecdist = distancefromplane(lens,ppoint)
         virtdist = distancefromplane(lens,virtpoint)
