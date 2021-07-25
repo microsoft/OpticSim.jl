@@ -9,6 +9,7 @@ using ..OpticSim.Vis
 using ..OpticSim.Geometry
 using ..OpticSim.Emitters
 using ..OpticSim.GlassCat
+using ..OpticSim.Repeat
 
 using StaticArrays
 using DataFrames: DataFrame
@@ -16,9 +17,11 @@ using Images
 using Unitful
 using Plots
 using LinearAlgebra
+import Luxor
 
 include("docs_examples.jl")
 include("other_examples.jl")
+include("repeating_structure_examples.jl.jl")
 
 end #module Examples
 export Examples
