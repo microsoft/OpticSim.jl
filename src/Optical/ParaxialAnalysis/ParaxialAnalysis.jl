@@ -9,7 +9,9 @@ using ..OpticSim
 using ..OpticSim.Geometry
 using StaticArrays
 using LinearAlgebra
+using LazySets
 
+include("SphericalPolygon.jl")
 include("BeamEnergy.jl")
 
 end #module
