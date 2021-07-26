@@ -63,8 +63,7 @@ export ConvexPolygon
 
 # Base.show(io::IO, poly::ConvexPolygon{T}) where {T<:Real} = print(io, "ConvexPolygon{$T}($(centroid(hex)), $(normal(hex)), $(hex.side_length), $(interface(hex)))")
 centroid(poly::ConvexPolygon) = poly.plane.pointonplane
-interface(poly::ConvexPolygon) = interface(poly.plane)
-normal(poly::ConvexPolygon) = normal(poly.plane)
+
 
 function surfaceintersection(poly::ConvexPolygon{T}, r::AbstractRay{T,3}) where {T<:Real}
     interval = surfaceintersection(poly.plane, r)

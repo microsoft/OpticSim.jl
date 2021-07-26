@@ -15,6 +15,7 @@ using LazySets
 include("LensletAssembly.jl")
 include("SphericalPolygon.jl")
 include("BeamEnergy.jl")
+include("paraxial_analysis_test.jl")
 
 end #module
 export ParaxialAnalysis

@@ -54,11 +54,9 @@ export Rectangle
 Base.show(io::IO, a::Rectangle{T}) where {T<:Real} = print(io, "Rectangle{$T}($(centroid(a)), $(normal(a)), $(a.halfsizeu), $(a.halfsizev), $(interface(a)))")
 
 centroid(r::Rectangle{T}) where {T<:Real} = r.plane.pointonplane
-interface(a::Rectangle{T}) where {T<:Real} = interface(a.plane)
 
 uvrange(::Type{Rectangle{T}}) where {T<:Real} = ((-one(T), one(T)), (-one(T), one(T)))
 
-normal(r::Rectangle{T}) where {T<:Real} = normal(r.plane)
 
 point(r::Rectangle{T}, u::T, v::T) where {T<:Real} = centroid(r) + (r.halfsizeu * u * r.uvec) + (r.halfsizev * v * r.vvec)
 partials(r::Rectangle{T}, ::T, ::T) where {T<:Real} = r.halfsizeu * r.uvec, r.halfsizev * r.vvec

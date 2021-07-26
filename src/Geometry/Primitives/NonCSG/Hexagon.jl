@@ -46,8 +46,7 @@ export Hexagon
 
 Base.show(io::IO, hex::Hexagon{T}) where {T<:Real} = print(io, "Hexagon{$T}($(centroid(hex)), $(normal(hex)), $(hex.side_length), $(interface(hex)))")
 centroid(hex::Hexagon{T}) where {T<:Real} = hex.plane.pointonplane
-interface(hex::Hexagon{T}) where {T<:Real} = interface(hex.plane)
-normal(hex::Hexagon{T}) where {T<:Real} = normal(hex.plane)
+
 
 function surfaceintersection(hex::Hexagon{T}, r::AbstractRay{T,3}) where {T<:Real}
     interval = surfaceintersection(hex.plane, r)

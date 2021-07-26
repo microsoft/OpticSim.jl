@@ -75,7 +75,6 @@ function surfaceintersection(stop::InfiniteStop{T,RectangularStopShape}, r::Abst
 end
 
 interface(::InfiniteStop{T}) where {T<:Real} = opaqueinterface(T)
-normal(r::InfiniteStop{T}) where {T<:Real} = normal(r.plane)
 centroid(r::InfiniteStop{T}) where {T<:Real} = r.plane.pointonplane
 
 """

@@ -48,11 +48,11 @@ export Ellipse
 
 Base.show(io::IO, a::Ellipse{T}) where {T<:Real} = print(io, "Ellipse{$T}($(centroid(a)), $(normal(a)), $(a.halfsizeu), $(a.halfsizev), $(interface(a)))")
 
-interface(a::Ellipse{T}) where {T<:Real} = interface(a.plane)
+
 
 uvrange(::Type{Ellipse{T}}) where {T<:Real} = ((-T(π), T(π)), (zero(T), one(T))) # θ and ρ
 
-normal(r::Ellipse{T}) where {T<:Real} = normal(r.plane)
+
 
 point(r::Ellipse{T}, θ::T, ρ::T) where {T<:Real} = centroid(r) + ρ * (r.halfsizeu * cos(θ) * r.uvec + r.halfsizev * sin(θ) * r.vvec)
 partials(r::Ellipse{T}, θ::T, ρ::T) where {T<:Real} = (ρ * (r.halfsizeu * -sin(θ) * r.uvec + r.halfsizev * cos(θ) * r.vvec), (r.halfsizeu * cos(θ) * r.uvec + r.halfsizev * sin(θ) * r.vvec))
