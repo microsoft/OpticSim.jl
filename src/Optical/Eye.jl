@@ -3,6 +3,29 @@
 # See LICENSE in the project root for full license information.
 
 using .GlassCat
+using .GlassCat.EYE
+using StaticArrays
+
+"""
+    ParaxialEye()
+
+A simplified paraxial model of the human eye with a higher degree of parametrization compared to other OpticSim models.
+"""
+function ParaxialEye(;
+    focaldistance::T = 8.,
+    pupil_radius::T = 4.,
+    eye_radius::T = 12.,
+    retina_size::T = 24.,
+    detpixels::Int = 100
+) where {T<:Real}
+    surfacenormal = SVector{3,T}(0, 0, 1)
+    pupil = ParaxialLensEllipse(focaldistance, pupil_radius, pupil_radius, -surfacenormal, zero(SVector{3,T}))
+
+    centrepoint = SVector{3,T}(0, 0, -2 * eye_radius)
+    retina = Rectangle(retina_size, retina_size, surfacenormal, centrepoint; interface = opaqueinterface())
+
+    return CSGOpticalSystem(LensAssembly(pupil), retina, detpixels, detpixels, Float32)
+end
 
 """
     ModelEye(assembly::LensAssembly{T}, nsamples::Int = 17; pupil_radius::T = 3.0, detpixels::Int = 1000, transform::Transform{T} = identitytransform(T))
