@@ -35,6 +35,12 @@ The [`OpticSim`](index.html) package comes with various implementations of each 
 
 **Note**: All of the examples on this page assume that the following statement was executed:
 
+```@example 
+dummy = "switching to WGLMakie in order to produce interactive figures with Makie"  # hide
+using OpticSim, OpticSim.Geometry, OpticSim.Emitters                                # hide
+OpticSim.NotebooksUtils.SetDocsBackend("Web")                                       # hide
+```
+
 ```@example
 using OpticSim, OpticSim.Geometry, OpticSim.Emitters
 ```
@@ -49,22 +55,7 @@ Emitters.pointemitter
 ```@example
 using OpticSim, OpticSim.Geometry, OpticSim.Emitters # hide
 pt = Emitters.pointemitter([0.0,0.0,.5],.3)
-Vis.draw(pt, debug=true)
-Vis.save("assets/emitters_example_pointemitter.png") # hide
-nothing #hide
-```
-
-```@raw html
-<table><tr>
-<td>
-<a target="_blank" href="../assets/emitters_example_pointemitter.png">
-    <img width="250" src="../assets/emitters_example_pointemitter.png" style="max-width:100%;">
-</a>
-</td>
-<td valign="middle">
-An example of a standard point emitter
-</td>
-</tr></table>
+Vis.draw(pt, debug=true, resolution = (800, 600))
 ```
 
 ```@docs
@@ -74,131 +65,45 @@ Emitters.collimatedemitter
 ```@example
 using OpticSim, OpticSim.Geometry, OpticSim.Emitters # hide
 pt = Emitters.collimatedemitter([0.0,0.0,1.0],.5)
-Vis.draw(pt, debug=true)
-Vis.save("assets/emitters_example_collimatedemitter.png") # hide
-nothing #hide
-```
-
-```@raw html
-<table><tr>
-<td>
-<a target="_blank" href="../assets/emitters_example_collimatedemitter.png">
-    <img width="250" src="../assets/emitters_example_collimatedemitter.png" style="max-width:100%;">
-</a>
-</td>
-<td valign="middle">
-An example of a standard collimated emitter
-</td>
-</tr></table>
+Vis.draw(pt, debug=true, resolution = (800, 600))
 ```
 
 ### Point origin with various Direction distributions
 ```@example
 using OpticSim, OpticSim.Geometry, OpticSim.Emitters # hide
 src = Sources.Source(origins=Origins.Point(), directions=Directions.RectGrid(π/4, π/4, 15, 15))
-Vis.draw(src, debug=true)
-Vis.save("assets/emitters_example_rect_grid.png") # hide
-nothing #hide
-```
-
-```@raw html
-<table><tr>
-<td>
-<a target="_blank" href="../assets/emitters_example_rect_grid.png">
-    <img width="250" src="../assets/emitters_example_rect_grid.png" style="max-width:100%;">
-</a>
-</td>
-<td valign="middle">
-An example of <b>RectGrid</b> Direction Distribution
-</td>
-</tr></table>
+Vis.draw(src, debug=true, resolution = (800, 600))
 ```
 
 ```@example
 using OpticSim, OpticSim.Geometry, OpticSim.Emitters # hide
 src = Sources.Source(origins=Origins.Point(), directions=Directions.UniformCone(π/6, 1000))
-Vis.draw(src, debug=true)
-Vis.save("assets/emitters_example_uniform_cone.png") # hide
-nothing #hide
+Vis.draw(src, debug=true, resolution = (800, 600))
 ```
 
-```@raw html
-<table><tr>
-<td>
-<a target="_blank" href="../assets/emitters_example_uniform_cone.png">
-    <img width="250" src="../assets/emitters_example_uniform_cone.png" style="max-width:100%;">
-</a>
-</td>
-<td valign="middle">
-An example of <b>UniformCone</b> Direction Distribution with 1000 sampled directions
-</td>
-</tr></table>
-```
 
 ```@example
 using OpticSim, OpticSim.Geometry, OpticSim.Emitters # hide
 src = Sources.Source(origins=Origins.Point(), directions=Directions.HexapolarCone(π/6, 10))
-Vis.draw(src, debug=true)
-Vis.save("assets/emitters_example_hexapolar_cone.png") # hide
-nothing #hide
+Vis.draw(src, debug=true, resolution = (800, 600))
 ```
 
-```@raw html
-<table><tr>
-<td>
-<a target="_blank" href="../assets/emitters_example_hexapolar_cone.png">
-    <img width="250" src="../assets/emitters_example_hexapolar_cone.png" style="max-width:100%;">
-</a>
-</td>
-<td valign="middle">
-An example of <b>HexapolarCone</b> Direction Distribution
-</td>
-</tr></table>
-```
 
 ### Various origins distributions
 
 ```@example
 using OpticSim, OpticSim.Geometry, OpticSim.Emitters # hide
 src = Sources.Source(origins=Origins.RectGrid(1.0, 1.0, 10, 10), directions=Directions.Constant())
-Vis.draw(src, debug=true)
-Vis.save("assets/emitters_example_origin_rectgrid.png") # hide
-nothing #hide
+Vis.draw(src, debug=true, resolution = (800, 600))
 ```
 
-```@raw html
-<table><tr>
-<td>
-<a target="_blank" href="../assets/emitters_example_origin_rectgrid.png">
-    <img width="250" src="../assets/emitters_example_origin_rectgrid.png" style="max-width:100%;">
-</a>
-</td>
-<td valign="middle">
-An example of <b>RectGrid</b> origin distribution
-</td>
-</tr></table>
-```
 
 ```@example
 using OpticSim, OpticSim.Geometry, OpticSim.Emitters # hide
 src = Sources.Source(origins=Origins.Hexapolar(5, 1.0, 2.0), directions=Directions.Constant())
-Vis.draw(src, debug=true)
-Vis.save("assets/emitters_example_origin_hexapolar.png") # hide
-nothing #hide
+Vis.draw(src, debug=true, resolution = (800, 600))
 ```
 
-```@raw html
-<table><tr>
-<td>
-<a target="_blank" href="../assets/emitters_example_origin_hexapolar.png">
-    <img width="250" src="../assets/emitters_example_origin_hexapolar.png" style="max-width:100%;">
-</a>
-</td>
-<td valign="middle">
-An example of <b>Hexapolar</b> origin distribution
-</td>
-</tr></table>
-```
 
 ### Examples of Angular Power Distribution
 
@@ -211,22 +116,7 @@ src = Sources.Source(
 	directions=Directions.RectGrid(π/6, π/6, 15, 15),   # RectGrid Directions
 	power=AngularPower.Cosine(10.0)                     # Cosine Angular Power 
 )
-Vis.draw(src, debug=true)
-Vis.save("assets/emitters_example_angular1.png") # hide
-nothing #hide
-```
-
-```@raw html
-<table><tr>
-<td>
-<a target="_blank" href="../assets/emitters_example_angular1.png">
-    <img width="250" src="../assets/emitters_example_angular1.png" style="max-width:100%;">
-</a>
-</td>
-<td valign="middle">
-An example of <b>Cosine</b> angular power distribution
-</td>
-</tr></table>
+Vis.draw(src, debug=true, resolution = (800, 600))
 ```
 
 ```@example
@@ -236,22 +126,7 @@ src = Sources.Source(
 	directions=Directions.HexapolarCone(π/6, 10),       # HexapolarCone Directions
 	power=AngularPower.Gaussian(2.0, 2.0)               # Gaussian Angular Power 
 )
-Vis.draw(src, debug=true)
-Vis.save("assets/emitters_example_angular2.png") # hide
-nothing #hide
-```
-
-```@raw html
-<table><tr>
-<td>
-<a target="_blank" href="../assets/emitters_example_angular2.png">
-    <img width="250" src="../assets/emitters_example_angular2.png" style="max-width:100%;">
-</a>
-</td>
-<td valign="middle">
-An example of <b>Gaussian</b> angular power distribution
-</td>
-</tr></table>
+Vis.draw(src, debug=true, resolution = (800, 600))
 ```
 
 ### Composite Sources - Display Example
@@ -291,24 +166,14 @@ my_display = Sources.CompositeSource(Tr, pixels)
 Vis.draw(my_display)                                                # render the display - nothing but the origins primitives
 rays = AbstractArray{OpticalRay{Float64, 3}}(collect(my_display))   # collect the rays generated by the display
 Vis.draw!(rays)                                                     # render the rays 
-
-Vis.save("assets/emitters_example_composite_display.png") # hide
-nothing #hide
 ```
 
-```@raw html
-<table><tr>
-<td>
-<a target="_blank" href="../assets/emitters_example_composite_display.png">
-    <img width="500" src="../assets/emitters_example_composite_display.png" style="max-width:100%;">
-</a>
-</td>
-<td valign="middle">
-A display example using composite sources.
-</td>
-</tr></table>
-```
 
+```@example 
+dummy = "switching Back to the GLMakie to allow the rest of the pages to work with static figures"  # hide
+using OpticSim, OpticSim.Geometry, OpticSim.Emitters                                                # hide
+OpticSim.NotebooksUtils.SetDocsBackend("Static")                                                    # hide
+```
 
 
 ## [Spectrum](@id spectrum)

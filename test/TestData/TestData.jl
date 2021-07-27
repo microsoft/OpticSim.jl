@@ -10,12 +10,14 @@ module TestData
 using OpticSim
 using OpticSim: tobeziersegments # try to use only exported functions so this list should stay short
 using OpticSim.Geometry
+using OpticSim.Emitters
 using StaticArrays
-using DataFrames
+using DataFrames: DataFrame
 using Unitful
 using Images
 using Base: @.
 using LinearAlgebra
+
 
 ### CURVES
 

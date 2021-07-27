@@ -19,7 +19,7 @@ using Revise
 
 # included here to allow a call to the activate! during the initialization
 import GLMakie
-import Makie.AbstractPlotting
+import Makie
 
 include("constants.jl")
 include("utilities.jl")
@@ -29,6 +29,7 @@ import .GlassCat: plot_indices, index, polyfit_indices, absairindex, absorption,
 
 include("Geometry/Geometry.jl")
 include("Optical/Optical.jl")
+include("RepeatingStructures/Repeat.jl")
 include("Vis/Vis.jl")
 include("Examples/Examples.jl")
 include("Optimization/Optimization.jl")
@@ -43,7 +44,6 @@ function __init__()
     # this call is to try and keep the original behevior of Makie's default backend after adding the WGLMakie backend to the package
     try
         GLMakie.activate!()
-        AbstractPlotting.__init__()
     catch e
         @warn "Unable to activate! the GLMakie backend\n$e"
     end

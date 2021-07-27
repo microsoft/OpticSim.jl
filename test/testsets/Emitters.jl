@@ -76,8 +76,8 @@ using StaticArrays
             @test Directions.UniformCone(0., 0).vvec === unitY3()
 
             @test Base.length(Directions.UniformCone(0., 1)) === 1
-            Random.seed!(0)
-            @test collect(Directions.UniformCone(π/4, 2)) == [
+            
+            @test collect(Directions.UniformCone(π/4, 2, rng=Random.MersenneTwister(0))) == [
                 [0.30348115383395624, -0.6083405920618145, 0.7333627433388552],
                 [0.16266571675478964, 0.2733479444418462, 0.9480615833700192],
             ]
@@ -131,8 +131,7 @@ using StaticArrays
             @test Base.length(Origins.RectUniform(1, 2, 3)) === 3
             @test Emitters.visual_size(Origins.RectUniform(1, 2, 3)) === 2
 
-            Random.seed!(0)
-            @test collect(Origins.RectUniform(1, 2, 3)) == [
+            @test collect(Origins.RectUniform(1, 2, 3, rng=Random.MersenneTwister(0))) == [
                 [0.3236475079774124, 0.8207130758528729, 0.0],
                 [-0.3354342018663148, -0.6453423070674709, 0.0],
                 [-0.221119890668799, -0.5930468839161547, 0.0],
@@ -191,8 +190,7 @@ using StaticArrays
             @test Spectrum.Uniform().low_end === 0.450
             @test Spectrum.Uniform().high_end === 0.680
 
-            Random.seed!(0)
-            @test Emitters.generate(Spectrum.Uniform()) === (1.0, 0.6394389268348049)
+            @test Emitters.generate(Spectrum.Uniform(rng=Random.MersenneTwister(0))) === (1.0, 0.6394389268348049)
         end
 
         @testset "DeltaFunction" begin
@@ -236,16 +234,12 @@ using StaticArrays
                 directions=Directions.HexapolarCone(0., 1)
             )) === 49
 
-            Random.seed!(0)
-            @test Base.iterate(Sources.Source()) === (expected_rays[1], Sources.SourceGenerationState(2, 0, Vec3()))
+            @test Base.iterate(Sources.Source(spectrum=Spectrum.Uniform(rng=Random.MersenneTwister(0)))) === (expected_rays[1], Sources.SourceGenerationState(2, 0, Vec3()))
 
-            Random.seed!(0)
-            @test Base.getindex(Sources.Source(), 0) === expected_rays[1]
-            Random.seed!(0)
-            @test Emitters.generate(Sources.Source(), 0) === expected_rays[1]
+            @test Base.getindex(Sources.Source(spectrum=Spectrum.Uniform(rng=Random.MersenneTwister(0))), 0) === expected_rays[1]
+            @test Emitters.generate(Sources.Source(spectrum=Spectrum.Uniform(rng=Random.MersenneTwister(0))), 0) === expected_rays[1]
 
-            Random.seed!(0)
-            @test Emitters.generate(Sources.Source()) === (expected_rays[1], Sources.SourceGenerationState(0, -2, Vec3()))
+            @test Emitters.generate(Sources.Source(spectrum=Spectrum.Uniform(rng=Random.MersenneTwister(0)))) === (expected_rays[1], Sources.SourceGenerationState(0, -2, Vec3()))
 
             @test Base.firstindex(Sources.Source()) === 0
             @test Base.lastindex(Sources.Source()) === 0
@@ -253,7 +247,7 @@ using StaticArrays
         end
 
         @testset "CompositeSource" begin
-            s() = Sources.Source()
+            s() = Sources.Source(spectrum=Spectrum.Uniform(rng=Random.MersenneTwister(0)))
             tr = Transform()
             cs1 = Sources.CompositeSource(tr, [s()])
             cs2 = Sources.CompositeSource(tr, [s(), s()])
@@ -277,14 +271,11 @@ using StaticArrays
             @test Base.length(cs2) === 2
             @test Base.length(cs3) === 3
 
-            Random.seed!(0)
             @test Base.iterate(cs1) === (expected_rays[1], Sources.SourceGenerationState(2, 0, Vec3()))
 
-            Random.seed!(0)
-            @test collect(cs2) == expected_rays[1:2]
+            @test collect(cs2) == vcat(expected_rays[1:1], expected_rays[1:1])
 
-            Random.seed!(0)
-            @test collect(cs3) == expected_rays[1:3]
+            @test collect(cs3) == vcat(expected_rays[1:1], expected_rays[2:2], expected_rays[2:2])
         end
     end
 end # testset Emitters

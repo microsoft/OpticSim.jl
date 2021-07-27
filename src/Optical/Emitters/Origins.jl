@@ -10,6 +10,7 @@ using ...Emitters
 using ...Geometry
 using LinearAlgebra
 using Distributions
+using Random
 
 abstract type AbstractOriginDistribution{T<:Real} end
 
@@ -48,7 +49,7 @@ end
 
 Base.length(::Point) = 1
 Emitters.visual_size(::Point) = 1
-Emitters.generate(o::Point, ::Integer) = o.origin
+Emitters.generate(o::Point, ::Int64) = o.origin
 
 """
     RectUniform{T} <: AbstractOriginDistribution{T}
@@ -56,16 +57,17 @@ Emitters.generate(o::Point, ::Integer) = o.origin
 Encapsulates a uniformly sampled rectangle with user defined number of samples.
 
 ```julia
-RectUniform(width::T, height::T, samples_count::Integer) where {T<:Real}
+RectUniform(width::T, height::T, samples_count::Int64) where {T<:Real}
 ```
 """
 struct RectUniform{T} <: AbstractOriginDistribution{T}
     width::T
     height::T
-    samples_count::Integer
+    samples_count::Int64
+    rng::Random.AbstractRNG
 
-    function RectUniform(width::T, height::T, samples_count::Integer) where {T<:Real}
-        return new{T}(width, height, samples_count)
+    function RectUniform(width::T, height::T, samples_count::Int64; rng=Random.GLOBAL_RNG) where {T<:Real}
+        return new{T}(width, height, samples_count, rng)
     end
 end
 
@@ -73,10 +75,10 @@ Base.length(o::RectUniform) = o.samples_count
 Emitters.visual_size(o::RectUniform) = max(o.width, o.height)
 
 # generate origin on the agrid
-function Emitters.generate(o::RectUniform{T}, n::Integer) where {T<:Real}
+function Emitters.generate(o::RectUniform{T}, n::Int64) where {T<:Real}
     n = mod(n, length(o))
-    u = rand(Distributions.Uniform(-one(T), one(T)))
-    v = rand(Distributions.Uniform(-one(T), one(T)))
+    u = rand(o.rng, Distributions.Uniform(-one(T), one(T)))
+    v = rand(o.rng, Distributions.Uniform(-one(T), one(T)))
     return zero(Vec3{T}) + ((o.width / 2) * u * unitX3(T)) + ((o.height/2) * v * unitY3(T))
 end
 
@@ -86,18 +88,18 @@ end
 Encapsulates a rectangle sampled in a grid fashion.
 
 ```julia
-RectGrid(width::T, height::T, usamples::Integer, vsamples::Integer) where {T<:Real} 
+RectGrid(width::T, height::T, usamples::Int64, vsamples::Int64) where {T<:Real} 
 ```
 """
 struct RectGrid{T} <: AbstractOriginDistribution{T}
     width::T
     height::T
-    usamples::Integer
-    vsamples::Integer
+    usamples::Int64
+    vsamples::Int64
     ustep::T
     vstep::T
 
-    function RectGrid(width::T, height::T, usamples::Integer, vsamples::Integer) where {T<:Real}
+    function RectGrid(width::T, height::T, usamples::Int64, vsamples::Int64) where {T<:Real}
         return new{T}(width, height, usamples, vsamples, width / (usamples - 1), height / (vsamples - 1))
     end
 end
@@ -105,10 +107,10 @@ end
 Base.length(o::RectGrid) = o.usamples * o.vsamples
 Emitters.visual_size(o::RectGrid) = max(o.width, o.height)
 
-# generate origin on the agrid
-function Emitters.generate(o::RectGrid{T}, n::Integer) where {T<:Real}
+# generate origin on the grid
+function Emitters.generate(o::RectGrid{T}, n::Int64) where {T<:Real}
     n = mod(n, length(o))
-    v = o.vsamples == 1 ? zero(T) : 2 * Integer(floor(n / o.usamples)) / (o.vsamples - 1) - 1.0
+    v = o.vsamples == 1 ? zero(T) : 2 * Int64(floor(n / o.usamples)) / (o.vsamples - 1) - 1.0
     u = o.usamples == 1 ? zero(T) : 2 * mod(n, o.usamples) / (o.usamples - 1) - 1.0
     return zeros(Vec3{T}) + ((o.width / 2) * u * unitX3(T)) + ((o.height/2) * v * unitY3(T))
 end
@@ -119,23 +121,23 @@ end
 Encapsulates an ellipse (or a circle where halfsizeu=halfsizev) sampled in an hexapolar fashion (rings).
 
 ```julia
-Hexapolar(nrings::Integer, halfsizeu::T, halfsizev::T) where {T<:Real} 
+Hexapolar(nrings::Int64, halfsizeu::T, halfsizev::T) where {T<:Real} 
 ```
 """
 struct Hexapolar{T} <: AbstractOriginDistribution{T}
     halfsizeu::T
     halfsizev::T
-    nrings::Integer
+    nrings::Int64
 
-    function Hexapolar(nrings::Integer, halfsizeu::T, halfsizev::T) where {T<:Real} 
+    function Hexapolar(nrings::Int64, halfsizeu::T, halfsizev::T) where {T<:Real} 
         return new{T}(halfsizeu, halfsizev, nrings)
     end
 end
 
-Base.length(o::Hexapolar) = 1 + round(Integer, (o.nrings * (o.nrings + 1) / 2) * 6)
+Base.length(o::Hexapolar) = 1 + round(Int64, (o.nrings * (o.nrings + 1) / 2) * 6)
 Emitters.visual_size(o::Hexapolar) = max(o.halfsizeu*2, o.halfsizev*2)
 
-function Emitters.generate(o::Hexapolar{T}, n::Integer) where {T<:Real}
+function Emitters.generate(o::Hexapolar{T}, n::Int64) where {T<:Real}
     n = mod(n, length(o))
     if n == 0
         return zeros(Vec3{T})

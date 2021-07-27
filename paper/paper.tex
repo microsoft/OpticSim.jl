@@ -1,0 +1,210 @@
+
+% JuliaCon proceedings template
+\documentclass{juliacon}
+\setcounter{page}{1}
+
+\begin{document}
+
+\input{header}
+
+\maketitle
+
+\newcommand{\OpticSim}{\textit{OpticSim.jl}}
+\newcommand{\ToDo}[1]{\textcolor{red}{[#1]}}
+
+\begin{abstract}
+
+\OpticSim{} is an open source geometric optics ray tracing software package written in the Julia programming language.
+It is designed to make the creation and analysis of complex optical systems as simple and efficient as possible.
+Computations can be distributed to the cloud for large simulations tasks that would be impractical on a single multi-core computer.
+
+Unlike closed source systems the modern modular design of \OpticSim{} allows for unlimited extensibility without the inconvenience of have to write application plug ins, or the loss of performance of typical  scripting languages.
+\OpticSim{} is free to use \href{https://mit-license.org/}{(MIT license)} and open-source, available at \url{https://github.com/microsoft/OpticSim.jl}.
+
+\end{abstract}
+
+\section{Introduction}
+
+% increasingly difficult designs
+Modern optical designs have become increasingly complex and heterogenous. Decades ago a typical optical design was a simple axisymmetric stack of lens elements. Today a single optical system might incorporate hundreds of different lenslets, with freeform surfaces and off axis light paths.
+
+Specifying such systems is difficult and time consuming in design packages which are primarily GUI based. The difficulty is acutely apparent when designing optical systems with many components, where setting up the design manually through a GUI can take hours.
+
+To address this problem some software packages provide an application programming interface (API) which allows users to write code, either in a bespoke interpreted language or in a high level scripting language such as Matlab or Python. The former is difficult to debug because of the lack of a modern IDE to support the built in language. The latter option may have poor performance.
+
+In either case the designer has the tedious and difficult task of manually tracking and maintaining a system with some components in a format suitable for the GUI interface and others in a completely independent programming language.
+
+Components easily get out of sync, causing inscrutable bugs. It is frequently necessary to convert files back and forth between the proprietary format of the design application and the file formats supported by the independent scripting language.
+
+\OpticSim{} provides an alternative design/analysis paradigm of procedural specification and analysis which is particularly effective for these new ultra complex optical designs. Designs and analysis are both specified procedurally in the Julia programming language, and visualization uses the extensive Julia visualization ecosystem.
+
+Julia is a modern high level language designed to solve what the Julia creators call the "two language problem". This refers to the common practice of using a high level, but potentially low performance, scripting language for a first prototype design and a second more efficient language for production. It is challenging to keep these two independent code bases in sync. And, because progress is
+
+Julia has features of both a compiled and interpreted language. You can interactively enter code at a command line and get quick results, even though all code is compiled before execution. You can also write extremely efficient library code, in many cases with performance comparable to a low level language like C.
+
+\OpticSim{} does not have a GUI interface so it is less suitable for simpler designs which can be easily specified in an interactive program.
+
+% Optimisation is hard
+Existing tools often rely on the designer manually iterating on the design parameters, with optimization runs finding local minima for each design.
+The onus is on the designer to spend hours or days to find the best solution by hand, with tens, hundreds or even thousands of parameter combinations to try.
+This often leads to the design space remaining largely unexplored, and simply a solution that is \emph{good enough} being the one that is selected.
+% Global optimisation isn't good enough
+Global optimization tools are available as part of most existing optical design packages [CITE].
+These \emph{should} enable the designer to avoid slow manual iteration and automate the process.
+In practice, though, these optimization tools often produce physically implausible results, or rely on implicit constraints which the designer may intentionally, or unintentionally, impose.
+It is simply not feasible to fully explore the design space of a complex system using existing optical design tools.
+
+% closed source
+All existing optical design packages are closed source.
+While providing some avenues for extension [CITE], it is often technically challenging to develop and use bespoke tooling which integrates directly with existing black-box software.
+What extensions can be integrated are still fundamentally limited by the functionality exposed by the parent software, and must operate solely within the framework provided.
+This can mean it is impossible to simulate certain phenomena within existing tools if the functionality is not provided out of the box.
+To generate custom visualizations it is common to use external software with a standardized file format for data exchange, adding further complexity and delay to each design iteration.
+
+In summary \OpticSim{} has these three key features:
+\begin{itemize}
+    \item Ease of use: Ability to create complex systems with many unique elements using minimal code.
+    \item Efficiency: Fast computation and facility to run many simulations/optimizations in parallel using compute in the cloud.
+    \item Extensibility: Enabling others to easily add their own surface definitions, algorithms, visualizations or other functionality.
+\end{itemize}
+
+The API-first design of \OpticSim{} leads to greatly simplified code when creating complex systems procedurally.
+The architecture also lends itself well to addition of a modular GUI on top of this, already we support 3D and 2D visualization of systems and tracing results along with some simple optical design analysis tools.
+It also means that \OpticSim{} is far faster when executing simulations and optimizations for complex systems.
+We observe a [??]x improvement in simulation speed over [Zemax?] when running on a single CPU thread, and an [??]x improvement when running on [X] threads.
+
+The real benefit of the minimal code base and open-source nature of \OpticSim{}, though, is the ability to run many instances of the software in parallel using cloud computing environments.
+This is something which is not possible with other proprietary software which often has restrictive digital rights management as part of the package.
+Running in the cloud allows extremely large simulations to be parallelized over hundreds of CPU cores, cutting the total time from days or hours to minutes.
+It also enables parameter sweeps on an unprecedented scale, allowing for far greater exploration of the design space.
+These kinds of capabilities drastically reduce the manual effort, and time, that is required by the optical engineer when starting a new design.
+We can go from an initial sketch to a small number of plausible designs totally automatically.
+The designer can then follow a more conventional interactive approach to finalize the design, or rely totally on local optimization tools to do the job for them.
+
+As discussed above, requirements for optical systems are becoming increasingly niche and challenging to satisfy.
+With this in mind it is unsurprising that existing tools are unable to adequately express \emph{all} of the potential constraints, design conditions or capabilities that are present in reality.
+\OpticSim{} provides a solid base for individuals to build upon, enabling optical engineers to add niche functionality which is specific to their application for themselves.
+Anything can be altered or added; from surface definitions, visualization tools and interfaces between materials to completely new simulation algorithms for complex optical phenomena.
+
+\OpticSim{} is open source and available at \url{https://github.com/microsoft/OpticSim.jl}.
+
+
+\section{IMPLEMENTATION}
+
+\ToDo{Section intro}
+
+\subsection{Engineering}
+
+We decided to use the Julia programming language~\cite{julialang} to implement \OpticSim{}.
+Julia is a modern cross-platform language for high performance computing which is also open-source.
+A number of factors motivated our decision to use Julia.
+
+The primary users are of our software are optical engineers who are likely to have some, limited, experience writing simple software, typically in languages like MATLAB [CITE] or python [CITE].
+Because of this it is important that any API exposed by our software be very simple and high-level.
+Low-level languages typical for high performance applications such as C++ and ... [CITE] usually require knowledge of complex concepts like memory management and static type systems.
+Consequently these languages are unlikely to be usable for most optical engineers and so are not a sensible choice for our system.
+
+In contrast, most high-level languages like python and ... sacrifice performance for ease of use [CITE].
+These languages, while suitable for use by inexperienced programmers, are simply too slow for the complex simulation and optimization tasks we must conduct.
+
+Julia provides an ideal middle ground.
+The syntax of the Julia language is comparatively simple and memory management is handled automatically.
+An advanced type system is available, but the language is dynamically typed and so typing can largely be hidden from the end user.
+What's more, Julia compiles to native machine code through LLVM [CITE].
+This enables very high performance, often comparable to traditional low-level languages like C++.
+
+\ToDo{Arbitrary precision, automatic differentiation? Brian/Alfred anything else?}
+
+\ToDo{Challenges of Julia? Lack of explicit memory management can mean optimization (specifically of runtime allocations) can be very difficult}
+
+\subsection{Geometry}
+
+\OpticSim{} uses two types of geometric primitives.
+Most generally, unparameterized standalone planar surfaces can be used.
+These must implement a ray intersection function and mesh generation function for visualization.
+While these very simple surfaces aren't useful for formation of complex system, they can be used for implementation of common components such as apertures, stops or sensors.
+
+The second and far more powerful primitive type is the parametric surface.
+These are surface representations which partition 3D space into two half-spaces, \emph{inside} and \emph{outside}, and are parameterised by two variables.
+Due to the strict requirement of \ToDo{what is the name for this? are they closed surfaces?}, parametric surfaces can be composed through Constructive Solid Geometry (CSG) operations (union, intersection and difference) to form complex 3D shapes.
+It is through this method that we form all 3D optical components used in \OpticSim{}.
+An example is shown in \ToDo{Figure X - remake the wiki figure with our visualisation}.
+
+\OpticSim{} provides a number of standard surface definitions out-of-the-box, as well as providing the capability for the user to extend the package with their own custom definitions.
+Along with simple spherical, aspheric and conic surfaces, we include Zernike~\ToDo{CITE}, Chebyshev~\ToDo{CITE} and QType~\cite{forbes2010robust,forbes2012characterizing} polynomial surfaces.
+\ToDo{Bezier and Grid Sag}.
+In addition to these optical surfaces, we provide cylinders and planes which enable construction of lens objects, or more complex geometries, as well as a number of unparameterized surfaces corresponding to common aperture or sensor geometries.
+\ToDo{Is it worth having SAG equations for the complex ones?}
+
+\iffalse % exclude these for now
+$$
+z(u,v) = \frac{c(u^2 + v^2)^2}{1 + \sqrt{1 - (1+k)c^2(u^2 + v^2)}} + \sum_{i}^{P}\sum_{j}^{Q}c_{ij}T_i(u)T_j(v)
+$$
+where $c = \frac{1}{\texttt{radius}}$, $k = \texttt{conic}$ and $T_n$ is the n\textsuperscript{th} Chebyshev polynomial of the first kind.
+
+$$
+z(r,\phi) = \frac{cr^2}{1 + \sqrt{1 - (1+k)c^2r^2}} + \sum_{i}^{Q}\alpha_ir^{2i} + \sum_{i}^PA_iZ_i(\rho, \phi)
+$$
+where $\rho = \frac{r}{\texttt{normradius}}$, $c = \frac{1}{\texttt{radius}}$, $k = \texttt{conic}$ and $Z_n$ is the n\textsuperscript{th} Zernike polynomial.
+
+$$
+\begin{aligned}
+z(r,\phi) = & \frac{cr^2}{1 + \sqrt{1 - (1+k)c^2r^2}} + \frac{\sqrt{1 + kc^2r^2}}{\sqrt{1-(1+k)c^2r^2}} \cdot \\
+            & \left\{ \rho^2(1-\rho^2)\sum_{n=0}^{N}\alpha_n^0 Q_n^0 (\rho^2) + \sum_{m=1}^{M}\rho^m\sum_{n=0}^N \left[ \alpha_n^m\cos{m\phi} +\beta_n^m\sin{m\phi}\right]Q_n^m(\rho^2) \right\}
+\end{aligned}
+$$
+where $\rho = \frac{r}{\texttt{normradius}}$, $c = \frac{1}{\texttt{radius}}$, $k = \texttt{conic}$ and $Q_n^m$ is the QType polynomial index $m$, $n$.
+\fi
+
+\ToDo{@Brian - accelerated intersection with triangulation and newton - scope for a nice figure showing the iterations homing in on correct intersection?}
+
+\ToDo{@Brian - interval CSG ray intersection - scope for a figure explaining this for a complex surface?}
+
+\ToDo{@Charlie - bounding volume hierarchy (sort of) for acceleration - scope for figure showing bounding boxes in a complex (MLA?) geometry}
+
+\subsection{Optics}
+
+\subsubsection{Ray Handling}
+
+\ToDo{How are rays handled, what info is there, energy accumulation etc}
+
+\subsubsection{Optical Interfaces}
+
+\ToDo{@Brian - How our interfaces work, maybe non-standard, particularly for non sequential tracing}
+
+\subsubsection{Emitters}
+
+\ToDo{@Ran?}
+
+\subsubsection{Materials}
+
+\ToDo{Talk about AGF and details of what can we can simulate re materials e.g. refraction, Fresnel reflection, TIR, internal absorption}
+
+\subsection{Optimization}
+
+\ToDo{Not sure we have much to talk about here yet?}
+
+\section{DISCUSSION}
+
+\subsection{Examples}
+
+\ToDo{Show some examples (incl code?)}
+
+\subsection{Performance}
+
+\ToDo{Show how fast it is compared to others}
+
+\subsection{Limitations and Future Work}
+
+\ToDo{Don't have decades of work, range of features severely limited compared to existing (expensive) tools. BUT easily extensible to add these
+See \url{https://microsoft.github.io/OpticSim.jl/dev/roadmap/}}
+
+\section{Acknowledgments}
+
+\ToDo{Thank HART team}
+
+\input{bib.tex}
+
+\end{document}
+
+% Inspired by the International Journal of Computer Applications template

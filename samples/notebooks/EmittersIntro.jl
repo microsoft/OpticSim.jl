@@ -43,8 +43,6 @@ begin
 	import PlutoUI
 
 	using Makie
-	using Makie.AbstractPlotting
-	using Makie.AbstractPlotting.MakieLayout
 	
 	defs = OpticSim.NotebooksUtils.Defs("ran")
 
@@ -235,9 +233,9 @@ end
 begin
 	function Vis.scene(resolution = (1000, 1000))
 		# @info "RG: Vis.Scene Replacement"
-		scene, layout = MakieLayout.layoutscene(resolution = resolution)
+		scene, layout = Makie.layoutscene(resolution = resolution)
 		Vis.set_current_main_scene(scene)
-		lscene = layout[1, 1] = MakieLayout.LScene(scene, scenekw = (camera = Makie.cam3d_cad!, axis_type = Makie.axis3d!, raw = false))
+		lscene = layout[1, 1] = Makie.LScene(scene, scenekw = (camera = Makie.cam3d_cad!, axis_type = Makie.axis3d!, raw = false))
 		Vis.set_current_3d_scene(lscene)
 		return scene, lscene
 	end
@@ -346,7 +344,7 @@ begin
 	local s2 = Sources.Source(sourcenum = 2, origins=Origins.Hexapolar(5, 8.0, 8.0), directions=Directions.Constant(), transform=Transform(zeros(Geometry.Vec3), rotationY(deg2rad(-8)) * unitZ3()))
 	
 	# create the "ray generator"
-	local combined_sources = Sources.CompositeSource(Transform(Geometry.Vec3(0.0, 0.0, 10.0), unitZ3() * -1), [s1 s2])
+	local combined_sources = Sources.CompositeSource(Transform(Geometry.Vec3(0.0, 0.0, 10.0), unitZ3() * -1), [s1, s2])
 	
 	# and draw the system + the generated rays
 	Vis.drawtracerays(sys, raygenerator = combined_sources,  resolution=resolution(), test = true, trackallrays = true, colorbysourcenum = true, drawgen = false)

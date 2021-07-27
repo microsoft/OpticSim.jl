@@ -4,16 +4,17 @@
 
 module NotebooksUtils   
 
+import ...OpticSim
+
 # import Pluto
 import PlutoUI
 # import Markdown
 import Format
 
 import Makie
-import Makie.AbstractPlotting
-import Makie.AbstractPlotting.MakieLayout
 import WGLMakie
 import GLMakie
+import JSServe
 
 mutable struct Defs
     authors::String     # authors
@@ -250,16 +251,36 @@ function SetBackend(defs::Defs, be::String)
     if (be == "Web")
         @info "Makie backend set to WEB (WGLMakie)"
         WGLMakie.activate!()
-        AbstractPlotting.__init__()
-        AbstractPlotting.inline!(true)
+        Makie.inline!(true)                     # for version 0.13 and above
     else 
         @info "Makie backend set to STATIC (GLMakie)"
         GLMakie.activate!()
-        AbstractPlotting.__init__()
-        AbstractPlotting.inline!(true)
+        Makie.inline!(true)                     # for version 0.13 and above
     end
 
 end
+
+"""
+    function SetDocsBackend(be::String)
+
+    Sets the backend for documantation images.
+"""
+function SetDocsBackend(be::String)
+    if (be == "Web")
+        WGLMakie.activate!()  
+        Makie.__init__();
+        Makie.inline!(true)   
+
+        return JSServe.Page(exportable=true, offline=true)
+    else 
+        GLMakie.activate!()
+        Makie.__init__();
+        Makie.inline!(false)    
+        return nothing
+    end
+end
+
+
 
 """
     InitNotebook(; port=8449)
