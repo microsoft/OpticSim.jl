@@ -97,19 +97,22 @@ function verify_sources!(sources::AbstractVector{<:AbstractVector{<:AbstractStri
 end
 
 """
-    verify_source(agffile::AbstractString, sha256sum::AbstractString)
+    verify_source(agffile::AbstractString, expected_sha256sum::AbstractString)
 
 Verify a source file using SHA256, returning true if successful. Otherwise, remove the file and return false.
 """
-function verify_source(agffile::AbstractString, sha256sum::AbstractString)
+function verify_source(agffile::AbstractString, expected_sha256sum::AbstractString)
     if !isfile(agffile)
         @info "[-] Missing file at $agffile"
-    elseif sha256sum == SHA.bytes2hex(SHA.sha256(read(agffile)))
-        @info "[✓] Verified file at $agffile"
-        return true
     else
-        @info "[x] Removing unverified file at $agffile"
-        rm(agffile)
+        sha256sum = SHA.bytes2hex(SHA.sha256(read(agffile)))
+        if expected_sha256sum == sha256sum
+            @info "[✓] Verified file at $agffile"
+            return true
+        else
+            @info "[x] Removing unverified file at $agffile (expected $expected_sha256sum, got $sha256sum)"
+            rm(agffile)
+        end
     end
     return false
 end
