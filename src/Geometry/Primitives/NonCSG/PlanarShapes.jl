@@ -2,6 +2,9 @@
 """The PlanarShapes interface:
 
 `distancefromplane(p::PlanarShapes,point)`  returns distance of the point from the plane the planar shape lies within
+`normal(p::PlanarShapes)` returns normal of plane
+`interface(p::PlanarShapes)` returns optical interface of plane
+`vertices(p::PlanarShapes)` returns vertices of shape. For Ellipse this is an approximation
 """
 abstract type PlanarShapes{T} <: Surface{T} end
 

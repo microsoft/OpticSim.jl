@@ -43,9 +43,9 @@
 function project(lens::ParaxialLens{T},displaypoint::SVector{3,T},pupilpoints::SVector{N,SVector{3,T}}) where{T<:Real,N}
     #need local transform for lens. Not quite sure how to organize this yet
     projectedpoints = MVector{N,SVector{2,T}}(undef)
-    locpupil = map(x->lens.transform*x,pupilpoints) #transform pupil vertices into local coordinate frame of lens
+    locpupil = map(x->worldtolens(lens,x),pupilpoints) #transform pupil vertices into local coordinate frame of lens
     virtpoint = virtualpoint(lens, displaypoint) #compute virtual point corresponding to physical display point
-    for (i,ppoint) in pairs(localpupil)
+    for (i,ppoint) in pairs(locpupil)
         vec = ppoint-virtpoint
         vecdist = distancefromplane(lens,ppoint)
         virtdist = distancefromplane(lens,virtpoint)
@@ -68,7 +68,7 @@ function beamenergy(lens::ParaxialLens{T},displaypoint::AbstractVector{T},pupilp
     virtpoint = virtualpoint(lens,displaypoint)
     beamlens = SphericalPolygon(vertices(lens),virtpoint,T(1)) #assumes lens vertices are represented in the local lens coordinate frame
     
-    intsct = projectedpoints ∩ vertices(lens)
+    intsct = intersection(projectedpoints,vertices(lens))
     if isempty(intsct)
         return T(0)
     else

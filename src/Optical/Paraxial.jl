@@ -29,27 +29,32 @@ opticalcenter(a::ParaxialLens) = opticalcenter(a.interface)
 export opticalcenter
 focallength(a::ParaxialLens) = focallength(a.interface)
 export focallength
-
-distancefromplane(lens::ParaxialLens,point::AbstractVector) = distancefromplane(lens.shape,point)
-
-"""returns the virtual distance of the point from the lens plane. Assumes that |distance| < focallength. When |distance| == focallength then virtualdistance = ∞"""
-function virtualdistance(focallength,distance)
-    @assert abs(distance) < focallength
-    distance*focallength/(focallength-distance)
+vertices(a::ParaxialLens) = vertices(a.shape)
+struct VirtualPoint{T<:Real}
+    center::SVector{3,T}
+    direction::SVector{3,T}
+    distance::T
 end
 
-"""computes the virtual point position corresponding to the input `point`, or returns nothing for points at infinity. `point` is specified in the world coordinate frame"""
-function virtualpoint(lens::ParaxialLens{T}, point::AbstractVector{T}) where{T}
-    fl = focallength(lens)
-    oc = opticalcenter(lens)
-    distance = distancefromplane(lens,point)
-    if distance == focallength(lens) 
-        return T(Inf)
+distancefromplane(lens::ParaxialLens,point::AbstractVector) = distancefromplane(lens.shape,SVector{3}(point))
+
+"""returns the virtual distance of the point from the lens plane. When |distance| == focallength then virtualdistance = ∞"""
+function virtualdistance(focallength::T,distance::T) where{T<:Real}
+    if abs(distance) == focallength
+        return sign(distance)*T(Inf)
+    else
+        return distance*focallength/(focallength-abs(distance))
     end
+end
+
+"""computes the virtual point position corresponding to the input `point`, or returns nothing for points at infinity. `point` is specified in the lens coordinate frame"""
+function virtualpoint(lens::ParaxialLens{T}, point::AbstractVector{T}) where{T}
+    oc = opticalcenter(lens)
+    point_oc = normalize(point - oc)
+    distance = distancefromplane(lens,point)
+    println(distance)
     vdistance = virtualdistance(focallength(lens),distance)
-    point_oc = point - oc
-    scale = vdistance/distance
-    return oc + scale .* (point_oc)
+    return VirtualPoint(oc,point_oc,vdistance)
 end
 export virtualpoint
 

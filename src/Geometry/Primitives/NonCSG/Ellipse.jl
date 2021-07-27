@@ -101,6 +101,17 @@ function surfaceintersection(ell::Ellipse{T}, r::AbstractRay{T,3}) where {T<:Rea
     end
 end
 
+function vertices(e::Ellipse{T},subdivisions::Int = 10) where{T}
+    dθ = T(2π) / subdivisions
+    centre = point(e, zero(T), zero(T))
+    verts = MVector{subdivisions,SVector{3,T}}(undef)
+    for i in 0:(subdivisions - 1)
+        θ1 = i * dθ - π
+        verts[i+1] =  point(e, θ1, one(T))
+    end
+    return SVector{subdivisions,SVector{3,T}}(verts)
+end
+
 function makemesh(c::Ellipse{T}, subdivisions::Int = 30) where {T<:Real}
     dθ = T(2π) / subdivisions
     centre = point(c, zero(T), zero(T))

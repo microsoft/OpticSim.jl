@@ -104,7 +104,7 @@ function surfaceintersection(rect::Rectangle{T}, r::AbstractRay{T,3}) where {T<:
 end
 
 """returns the vertices of the rectangle"""
-vertices(r::Rectangle{T},::Int = 0) where{T<:Real} = SVector{4,SVector{3,T}}(point(r, -one(T), -one(T)),point(r, -one(T), one(T)),point(r, one(T), -one(T)),point(r, one(T), one(T)))
+vertices(r::Rectangle{T},::Int = 0) where{T<:Real} = SVector{4,SVector{3,T}}(point(r, -one(T), -one(T)),point(r, -one(T), one(T)),point(r, one(T), one(T)),point(r, one(T), -one(T)))
 
 function makemesh(r::Rectangle{T}, ::Int = 0) where {T<:Real}
     # p00,p01,p10,p11 = vertices(r)

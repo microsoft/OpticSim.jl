@@ -27,8 +27,15 @@ struct LensletAssembly{T}
     lens::ParaxialLens{T}
     transform::Geometry.Transform{T}
     display::Display{T}
+    worldtodisplay::Geometry.Transform{T}
+
+    LensletAssembly(lens::ParaxialLens{T},transform::Geometry.Transform{T},display::Display{T}) where{T} = new{T}(lens,transform,display,display.transform*transform)
 end
 
 lens(a::LensletAssembly) = a.lens
 display(a::LensletAssembly) = a.display
 transform(a::LensletAssembly) = a.transform
+
+worldtolens(a::LensletAssembly, pt::SVector{3,T}) where{T<:Real}= a.transform*pt
+lenstodisplay(a::LensletAssembly,pt::SVector{3,T}) where{T<:Real} = a.display.transform*pt
+worldtodisplay(a::LensletAssembly,pt::SVector{3,T}) where{T<:Real} = a.worldtodisplay*pt
