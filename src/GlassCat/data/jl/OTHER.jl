@@ -2,6 +2,8 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # See LICENSE in the project root for full license information.
 
+export CARGILLE, EYE
+
 # all other glasses should follow the format below, new glasses must be added to OTHER_GLASSES and OTHER_GLASS_NAMES where the index in the array matches the numeric part of the GlassID
 
 module CARGILLE
