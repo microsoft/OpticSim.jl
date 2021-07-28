@@ -12,3 +12,6 @@ abstract type PlanarShapes{T} <: Surface{T} end
 distancefromplane(p::PlanarShapes, point::SVector{3}) = distancefromplane(p.plane,point)
 normal(p::PlanarShapes) = normal(p.plane)
 interface(p::PlanarShapes) = interface(p.plane)
+"""The vertices of planar shapes are defined in a plane so they are two dimensional. In the local coordinate frame this is the x,y plane, so the implied z coordinate is 0"""
+vertices(p::PlanarShapes) = throw(ErrorException("This function should be defined for any concrete type that is a subtype of PlanarShapes"))
+export vertices

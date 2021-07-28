@@ -57,7 +57,6 @@ function virtualpoint(lens::ParaxialLens{T}, point::AbstractVector{T}) where{T}
     oc = opticalcenter(lens)
     point_oc = normalize(point - oc)
     distance = distancefromplane(lens,point)
-    println(distance)
     vdistance = virtualdistance(focallength(lens),distance)
     return VirtualPoint(oc,point_oc,vdistance)
 end
@@ -119,7 +118,6 @@ function surfaceintersection(l::ParaxialLens{T}, r::AbstractRay{T,3}) where {T<:
         return EmptyInterval(T)
     else
         intsct = halfspaceintersection(itvl)
-        println(intsct)
         u, v = uv(intsct)
         intsct = Intersection(α(intsct), point(intsct), normal(intsct), u, v, interface(l), flippednormal = flippednormal(intsct))
         return positivehalfspace(intsct)

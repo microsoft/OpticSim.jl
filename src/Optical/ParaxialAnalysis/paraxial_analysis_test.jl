@@ -26,3 +26,13 @@ function testproject()
 end
 export testproject
 
+function testintersection()
+    lens =  ParaxialLensRect(10.0,1.0,1.0,[0.0,0.0,1.0],[0.0,0.0,0.0])
+    lensverts = vertices(lens)
+    # projectedverts = SVector{4,SVector{3,Float64}}(SVector(0.0, 0.0, 0.0),SVector(0.0,2.0, 0.0),SVector(2.0,2.0, 0.0),SVector(2.0,0.0, 0.0))
+    projectedverts = SMatrix{2,4}(0.0,0.0,0.0,2.0,2.0,2.0,2.0,0.0)
+    LazySets.VPolygon(projectedverts)
+
+end
+export testintersection
+

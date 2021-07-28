@@ -104,12 +104,12 @@ end
 function vertices(e::Ellipse{T},subdivisions::Int = 10) where{T}
     dθ = T(2π) / subdivisions
     centre = point(e, zero(T), zero(T))
-    verts = MVector{subdivisions,SVector{3,T}}(undef)
+    verts = MMatrix{2,subdivisions,T}(undef)
     for i in 0:(subdivisions - 1)
         θ1 = i * dθ - π
-        verts[i+1] =  point(e, θ1, one(T))
+        verts[:,i+1] =  point(e, θ1, one(T))[1:2]
     end
-    return SVector{subdivisions,SVector{3,T}}(verts)
+    return SMatrix{2,subdivisions,T}(verts)
 end
 
 function makemesh(c::Ellipse{T}, subdivisions::Int = 30) where {T<:Real}

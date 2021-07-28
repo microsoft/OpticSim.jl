@@ -74,13 +74,21 @@ function surfaceintersection(hex::Hexagon{T}, r::AbstractRay{T,3}) where {T<:Rea
     end
 end
 
+"""Returns the vertices of the Hexagon represented in the local coordinate frame. The vertices lie in the z = 0 plane and are 2D"""
 function vertices(hex::Hexagon{T}) where{T<:Real}
     uvec = hex.side_length * hex.uvec
     vvec = hex.side_length * hex.vvec
     c = centroid(hex)
     h = sin(π\3)
 
-    return SVector{6,SVector{3,T}}(SVector(c + uvec),SVector(c+ .5*uvec + vvec*h),SVector(c - .5*uvec + vvec*h),SVector(c - uvec), SVector(c -.5*uvec - vvec*h),SVector(c+ .5*uvec - vvec*h))
+    return SMatrix{2,6,T}(
+        uvec[1:2]...,
+        (.5*uvec + vvec*h)[1:2]...,
+        (-.5*uvec + vvec*h)[1:2]...,
+        (-uvec)[1:2]...,
+        (-.5*uvec - vvec*h)[1:2]...,
+        (.5*uvec - vvec*h)[1:2]...
+        )
 end
 
 function makemesh(hex::Hexagon{T}, ::Int = 0) where {T<:Real}
