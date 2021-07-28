@@ -30,13 +30,18 @@ export opticalcenter
 focallength(a::ParaxialLens) = focallength(a.interface)
 export focallength
 vertices(a::ParaxialLens) = vertices(a.shape)
+
 struct VirtualPoint{T<:Real}
     center::SVector{3,T}
     direction::SVector{3,T}
     distance::T
 end
 
+"""This will return (Inf,Inf,Inf) if the point is at infinity. In this case you probably should be using the direction of the VirtualPoint rather than its position"""
+point(a::VirtualPoint) = a.center + a.direction*a.distance
+
 distancefromplane(lens::ParaxialLens,point::AbstractVector) = distancefromplane(lens.shape,SVector{3}(point))
+export distancefromplane
 
 """returns the virtual distance of the point from the lens plane. When |distance| == focallength then virtualdistance = ∞"""
 function virtualdistance(focallength::T,distance::T) where{T<:Real}

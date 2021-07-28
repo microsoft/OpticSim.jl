@@ -10,7 +10,9 @@ using ..OpticSim.Geometry
 using ..OpticSim.Repeat
 using StaticArrays
 using LinearAlgebra
-using LazySets
+import LazySets
+using Unitful
+using Unitful.DefaultSymbols
 
 include("LensletAssembly.jl")
 include("SphericalPolygon.jl")
