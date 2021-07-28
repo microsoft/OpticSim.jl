@@ -17,7 +17,7 @@ export testvirtualpoint
 
 function testproject()
     focallength = 10.0
-    lens = ParaxialLensRect(10.0,100.0,100.0,[0.0,0.0,1.0],[0.0,0.0,0.0])
+    lens = ParaxialLensRect(focallength,100.0,100.0,[0.0,0.0,1.0],[0.0,0.0,0.0])
     display = Display(1000,1000,1.0μm,1.0μm,translation(0.0,0.0,-focallength))
     lenslet = LensletAssembly(lens,identitytransform(),display)
     
