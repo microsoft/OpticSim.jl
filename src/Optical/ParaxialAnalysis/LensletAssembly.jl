@@ -2,7 +2,7 @@
 
 struct Display{T} <: Surface{T}
     surface::Rectangle{T}
-    pixellattice::LatticeBasis{3,T}
+    pixellattice::LatticeBasis{2,T}
     pixelpitch::Tuple{T,T} #x,y pitch of pixels
     xresolution::T
     yresolution::T
@@ -44,16 +44,17 @@ lenstodisplay(a::LensletAssembly,pt::SVector{3,T}) where{T<:Real} = a.display.tr
 worldtodisplay(a::LensletAssembly,pt::SVector{3,T}) where{T<:Real} = a.worldtodisplay*pt
 
 """Projects vertexpoints in world space onto the lens plane and converts them to two dimensional points represented in the local x,y coordinates of the lens coordinate frame. Used for projecting eye pupil onto lens plane."""
-function project(lens::LensletAssembly{T},displaypoint::SVector{3,T},vertexpoints::SVector{N,SVector{3,T}}) where{T<:Real,N}
+function project(lenslet::LensletAssembly{T},displaypoint::SVector{3,T},vertexpoints::SVector{N,SVector{3,T}}) where{T<:Real,N}
     #need local transform for lens. Not quite sure how to organize this yet
     projectedpoints = MVector{N,SVector{2,T}}(undef)
-    locvertices = map(x->worldtolens(lens,x),vertexpoints) #transform pupil vertices into local coordinate frame of lens
-    virtpoint = virtualpoint(lens, displaypoint) #compute virtual point corresponding to physical display point
+    locvertices = map(x->worldtolens(lenslet,x),vertexpoints) #transform pupil vertices into local coordinate frame of lens
+    virtpoint = point(virtualpoint(lens(lenslet), displaypoint)) #compute virtual point corresponding to physical display point
     for (i,ppoint) in pairs(locvertices)
         vec = ppoint-virtpoint
-        vecdist = distancefromplane(lens,ppoint)
-        virtdist = distancefromplane(lens,virtpoint)
-        scale =  virtdist/vecdist
+        vecdist = distancefromplane(lens(lenslet),ppoint)
+        virtdist = distancefromplane(lens(lenslet),virtpoint)
+        println(vecdist,virtdist)
+        scale =  virtdist/(vecdist+virtdist)
         planepoint = scale*vec + virtpoint
         projectedpoints[i] = SVector{2,T}(planepoint[1],planepoint[2]) #local lens coordinate frame has z axis aligned with the positive normal to the lens plane.
     end

@@ -20,6 +20,9 @@ function testproject()
     lens = ParaxialLensRect(focallength,100.0,100.0,[0.0,0.0,1.0],[0.0,0.0,0.0])
     display = Display(1000,1000,1.0μm,1.0μm,translation(0.0,0.0,-focallength))
     lenslet = LensletAssembly(lens,identitytransform(),display)
-    
+    displaypoint = SVector(0.0,0.0,-8.0)
+    pupilpoints = SVector{2,SVector{3,Float64}}(SVector(10.0,10.0,10.0),SVector(-10.0,-10.0,20.0))
+    project(lenslet,displaypoint,pupilpoints)
 end
+export testproject
 
