@@ -58,11 +58,11 @@ struct ConvexPolygon{N,T<:Real}  <: PlanarShapes{T}
         plane = Plane(forward(local_frame), world_center, interface = interface)
         N = length(local_polygon_points)
         temp = MMatrix{2,N,T}(undef)
-        for (i,pt) in local_polygon_points
+        for (i,pt) in pairs(local_polygon_points)
             temp[:,i] = pt
         end
 
-        new{N,T}(plane, local_frame, SMatrix{2,N,T}(local_polygon_points), inv(local_frame), local_lines, length(local_lines))
+        new{N,T}(plane, local_frame, SMatrix{2,N,T}(temp), inv(local_frame), local_lines, length(local_lines))
     end
 end
 export ConvexPolygon
@@ -71,7 +71,7 @@ export ConvexPolygon
 centroid(poly::ConvexPolygon) = poly.plane.pointonplane
 
 
-function surfaceintersection(poly::ConvexPolygon{T}, r::AbstractRay{T,3}) where {T<:Real}
+function surfaceintersection(poly::ConvexPolygon{N,T}, r::AbstractRay{T,3}) where {N,T<:Real}
     interval = surfaceintersection(poly.plane, r)
     if interval isa EmptyInterval{T} || isinfiniteinterval(interval)
         return EmptyInterval(T) # no ray plane intersection or inside plane but no hit
@@ -120,7 +120,7 @@ end
 
 Create a triangle mesh that can be rendered by iterating on the polygon's edges and for each edge use the centroid as the third vertex of the triangle.
 """
-function makemesh(poly::ConvexPolygon{T}, ::Int = 0) where {T<:Real}
+function makemesh(poly::ConvexPolygon{N,T}, ::Int = 0) where {N,T<:Real}
     c = centroid(poly)
 
     l2w = local2world(poly.local_frame)
