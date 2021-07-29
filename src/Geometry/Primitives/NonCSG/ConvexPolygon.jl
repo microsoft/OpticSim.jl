@@ -21,11 +21,11 @@ The local frame defines the plane (spans by the right and up vectors) with the p
 the local_polygon_points are given with respect to the local frame and are 2D points.
 NOTE: This class uses static vectors to hold the points which will lead to more efficient performance, but should not be used with polygons with more than 20-30 points.
 """
-struct ConvexPolygon{T<:Real}  <: PlanarShapes{T} 
+struct ConvexPolygon{N,T<:Real}  <: PlanarShapes{T} 
     plane::Plane{T,3}
     local_frame::Transform{T}
     # local_points::Vector{SVector{2, T}}
-    local_points::SMatrix{}
+    local_points::SMatrix{2,N,T}
     # for efficency
     _local_frame_inv::Transform{T}                                  # cache the inverse matrix to avoid computing it for every intersection test
     _local_lines::Vector{SVector{3, SVector{2, T}}}                 # defines the edge points + a third point representing the slopes in order to save some calculationsduring ray checking
@@ -56,7 +56,13 @@ struct ConvexPolygon{T<:Real}  <: PlanarShapes{T}
         )
 
         plane = Plane(forward(local_frame), world_center, interface = interface)
-        new{T}(plane, local_frame, local_polygon_points, inv(local_frame), local_lines, length(local_lines))
+        N = length(local_polygon_points)
+        temp = MMatrix{2,N,T}(undef)
+        for (i,pt) in local_polygon_points
+            temp[:,i] = pt
+        end
+
+        new{N,T}(plane, local_frame, SMatrix{2,N,T}(local_polygon_points), inv(local_frame), local_lines, length(local_lines))
     end
 end
 export ConvexPolygon
@@ -122,8 +128,8 @@ function makemesh(poly::ConvexPolygon{T}, ::Int = 0) where {T<:Real}
 
     triangles = []
     for i in 1:len
-        p1 = poly.local_points[i]
-        p2 = poly.local_points[mod(i,len) + 1]
+        p1 = poly.local_points[:,i]
+        p2 = poly.local_points[:,mod(i,len) + 1]
 
         tri = Triangle(
             Vector(l2w * Vec3(p2[1], p2[2], zero(T))), 
