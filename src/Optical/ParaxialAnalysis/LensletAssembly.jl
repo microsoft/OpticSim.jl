@@ -39,26 +39,30 @@ lens(a::LensletAssembly) = a.lens
 display(a::LensletAssembly) = a.display
 transform(a::LensletAssembly) = a.transform
 
-worldtolens(a::LensletAssembly, pt::SVector{3,T}) where{T<:Real}= a.transform*pt
+worldtolens(a::LensletAssembly, pt::SVector{3})= a.transform*pt
+worldtolens(a::LensletAssembly,mat::SMatrix{3}) = a.transform*mat
 lenstodisplay(a::LensletAssembly,pt::SVector{3,T}) where{T<:Real} = a.display.transform*pt
 worldtodisplay(a::LensletAssembly,pt::SVector{3,T}) where{T<:Real} = a.worldtodisplay*pt
 
 """Projects vertexpoints in world space onto the lens plane and converts them to two dimensional points represented in the local x,y coordinates of the lens coordinate frame. Used for projecting eye pupil onto lens plane."""
-function project(lenslet::LensletAssembly{T},displaypoint::SVector{3,T},vertexpoints::SVector{N,SVector{3,T}}) where{T<:Real,N}
+function project(lenslet::LensletAssembly{T},displaypoint::SVector{3,T},vertexpoints::SMatrix{3,N,T}) where{T<:Real,N}
     #need local transform for lens. Not quite sure how to organize this yet
-    projectedpoints = MVector{N,SVector{2,T}}(undef)
-    locvertices = map(x->worldtolens(lenslet,x),vertexpoints) #transform pupil vertices into local coordinate frame of lens
+    projectedpoints = MMatrix{2,N,T}(undef)
+    _,cols = size(vertexpoints)
+    locvertices = worldtolens(lenslet,vertexpoints) #transform pupil vertices into local coordinate frame of lens
     virtpoint = point(virtualpoint(lens(lenslet), displaypoint)) #compute virtual point corresponding to physical display point
-    for (i,ppoint) in pairs(locvertices)
+    for i in 1:cols
+        ppoint = locvertices[:,i]
+        println("ppoint $ppoint")
+        println(ppoint,virtpoint)
         vec = ppoint-virtpoint
         vecdist = distancefromplane(lens(lenslet),ppoint)
         virtdist = distancefromplane(lens(lenslet),virtpoint)
-        println(vecdist,virtdist)
-        scale =  virtdist/(vecdist+virtdist)
+         scale =  virtdist/(vecdist+virtdist)
         planepoint = scale*vec + virtpoint
-        projectedpoints[i] = SVector{2,T}(planepoint[1],planepoint[2]) #local lens coordinate frame has z axis aligned with the positive normal to the lens plane.
+        projectedpoints[1:2,i] = SVector{2,T}(planepoint[1],planepoint[2]) #local lens coordinate frame has z axis aligned with the positive normal to the lens plane.
     end
-    return SVector{N,SVector{2,T}}(projectedpoints) #may need to make this a Vector{SVector} to be compatible with LazySets VPolygon constructors. Or maybe an MVector.
+    return SMatrix{2,N,T}(projectedpoints) #may need to make this a Vector{SVector} to be compatible with LazySets VPolygon constructors. Or maybe an MVector.
 end
 
 """computes the intersection of the lens polygon with a projected polygon, which usually will represent the pupil of the eye. Used in beam energy calculations. Not something that an end user should ever need to access."""

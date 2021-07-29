@@ -21,7 +21,7 @@ function testproject()
     display = Display(1000,1000,1.0μm,1.0μm,translation(0.0,0.0,-focallength))
     lenslet = LensletAssembly(lens,identitytransform(),display)
     displaypoint = SVector(0.0,0.0,-8.0)
-    pupilpoints = SVector{2,SVector{3,Float64}}(SVector(10.0,10.0,10.0),SVector(-10.0,-10.0,20.0))
+    pupilpoints = SMatrix{3,2}(10.0,10.0,10.0,-10.0,-10.0,20.0)
     project(lenslet,displaypoint,pupilpoints)
 end
 export testproject
@@ -32,7 +32,7 @@ function testintersection()
     # projectedverts = SVector{4,SVector{3,Float64}}(SVector(0.0, 0.0, 0.0),SVector(0.0,2.0, 0.0),SVector(2.0,2.0, 0.0),SVector(2.0,0.0, 0.0))
     projectedverts = SMatrix{2,4}(0.0,0.0,0.0,2.0,2.0,2.0,2.0,0.0)
     
-    intersection(projectedverts,lensverts)
+    LazySets.VPolygon(projectedverts) ∩ LazySets.VPolygon(lensverts)
 end
 export testintersection
 
