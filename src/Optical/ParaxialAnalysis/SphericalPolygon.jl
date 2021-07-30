@@ -1,52 +1,31 @@
-
-"""Vector guaranteed to have unit length. Identical to SVector otherwise"""
-struct UnitVector{N,T<:Real}
-    vec::SVector{N,T}
-
-    function UnitVector(a::AbstractVector{T}) where{T<:Real}
-        N = length(a)
-        return new{N,T}(normalize(SVector{N,T}(a)))
-    end
-end
-
-vector(a::UnitVector) = a.vec
-
-SVector(a::UnitVector) = a.vec
-
-Base.:+(a::UnitVector,b::UnitVector) = vector(a) + vector(b)
-Base.:+(a::SVector{3},b::UnitVector{3}) = a + vector(b)
-
 """returns the spherical angle formed by the cone with centervector at its center with neighbor1,neighbor2 the edges"""
-function sphericalangle(centervector::UnitVector{3,T}, neighbor1::UnitVector{3,T}, neighbor2::UnitVector{3,T}) where{T<:Real}
-    vec1 = normalize(neighbor1.vec - (neighbor1.vec⋅centervector.vec)*centervector.vec) #subtract off the component of the neighbor vectors from the center vector. This leaves only the component orthogonal to center vector
-    vec2 = normalize(neighbor2.vec - (neighbor2.vec⋅centervector.vec)*centervector.vec)
+function sphericalangle(centervector::SVector{3,T}, neighbor1::SVector{3,T}, neighbor2::SVector{3,T}) where{T<:Real}
+    vec1 = normalize(neighbor1 - (neighbor1⋅centervector)*centervector) #subtract off the component of the neighbor vectors from the center vector. This leaves only the component orthogonal to center vector
+    vec2 = normalize(neighbor2 - (neighbor2⋅centervector)*centervector)
     return acos(vec1⋅vec2)
 end
 
 struct SphericalTriangle{T<:Real}
-    ptvectors::SVector{3,UnitVector{3,T}}
+    ptvectors::SMatrix{3,3,T}
     spherecenter::SVector{3,T}
     radius::T
 
-    function SphericalTriangle(points::SVector{3,SVector{3,T}},spherecenter::SVector{3,T},radius::T) where{T<:Real}
-        vecs = MVector{3,UnitVector{3,T}}(undef)
-
-        for (i,point) in pairs(points)
-            vecs[i] = UnitVector(point-spherecenter) #vector from the center of the sphere of radius 1 to a point on the sphere
+    """Constructor which uses SMatrix to store vectors. For compatibility with LazySets this is more efficient"""
+    function SphericalTriangle(vectors::SMatrix{3,3,T},spherecenter::SVector{3,T},radius::T) where{T} 
+        temp = MMatrix{3,3,T}(undef)
+        for col in 1:3
+            temp[:,col] = normalize(vectors[:,col]-spherecenter)
         end
-        return new{T}(SVector{3,UnitVector{3,T}}(vecs),spherecenter,radius)
-    end
 
-    """Constructor which takes vectors which are guaranteed to be unitlength"""
-    SphericalTriangle(vectors::SVector{3,UnitVector{3,T}},spherecenter::SVector{3,T},radius::T) where{T<:Real} = new{T}(vectors,spherecenter,radius)
-        
+        new{T}(temp,spherecenter,radius)
+    end
 end
 export SphericalTriangle
 
-SphericalTriangle(points::Vector{Vector{T}},spherecenter::Vector{T},radius::T) where{T<:Real} = SphericalTriangle(SVector{3,SVector{3,T}}(points),SVector{3,T}(spherecenter),radius)
+vector(a::SphericalTriangle,i::Int) = a.ptvectors[:,i]
 
 function area(tri::SphericalTriangle{T}) where{T<:Real}
-    vec1,vec2,vec3 = tri.ptvectors[1],tri.ptvectors[2],tri.ptvectors[3]
+    vec1,vec2,vec3 = vector(tri,1),vector(tri,2),vector(tri,3)
     sum = T(0)
     sum += sphericalangle(vec1,vec3,vec2)
     sum += sphericalangle(vec2,vec1,vec3)
@@ -54,33 +33,33 @@ function area(tri::SphericalTriangle{T}) where{T<:Real}
     return (sum-π) * tri.radius^2
 end
 
-struct SphericalPolygon{T<:Real,N}
-    ptvectors::SVector{N,UnitVector{3,T}}
+struct SphericalPolygon{N,T<:Real}
+    ptvectors::SMatrix{3,N,T}
     spherecenter::SVector{3,T}
     radius::T
 
-    function SphericalPolygon(points::SVector{N,SVector{3,T}},spherecenter::SVector{3,T},radius::T) where{T<:Real,N}
-        normpoints = MVector{N,UnitVector{3,T}}(undef)
+    function SphericalPolygon(points::SMatrix{3,N,T},spherecenter::SVector{3,T},radius::T) where{T<:Real,N}
+        normpoints = MMatrix{3,N,T}(undef)
 
-        for (i,point) in pairs(points)
-            normpoints[i] = UnitVector(point-spherecenter)
+        for i in 1:N
+            normpoints[:,i] = normalize(points[:,i] - spherecenter)
         end
-        return new{T,N}(SVector{N,UnitVector{3,T}}(normpoints),SVector{3,T}(spherecenter),radius)
+        return new{N,T}(SMatrix{3,N,T}(normpoints),SVector{3,T}(spherecenter),radius)
     end
 end
 
 
 """Conceptually breaks the convex spherical polygon into spherical triangles and computes the sum of the angles of all the triangles. The sum of all the angles around the centroid is 2π. Have to subtract π for each of the N triangles. Rather than compute the angles of triangles formed by taking edges from the centroid to each vertex, can instead just compute the internal angle of neighboring edges. Total polygon area is 2π -Nπ + ∑(interior angles)."""
-function area(poly::SphericalPolygon{T,N}) where{T<:Real,N}
+function area(poly::SphericalPolygon{N,T}) where{T<:Real,N}
     accum = T(0)
     ptvecs = poly.ptvectors
 
     for i in 2:N-1  
-        accum += sphericalangle(ptvecs[i],ptvecs[i-1],ptvecs[i+1])
+        accum += sphericalangle(ptvecs[:,i],ptvecs[:,i-1],ptvecs[:,i+1])
     end
     # finish up first and last interior angles which have different indexing because of wraparound
-    accum += sphericalangle(ptvecs[N],ptvecs[N-1],ptvecs[1])
-    accum += sphericalangle(ptvecs[1],ptvecs[N],ptvecs[2])
+    accum += sphericalangle(ptvecs[:,N],ptvecs[:,N-1],ptvecs[:,1])
+    accum += sphericalangle(ptvecs[:,1],ptvecs[:,N],ptvecs[:,2])
 
     accum = (2π -N*π + accum)*poly.radius^2
     return accum
@@ -88,28 +67,46 @@ end
 
 function circlepoly(nsides; offset = [0.0,0.0,1.0])
     step = 2π/nsides
-    result = MVector{nsides,SVector{3,Float64}}(undef)
+    result = MMatrix{3,nsides,Float64}(undef)
     for i in 0:nsides-1
         y,x = sincos(step*i)
-        result[i+1] = [x,y,0.0] .+ offset
+        result[:,i+1] = [x,y,0.0] .+ offset
     end
-    return SVector{nsides,SVector{3,Float64}}(result)
+    return SMatrix{3,nsides,Float64}(result)
 end
 export circlepoly
 
-testtri() = SphericalTriangle(SVector{3,SVector{3,Float64}}(SVector{3,Float64}(0.0,1.0,0.),SVector{3,Float64}(1.0,0.0,0.0),SVector{3,Float64}(0.0,0.0,1.0)),SVector{3,Float64}(0.0,0.0,0.0),1.0)
+testtri() = SphericalTriangle(SMatrix{3,3,Float64}(
+    0.0,1.0,0.0,
+    1.0,0.0,0.0,
+    0.0,0.0,1.0),
+    SVector(0.0,0.0,0.0),
+    1.0)
 export testtri
 
-testdatapoly() = SphericalPolygon(SVector{3,SVector{3,Float64}}(SVector{3,Float64}(0.0,1.0,0.),SVector{3,Float64}(1.0,0.0,0.0),SVector{3,Float64}(0.0,0.0,1.0)),SVector{3,Float64}(0.0,0.0,0.0),1.0)
+testdatapoly() = SphericalPolygon(SMatrix{3,3,Float64}(
+    0.0,1.0,0.0,
+    1.0,0.0,0.0,
+    0.0,0.0,1.0),
+    SVector(0.0,0.0,0.0),
+    1.0)
 export testdatapoly
 
-foursidedpoly() = SphericalPolygon(SVector{4,SVector{3,Float64}}(SVector{3,Float64}(0.0,1.0,0.0),SVector{3,Float64}(1.0,1.0,-.9),SVector{3,Float64}(1.0,0.0,0.0),SVector{3,Float64}(0.0,0.0,1.0)),SVector{3,Float64}(0.0,0.0,0.0),1.0)
+
+foursidedpoly() = SphericalPolygon(SMatrix{3,4,Float64}(
+    0.0,1.0,0.0,
+    1.0,1.0,-.9,
+    1.0,0.0,0.0,
+    0.0,0.0,1.0),
+    SVector(0.0,0.0,0.0),
+    1.0)
+export foursidedpoly
 
 sphericalcircle(nsides = 10) = SphericalPolygon(circlepoly(nsides),SVector(0.0,0.0,0.0),1.0)
 export sphericalcircle
 
 function testarea()
-    tri = SphericalTriangle(SVector{3,SVector{3,Float64}}(SVector{3,Float64}(0.0,1.0,0.),SVector{3,Float64}(1.0,0.0,0.0),SVector{3,Float64}(0.0,0.0,1.0)),SVector{3,Float64}(0.0,0.0,0.0),1.0)
+    tri = testtri()
     poly =  testdatapoly()
 
     return area(tri), area(poly), area(foursidedpoly())

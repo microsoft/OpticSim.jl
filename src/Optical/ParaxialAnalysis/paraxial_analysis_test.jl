@@ -39,10 +39,12 @@ export testintersection
 function testbeamenergy()
     focallength = 10.0
     lens = ParaxialLensRect(focallength,1.0,1.0,[0.0,0.0,1.0],[0.0,0.0,0.0])
+    display = Display(1000,1000,1.0μm,1.0μm,translation(0.0,0.0,-focallength))
+    lenslet = LensletAssembly(lens,identitytransform(),display)
     displaypoint = SVector(0.0,0.0,-8.0)
     virtpoint = virtualpoint(lens,displaypoint) #(0,0,-40)
     pupil = Rectangle(1.0,1.0,SVector(0.0,0.0,-1.0),SVector(2.0,2.0,40.0))
-    beamenergy(lens,point(virtpoint),point(pupil,vertices(pupil)))
+    beamenergy(lenslet,point(virtpoint),point(pupil,vertices(pupil)))
 end
 export testbeamenergy
 

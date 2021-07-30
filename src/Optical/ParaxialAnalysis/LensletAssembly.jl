@@ -53,8 +53,6 @@ function project(lenslet::LensletAssembly{T},displaypoint::SVector{3,T},vertexpo
     virtpoint = point(virtualpoint(lens(lenslet), displaypoint)) #compute virtual point corresponding to physical display point
     for i in 1:cols
         ppoint = locvertices[:,i]
-        println("ppoint $ppoint")
-        println(ppoint,virtpoint)
         vec = ppoint-virtpoint
         vecdist = distancefromplane(lens(lenslet),ppoint)
         virtdist = distancefromplane(lens(lenslet),virtpoint)
@@ -66,12 +64,13 @@ function project(lenslet::LensletAssembly{T},displaypoint::SVector{3,T},vertexpo
 end
 
 """Returns a number between 0 and 1 representing the ratio of the lens radiance to the pupil radiance. Assume lᵣ is the radiance transmitted through the lens from the display point. Some of this radiance, pᵣ, passes through the pupil. The beam energy is the ratio pᵣ/lᵣ."""
-function beamenergy(lens::ParaxialLens{T},displaypoint::AbstractVector{T},pupilpoints::SMatrix{3,N,T}) where{N,T<:Real}
-    projectedpoints = project(lens,displaypoint,pupilpoints)
-    virtpoint = virtualpoint(lens,displaypoint)
-    beamlens = SphericalPolygon(vertices(lens),virtpoint,T(1)) #assumes lens vertices are represented in the local lens coordinate frame
-    
-    intsct = LazySets.VPolygon(projectedpoints) ∩ LazySets.VPolygon(vertices(lens))
+function beamenergy(assy::LensletAssembly{T},displaypoint::AbstractVector{T},pupilpoints::SMatrix{3,N,T}) where{N,T<:Real}
+    llens::ParaxialLens{T} = lens(assy)
+    virtpoint = point(virtualpoint(llens,displaypoint))
+    projectedpoints = project(assy,displaypoint,pupilpoints)
+    beamlens = SphericalPolygon(vertices3d(vertices(llens)),virtpoint,T(1)) #assumes lens vertices are represented in the local lens coordinate frame
+    println(vertices(llens))
+    intsct = LazySets.VPolygon(projectedpoints) ∩ LazySets.VPolygon(vertices(llens))
     if isempty(intsct)
         return T(0)
     else
