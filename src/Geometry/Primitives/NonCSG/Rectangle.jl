@@ -57,6 +57,13 @@ centroid(r::Rectangle{T}) where {T<:Real} = r.plane.pointonplane
 
 uvrange(::Type{Rectangle{T}}) where {T<:Real} = ((-one(T), one(T)), (-one(T), one(T)))
 
+function point(r::Rectangle{T},uvs::SMatrix{2,N,T}) where{N,T<:Real}
+    result = MMatrix{3,N,T}
+    for i in 1:N
+        result[:,i] = point(r,uvs[1,i],uvs[2,i])
+    end
+    return SMatrix{3,N,T}(result)
+end
 
 point(r::Rectangle{T}, u::T, v::T) where {T<:Real} = centroid(r) + (r.halfsizeu * u * r.uvec) + (r.halfsizev * v * r.vvec)
 partials(r::Rectangle{T}, ::T, ::T) where {T<:Real} = r.halfsizeu * r.uvec, r.halfsizev * r.vvec

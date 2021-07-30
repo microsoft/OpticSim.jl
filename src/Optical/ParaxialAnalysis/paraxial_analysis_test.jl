@@ -36,3 +36,13 @@ function testintersection()
 end
 export testintersection
 
+function testbeamenergy()
+    focallength = 10.0
+    lens = ParaxialLensRect(focallength,1.0,1.0,[0.0,0.0,1.0],[0.0,0.0,0.0])
+    displaypoint = SVector(0.0,0.0,-8.0)
+    virtpoint = virtualpoint(lens,displaypoint) #(0,0,-40)
+    pupil = Rectangle(1.0,1.0,SVector(0.0,0.0,-1.0),SVector(2.0,2.0,40.0))
+    beamenergy(lens,point(virtpoint),point(pupil,vertices(pupil)))
+end
+export testbeamenergy
+

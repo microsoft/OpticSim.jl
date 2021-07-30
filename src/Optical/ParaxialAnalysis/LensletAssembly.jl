@@ -62,23 +62,16 @@ function project(lenslet::LensletAssembly{T},displaypoint::SVector{3,T},vertexpo
         planepoint = scale*vec + virtpoint
         projectedpoints[1:2,i] = SVector{2,T}(planepoint[1],planepoint[2]) #local lens coordinate frame has z axis aligned with the positive normal to the lens plane.
     end
-    return SMatrix{2,N,T}(projectedpoints) #may need to make this a Vector{SVector} to be compatible with LazySets VPolygon constructors. Or maybe an MVector.
-end
-
-"""computes the intersection of the lens polygon with a projected polygon, which usually will represent the pupil of the eye. Used in beam energy calculations. Not something that an end user should ever need to access."""
-function intersection(lens::ParaxialLens{T},projectedpoints::SVector{N,SVector{2,T}}) where{T<:Real,N}
-    lpoly = LazySets.VPolygon(vertices(lens))
-    ppoly = LazySets.VPolygon(projectedpoints)
-    return lpoly ∩ ppoly
+    return SMatrix{2,N,T}(projectedpoints)
 end
 
 """Returns a number between 0 and 1 representing the ratio of the lens radiance to the pupil radiance. Assume lᵣ is the radiance transmitted through the lens from the display point. Some of this radiance, pᵣ, passes through the pupil. The beam energy is the ratio pᵣ/lᵣ."""
-function beamenergy(lens::ParaxialLens{T},displaypoint::AbstractVector{T},pupilpoints::AbstractVector{SVector{3,T}}) where{T<:Real}
+function beamenergy(lens::ParaxialLens{T},displaypoint::AbstractVector{T},pupilpoints::SMatrix{3,N,T}) where{N,T<:Real}
     projectedpoints = project(lens,displaypoint,pupilpoints)
     virtpoint = virtualpoint(lens,displaypoint)
     beamlens = SphericalPolygon(vertices(lens),virtpoint,T(1)) #assumes lens vertices are represented in the local lens coordinate frame
     
-    intsct = intersection(projectedpoints,vertices(lens))
+    intsct = LazySets.VPolygon(projectedpoints) ∩ LazySets.VPolygon(vertices(lens))
     if isempty(intsct)
         return T(0)
     else
