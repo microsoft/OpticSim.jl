@@ -44,23 +44,38 @@ worldtolens(a::LensletAssembly,mat::SMatrix{3}) = a.transform*mat
 lenstodisplay(a::LensletAssembly,pt::SVector{3,T}) where{T<:Real} = a.display.transform*pt
 worldtodisplay(a::LensletAssembly,pt::SVector{3,T}) where{T<:Real} = a.worldtodisplay*pt
 
+vertices3d(vertices::SMatrix{2,N,T}) where{N,T<:Real} = vcat(vertices,zero(SMatrix{1,N,T}))
+export vertices3d
+
 """Projects vertexpoints in world space onto the lens plane and converts them to two dimensional points represented in the local x,y coordinates of the lens coordinate frame. Used for projecting eye pupil onto lens plane."""
 function project(lenslet::LensletAssembly{T},displaypoint::SVector{3,T},vertexpoints::SMatrix{3,N,T}) where{T<:Real,N}
-    #need local transform for lens. Not quite sure how to organize this yet
     projectedpoints = MMatrix{2,N,T}(undef)
-    _,cols = size(vertexpoints)
     locvertices = worldtolens(lenslet,vertexpoints) #transform pupil vertices into local coordinate frame of lens
     virtpoint = point(virtualpoint(lens(lenslet), displaypoint)) #compute virtual point corresponding to physical display point
-    for i in 1:cols
+    for i in 1:N
         ppoint = locvertices[:,i]
         vec = ppoint-virtpoint
-        vecdist = distancefromplane(lens(lenslet),ppoint)
-        virtdist = distancefromplane(lens(lenslet),virtpoint)
-         scale =  virtdist/(vecdist+virtdist)
+        vecdist = ppoint[3]
+        virtdist = virtpoint[3]
+        scale =  abs(virtdist/(vecdist-virtdist))
         planepoint = scale*vec + virtpoint
         projectedpoints[1:2,i] = SVector{2,T}(planepoint[1],planepoint[2]) #local lens coordinate frame has z axis aligned with the positive normal to the lens plane.
     end
+    println(projectedpoints)
     return SMatrix{2,N,T}(projectedpoints)
+end
+
+function convertlazysets(verts::LazySets.VectorIterator)
+    M = length(verts)
+    T = eltype(eltype(verts))
+    temp = MMatrix{3,M,T}(undef)
+    i = 1
+    for vertex in verts 
+        temp[1:2,i] = vertex
+        temp[3,i] = 0
+        i += 1
+    end
+    return SMatrix{3,M,T}(temp)
 end
 
 """Returns a number between 0 and 1 representing the ratio of the lens radiance to the pupil radiance. Assume lᵣ is the radiance transmitted through the lens from the display point. Some of this radiance, pᵣ, passes through the pupil. The beam energy is the ratio pᵣ/lᵣ."""
@@ -68,14 +83,18 @@ function beamenergy(assy::LensletAssembly{T},displaypoint::AbstractVector{T},pup
     llens::ParaxialLens{T} = lens(assy)
     virtpoint = point(virtualpoint(llens,displaypoint))
     projectedpoints = project(assy,displaypoint,pupilpoints)
-    beamlens = SphericalPolygon(vertices3d(vertices(llens)),virtpoint,T(1)) #assumes lens vertices are represented in the local lens coordinate frame
+    beampupil = SphericalPolygon(pupilpoints,virtpoint,T(1))
+
+    println(projectedpoints)
     println(vertices(llens))
-    intsct = LazySets.VPolygon(projectedpoints) ∩ LazySets.VPolygon(vertices(llens))
+    intsct = LazySets.VPolygon(projectedpoints) ∩ LazySets.VPolygon(vertices(llens)) #this could be slow, especially multithreaded, because it will allocate. Lazysets.vertices returns Vector{SVector}, rather than SMatrix or SVector{SVector}.
+
     if isempty(intsct)
         return T(0)
-    else
-        beamintsct = SphericalPolygon(intsct,virtpoint,T(1))
-        return area(beamintsct)/area(beamlens)
+    else            
+        beamintsct = SphericalPolygon(convertlazysets(LazySets.vertices(intsct)),virtpoint,T(1))
+        println(area(beamintsct),area(beampupil))
+        return area(beamintsct)/area(beampupil)
     end
 end
 

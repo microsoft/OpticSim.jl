@@ -29,12 +29,19 @@ opticalcenter(a::ParaxialLens) = opticalcenter(a.interface)
 export opticalcenter
 focallength(a::ParaxialLens) = focallength(a.interface)
 export focallength
+"""returns the 2 dimensional vertex points of the shape defining the lens aperture. These points lie in the plane of the shape"""
 vertices(a::ParaxialLens) = vertices(a.shape)
 
 struct VirtualPoint{T<:Real}
     center::SVector{3,T}
     direction::SVector{3,T}
     distance::T
+ 
+    function VirtualPoint(center::AbstractVector{T},direction::AbstractVector{T},distance::T) where{T<:Real}
+        @assert distance ≥ 0  #direction is encoded in the direction vector, but distance might have a sign. Need to discard it.
+        new{T}(SVector{3,T}(center),SVector{3,T}(direction),distance)
+    end
+
 end
 
 """This will return (Inf,Inf,Inf) if the point is at infinity. In this case you probably should be using the direction of the VirtualPoint rather than its position"""
@@ -58,7 +65,7 @@ function virtualpoint(lens::ParaxialLens{T}, point::AbstractVector{T}) where{T}
     point_oc = normalize(point - oc)
     distance = distancefromplane(lens,point)
     vdistance = virtualdistance(focallength(lens),distance)
-    return VirtualPoint(oc,point_oc,vdistance)
+    return VirtualPoint(oc,point_oc,abs(vdistance))
 end
 export virtualpoint
 

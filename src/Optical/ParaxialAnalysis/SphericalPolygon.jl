@@ -1,5 +1,5 @@
 """returns the spherical angle formed by the cone with centervector at its center with neighbor1,neighbor2 the edges"""
-function sphericalangle(centervector::SVector{3,T}, neighbor1::SVector{3,T}, neighbor2::SVector{3,T}) where{T<:Real}
+function sphericalangle(neighbor1::SVector{3,T}, centervector::SVector{3,T}, neighbor2::SVector{3,T}) where{T<:Real}
     vec1 = normalize(neighbor1 - (neighbor1⋅centervector)*centervector) #subtract off the component of the neighbor vectors from the center vector. This leaves only the component orthogonal to center vector
     vec2 = normalize(neighbor2 - (neighbor2⋅centervector)*centervector)
     return acos(vec1⋅vec2)
@@ -54,12 +54,12 @@ function area(poly::SphericalPolygon{N,T}) where{T<:Real,N}
     accum = T(0)
     ptvecs = poly.ptvectors
 
-    for i in 2:N-1  
-        accum += sphericalangle(ptvecs[:,i],ptvecs[:,i-1],ptvecs[:,i+1])
+    for i in 2:N-1       
+        accum += sphericalangle(ptvecs[:,i-1],ptvecs[:,i],ptvecs[:,i+1])
     end
     # finish up first and last interior angles which have different indexing because of wraparound
-    accum += sphericalangle(ptvecs[:,N],ptvecs[:,N-1],ptvecs[:,1])
-    accum += sphericalangle(ptvecs[:,1],ptvecs[:,N],ptvecs[:,2])
+    accum += sphericalangle(ptvecs[:,N-1],ptvecs[:,N],ptvecs[:,1])
+    accum += sphericalangle(ptvecs[:,2],ptvecs[:,1],ptvecs[:,N])
 
     accum = (2π -N*π + accum)*poly.radius^2
     return accum
@@ -76,13 +76,21 @@ function circlepoly(nsides; offset = [0.0,0.0,1.0])
 end
 export circlepoly
 
-testtri() = SphericalTriangle(SMatrix{3,3,Float64}(
+oneeigthsphere() = SphericalTriangle(SMatrix{3,3,Float64}(
     0.0,1.0,0.0,
     1.0,0.0,0.0,
     0.0,0.0,1.0),
     SVector(0.0,0.0,0.0),
     1.0)
-export testtri
+export oneeigthsphere
+
+onesixteenthphere() = SphericalTriangle(SMatrix{3,3,Float64}(
+    0.0,1.0,0.0,
+    1.0,1.0,0.0,
+    0.0,0.0,1.0),
+    SVector(0.0,0.0,0.0),
+    1.0)
+export onesixteenthphere
 
 testdatapoly() = SphericalPolygon(SMatrix{3,3,Float64}(
     0.0,1.0,0.0,
@@ -102,13 +110,28 @@ foursidedpoly() = SphericalPolygon(SMatrix{3,4,Float64}(
     1.0)
 export foursidedpoly
 
-sphericalcircle(nsides = 10) = SphericalPolygon(circlepoly(nsides),SVector(0.0,0.0,0.0),1.0)
+"""creates a circular polygon that subtends a half angle of θ. If you double θ the spherical area should double"""
+function sphericalcircle(θ, nsides = 10)
+    temp = MMatrix{3,nsides,Float64}(undef)
+    for i in 0:1:(nsides-1)
+        ϕ = i*2π/nsides
+        temp[1,i+1] = sin(θ)*cos(ϕ)
+        temp[2,i+1] = cos(θ)
+        temp[3,i+1] = sin(θ)*sin(ϕ)
+    end
+    return SphericalPolygon(SMatrix{3,nsides,Float64}(temp),SVector(0.0,0.0,0.0),1.0)
+end
 export sphericalcircle
 
 function testarea()
-    tri = testtri()
+    tri = oneeigthsphere()
+    halftri = onesixteenthphere()
     poly =  testdatapoly()
 
-    return area(tri), area(poly), area(foursidedpoly())
+    return area(tri), area(poly), area(halftri), area(foursidedpoly())
+
+
 end
 export testarea
+
+

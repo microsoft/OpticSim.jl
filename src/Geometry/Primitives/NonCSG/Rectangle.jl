@@ -57,6 +57,7 @@ centroid(r::Rectangle{T}) where {T<:Real} = r.plane.pointonplane
 
 uvrange(::Type{Rectangle{T}}) where {T<:Real} = ((-one(T), one(T)), (-one(T), one(T)))
 
+"""returns a 3D point. This takes into account the offset of centerpoint and the rotation vector used to construct the Rectangle. u and v are scaled by the size of the rectangle so that u=0,v=0 is one corner and u=v=1 is the diagonal corner. This function should go away once we have a sensible object transform hierarchy system."""
 function point(r::Rectangle{T},uvs::SMatrix{2,N,T}) where{N,T<:Real}
     result = MMatrix{3,N,T}(undef)
     for i in 1:N
@@ -65,6 +66,7 @@ function point(r::Rectangle{T},uvs::SMatrix{2,N,T}) where{N,T<:Real}
     return SMatrix{3,N,T}(result)
 end
 
+"""returns a 3D point in the plane of the rectangle. This takes into account the offset of centerpoint and the rotation vector used to construct the Rectangle. u and v are scaled by the size of the rectangle so that u=0,v=0 is one corner and u=v=1 is the diagonal corner. This function should go away once we have a sensible object transform hierarchy system."""
 point(r::Rectangle{T}, u::T, v::T) where {T<:Real} = centroid(r) + (r.halfsizeu * u * r.uvec) + (r.halfsizev * v * r.vvec)
 partials(r::Rectangle{T}, ::T, ::T) where {T<:Real} = r.halfsizeu * r.uvec, r.halfsizev * r.vvec
 
@@ -110,12 +112,17 @@ function surfaceintersection(rect::Rectangle{T}, r::AbstractRay{T,3}) where {T<:
     end
 end
 
-"""returns the vertices of the rectangle"""
-vertices(r::Rectangle{T},::Int = 0) where{T<:Real} = SMatrix{2,4}(
-    point(r, -one(T), -one(T))[1:2]...,
-    point(r, -one(T), one(T))[1:2]...,
-    point(r, one(T), one(T))[1:2]...,
-    point(r, one(T), -one(T))[1:2]...)
+"""returns the 2D vertices in the plane of the rectangle"""
+vertices(r::Rectangle{T},::Int = 0) where{T<:Real} = SMatrix{2,4}(vertices3d(r)[1:2,:])
+  
+
+"""returns the vertices of the rectangle in 3D"""
+vertices3d(r::Rectangle{T},::Int = 0) where{T<:Real} = SMatrix{3,4}(
+    point(r, -one(T), -one(T))...,
+    point(r, -one(T), one(T))...,
+    point(r, one(T), one(T))...,
+    point(r, one(T), -one(T))...)
+export vertices3d
 
 function makemesh(r::Rectangle{T}, ::Int = 0) where {T<:Real}
     # p00,p01,p10,p11 = vertices(r)
