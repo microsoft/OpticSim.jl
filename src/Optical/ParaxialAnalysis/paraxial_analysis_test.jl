@@ -43,9 +43,7 @@ function testbeamenergy()
     lenslet = LensletAssembly(lens,identitytransform(),display)
     displaypoint = SVector(0.0,0.0,-8.0)
     pupil = Rectangle(1.0,1.0,SVector(0.0,0.0,-1.0),SVector(2.0,2.0,40.0))
-    println("pupilpoints $(Geometry.vertices3d(pupil))")
-   
-
+ 
     beamenergy(lenslet,displaypoint,Geometry.vertices3d(pupil))
 end
 export testbeamenergy

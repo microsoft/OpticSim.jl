@@ -51,20 +51,35 @@ end
 
 """Conceptually breaks the convex spherical polygon into spherical triangles and computes the sum of the angles of all the triangles. The sum of all the angles around the centroid is 2π. Have to subtract π for each of the N triangles. Rather than compute the angles of triangles formed by taking edges from the centroid to each vertex, can instead just compute the internal angle of neighboring edges. Total polygon area is 2π -Nπ + ∑(interior angles)."""
 function area(poly::SphericalPolygon{N,T}) where{T<:Real,N}
-    accum = T(0)
-    ptvecs = poly.ptvectors
-
-    for i in 2:N-1       
-        accum += sphericalangle(ptvecs[:,i-1],ptvecs[:,i],ptvecs[:,i+1])
-    end
-    # finish up first and last interior angles which have different indexing because of wraparound
-    accum += sphericalangle(ptvecs[:,N-1],ptvecs[:,N],ptvecs[:,1])
-    accum += sphericalangle(ptvecs[:,2],ptvecs[:,1],ptvecs[:,N])
-
-    accum = (2π -N*π + accum)*poly.radius^2
-    return accum
+    return area(poly.ptvectors,poly.radius)
 end
 
+function area(ptvecs::SMatrix{3,N,T},radius::T) where{N,T<:Real}
+    accum = T(0)
+
+    for i in 2:N-1 
+        v1 = SVector{3,T}(ptvecs[1,i-1],ptvecs[2,i-1],ptvecs[3,i-1])      
+        v2 = SVector{3,T}(ptvecs[1,i],ptvecs[2,i],ptvecs[3,i])      
+        v3 = SVector{3,T}(ptvecs[1,i+1],ptvecs[2,i+1],ptvecs[2,i+1])      
+        accum += sphericalangle(v1,v2,v3)
+    end
+    # finish up first and last interior angles which have different indexing because of wraparound
+    v1 = SVector{3,T}(ptvecs[1,N-1],ptvecs[2,N-1],ptvecs[3,N-1])      
+    v2 = SVector{3,T}(ptvecs[1,N],ptvecs[2,N],ptvecs[3,N])      
+    v3 = SVector{3,T}(ptvecs[1,1],ptvecs[2,1],ptvecs[3,1])      
+
+    accum += sphericalangle(v1,v2,v3)
+    
+    v1 = SVector{3,T}(ptvecs[1,2],ptvecs[2,2],ptvecs[3,2])      
+    v2 = SVector{3,T}(ptvecs[1,1],ptvecs[2,1],ptvecs[3,1])      
+    v3 = SVector{3,T}(ptvecs[1,N],ptvecs[2,N],ptvecs[3,N])      
+   
+    accum += sphericalangle(v1,v2,v3)
+
+    accum = (2π -N*π + accum)*radius^2
+    return accum
+end
+    
 function circlepoly(nsides; offset = [0.0,0.0,1.0])
     step = 2π/nsides
     result = MMatrix{3,nsides,Float64}(undef)

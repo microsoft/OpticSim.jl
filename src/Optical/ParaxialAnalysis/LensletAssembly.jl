@@ -61,7 +61,7 @@ function project(lenslet::LensletAssembly{T},displaypoint::SVector{3,T},vertexpo
         planepoint = scale*vec + virtpoint
         projectedpoints[1:2,i] = SVector{2,T}(planepoint[1],planepoint[2]) #local lens coordinate frame has z axis aligned with the positive normal to the lens plane.
     end
-    println(projectedpoints)
+
     return SMatrix{2,N,T}(projectedpoints)
 end
 
@@ -76,7 +76,7 @@ function convertlazysets(verts::LazySets.VectorIterator)
         i += 1
     end
     return SMatrix{3,M,T}(temp)
-end
+ end
 
 """Returns a number between 0 and 1 representing the ratio of the lens radiance to the pupil radiance. Assume lᵣ is the radiance transmitted through the lens from the display point. Some of this radiance, pᵣ, passes through the pupil. The beam energy is the ratio pᵣ/lᵣ."""
 function beamenergy(assy::LensletAssembly{T},displaypoint::AbstractVector{T},pupilpoints::SMatrix{3,N,T}) where{N,T<:Real}
@@ -85,17 +85,16 @@ function beamenergy(assy::LensletAssembly{T},displaypoint::AbstractVector{T},pup
     projectedpoints = project(assy,displaypoint,pupilpoints)
     beampupil = SphericalPolygon(pupilpoints,virtpoint,T(1))
 
-    println(projectedpoints)
-    println(vertices(llens))
-    intsct = LazySets.VPolygon(projectedpoints) ∩ LazySets.VPolygon(vertices(llens)) #this could be slow, especially multithreaded, because it will allocate. Lazysets.vertices returns Vector{SVector}, rather than SMatrix or SVector{SVector}.
+    # intsct = LazySets.VPolygon(projectedpoints) ∩ LazySets.VPolygon(vertices(llens)) #this could be slow, especially multithreaded, because it will allocate. Lazysets.vertices returns Vector{SVector}, rather than SMatrix or SVector{SVector}.
 
-    if isempty(intsct)
-        return T(0)
-    else            
-        beamintsct = SphericalPolygon(convertlazysets(LazySets.vertices(intsct)),virtpoint,T(1))
-        println(area(beamintsct),area(beampupil))
-        return area(beamintsct)/area(beampupil)
-    end
+    
+    return area(beampupil)/area(beampupil)
+    # if isempty(intsct)
+    #     return T(0)
+    # else            
+    #     # beamintsct = SphericalPolygon(convertlazysets(LazySets.vertices(intsct)),virtpoint,T(1))
+    #     return area(beamintsct)/area(beampupil)
+    # end
 end
 
 """Compute the bounding box in the display plane of the image of the worldpoly on the display plane. Pixels inside this area, conservatively, need to be turned on because some of their rays may pass through the worldpoly"""
