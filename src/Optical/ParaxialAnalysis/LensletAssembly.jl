@@ -85,16 +85,14 @@ function beamenergy(assy::LensletAssembly{T},displaypoint::AbstractVector{T},pup
     projectedpoints = project(assy,displaypoint,pupilpoints)
     beampupil = SphericalPolygon(pupilpoints,virtpoint,T(1))
 
-    # intsct = LazySets.VPolygon(projectedpoints) ∩ LazySets.VPolygon(vertices(llens)) #this could be slow, especially multithreaded, because it will allocate. Lazysets.vertices returns Vector{SVector}, rather than SMatrix or SVector{SVector}.
+    intsct = LazySets.VPolygon(projectedpoints) ∩ LazySets.VPolygon(vertices(llens)) #this could be slow, especially multithreaded, because it will allocate. Lazysets.vertices returns Vector{SVector}, rather than SMatrix or SVector{SVector}.
 
-    
-    return area(beampupil)/area(beampupil)
-    # if isempty(intsct)
-    #     return T(0)
-    # else            
-    #     # beamintsct = SphericalPolygon(convertlazysets(LazySets.vertices(intsct)),virtpoint,T(1))
-    #     return area(beamintsct)/area(beampupil)
-    # end
+    if isempty(intsct)
+        return T(0)
+    else            
+        beamintsct = SphericalPolygon(convertlazysets(LazySets.vertices(intsct)),virtpoint,T(1))
+        return area(beamintsct)/area(beampupil)
+    end
 end
 
 """Compute the bounding box in the display plane of the image of the worldpoly on the display plane. Pixels inside this area, conservatively, need to be turned on because some of their rays may pass through the worldpoly"""
