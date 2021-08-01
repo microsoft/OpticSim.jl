@@ -15,7 +15,6 @@ using Unitful
 using Unitful.DefaultSymbols
 
 include("LensletAssembly.jl")
-include("SphericalPolygon.jl")
 include("paraxial_analysis_test.jl")
 
 end #module

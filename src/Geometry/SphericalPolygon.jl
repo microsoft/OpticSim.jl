@@ -47,6 +47,7 @@ struct SphericalPolygon{N,T<:Real}
         return new{N,T}(SMatrix{3,N,T}(normpoints),SVector{3,T}(spherecenter),radius)
     end
 end
+export SphericalPolygon
 
 
 """Conceptually breaks the convex spherical polygon into spherical triangles and computes the sum of the angles of all the triangles. The sum of all the angles around the centroid is 2π. Have to subtract π for each of the N triangles. Rather than compute the angles of triangles formed by taking edges from the centroid to each vertex, can instead just compute the internal angle of neighboring edges. Total polygon area is 2π -Nπ + ∑(interior angles)."""
@@ -91,6 +92,21 @@ function circlepoly(nsides; offset = [0.0,0.0,1.0])
 end
 export circlepoly
 
+
+"""creates a circular polygon that subtends a half angle of θ. If you double θ the spherical area should double"""
+function sphericalcircle(θ, nsides = 10)
+    temp = MMatrix{3,nsides,Float64}(undef)
+    for i in 0:1:(nsides-1)
+        ϕ = i*2π/nsides
+        temp[1,i+1] = sin(θ)*cos(ϕ)
+        temp[2,i+1] = cos(θ)
+        temp[3,i+1] = sin(θ)*sin(ϕ)
+    end
+    return SphericalPolygon(SMatrix{3,nsides,Float64}(temp),SVector(0.0,0.0,0.0),1.0)
+end
+export sphericalcircle
+
+
 oneeigthsphere() = SphericalTriangle(SMatrix{3,3,Float64}(
     0.0,1.0,0.0,
     1.0,0.0,0.0,
@@ -107,13 +123,13 @@ onesixteenthphere() = SphericalTriangle(SMatrix{3,3,Float64}(
     1.0)
 export onesixteenthphere
 
-testdatapoly() = SphericalPolygon(SMatrix{3,3,Float64}(
+threesidedpoly() = SphericalPolygon(SMatrix{3,3,Float64}(
     0.0,1.0,0.0,
     1.0,0.0,0.0,
     0.0,0.0,1.0),
     SVector(0.0,0.0,0.0),
     1.0)
-export testdatapoly
+export threesidedpoly
 
 
 foursidedpoly() = SphericalPolygon(SMatrix{3,4,Float64}(
@@ -124,29 +140,4 @@ foursidedpoly() = SphericalPolygon(SMatrix{3,4,Float64}(
     SVector(0.0,0.0,0.0),
     1.0)
 export foursidedpoly
-
-"""creates a circular polygon that subtends a half angle of θ. If you double θ the spherical area should double"""
-function sphericalcircle(θ, nsides = 10)
-    temp = MMatrix{3,nsides,Float64}(undef)
-    for i in 0:1:(nsides-1)
-        ϕ = i*2π/nsides
-        temp[1,i+1] = sin(θ)*cos(ϕ)
-        temp[2,i+1] = cos(θ)
-        temp[3,i+1] = sin(θ)*sin(ϕ)
-    end
-    return SphericalPolygon(SMatrix{3,nsides,Float64}(temp),SVector(0.0,0.0,0.0),1.0)
-end
-export sphericalcircle
-
-function testarea()
-    tri = oneeigthsphere()
-    halftri = onesixteenthphere()
-    poly =  testdatapoly()
-
-    return area(tri), area(poly), area(halftri), area(foursidedpoly())
-
-
-end
-export testarea
-
 

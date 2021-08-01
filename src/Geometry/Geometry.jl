@@ -57,6 +57,7 @@ include("Primitives/Chebyshev.jl")
 include("Primitives/GridSag.jl")
 
 include("AnalyticIntersection.jl")
+include("SphericalPolygon.jl")
 
 ###########################################################################################################
 
