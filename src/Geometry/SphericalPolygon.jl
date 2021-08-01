@@ -93,7 +93,7 @@ end
 export circlepoly
 
 
-"""creates a circular polygon that subtends a half angle of θ. If you double θ the spherical area should double"""
+"""creates a circular polygon that subtends a half angle of θ"""
 function sphericalcircle(θ, nsides = 10)
     temp = MMatrix{3,nsides,Float64}(undef)
     for i in 0:1:(nsides-1)
