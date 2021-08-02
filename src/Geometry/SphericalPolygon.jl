@@ -1,3 +1,7 @@
+# MIT license
+# Copyright (c) Microsoft Corporation. All rights reserved.
+# See LICENSE in the project root for full license information.
+
 #SphericalPolygon uses StaticArrays to represent vertices. Expect performance degradation for polygons with large numbers of vertices. Performance appears to be good up to perhaps 100 vertices, perhaps as much as 1000 vertices. By 10,000 vertices performance is terrible.
 struct SphericalPolygon{N,T<:Real}
     ptvectors::SMatrix{3,N,T}
