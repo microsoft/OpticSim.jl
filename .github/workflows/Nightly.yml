@@ -1,9 +1,8 @@
-name: CI
+name: Nightly
 on:
-  push:
-    branches: [main, 'test/**', 'tnd/**']
-    tags: ['*']
-  pull_request:
+  schedule:
+    - cron: '00 00 * * 0'
+  workflow_dispatch:
 jobs:
   test:
     name: Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.arch }}
@@ -11,7 +10,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        version: ['1.6']
+        version: ['nightly']
         os: [ubuntu-latest, windows-latest]
         arch: [x64]
         include:
