@@ -1,3 +1,20 @@
+#SphericalPolygon uses StaticArrays to represent vertices. Expect performance degradation for polygons with large numbers of vertices. Performance appears to be good up to perhaps 100 vertices, perhaps as much as 1000 vertices. By 10,000 vertices performance is terrible.
+struct SphericalPolygon{N,T<:Real}
+    ptvectors::SMatrix{3,N,T}
+    spherecenter::SVector{3,T}
+    radius::T
+
+    function SphericalPolygon(points::SMatrix{3,N,T},spherecenter::SVector{3,T},radius::T) where{T<:Real,N}
+        normpoints = MMatrix{3,N,T}(undef)
+
+        for i in 1:N
+            normpoints[:,i] = normalize(points[:,i] - spherecenter)
+        end
+        return new{N,T}(SMatrix{3,N,T}(normpoints),SVector{3,T}(spherecenter),radius)
+    end
+end
+export SphericalPolygon
+
 """returns the spherical angle formed by the cone with centervector at its center with neighbor1,neighbor2 the edges"""
 function sphericalangle(neighbor1::SVector{3,T}, centervector::SVector{3,T}, neighbor2::SVector{3,T}) where{T<:Real}
     vec1 = normalize(neighbor1 - (dot(neighbor1,centervector)*centervector)) #subtract off the component of the neighbor vectors from the center vector. This leaves only the component orthogonal to center vector
@@ -34,21 +51,6 @@ function area(tri::SphericalTriangle{T}) where{T<:Real}
     return (sum-π) * tri.radius^2
 end
 
-struct SphericalPolygon{N,T<:Real}
-    ptvectors::SMatrix{3,N,T}
-    spherecenter::SVector{3,T}
-    radius::T
-
-    function SphericalPolygon(points::SMatrix{3,N,T},spherecenter::SVector{3,T},radius::T) where{T<:Real,N}
-        normpoints = MMatrix{3,N,T}(undef)
-
-        for i in 1:N
-            normpoints[:,i] = normalize(points[:,i] - spherecenter)
-        end
-        return new{N,T}(SMatrix{3,N,T}(normpoints),SVector{3,T}(spherecenter),radius)
-    end
-end
-export SphericalPolygon
 
 
 """Conceptually breaks the convex spherical polygon into spherical triangles and computes the sum of the angles of all the triangles. The sum of all the angles around the centroid is 2π. Have to subtract π for each of the N triangles. Rather than compute the angles of triangles formed by taking edges from the centroid to each vertex, can instead just compute the internal angle of neighboring edges. Total polygon area is 2π -Nπ + ∑(interior angles)."""
