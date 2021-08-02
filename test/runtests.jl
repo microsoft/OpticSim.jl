@@ -95,6 +95,7 @@ include("Benchmarks/Benchmarks.jl")
 
 alltestsets = [
     "ParaxialAnalysis",
+    "Paraxial",
     "JuliaLang",
     # "BVH",
     # "Examples", # slow
@@ -103,7 +104,7 @@ alltestsets = [
     "Intersection",
     "Lenses",
     "OpticalSystem",
-    "Emitters", # TODO
+    "Emitters",
     "Comparison",
     "Visualization",
     "Allocations",
