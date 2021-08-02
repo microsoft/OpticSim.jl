@@ -53,16 +53,6 @@ using Unitful.DefaultSymbols
             end
             return SphericalPolygon(SMatrix{3,nsides,Float64}(temp),SVector(0.0,0.0,0.0),1.0)
         end
-
-        # function circlepoly(nsides; offset = [0.0,0.0,1.0])
-        #     step = 2π/nsides
-        #     result = MMatrix{3,nsides,Float64}(undef)
-        #     for i in 0:nsides-1
-        #         y,x = sincos(step*i)
-        #         result[:,i+1] = [x,y,0.0] .+ offset
-        #     end
-        #     return SMatrix{3,nsides,Float64}(result)
-        # end
         
         oneeigthsphere() = SphericalTriangle(SMatrix{3,3,Float64}(
             0.0,1.0,0.0,
@@ -72,6 +62,13 @@ using Unitful.DefaultSymbols
             1.0)
         
         onesixteenthphere() = SphericalTriangle(SMatrix{3,3,Float64}(
+            0.0,1.0,0.0,
+            1.0,1.0,0.0,
+            0.0,0.0,1.0),
+            SVector(0.0,0.0,0.0),
+            1.0)
+
+        onesixteenthspherepoly() = SphericalPolygon(SMatrix{3,3,Float64}(
             0.0,1.0,0.0,
             1.0,1.0,0.0,
             0.0,0.0,1.0),
@@ -94,7 +91,11 @@ using Unitful.DefaultSymbols
             SVector(0.0,0.0,0.0),
             1.0)
     
+        #test that spherical triangle and spherical polygon area algorithms return the same values for the same spherical areas
         @test isapprox(area(oneeigthsphere()), area(threesidedpoly()))
+        @test isapprox(area(onesixteenthphere()),area(onesixteenthspherepoly())) 
+        
+        #halve the spherical area and make sure area function computes 1/2 the area
         @test isapprox(area(onesixteenthphere()), area(oneeigthsphere())/2.0)
         @test isapprox(area(sphericalcircle(π/8.0,1000))/4.0,area(sphericalcircle(π/16.0,1000)), atol = 1e-2)
     end
