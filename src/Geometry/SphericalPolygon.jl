@@ -1,8 +1,9 @@
 """returns the spherical angle formed by the cone with centervector at its center with neighbor1,neighbor2 the edges"""
 function sphericalangle(neighbor1::SVector{3,T}, centervector::SVector{3,T}, neighbor2::SVector{3,T}) where{T<:Real}
-    vec1 = normalize(neighbor1 - (neighbor1⋅centervector)*centervector) #subtract off the component of the neighbor vectors from the center vector. This leaves only the component orthogonal to center vector
-    vec2 = normalize(neighbor2 - (neighbor2⋅centervector)*centervector)
-    return acos(vec1⋅vec2)
+    vec1 = normalize(neighbor1 - (dot(neighbor1,centervector)*centervector)) #subtract off the component of the neighbor vectors from the center vector. This leaves only the component orthogonal to center vector
+    vec2 = normalize(neighbor2 - (dot(neighbor2,centervector)*centervector))
+
+    return acos(dot(vec1,vec2))
 end
 
 struct SphericalTriangle{T<:Real}
@@ -61,9 +62,10 @@ function area(ptvecs::SMatrix{3,N,T},radius::T) where{N,T<:Real}
     for i in 2:N-1 
         v1 = SVector{3,T}(ptvecs[1,i-1],ptvecs[2,i-1],ptvecs[3,i-1])      
         v2 = SVector{3,T}(ptvecs[1,i],ptvecs[2,i],ptvecs[3,i])      
-        v3 = SVector{3,T}(ptvecs[1,i+1],ptvecs[2,i+1],ptvecs[2,i+1])      
+        v3 = SVector{3,T}(ptvecs[1,i+1],ptvecs[2,i+1],ptvecs[3,i+1])      
         accum += sphericalangle(v1,v2,v3)
     end
+
     # finish up first and last interior angles which have different indexing because of wraparound
     v1 = SVector{3,T}(ptvecs[1,N-1],ptvecs[2,N-1],ptvecs[3,N-1])      
     v2 = SVector{3,T}(ptvecs[1,N],ptvecs[2,N],ptvecs[3,N])      

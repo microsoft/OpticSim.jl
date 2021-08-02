@@ -10,9 +10,7 @@ struct Display{T} <: Surface{T}
 
     function Display(xres::Int64,yres::Int64,xpitch::Unitful.Length,ypitch::Unitful.Length,transform::Geometry.Transform{T}) where{T<:Real}
         # convert xpitch,ypitch to unitless numbers representing μm
-        println("before")
         pitchx = ustrip(μm,xpitch)
-        println("after")
         pitchy = ustrip(μm,ypitch)
         size = (xres*pitchx,yres*pitchy)
         surface = Rectangle(size[1]/T(2),size[2]/T(2),SVector(T(0),T(0),T(1)),SVector(T(0),T(0),T(0))) #surface normal is +z axis
@@ -93,8 +91,7 @@ function beamenergy(assy::LensletAssembly{T},displaypoint::AbstractVector{T},pup
         return T(0)
     else            
         beamintsct = SphericalPolygon(convertlazysets(LazySets.vertices(intsct)),virtpoint,T(1))
-        println("intsct $(area(beamintsct)) pupil $(area(beampupil))")
-        return area(beamintsct)/area(beampupil)
+        return OpticSim.area(beamintsct)/OpticSim.area(beampupil)
     end
 end
 
