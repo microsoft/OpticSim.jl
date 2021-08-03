@@ -25,6 +25,7 @@ uv(a::Intersection{T,N}) -> SVector{2,T}
 u(a::Intersection{T,N}) -> T
 v(a::Intersection{T,N}) -> T
 α(a::Intersection{T,N}) -> T
+surface_id(a::Intersection{T,N}) -> UUID
 interface(a::Intersection{T,N}) -> OpticalInterface{T}
 flippednormal(a::Intersection{T,N}) -> Bool
 ```
@@ -35,17 +36,18 @@ struct Intersection{T,N} <: FinitePoint{T}
     normal::SVector{N,T}
     u::T
     v::T
+    surface_id::UUID
     interface::AllOpticalInterfaces{T} # returns a union of all OpticalInterface subtypes - can't have an abstract type here as it results in allocations
     flippednormal::Bool
 
-    function Intersection(α::T, point::SVector{N,T}, normal::SVector{N,T}, u::T, v::T, interface::AllOpticalInterfaces{T}; flippednormal = false) where {T<:Real,N}
-        new{T,N}(α, point, normalize(normal), u, v, interface, flippednormal)
+    function Intersection(α::T, point::SVector{N,T}, normal::SVector{N,T}, u::T, v::T, surface_id::UUID, interface::AllOpticalInterfaces{T}; flippednormal = false) where {T<:Real,N}
+        new{T,N}(α, point, normalize(normal), u, v, surface_id, interface, flippednormal)
     end
 
-    function Intersection(α::T, point::AbstractVector{T}, normal::AbstractVector{T}, u::T, v::T, interface::AllOpticalInterfaces{T}; flippednormal = false) where {T<:Real}
+    function Intersection(α::T, point::AbstractVector{T}, normal::AbstractVector{T}, u::T, v::T, surface_id::UUID, interface::AllOpticalInterfaces{T}; flippednormal = false) where {T<:Real}
         @assert length(point) == length(normal)
         N = length(point)
-        new{T,N}(α, SVector{N,T}(point), SVector{N,T}(normal), u, v, interface, flippednormal)
+        new{T,N}(α, SVector{N,T}(point), SVector{N,T}(normal), u, v, surface_id, interface, flippednormal)
     end
 end
 export Intersection
@@ -56,6 +58,7 @@ uv(a::Intersection{T,N}) where {T<:Real,N} = SVector{2,T}(a.u, a.v)
 u(a::Intersection{T,N}) where {T<:Real,N} = a.u
 v(a::Intersection{T,N}) where {T<:Real,N} = a.v
 α(a::Intersection{T,N}) where {T<:Real,N} = a.α
+surface_id(a::Intersection{T,N}) where {T<:Real,N} = a.surface_id
 interface(a::Intersection{T,N}) where {T<:Real,N} = a.interface
 flippednormal(a::Intersection{T,N}) where {T<:Real,N} = a.flippednormal
 
@@ -67,6 +70,7 @@ function Base.print(io::IO, a::Intersection{T,N}) where {T<:Real,N}
     println(io, "normal is flipped? \t$(flippednormal(a))")
     println(io, "u \t$(u(a))")
     println(io, "v \t$(v(a))")
+    println(io, "surface_id \t$(surface_id(a))")
     println(io, "interface \t$(interface(a))")
 end
 
@@ -177,6 +181,6 @@ function Base.:*(a::Transform{T}, intsct::Intersection{T,3})::Intersection{T,3} 
         # TODO REMOVE
         return @unionsplit OpticalInterface T i Intersection(α(intsct), a * point(intsct), Geometry.rotate(a, normal(intsct)), u, v, i, flippednormal = flippednormal(intsct))
     else
-        return Intersection(α(intsct), a * point(intsct), Geometry.rotate(a, normal(intsct)), u, v, interface(intsct), flippednormal = flippednormal(intsct))
+        return Intersection(α(intsct), a * point(intsct), Geometry.rotate(a, normal(intsct)), u, v, surface_id(intsct), interface(intsct), flippednormal = flippednormal(intsct))
     end
 end

@@ -456,7 +456,7 @@ Draw each element in the lens assembly of an [`AbstractOpticalSystem`](@ref), wi
 """
 function draw!(scene::Makie.LScene, sys::CSGOpticalSystem{T}; kwargs...) where {T<:Real}
     draw!(scene, sys.assembly; kwargs...)
-    draw!(scene, sys.detector; kwargs...)
+    draw!(scene, detector(sys); kwargs...)
 end
 
 draw!(scene::Makie.LScene, sys::AxisymmetricOpticalSystem{T}; kwargs...) where {T<:Real} = draw!(scene, sys.system; kwargs...)

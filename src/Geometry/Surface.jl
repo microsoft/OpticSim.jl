@@ -27,6 +27,7 @@ Basic `Surface`s are _not_ valid CSG objects, they function only in a stand-alon
 ```julia
 surfaceintersection(surface::Surface{T}, ray::AbstractRay{T,3}) -> Union{EmptyInterval{T},Interval{T}}
 normal(surface::Surface{T}) -> SVector{3,T}
+surface_id(surface::Surface{T}) -> UUID
 interface(surface::Surface{T}) -> OpticalInterface{T}
 makemesh(surface::Surface{T}) -> TriangleMesh{T}
 ```
@@ -74,6 +75,7 @@ normal(surface::ParametricSurface{T,N}, u::T, v::T) -> SVector{N,T}
 inside(surface::ParametricSurface{T,N}, p: :SVector{N,T}) -> Bool
 onsurface(surface::ParametricSurface{T,N}, p::SVector{N,T}) -> Bool
 surfaceintersection(surface::ParametricSurface{T,N}, AbstractRay::Ray{T,N}) -> Union{EmptyInterval{T},Interval{T},DisjointUnion{T}}
+surface_id(surface::ParametricSurface{T,N}) -> UUID
 interface(surface::ParametricSurface{T,N}) -> OpticalInterface{T}
 ```
 """

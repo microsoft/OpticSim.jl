@@ -35,7 +35,7 @@ typically this is one of [`Rectangle`](@ref), [`Ellipse`](@ref) or [`SphericalCa
 ```julia
 CSGOpticalSystem(
     assembly::LensAssembly,
-    detector::Surface,
+    detector::Pair{Surface, AbstractDetector},
     detectorpixelsx = 1000,
     detectorpixelsy = 1000, ::Type{D} = Float32;
     temperature = OpticSim.GlassCat.TEMP_REF,
@@ -45,14 +45,13 @@ CSGOpticalSystem(
 """
 struct CSGOpticalSystem{T,D<:Number,S<:Surface{T},L<:LensAssembly{T}} <: AbstractOpticalSystem{T}
     assembly::L
-    detector::S
-    detectorimage::HierarchicalImage{D}
+    detector::Pair{S, AbstractDetector{D}}
     temperature::T
     pressure::T
 
     function CSGOpticalSystem(
         assembly::L,
-        detector::S,
+        detector::Pair{S, String},
         detectorpixelsx::Int = 1000,
         detectorpixelsy::Int = 1000,
         ::Type{D} = Float32;
@@ -62,15 +61,27 @@ struct CSGOpticalSystem{T,D<:Number,S<:Surface{T},L<:LensAssembly{T}} <: Abstrac
         @assert hasmethod(uv, (S, SVector{3,T})) "Detector must implement uv()"
         @assert hasmethod(uvtopix, (S, SVector{2,T}, Tuple{Int,Int})) "Detector must implement uvtopix()"
         @assert hasmethod(onsurface, (S, SVector{3,T})) "Detector must implement onsurface()"
-        opticalinterface = interface(detector)
+        opticalinterface = interface(detector.first)
         @assert insidematerialid(opticalinterface) == outsidematerialid(opticalinterface) "Detector must have same material either side"
-        @assert interface(detector) !== NullInterface(T) "Detector can't have null interface"
-        image = HierarchicalImage{D}(detectorpixelsy, detectorpixelsx)
+        @assert interface(detector.first) !== NullInterface(T) "Detector can't have null interface"
+        image = ImageDetector(detector.second, detectorpixelsy, detectorpixelsx, D)
         if temperature isa Unitful.Temperature
             temperature = Unitful.ustrip(T, °C, temperature)
         end
-        return new{T,D,S,L}(assembly, detector, image, temperature, convert(T, pressure))
+        return new{T,D,S,L}(assembly, detector.first => image, temperature, convert(T, pressure))
     end
+end
+
+function CSGOpticalSystem(
+    assembly::L,
+    detector::S,
+    detectorpixelsx::Int = 1000,
+    detectorpixelsy::Int = 1000,
+    t::Type{D} = Float32;
+    temperature::Union{T,Unitful.Temperature} = convert(T, TEMP_REF),
+    pressure::T = convert(T, PRESSURE_REF)
+    ) where {T<:Real,S<:Surface{T},L<:LensAssembly{T},D<:Number}
+    CSGOpticalSystem(assembly, detector => "Default Detector", detectorpixelsx, detectorpixelsy, t; temperature = temperature, pressure = pressure)
 end
 
 Base.copy(a::CSGOpticalSystem) = CSGOpticalSystem(
@@ -94,7 +105,7 @@ Get the [`LensAssembly`](@ref) of `system`.
 """
 assembly(system::CSGOpticalSystem{T}) where {T<:Real} = system.assembly
 
-detector(system::CSGOpticalSystem) = system.detector
+detector(system::CSGOpticalSystem) = system.detector.first
 
 """
     detectorimage(system::AbstractOpticalSystem{T}) -> HierarchicalImage{D}
@@ -102,9 +113,9 @@ detector(system::CSGOpticalSystem) = system.detector
 Get the detector image of `system`.
 `D` is the datatype of the detector image and is not necessarily the same as the datatype of the system `T`.
 """
-detectorimage(system::CSGOpticalSystem) = system.detectorimage
+detectorimage(system::CSGOpticalSystem) = system.detector.second
 
-detectorsize(system::CSGOpticalSystem) = size(system.detectorimage)
+detectorsize(system::CSGOpticalSystem) = size(detectorimage(system))
 
 """
     temperature(system::AbstractOpticalSystem{T}) -> T
@@ -124,7 +135,7 @@ pressure(system::CSGOpticalSystem{T}) where {T<:Real} = system.pressure
 
 Reset the deterctor image of `system` to zero.
 """
-resetdetector!(system::CSGOpticalSystem{T}) where {T<:Real} = reset!(system.detectorimage)
+resetdetector!(system::CSGOpticalSystem{T}) where {T<:Real} = reset!(detectorimage(system))
 
 Base.Float32(a::T) where {T<:ForwardDiff.Dual} = Float32(ForwardDiff.value(a))
 
@@ -147,79 +158,7 @@ function trace(
         return nothing
     end
 
-    result = trace(system.assembly, r, temperature(system), pressure(system), trackrays = trackrays, test = test)
-
-    if result === nothing || result === nopower
-        emptyintervalpool!(T)
-        return nothing
-    else #ray intersected lens assembly so continue to see if ray intersects detector
-        intsct = surfaceintersection(detector(system), ray(result))
-        if intsct === nothing # no intersection of final ray with detector
-            emptyintervalpool!(T)
-            return nothing
-        end
-
-        detintsct = closestintersection(intsct)
-        if detintsct === nothing
-            emptyintervalpool!(T)
-            return nothing
-        else
-            # need to modify power and path length accordingly for the intersection with the detector
-            surfintsct = point(detintsct)
-            nml = normal(detintsct)
-            opticalinterface = interface(detintsct)::FresnelInterface{T}
-            λ = wavelength(r)
-
-            # Optical path length is measured in mm
-            # in this case the result ray is exact so no correction for RAY_OFFSET is needed
-            geometricpathlength = norm(surfintsct - origin(ray(result)))
-            opticalpathlength = geometricpathlength
-            pow = power(result)
-
-            m = outsidematerialid(opticalinterface)
-            # compute updated power based on absorption coefficient of material using Beer's law
-            # this will almost always not apply as the detector will be in air, but it's possible that the detector is
-            # not in air, in which case this is necessary
-            if !isair(m)
-                mat::Glass = glassforid(m)
-                nᵢ = index(mat, λ, temperature = temperature(system), pressure = pressure(system))::T
-                α = absorption(mat, λ, temperature = temperature(system), pressure = pressure(system))::T
-                if α > zero(T)
-                    internal_trans = exp(-α * geometricpathlength)
-                    if rand() >= internal_trans
-                        return nothing
-                    end
-                    pow = pow * internal_trans
-                end
-                opticalpathlength = nᵢ * geometricpathlength
-            end
-
-            temp = LensTrace{T,N}(
-                OpticalRay(
-                    ray(ray(result)),
-                    pow,
-                    wavelength(result),
-                    opl = pathlength(result) + opticalpathlength,
-                    nhits = nhits(result) + 1,
-                    sourcenum = sourcenum(r),
-                    sourcepower = sourcepower(r)),
-                detintsct
-            )
-            if trackrays !== nothing
-                push!(trackrays, temp)
-            end
-
-            # increment the detector image
-            pixu, pixv = uvtopix(detector(system), uv(detintsct), size(system.detectorimage))
-            system.detectorimage[pixv, pixu] += convert(D, sourcepower(r)) # TODO will need to handle different detector
-                                                                           #      image types a bit better than this
-
-            # should be okay to assume intersection will not be a DisjointUnion for all the types of detectors we will
-            # be using
-            emptyintervalpool!(T)
-            return temp
-        end
-    end
+    trace(system, system.assembly, r, temperature(system), pressure(system), trackrays = trackrays, test = test)
 end
 
 ######################################################################################################################

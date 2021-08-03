@@ -324,7 +324,8 @@ Recursive rays are offset by a small amount (`RAY_OFFSET`) to prevent it from im
 
 `trackrays` can be passed an empty vector to accumulate the `LensTrace` objects at each intersection of `ray` with a surface in the assembly.
 """
-function trace(assembly::LensAssembly{T}, r::OpticalRay{T,N}, temperature::T = T(OpticSim.GlassCat.TEMP_REF), pressure::T = T(OpticSim.GlassCat.PRESSURE_REF); trackrays::Union{Nothing,Vector{LensTrace{T,N}}} = nothing, test::Bool = false, recursion::Int = 0)::Union{Nothing,NoPower,LensTrace{T,N}} where {T<:Real,N}
+function trace(system, assembly::LensAssembly{T}, r::OpticalRay{T,N}, temperature::T = T(OpticSim.GlassCat.TEMP_REF), pressure::T = T(OpticSim.GlassCat.PRESSURE_REF); trackrays::Union{Nothing,Vector{LensTrace{T,N}}} = nothing, test::Bool = false, recursion::Int = 0)::Union{Nothing,NoPower,LensTrace{T,N}} where {T<:Real,N}
+    detector_id = surface_id(detector(system))
     if power(r) < POWER_THRESHOLD || recursion > TRACE_RECURSION_LIMIT
         return nopower
     end
@@ -332,6 +333,7 @@ function trace(assembly::LensAssembly{T}, r::OpticalRay{T,N}, temperature::T = T
     if intsct === nothing
         return nothing
     else
+        intersection_id = surface_id(intsct)
         surfintsct = point(intsct)
         nml = normal(intsct)
         opticalinterface = interface(intsct)
@@ -353,8 +355,11 @@ function trace(assembly::LensAssembly{T}, r::OpticalRay{T,N}, temperature::T = T
                 # i.e. with the path length for this intersection added and power modulated by absorption only
                 push!(trackrays, LensTrace(OpticalRay(ray(r), raypower, λ, opl = raypathlength, nhits = nhits(r), sourcenum = sourcenum(r), sourcepower = sourcepower(r)), intsct))
             end
+            if intersection_id == detector_id
+                update!(detectorimage(system), detector(system), LensTrace(OpticalRay(ray(r), raypower, λ, opl = raypathlength, nhits = nhits(r), sourcenum = sourcenum(r), sourcepower = sourcepower(r)), intsct))
+            end
             offsetray = OpticalRay(surfintsct + RAY_OFFSET * raydirection, raydirection, raypower, λ, opl = raypathlength, nhits = nhits(r) + 1, sourcenum = sourcenum(r), sourcepower = sourcepower(r))
-            res = trace(assembly, offsetray, temperature, pressure, trackrays = trackrays, test = test, recursion = recursion + 1)
+            res = trace(system, assembly, offsetray, temperature, pressure, trackrays = trackrays, test = test, recursion = recursion + 1)
             if res === nothing
                 return LensTrace(OpticalRay(surfintsct, raydirection, raypower, λ, opl = raypathlength, nhits = nhits(r), sourcenum = sourcenum(r), sourcepower = sourcepower(r)), intsct)
             else
