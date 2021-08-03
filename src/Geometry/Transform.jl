@@ -452,6 +452,8 @@ function Base.:*(t::Transform{T}, m::SMatrix{3,N,T}) where{N,T<:Real}
             for incol in 1:3
                 sum += t[row,incol]*m[incol,outcol]
             end
+            #implicit 1 w coordinate value
+            sum += t[row,4]
             res[row,outcol] = sum
         end
         if t[4,4] != 1
