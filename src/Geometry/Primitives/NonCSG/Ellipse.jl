@@ -17,7 +17,7 @@ Ellipse(halfsizeu::T, halfsizev::T, [surfacenormal::SVector{3,T}, centrepoint::S
 
 The minimal case returns an ellipse centered at the origin with `surfacenormal = [0, 0, 1]`.
 """
-struct Ellipse{T} <: PlanarShapes{T}
+struct Ellipse{T} <: PlanarShape{T}
     plane::Plane{T,3}
     halfsizeu::T
     halfsizev::T

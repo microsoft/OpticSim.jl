@@ -21,7 +21,7 @@ The local frame defines the plane (spans by the right and up vectors) with the p
 the local_polygon_points are given with respect to the local frame and are 2D points.
 NOTE: This class uses static vectors to hold the points which will lead to more efficient performance, but should not be used with polygons with more than 20-30 points.
 """
-struct ConvexPolygon{N,T<:Real}  <: PlanarShapes{T} 
+struct ConvexPolygon{N,T<:Real}  <: PlanarShape{T} 
     plane::Plane{T,3}
     local_frame::Transform{T}
     # local_points::Vector{SVector{2, T}}

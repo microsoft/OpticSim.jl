@@ -32,7 +32,7 @@ include("Primitives/Cylinder.jl")
 include("Primitives/Sphere.jl")
 include("Primitives/SphericalCap.jl")
 
-include("Primitives/NonCSG/PlanarShapes.jl")
+include("Primitives/NonCSG/PlanarShape.jl")
 include("Primitives/NonCSG/Rectangle.jl")
 include("Primitives/NonCSG/Hexagon.jl")
 include("Primitives/NonCSG/ConvexPolygon.jl")
