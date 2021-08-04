@@ -2,6 +2,8 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # See LICENSE in the project root for full license information.
 
+using Colors
+
 # These utility functions provide a simple interface to the Emitters package to create emitters that are commonly used in optical systems. Many optical systems by convention have their optical axis parallel to the z axis. These emitters direct the rays in the negative z direction, toward the entrance of the optical system.
 
 """
@@ -39,4 +41,44 @@ function collimatedemitter(origin::AbstractVector{T}, halfsquaresize; λ::Length
         Directions.Constant(-Geometry.unitZ3(T)),
         AngularPower.Lambertian()
     )
+end
+
+"""
+    imageemitter()
+
+
+"""
+function imageemitter(
+    image::AbstractArray{<:AbstractGray},
+    pixel_size::Tuple{T,T},
+    pixel_pitch::Tuple{T,T},
+    pixel_pos::Tuple{T,T};
+    transform::Transform{T} = identitytransform(T)
+) where {T<:Real}
+    @assert length(size(image)) == 2
+
+    pixel_source = Sources.Source(;
+        transform = Geometry.translation(pixel_pos[1], pixel_pos[2], zero(T)),
+        origins = Origins.RectGrid(pixel_size[1], pixel_size[2], 1, 1),
+        directions = Directions.HexapolarCone(deg2rad(10), 2)
+    )
+
+    sources::Vector{Sources.CompositeSource{T}} = []
+    for i = 1:size(image, 1)
+        for j = 1:size(image, 2)
+            if image[i, j] < 0.5
+                continue
+            end
+
+            push!(
+                sources,
+                Sources.CompositeSource(
+                    Geometry.translation((i - 1) * pixel_pitch[1], (j - 1) * pixel_pitch[2], zero(T)),
+                    [pixel_source]
+                )
+            )
+        end
+    end
+
+    return Sources.CompositeSource(transform, sources)
 end

@@ -165,6 +165,8 @@ struct CompositeSource{T} <: AbstractSource{T}
     total_length::Int
     start_indexes::Vector{Int}
 
+    CompositeSource(sources::Vector{<:AbstractSource{T}}) where {T<:Real} = CompositeSource(identitytransform(T), sources)
+
     function CompositeSource(transform::Transform{T}, sources::Vector{<:AbstractSource}) where {T<:Real}
         lens = [length(src) for src in sources]
         size1 = findmin(lens)[1]
