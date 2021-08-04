@@ -7,15 +7,23 @@ on:
 jobs:
   build:
     name: Documentation
-    runs-on: ubuntu-18.04
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@latest
         with:
           version: 1.6
+      - name: Install Mesa (Windows only)
+        shell: cmd
+        working-directory: ${{ steps.setup-julia.outputs.julia-bindir }}
+        run: |
+          curl.exe -L --output mesa.7z --url https://github.com/pal1000/mesa-dist-win/releases/download/20.3.2/mesa3d-20.3.2-release-msvc.7z
+          "C:\Program Files\7-Zip\7z.exe" x mesa.7z
+          mklink opengl32.dll "x64\opengl32.dll"
+          mklink libglapi.dll "x64\libglapi.dll"
       - name: Install dependencies
         run: |
-          xvfb-run julia --project=docs/ -e '
+          julia --project=docs/ -e '
             using Pkg
             Pkg.develop(PackageSpec(path=pwd()))
             Pkg.instantiate()
@@ -25,4 +33,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}
-        run: xvfb-run julia --project=docs/ docs/make.jl
+        run: julia --project=docs/ docs/make.jl
