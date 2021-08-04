@@ -103,20 +103,20 @@ end
 
 vertices(e::Ellipse,subdivisions::Int = 10) = vertices3d(e,subdivisions)[1:2,:]
 
-function vertices3d(e::Ellipse{T},subdivisions::Int) where{N,T<:Real}
-    verts = MMatrix{3,subdivisions,T}(undef)
-    dθ = T(2π) / N
-    for i in 0:(N - 1)
+function vertices3d(e::Ellipse{R},::Type{Val{subdivisions}} = Val{10}) where{R<:Real,subdivisions}
+    verts = MMatrix{3,subdivisions,R}(undef)
+    dθ = R(2π) / subdivisions
+    for i in 0:(subdivisions - 1)
         θ1 = i * dθ - π
-        pt = point(e, θ1, one(T))
+        pt = point(e, θ1, one(R))
         for j in 1:3
             verts[j,i+1] =  pt[j]
         end
     end
-    return SMatrix{3,subdivisions,T}(verts)
+    return SMatrix{3,subdivisions,R}(verts)
 end
 
-vertices3d(e::Ellipse{T}, subdivisions::Int = 10) where{T} = vertices3d(e,MMatrix{3,subdivisions,T}(undef))
+vertices3d(e::Ellipse{R}, subdivisions::Int = 10) where{R} = vertices3d(e)
 
 function makemesh(c::Ellipse{T}, subdivisions::Int = 30) where {T<:Real}
     dθ = T(2π) / subdivisions
