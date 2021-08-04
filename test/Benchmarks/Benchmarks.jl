@@ -103,10 +103,4 @@ end
 
 end #module
 
-#benchmarks in new format
-rect = Rectangle(1.0,1.0)
-ellipse = Ellipse(1.0,1.0)
-hex = Hexagon(1.0)
-planarshapesvertices() = (() vertices.((rect,ellipse,hexagon)))
-
 export Benchmarks
