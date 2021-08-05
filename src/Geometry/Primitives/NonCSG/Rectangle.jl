@@ -17,7 +17,7 @@ Rectangle(halfsizeu::T, halfsizev::T, [surfacenormal::SVector{3,T}, centrepoint:
 
 The minimal case returns a rectangle centered at the origin with `surfacenormal = [0, 0, 1]`.
 """
-struct Rectangle{T} <: PlanarShapes{T}
+struct Rectangle{T} <: PlanarShape{T}
     plane::Plane{T,3}
     halfsizeu::T
     halfsizev::T
@@ -117,11 +117,23 @@ vertices(r::Rectangle{T},::Int = 0) where{T<:Real} = SMatrix{2,4}(vertices3d(r)[
   
 
 """returns the vertices of the rectangle in 3D"""
-vertices3d(r::Rectangle{T},::Int = 0) where{T<:Real} = SMatrix{3,4}(
-    point(r, -one(T), -one(T))...,
-    point(r, -one(T), one(T))...,
-    point(r, one(T), one(T))...,
-    point(r, one(T), -one(T))...)
+function vertices3d(r::Rectangle{T},::Int = 0) where{T<:Real}
+    pts = SVector{4,SVector{3,T}}(
+        point(r, -one(T), -one(T)), 
+        point(r, -one(T), one(T)),
+        point(r, one(T), one(T)),
+        point(r, one(T), -one(T))
+    )
+    temp = MMatrix{3,4,T}(undef)
+
+    for (j,pt) in pairs(pts)
+        for i in 1:3
+        temp[i,j] = pts[j][i]
+        end
+    end
+    return SMatrix{3,4,T}(temp)
+end
+
 export vertices3d
 
 function makemesh(r::Rectangle{T}, ::Int = 0) where {T<:Real}
