@@ -42,6 +42,14 @@
         @test isapprox(collect(ta * inv(ta)), collect(identitytransform()), rtol = RTOLERANCE, atol = ATOLERANCE)
         @test isapprox(collect(tb * inv(tb)), collect(identitytransform()), rtol = RTOLERANCE, atol = ATOLERANCE)
         @test isapprox(collect(inv(ta)), collect(Transform(rotmatd(0, -90, 0), SVector(1.0, 0.0, 0.0))), rtol = RTOLERANCE, atol = ATOLERANCE)
+
+        #verify that matrix and vector{vector} forms of point representations are transformed the same way
+        pts = SVector(SVector(1.0,1.0,1.0),SVector(2.0,2.0,2.0),SVector(3.0,3.0,3.0))
+        ptsmat = SMatrix{3,3}(1.0,1.0,1.0,2.0,2.0,2.0,3.0,3.0,3.0)
+        rottrans = rotationd(20,30,40)
+        for i in 1:3
+            @test isapprox((rottrans*pts[i]),(rottrans*ptsmat)[:,i])
+        end
     end # testset Transform
 
     @testset "Interval" begin

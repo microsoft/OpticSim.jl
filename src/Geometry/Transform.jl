@@ -63,6 +63,13 @@ function Vec4(v::SVector{3, T}) where {T<:Real}
     return Vec4{T}(v[1], v[2], v[3], one(T))
 end
 
+""" 
+    Vec4(m::SMatrix{3,N,T} where{N,T<:Real} -> SMatrix{3,N,T})
+Input is matrix of 3d points, each column is one point. Returns matrix of 3d points with 1 appended in the last row.
+"""
+function Vec4(m::SMatrix{3,N,T}) where {N,T<:Real}
+    return vcat(m,ones(SMatrix{1,N,T}))::SMatrix{4,N,T}
+end
 """
 returns the unit vector `[1, 0, 0, 0]`
 """
@@ -435,20 +442,27 @@ function Base.:*(t::Transform{T}, v::SVector{3,T}) where {T<:Real}
     end
 end
 
-# function Base.:*(t::Transform{T}, v::SVector{3,T}) where {T<:Real}
-#     res = t * Vec4(v)
-#     if (t[4,4] == one(T))
-#         return Vec3(res[1], res[2], res[3])
-#     else    
-#         return Vec3(res[1]/res[4], res[2]/res[4], res[3]/res[4])
-#     end
-# end
 
-# function Base.:*(t::Transform{T}, v::Vec4{T}) where {T<:Real}
-#     res = SMatrix(t) * v
-# end
+function Base.:*(t::Transform{T}, m::SMatrix{3,N,T}) where{N,T<:Real}
+    res = MMatrix{3,N,T}(undef)
 
-
+    for outcol in 1:N
+        for row in 1:3
+            sum = T(0)
+            for incol in 1:3
+                sum += t[row,incol]*m[incol,outcol]
+            end
+            #implicit 1 w coordinate value
+            sum += t[row,4]
+            res[row,outcol] = sum
+        end
+        if t[4,4] != 1
+            res[:,outcol] /= t[4,4]
+        end
+    end
+    return SMatrix{3,N,T}(res)
+end
+    
 """
     decomposeRTS(tr::Transform{T}) where {T<:Real}
 

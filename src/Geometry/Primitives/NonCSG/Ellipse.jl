@@ -15,9 +15,9 @@ The rotation of the rectangle around its normal is defined by `rotationvec`.
 Ellipse(halfsizeu::T, halfsizev::T, [surfacenormal::SVector{3,T}, centrepoint::SVector{3,T}]; interface::NullOrFresnel{T} = nullinterface(T))
 ```
 
-The minimal case returns a ellipse centered at the origin with `surfacenormal = [0, 0, 1]`.
+The minimal case returns an ellipse centered at the origin with `surfacenormal = [0, 0, 1]`.
 """
-struct Ellipse{T} <: Surface{T}
+struct Ellipse{T} <: PlanarShape{T}
     plane::Plane{T,3}
     halfsizeu::T
     halfsizev::T
@@ -48,11 +48,11 @@ export Ellipse
 
 Base.show(io::IO, a::Ellipse{T}) where {T<:Real} = print(io, "Ellipse{$T}($(centroid(a)), $(normal(a)), $(a.halfsizeu), $(a.halfsizev), $(interface(a)))")
 
-interface(a::Ellipse{T}) where {T<:Real} = interface(a.plane)
+
 
 uvrange(::Type{Ellipse{T}}) where {T<:Real} = ((-T(π), T(π)), (zero(T), one(T))) # θ and ρ
 
-normal(r::Ellipse{T}) where {T<:Real} = normal(r.plane)
+
 
 point(r::Ellipse{T}, θ::T, ρ::T) where {T<:Real} = centroid(r) + ρ * (r.halfsizeu * cos(θ) * r.uvec + r.halfsizev * sin(θ) * r.vvec)
 partials(r::Ellipse{T}, θ::T, ρ::T) where {T<:Real} = (ρ * (r.halfsizeu * -sin(θ) * r.uvec + r.halfsizev * cos(θ) * r.vvec), (r.halfsizeu * cos(θ) * r.uvec + r.halfsizev * sin(θ) * r.vvec))
@@ -100,6 +100,23 @@ function surfaceintersection(ell::Ellipse{T}, r::AbstractRay{T,3}) where {T<:Rea
         end
     end
 end
+
+vertices(e::Ellipse,subdivisions::Int = 10) = vertices3d(e,subdivisions)[1:2,:]
+
+function vertices3d(e::Ellipse{R},::Type{Val{subdivisions}} = Val{10}) where{R<:Real,subdivisions}
+    verts = MMatrix{3,subdivisions,R}(undef)
+    dθ = R(2π) / subdivisions
+    for i in 0:(subdivisions - 1)
+        θ1 = i * dθ - π
+        pt = point(e, θ1, one(R))
+        for j in 1:3
+            verts[j,i+1] =  pt[j]
+        end
+    end
+    return SMatrix{3,subdivisions,R}(verts)
+end
+
+vertices3d(e::Ellipse{R}, subdivisions::Int = 10) where{R} = vertices3d(e)
 
 function makemesh(c::Ellipse{T}, subdivisions::Int = 30) where {T<:Real}
     dθ = T(2π) / subdivisions
