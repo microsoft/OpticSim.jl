@@ -21,7 +21,7 @@ The local frame defines the plane (spans by the right and up vectors) with the p
 the local_polygon_points are given with respect to the local frame and are 2D points.
 NOTE: This class uses static vectors to hold the points which will lead to more efficient performance, but should not be used with polygons with more than 20-30 points.
 """
-struct ConvexPolygon{N,T<:Real}  <: PlanarShapes{T} 
+struct ConvexPolygon{T<:Real, N}  <: PlanarShapes{T} 
     plane::Plane{T,3}
     local_frame::Transform{T}
     # local_points::Vector{SVector{2, T}}
@@ -62,7 +62,7 @@ struct ConvexPolygon{N,T<:Real}  <: PlanarShapes{T}
             temp[:,i] = pt
         end
 
-        new{N,T}(plane, local_frame, SMatrix{2,N,T}(temp), inv(local_frame), local_lines, length(local_lines))
+        new{T, N}(plane, local_frame, SMatrix{2,N,T}(temp), inv(local_frame), local_lines, length(local_lines))
     end
 end
 export ConvexPolygon
@@ -71,7 +71,7 @@ export ConvexPolygon
 centroid(poly::ConvexPolygon) = poly.plane.pointonplane
 
 
-function surfaceintersection(poly::ConvexPolygon{N,T}, r::AbstractRay{T,3}) where {N,T<:Real}
+function surfaceintersection(poly::ConvexPolygon{T,N}, r::AbstractRay{T,3}) where {N,T<:Real}
     interval = surfaceintersection(poly.plane, r)
     if interval isa EmptyInterval{T} || isinfiniteinterval(interval)
         return EmptyInterval(T) # no ray plane intersection or inside plane but no hit
@@ -120,11 +120,11 @@ end
 
 Create a triangle mesh that can be rendered by iterating on the polygon's edges and for each edge use the centroid as the third vertex of the triangle.
 """
-function makemesh(poly::ConvexPolygon{N,T}, ::Int = 0) where {N,T<:Real}
+function makemesh(poly::ConvexPolygon{T,N}, ::Int = 0) where {N,T<:Real}
     c = centroid(poly)
 
     l2w = local2world(poly.local_frame)
-    len = length(poly.local_points)
+    len = size(poly.local_points)[2] 
 
     triangles = []
     for i in 1:len
