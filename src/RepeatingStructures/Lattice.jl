@@ -40,24 +40,12 @@ tilevertices(a::S) where{S<:Basis}
 abstract type Basis{N,T<:Real} end
 export Basis
 
-
-"""wrote this function because type inference couldn't handle argument types of Basis{N,T}. Not sure why"""
-numbertype(a::Basis{N,T}) where{N,T} = T
-
-function Base.getindex(A::Basis, indices::Vararg{Int, N}) where{N}
-    T = numbertype(A)
-    sum = MVector{N,T}(zeros(T,N))
-    basisvecs = basis(A)
-    for (i,index) in pairs(indices)
-        sum += basisvecs[i]*index
-    end
-    return SVector{N,T}(sum)
-end
+Base.getindex(A::Basis, indices::Vararg{Int, N}) where{N} = A.basisvectors*SVector{N,Int}(indices)
 
 Base.setindex!(A::Basis{N,T}, v, I::Vararg{Int, N}) where{T,N} = nothing #can't set lattice points. Might want to throw an exception instead.
 
 struct LatticeBasis{N,T<:Real} <: Basis{N,T}
-    basisvectors::SVector{N,SVector{N,T}}
+    basisvectors::SMatrix{N,N,T}
 
     """ Convenience constructor that lets you use Vector arguments to describe the basis instead of SVector 
     
@@ -73,22 +61,22 @@ struct LatticeBasis{N,T<:Real} <: Basis{N,T}
             @assert length(vectors[i])==dim "Vectors for the lattice basis were not all the same dimension"
         end
         
-        temp = MVector{N,SVector{N,T}}(undef) #MVector is slightly faster and has slightly fewer allocations than Vector
+        temp = MMatrix{N,N,T}(undef) #MVector is slightly faster and has slightly fewer allocations than Vector
  
         for (i,val) in pairs(vectors)
-            temp[i] = SVector{N,T}(ntuple((j)->val[j],N)) #using ntuple is significantly faster than val... No idea why this should be true.
+            temp[:,i] = SVector{N,T}(ntuple((j)->val[j],N)) #using ntuple is significantly faster than val... No idea why this should be true.
         end
         
-        # return new{N,T}(SVector{N,SVector{N,T}}(temp...))
-        return new{N,T}(SVector{N,SVector{N,T}}(ntuple((j)->temp[j],N)))
+        return new{N,T}(SMatrix{N,N,T}(temp))
     end
 
-    LatticeBasis(vectors::Vararg{SVector{N,T},N}) where{N,T} = new{N,T}(SVector{N,SVector{N,T}}(vectors)) #this function is considerably faster than the other constructor
+     LatticeBasis(vectors::SMatrix{N,N,T}) where{N,T<:Real} = new{N,T}(vectors)
 end
 export LatticeBasis
 
 basis(a::LatticeBasis) = a.basisvectors
 
+"""Can access any point in a lattice so the range of indices is unlimited"""
 function Base.size(a::LatticeBasis{N,T}) where{N,T}
     return ntuple((i)->Base.IsInfinite(),N)
 end
