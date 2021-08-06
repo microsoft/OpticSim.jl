@@ -7,7 +7,7 @@ import Statistics
 const _abs_err_orientation_2d = 2*eps(Float64)
 
 """
-    ConvexPolygon{T} <: Surface{T}
+    ConvexPolygon{N, T<:Real} <: PlanarShape{T} 
 
 General Convex Polygon surface, not a valid CSG object.
 The rotation of the polygon around its normal is defined by `rotationvec`.
@@ -21,10 +21,9 @@ The local frame defines the plane (spans by the right and up vectors) with the p
 the local_polygon_points are given with respect to the local frame and are 2D points.
 NOTE: This class uses static vectors to hold the points which will lead to more efficient performance, but should not be used with polygons with more than 20-30 points.
 """
-struct ConvexPolygon{T<:Real, N}  <: PlanarShape{T} 
+struct ConvexPolygon{N, T<:Real}  <: PlanarShape{T} 
     plane::Plane{T,3}
     local_frame::Transform{T}
-    # local_points::Vector{SVector{2, T}}
     local_points::SMatrix{2,N,T}
     # for efficency
     _local_frame_inv::Transform{T}                                  # cache the inverse matrix to avoid computing it for every intersection test
@@ -62,12 +61,10 @@ struct ConvexPolygon{T<:Real, N}  <: PlanarShape{T}
             temp[:,i] = pt
         end
 
-        new{T, N}(plane, local_frame, SMatrix{2,N,T}(temp), inv(local_frame), local_lines, length(local_lines))
+        new{N, T}(plane, local_frame, SMatrix{2,N,T}(temp), inv(local_frame), local_lines, length(local_lines))
     end
 end
 export ConvexPolygon
-
-# Base.show(io::IO, poly::ConvexPolygon{T}) where {T<:Real} = print(io, "ConvexPolygon{$T}($(centroid(hex)), $(normal(hex)), $(hex.side_length), $(interface(hex)))")
 
 centroid(poly::ConvexPolygon) = poly.plane.pointonplane
 
@@ -93,32 +90,8 @@ function vertices(poly::ConvexPolygon{N,T}) where{N,T<:Real}
    return poly.local_frame * to3d(poly.local_points)
 end
 
-#this is slower and allocates more than the code above. Neither should allocate anytyhing.
-# function vertices(poly::ConvexPolygon{N,R}) where{N,R<:Real}
-#     return vertices(poly.local_frame,poly.local_points)
-# end
 
-# function vertices(tr::Transform{R},pts::SMatrix{2,N,R}) where{N,R<:Real}
-#     res = MMatrix{3,N,R}(undef)
-
-#     for outcol in 1:N
-#         for row in 1:3
-#             sum = R(0)
-#             for incol in 1:2 #only sum x,y terms implicit z = 0,w =1
-#                 sum += tr[row,incol]*pts[incol,outcol]
-#             end
-#             #implicit 1 w coordinate value
-#             sum += tr[row,4]
-#             res[row,outcol] = sum
-#         end
-#         if tr[4,4] != 1
-#             res[:,outcol] /= tr[4,4]
-#         end
-#     end
-#     return SMatrix{3,N,R}(res)
-# end
-
-function surfaceintersection(poly::ConvexPolygon{T,N}, r::AbstractRay{T,3}) where {N,T<:Real}
+function surfaceintersection(poly::ConvexPolygon{N,T}, r::AbstractRay{T,3}) where {N,T<:Real}
     interval = surfaceintersection(poly.plane, r)
     if interval isa EmptyInterval{T} || isinfiniteinterval(interval)
         return EmptyInterval(T) # no ray plane intersection or inside plane but no hit
@@ -163,15 +136,15 @@ end
 
 
 """
-    makemesh(poly::ConvexPolygon{T}, ::Int = 0) where {T<:Real} -> TriangleMesh
+    makemesh(poly::ConvexPolygon{N, T}, ::Int = 0) where {N, T<:Real} -> TriangleMesh
 
 Create a triangle mesh that can be rendered by iterating on the polygon's edges and for each edge use the centroid as the third vertex of the triangle.
 """
-function makemesh(poly::ConvexPolygon{T,N}, ::Int = 0) where {N,T<:Real}
+function makemesh(poly::ConvexPolygon{N,T}, ::Int = 0) where {N,T<:Real}
     c = centroid(poly)
 
     l2w = local2world(poly.local_frame)
-    len = size(poly.local_points)[2] 
+    len = Size(poly.local_points)[2] 
 
     triangles = []
     for i in 1:len
