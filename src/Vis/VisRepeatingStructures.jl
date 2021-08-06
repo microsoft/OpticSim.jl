@@ -36,7 +36,8 @@ function drawhex(hexbasis::Repeat.Basis,hexsize,i,j,color)
     Luxor.translate(-offset)
 end
 
-function drawhexcells(hexsize,cells, color::Union{AbstractArray,Nothing} = nothing; format=:png, resolution=(500,500))
+"""Draws a list of hexagonal cells, represented by their lattice coordinates"""
+function drawhexcells(hexsize,cells, color::Union{AbstractArray,String,Nothing} = nothing; format=:png, resolution=(500,500))
     Luxor.Drawing(resolution[1], resolution[2], format)
     Luxor.origin()
     Luxor.background(Colors.RGBA(0, 1, 1, 0.0))
@@ -46,8 +47,14 @@ function drawhexcells(hexsize,cells, color::Union{AbstractArray,Nothing} = nothi
             drawhex(Repeat.HexBasis1(),hexsize,cell[1],cell[2],distcolors[i])
         end
     else
-        for (i,cell) in pairs(cells)
-            drawhex(Repeat.HexBasis1(),hexsize,cell[1],cell[2],color[i])
+        if color isa String
+            for (i,cell) in pairs(cells)
+                drawhex(Repeat.HexBasis1(),hexsize,cell[1],cell[2],color)
+            end
+        else
+            for (i,cell) in pairs(cells)
+                drawhex(Repeat.HexBasis1(),hexsize,cell[1],cell[2],color[i])
+            end
         end
     end
     Luxor.finish()
@@ -60,6 +67,7 @@ function drawhexcells(hexsize,cells, color::Union{AbstractArray,Nothing} = nothi
     end
 end
 
+"""Draws the lattice points, represented as black filled circles"""
 function draw(lattice::Repeat.Basis, scale = 50.0)
     Luxor.sethue("black")
     pt = scale*lattice[i,j]

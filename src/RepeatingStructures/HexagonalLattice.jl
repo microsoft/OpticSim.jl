@@ -2,9 +2,6 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # See LICENSE in the project root for full license information.
 
-""" Special type for 2D hexagonal lattices """
-abstract type HexagonalLattice{N,T} <: Basis{N,T} end
-
 const sin60 = .5*sqrt(3)
 const cos60 = .5
 """coordinates of a unit hexagon tile polygon with unit length sides centered about the point (0,0)"""
@@ -17,16 +14,14 @@ const hexcoords = [
 		cos60 sin60
 		]
 
-
-hexe₁(::Type{T}=Float64) where{T<:Real} = SVector{2,T}(T(1.5),T(.5)*sqrt(T(3)))
-hexe₂(::Type{T}=Float64) where{T<:Real} = SVector{2,T}(T(1.5),T(-.5)*(sqrt(T(3))))
-
-struct HexBasis1{N,T} <: HexagonalLattice{N,T}
+struct HexBasis1{N,T} <: Basis{N,T}
     HexBasis1(::Type{T} = Float64) where{T<:Real} = new{2,T}()
 end
 export HexBasis1
 
-basis(::HexBasis1{2,T}) where{T} = SVector{2,SVector{2,T}}(hexe₁(T),hexe₂(T))
+basis(::HexBasis1{2,T}) where{T} = SMatrix{2,2,T}(T(1.5),T(.5)*sqrt(T(3)),T(1.5),T(-.5)*(sqrt(T(3))))
+
+# SVector{2,SVector{2,T}}(hexe₁(T),hexe₂(T))
 
 """Returns the vertices of the unit tile polygon for the basis"""
 function tilevertices(::HexBasis1{2,T}) where{T}

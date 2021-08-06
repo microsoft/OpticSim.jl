@@ -40,31 +40,27 @@ tilevertices(a::S) where{S<:Basis}
 abstract type Basis{N,T<:Real} end
 export Basis
 
-Base.getindex(A::Basis, indices::Vararg{Int, N}) where{N} = A.basisvectors*SVector{N,Int}(indices)
+Base.getindex(A::Basis, indices::Vararg{Int, N}) where{N} = basis(A)*SVector{N,Int}(indices)
 
 Base.setindex!(A::Basis{N,T}, v, I::Vararg{Int, N}) where{T,N} = nothing #can't set lattice points. Might want to throw an exception instead.
 
 struct LatticeBasis{N,T<:Real} <: Basis{N,T}
     basisvectors::SMatrix{N,N,T}
 
-    """ Convenience constructor that lets you use Vector arguments to describe the basis instead of SVector 
+    """ Convenience constructor that lets you use tuple arguments to describe the basis instead of SVector 
     
     Example:
     ```
-    basis = LatticeBasis{2}([1.0,0.0],[0.0,1.0]) #basis for rectangular lattice
+    basis = LatticeBasis{2}((1.0,0.0),(0.0,1.0)) #basis for rectangular lattice
     ```
     """
-    function LatticeBasis(vectors::Vararg{Vector{T},N}) where{T,N}
-        dim = length(vectors[1])
-        @assert N == dim
-        for i in 2:length(vectors)
-            @assert length(vectors[i])==dim "Vectors for the lattice basis were not all the same dimension"
-        end
-        
-        temp = MMatrix{N,N,T}(undef) #MVector is slightly faster and has slightly fewer allocations than Vector
+    function LatticeBasis(vectors::Vararg{SVector{N,T}}) where{T,N}  
+        temp = MMatrix{N,N,T}(undef)
  
-        for (i,val) in pairs(vectors)
-            temp[:,i] = SVector{N,T}(ntuple((j)->val[j],N)) #using ntuple is significantly faster than val... No idea why this should be true.
+        for (j,val) in pairs(vectors)
+            for i in 1:N
+                temp[i,j] = val[i]
+            end
         end
         
         return new{N,T}(SMatrix{N,N,T}(temp))
