@@ -21,9 +21,10 @@ The local frame defines the plane (spans by the right and up vectors) with the p
 the local_polygon_points are given with respect to the local frame and are 2D points.
 NOTE: This class uses static vectors to hold the points which will lead to more efficient performance, but should not be used with polygons with more than 20-30 points.
 """
-struct ConvexPolygon{N, T<:Real}  <: PlanarShape{T} 
+struct ConvexPolygon{N,T<:Real}  <: PlanarShape{T} 
     plane::Plane{T,3}
     local_frame::Transform{T}
+    # local_points::Vector{SVector{2, T}}
     local_points::SMatrix{2,N,T}
     # for efficency
     _local_frame_inv::Transform{T}                                  # cache the inverse matrix to avoid computing it for every intersection test
@@ -61,7 +62,8 @@ struct ConvexPolygon{N, T<:Real}  <: PlanarShape{T}
             temp[:,i] = pt
         end
 
-        new{N, T}(plane, local_frame, SMatrix{2,N,T}(temp), inv(local_frame), local_lines, length(local_lines))
+        N2 = 2*N
+        new{N,T}(plane, local_frame, SMatrix{2,N,T,N2}(temp), inv(local_frame), local_lines, length(local_lines))
     end
 end
 export ConvexPolygon
