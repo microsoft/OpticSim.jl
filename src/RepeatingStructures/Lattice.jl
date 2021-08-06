@@ -53,8 +53,9 @@ struct LatticeBasis{N,T<:Real} <: Basis{N,T}
     ```
     basis = LatticeBasis{2}((1.0,0.0),(0.0,1.0)) #basis for rectangular lattice
     ```
+    This allocates 48 bytes for a 2D basis in Julia 1.6.2. It  shouldn't allocate anything but not performance critical.
     """
-    function LatticeBasis(vectors::Vararg{SVector{N,T}}) where{T,N}  
+    function LatticeBasis(vectors::Vararg{NTuple{N,T},N}) where{T,N}  
         temp = MMatrix{N,N,T}(undef)
  
         for (j,val) in pairs(vectors)

@@ -10,7 +10,7 @@
 
 # lattice visualizations are drawn with Luxor because it is easier to do 2D drawings with Luxor than with Makie.
 
-function drawhex(hexbasis::Repeat.Basis,hexsize,i,j,color)
+function drawhex(hexbasis::Repeat.HexBasis1,hexsize,i,j,color)
     hexagon = hexsize*[Luxor.Point(Repeat.tilevertices(hexbasis)[i,:]...) for i in 1:6]
     pt = hexsize*hexbasis[i,j]
     offset = Luxor.Point(pt[1],-pt[2]) #flip y so indices show up correctly
@@ -53,6 +53,7 @@ function drawhexcells(hexsize,cells, color::Union{AbstractArray,String,Nothing} 
             end
         else
             for (i,cell) in pairs(cells)
+                println(cell)
                 drawhex(Repeat.HexBasis1(),hexsize,cell[1],cell[2],color[i])
             end
         end
@@ -67,15 +68,25 @@ function drawhexcells(hexsize,cells, color::Union{AbstractArray,String,Nothing} 
     end
 end
 
-"""Draws the lattice points, represented as black filled circles"""
-function draw(lattice::Repeat.Basis, scale = 50.0)
-    Luxor.sethue("black")
-    pt = scale*lattice[i,j]
-    offset = Luxor.Point(pt[1],-pt[2]) #flip y so indices show up correctly
-    luxor.circle(offset,scale*.1,:fill)
-     #scale and offset text so coordinates are readable
-     Luxor.fontsize(scale/3)
-     Luxor.text("$i, $j",Luxor.Point(-scale/3,scale/9))
+# """Draws the lattice points, represented as black filled circles"""
+# function draw(lattice::Repeat.Basis, scale = 50.0)
+#     Luxor.sethue("black")
+#     pt = scale*lattice[i,j]
+#     offset = Luxor.Point(pt[1],-pt[2]) #flip y so indices show up correctly
+#     luxor.circle(offset,scale*.1,:fill)
+#      #scale and offset text so coordinates are readable
+#      Luxor.fontsize(scale/3)
+#      Luxor.text("$i, $j",Luxor.Point(-scale/3,scale/9))
+# end
+# export draw
+
+function draw(cluster::Repeat.LensletCluster,scale = 50.0)
+    points = hcat(Repeat.clustercoordinates(cluster,0,0),Repeat.clustercoordinates(cluster,1,0),Repeat.clustercoordinates(cluster,0,1),Repeat.clustercoordinates(cluster,1,1))
+    ptvecs = [points[:,i] for i in 1:size(points)[2]]
+    props = Repeat.properties(cluster)
+    drawhexcells(scale,ptvecs,hcat(props[:,:Color],props[:,:Color],props[:,:Color],props[:,:Color]))
 end
 export draw
+    
+
 
