@@ -71,3 +71,15 @@ function hex3RGB()
 end
 export hex3RGB
 
+function hexRGBW()
+    clusterelements = SVector((0,0),(-1,0),(-1,1),(0,-1))
+    colors = [color("red"),color("green"),color("blue"),color("white")]
+    names = ["R","G","B","W"]
+    eltlattice = HexBasis1()
+    clusterbasis = LatticeBasis((0,2),(2,-2))
+    lattice = LatticeCluster(clusterbasis,eltlattice,clusterelements)
+    properties =  DataFrame(Color = colors, Name = names)
+    return LensletCluster(lattice,properties)
+end
+export hexRGBW
+
