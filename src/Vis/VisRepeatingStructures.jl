@@ -79,13 +79,20 @@ end
 # end
 # export draw
 
+# function draw(cluster::Repeat.LensletCluster,scale = 50.0)
+#     points = hcat(Repeat.clustercoordinates(cluster,0,0),Repeat.clustercoordinates(cluster,1,0),Repeat.clustercoordinates(cluster,0,1),Repeat.clustercoordinates(cluster,1,1),Repeat.clustercoordinates(cluster,-2,-2))
+#     ptvecs = [points[:,i] for i in 1:size(points)[2]]
+#     props = Repeat.properties(cluster)
+#     drawhexcells(scale,ptvecs,hcat(props[:,:Color],props[:,:Color],props[:,:Color],props[:,:Color],props[:,:Color]))
+# end
+# export draw
+
 function draw(cluster::Repeat.LensletCluster,scale = 50.0)
-    points = hcat(Repeat.clustercoordinates(cluster,0,0),Repeat.clustercoordinates(cluster,1,0),Repeat.clustercoordinates(cluster,0,1),Repeat.clustercoordinates(cluster,1,1),Repeat.clustercoordinates(cluster,-2,-2))
+    points = Repeat.clustercoordinates(cluster,0,0)
     ptvecs = [points[:,i] for i in 1:size(points)[2]]
     props = Repeat.properties(cluster)
     drawhexcells(scale,ptvecs,hcat(props[:,:Color],props[:,:Color],props[:,:Color],props[:,:Color],props[:,:Color]))
 end
-export draw
     
 
 
