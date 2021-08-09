@@ -40,7 +40,13 @@ tilevertices(a::S) where{S<:Basis}
 abstract type Basis{N,T<:Real} end
 export Basis
 
-Base.getindex(A::Basis, indices::Vararg{Int, N}) where{N} = basis(A)*SVector{N,Int}(indices)
+function Base.getindex(A::B1, indices::Vararg{Int, N}) where{N,T,B1<:Basis{N,T}}
+    return basis(A)*SVector{N,Int}(indices)
+end
+
+#     temp::SVector{N,T} = (basis(A)*SVector{N,Int}(indices))::SVector{N,T}
+#     return temp
+# end
 
 Base.setindex!(A::Basis{N,T}, v, I::Vararg{Int, N}) where{T,N} = nothing #can't set lattice points. Might want to throw an exception instead.
 
@@ -71,7 +77,9 @@ struct LatticeBasis{N,T<:Real} <: Basis{N,T}
 end
 export LatticeBasis
 
-basis(a::LatticeBasis) = a.basisvectors
+function basis(a::LatticeBasis{N,T})::SMatrix{N,N,T,N*N} where{N,T} 
+    return a.basisvectors
+end
 
 """Can access any point in a lattice so the range of indices is unlimited"""
 function Base.size(a::LatticeBasis{N,T}) where{N,T}

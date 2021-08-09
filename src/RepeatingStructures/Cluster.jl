@@ -22,6 +22,7 @@ function Base.getindex(A::LatticeCluster{N1,N,T,B1,B2}, indices::Vararg{Int, N})
         temp[:,i] = A.elementbasis[A.clusterelements[i]...] + clusteroffset
     end
     return SMatrix{N,N1,T}(temp) #positions of the cluster elements, not the lattice coordinates.
+    
 end
 
 """Can access any cluster in a cluster lattice so the range of indices is unlimited"""
