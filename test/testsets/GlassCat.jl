@@ -37,7 +37,12 @@ using Unitful.DefaultSymbols
             end
 
             @testset "file not found" begin
-                @test_logs (:error, "file not found at nonexistentfile.agf") add_agf("nonexistentfile.agf"; agfdir, sourcefile)
+                @test_logs(
+                    (:info, "Downloading source file from nonexistentfile.agf"),
+                    (:error, ArgumentError("missing or unsupported scheme in URL (expected http(s) or ws(s)): nonexistentfile.agf")),
+                    (:error, "failed to download from nonexistentfile.agf"),
+                    add_agf("nonexistentfile.agf"; agfdir, sourcefile)
+                )
             end
 
             @testset "add to source file" begin
@@ -52,14 +57,17 @@ using Unitful.DefaultSymbols
 
                 add_agf(joinpath(tmpdir, "a.agf"); agfdir, sourcefile, rebuild=false)
                 @test length(readlines(sourcefile)) === 1
-                @test readlines(sourcefile)[1] === "a $empty_sha"
+                @test readlines(sourcefile)[1] === "A $empty_sha"
 
                 add_agf(joinpath(tmpdir, "b.agf"); agfdir, sourcefile, rebuild=false)
                 @test length(readlines(sourcefile)) === 2
-                @test readlines(sourcefile)[1] === "a $empty_sha"
-                @test readlines(sourcefile)[2] === "b $empty_sha"
+                @test readlines(sourcefile)[1] === "A $empty_sha"
+                @test readlines(sourcefile)[2] === "B $empty_sha"
 
-                @test_logs (:error, "adding the catalog name \"a\" would create a duplicate entry in source file $sourcefile") add_agf(joinpath(tmpdir, "a.agf"); agfdir, sourcefile)
+                @test_logs(
+                    (:error, "adding the catalog name \"A\" would create a duplicate entry in source file $sourcefile"),
+                    add_agf(joinpath(tmpdir, "a.agf"); agfdir, sourcefile)
+                )
             end
 
             # TODO rebuild=true
