@@ -2,7 +2,7 @@ NIKON a49714470fa875ad4fd8d11cbc0edbf1adfe877f42926d7612c1649dd9441e75 https://w
 OHARA 0c9021bf11b8d4e660012191818685ad3110d4f9490699cabdc89aae1fd26d2e https://www.oharacorp.com/xls/OHARA_201130_CATALOG.zip
 HOYA b02c203e5a5b7a8918cc786badf0a9db1fe2572372c1c163dc306b0a8a908854 http://www.hoya-opticalworld.com/common/agf/HOYA20210105.agf
 SCHOTT e9aabbb8ebff116ba0c106a71afd86e72f2a397ac9bc447469129e325e795f4e https://www.schott.com/d/advanced_optics/6959f9a4-0e4f-4ef2-a302-2347468a82f5/1.31/schott-optical-glass-overview-zemax-format.zip
-SUMITA 871ff2741c4998307b1ad654fcb313af973eb6f1e78eae9489a5e6ffcc99e028 https://www.sumita-opt.co.jp/en/wp/wp-content/themes/sumita-opt-en/download-files.php files%5B%5D=new_sumita.agf&category=data
+SUMITA 277d0f79b3c552c2a058b54ee8bdde3e512fed789638c347f37648c6effb0305 https://www.sumita-opt.co.jp/en/wp/wp-content/themes/sumita-opt-en/download-files.php files%5B%5D=new_sumita.agf&category=data
 ARCHER 7df8c42fb499720165c86d77dc8065db5126541a71b4e9d6a4849e27b25dd82d https://raw.githubusercontent.com/nzhagen/zemaxglass/master/AGF_files/archer.agf
 ARTON d214e050f7330257c8cfcd517b1f35b64077dac62cf2729f73b3723e00a59263 https://raw.githubusercontent.com/nzhagen/zemaxglass/master/AGF_files/arton.agf
 BIREFRINGENT 2afcdc51c300a8d012e5dc2906feff28c6b49a1cbff95168617d69d4e06c15e1 https://raw.githubusercontent.com/nzhagen/zemaxglass/master/AGF_files/birefringent.agf
