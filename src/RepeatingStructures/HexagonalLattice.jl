@@ -150,3 +150,24 @@ function hexcellsinbox(numi,numj)
     return result
 end
 export Repeat
+
+struct HexBasis3{N,T}<:Basis{N,T}
+    HexBasis3(::Type{T} = Float64) where{T} = new{2,T}()
+end
+export HexBasis3
+
+function tilevertices(::HexBasis3{2,T}) where{T}
+    sin60 = T(.5)*sqrt(T(3))
+    cos60 = T(.5)
+    return T.([
+        0 1;
+        -sin60 cos60;
+        -sin60 -cos60;
+        0 -1;
+        sin60 -cos60;
+        sin60 cos60;
+            ])
+end
+
+basis(::HexBasis3{2,T}) where{T} = SMatrix{2,2,T}(T(2*sin60),T(0),T(sin60),T(2*sin60))
+

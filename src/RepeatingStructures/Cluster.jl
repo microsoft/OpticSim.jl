@@ -116,3 +116,34 @@ function hexRGBW()
 end
 export hexRGBW
 
+function hex12RGB()
+    clusterelements = SVector(
+        (-1,1),(0,1),
+        (-1,0),(0,0),(1,0),
+        (-1,-1),(0,-1),(1,-1),(2,-1),
+        (0,-2),(1,-2),(2,-2)
+    )
+    red = color("red")
+    grn = color("green")
+    blu = color("blue")
+    colors = [
+        grn,blu,
+        blu,red,grn,
+        red,grn,blu,red,
+        blu,red,grn
+        ]
+    names = [
+        "G3","B0",
+        "B2","R1","G2",
+        "R0","G1","B1","R3",
+        "B3","R2","G0"
+    ]
+    eltlattice = HexBasis3()
+    clusterbasis = LatticeBasis((2,2),(-3,2))
+    lattice = LatticeCluster(clusterbasis,eltlattice,clusterelements)
+    properties =  DataFrame(Color = colors, Name = names)
+    return ClusterWithProperties(lattice,properties)
+end
+export hex12RGB
+
+
