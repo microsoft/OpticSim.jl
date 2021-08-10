@@ -17,10 +17,10 @@ ParaxialLensConvexPoly(focaldistance, local_frame, local_polygon_points, local_c
 ```
 """
 struct ParaxialLens{T} <: Surface{T}
-    shape::Union{Rectangle{T},Ellipse{T},Hexagon{T},ConvexPolygon{T}}
+    shape::Union{Rectangle{T},Ellipse{T},Hexagon{T},ConvexPolygon{N, T} where {N}} 
     interface::ParaxialInterface{T}
 
-    function ParaxialLens(shape::Union{Rectangle{T},Ellipse{T},Hexagon{T},ConvexPolygon{T}}, interface::ParaxialInterface{T}) where {T<:Real}
+    function ParaxialLens(shape::Union{Rectangle{T},Ellipse{T},Hexagon{T},ConvexPolygon{N, T} where {N}}, interface::ParaxialInterface{T}) where {T<:Real}
             new{T}(shape, interface)
     end
 end
