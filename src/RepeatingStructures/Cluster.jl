@@ -1,9 +1,26 @@
 """A Cluster is a repeating pattern of indices defined in a lattice called the element lattice. The cluster of elements has its own lattice, which by definition is different from the element lattice unless each cluster consists of a single element. For example this defines a Cluster of three hexagonal elements:
 
-Cluster()"""
+```
+julia> function hex3cluster()
+    clusterelts = SVector((0,0),(-1,0),(-1,1))
+    eltlattice = HexBasis1()
+    clusterbasis = LatticeBasis(( -1,2),(2,-1))
+    return LatticeCluster(clusterbasis,eltlattice,clusterelts)
+end
+
+julia> lattice = hex3cluster()
+LatticeCluster{3, 2, Float64, LatticeBasis{2, Int64}, HexBasis1{2, Float64}}(LatticeBasis{2, Int64}([-1 2; 2 -1]), HexBasis1{2, Float64}(), [(0, 0), (-1, 0), (-1, 1)])
+
+julia> lattice[1,1]  #returns the locations of the 3 elements in the cluster at the cluster offset of 1,1
+2×3 SMatrix{2, 3, Float64, 6} with indices SOneTo(2)×SOneTo(3):
+ 1.0  -0.5        1.0
+ 1.0   0.133975  -0.732051
+
+```
+"""
 struct LatticeCluster{N1, N, T<:Real, B1<:Basis{N,Int},B2<:Basis{N,T}}
-    clusterbasis::B1 #this basis must be of type Int because clusterbasis[i,j] will generate indices to be used to index into elementbasis
-    elementbasis::B2 
+    clusterbasis::B1 #this basis defines the offsets of the clusters
+    elementbasis::B2 #this basis defines the underlying lattice
 
     clusterelements::SVector{N1,NTuple{N,Int}} #vector containing the lattice indices of the elements in the cluster. Each column is one lattice coordinate. These indices are assumed to be offsets from the origin of the lattice.
 
@@ -43,31 +60,37 @@ function clustercoordinates(a::LatticeCluster{N1,N},indices::Vararg{Int,N}) wher
 end
 export clustercoordinates
 
-function hex3cluster()
-    clusterelements = SVector((0,0),(-1,0),(-1,1))
-    eltlattice = HexBasis1()
-    clusterbasis = LatticeBasis(( -1,2),(2,-1))
-    return LatticeCluster(clusterbasis,eltlattice,clusterelements)
-end
-export hex3cluster
+
 """
-May want to have many properties associated with the elements in a cluster, which is why properties is represented as a DataFrame. The DataFrame in the properties field should have as many rows as there are elements in a cluster. At a minimum it must have a :Color, :Name, and :Lenslet column.
+May want to have many properties associated with the elements in a cluster, which is why properties is represented as a DataFrame. The DataFrame in the properties field should have as many rows as there are elements in a cluster. At a minimum it must have a :Color and a :Name column.
 
 Example:
 lenslets = DataFrame()
 """
-struct LensletCluster{N}
-    lattice::LatticeCluster{N}
+struct ClusterWithProperties{N1,N,T}
+    cluster::LatticeCluster{N1,N,T}
+    clusterindices::SVector{NTuple{N,T}}
     properties::DataFrame
 end
 
-Base.getindex(A::LensletCluster{N1}, indices::Vararg{Int,N}) where{N1,N} = lattice(A)[indices...]
-properties(a::LensletCluster) = a.properties
-export properties
-lattice(a::LensletCluster) = a.lattice
-export lattice
-clustercoordinates(a::LensletCluster,indices...) = clustercoordinates(lattice(a),indices...)
+Base.getindex(A::ClusterWithProperties{N1,N,T}, indices::Vararg{Int,N}) where{N1,N,T} = cluster(A)[indices...]
+Base.setindex!(A::ClusterWithProperties, v, I::Vararg{Int, N}) where{N} = nothing #can't set lattice points. Might want to throw an exception instead.
 
+properties(a::ClusterWithProperties) = a.properties
+export properties
+cluster(a::ClusterWithProperties) = a.cluster
+export cluster
+clustercoordinates(a::ClusterWithProperties,indices...) = clustercoordinates(lattice(a),indices...)
+
+function hex3cluster()
+    clusterelts = SVector((0,0),(-1,0),(-1,1))
+    eltlattice = HexBasis1()
+    clusterbasis = LatticeBasis(( -1,2),(2,-1))
+    return LatticeCluster(clusterbasis,eltlattice,clusterelts)
+end
+export hex3cluster
+
+""" Create a cluster with properties with three types of elements, R,G,B """
 function hex3RGB()
     clusterelements = SVector((0,0),(-1,0),(-1,1))
     colors = [color("red"),color("green"),color("blue")]
@@ -76,10 +99,11 @@ function hex3RGB()
     clusterbasis = LatticeBasis(( -1,2),(2,-1))
     lattice = LatticeCluster(clusterbasis,eltlattice,clusterelements)
     properties =  DataFrame(Color = colors, Name = names)
-    return LensletCluster(lattice,properties)
+    return ClusterWithProperties(lattice,properties)
 end
 export hex3RGB
 
+""" Create a cluster with properties with four types of elements, R,G,B,W """
 function hexRGBW()
     clusterelements = SVector((0,0),(-1,0),(-1,1),(0,-1))
     colors = [color("red"),color("green"),color("blue"),color("white")]
@@ -88,7 +112,7 @@ function hexRGBW()
     clusterbasis = LatticeBasis((0,2),(2,-2))
     lattice = LatticeCluster(clusterbasis,eltlattice,clusterelements)
     properties =  DataFrame(Color = colors, Name = names)
-    return LensletCluster(lattice,properties)
+    return ClusterWithProperties(lattice,properties)
 end
 export hexRGBW
 

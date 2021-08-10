@@ -87,7 +87,7 @@ end
 # end
 # export draw
 
-function draw(cluster::Repeat.LensletCluster,scale = 50.0)
+function draw(cluster::Repeat.ClusterWithProperties,scale = 50.0)
     points = Repeat.clustercoordinates(cluster,0,0)
     ptvecs = [points[:,i] for i in 1:size(points)[2]]
     props = Repeat.properties(cluster)
