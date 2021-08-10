@@ -53,18 +53,25 @@ function add_agf(
         return
     end
 
-    # copy agffile to agfdir
-    if !isfile(agffile)
-        @error "file not found at $agffile"
-        return
-    end
+    # download agffile from url if necessary
     mkpath(agfdir)
-    cp(agffile, joinpath(agfdir, name * ".agf"), force=true)
+    dest = joinpath(agfdir, name * ".agf")
+
+    if isfile(agffile)
+        cp(agffile, dest, force=true)
+    else
+        download_source(dest, agffile)
+        if !isfile(dest)
+            @error "failed to download from $agffile"
+            return
+        end
+    end
 
     # append a corresponding entry to the source list at sourcefile
-    sha256sum = SHA.bytes2hex(SHA.sha256(read(agffile)))
+    sha256sum = SHA.bytes2hex(SHA.sha256(read(dest)))
     open(sourcefile, "a") do io
-        write(io, join([name, sha256sum], ' ') * '\n')
+        source = isfile(agffile) ? [name, sha256sum] : [name, sha256sum, agffile]
+        write(io, join(source, ' ') * '\n')
     end
 
     # optional rebuild
