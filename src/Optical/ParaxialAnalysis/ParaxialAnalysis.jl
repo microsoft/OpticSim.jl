@@ -15,6 +15,7 @@ using Unitful
 using Unitful.DefaultSymbols
 
 include("LensletAssembly.jl")
+include("HeadEyeModel/HeadEyeModel.jl")
 
 end #module
 export ParaxialAnalysis

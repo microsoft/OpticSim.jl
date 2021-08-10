@@ -18,7 +18,6 @@ There are default functions for plane,normal,interface,vertices which assume eac
 etc.
 
 If your type doesn't have these fields then you should define a more specialized method to handle this.
-
 """
 abstract type PlanarShape{T} <: Surface{T} end
 
