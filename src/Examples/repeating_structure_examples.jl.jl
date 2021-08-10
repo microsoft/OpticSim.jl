@@ -15,9 +15,15 @@ drawhexregion() = Luxor.@svg Vis.drawcells(Repeat.HexBasis1(),50,Repeat.region(R
 export drawhexregion
 
 """draw hex cells that fit within a rectangular box centered at coordinates (0,0). Use fill color yellow."""
-drawhexrect() = Luxor.@svg Vis.drawcells(Repeat.HexBasis1(),50,Repeat.hexcellsinbox(2,2),"yellow")
+function drawhexrect() 
+    cells = Repeat.hexcellsinbox(2,2)
+    Luxor.@svg Vis.drawcells(Repeat.HexBasis1(),50,cells,color = repeat(["yellow"],length(cells)))
+end
 export drawhexrect
 
 """draw hex cells that fit within a rectangular box centered at coordinates (0,0). Use random fill colors selected for maximum distinguishability."""
-drawhexrectcolors() =  Luxor.@svg Vis.drawcells(Repeat.HexBasis1(),50,Repeat.hexcellsinbox(4,4))
+function drawhexrectcolors()
+    cells = Repeat.hexcellsinbox(4,4)
+    Luxor.@svg Vis.drawcells(Repeat.HexBasis1(),30,cells)
+end
 export drawhexrectcolors

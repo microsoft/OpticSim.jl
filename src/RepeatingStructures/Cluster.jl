@@ -30,6 +30,7 @@ export LatticeCluster
 
 clusterelements(a::LatticeCluster) = a.clusterelements
 export clusterelements
+elementbasis(a::LatticeCluster) = a.elementbasis
 
 """returns the positions of every element in a cluster given the cluster indices"""
 function Base.getindex(A::LatticeCluster{N1,N,T,B1,B2}, indices::Vararg{Int, N}) where{N1,N,T,B1<:Basis{N,Int},B2<:Basis{N,T}} 
@@ -69,7 +70,6 @@ lenslets = DataFrame()
 """
 struct ClusterWithProperties{N1,N,T}
     cluster::LatticeCluster{N1,N,T}
-    clusterindices::SVector{NTuple{N,T}}
     properties::DataFrame
 end
 
@@ -80,7 +80,9 @@ properties(a::ClusterWithProperties) = a.properties
 export properties
 cluster(a::ClusterWithProperties) = a.cluster
 export cluster
-clustercoordinates(a::ClusterWithProperties,indices...) = clustercoordinates(lattice(a),indices...)
+clustercoordinates(a::ClusterWithProperties,indices...) = clustercoordinates(cluster(a),indices...)
+elementbasis(a::ClusterWithProperties) = elementbasis(cluster(a))
+export elementbasis
 
 function hex3cluster()
     clusterelts = SVector((0,0),(-1,0),(-1,1))

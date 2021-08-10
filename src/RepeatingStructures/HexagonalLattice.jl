@@ -169,5 +169,5 @@ function tilevertices(::HexBasis3{2,T}) where{T}
             ])
 end
 
-basis(::HexBasis3{2,T}) where{T} = SMatrix{2,2,T}(T(2*sin60),T(0),T(sin60),T(2*sin60))
+basis(::HexBasis3{2,T}) where{T} = SMatrix{2,2,T}(T(2*sin60),T(0),T(sin60),T(1.5))
 
