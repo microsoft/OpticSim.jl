@@ -7,11 +7,20 @@ import SHA
 import ZipFile
 using Pkg
 
+function match_agf_basename(s::AbstractString)
+    m = match(r"^([a-zA-Z]+)\.(agf|AGF)$", basename(s))
+    return m === nothing ? nothing : m[1]
+end
+
+is_alphabetical(s::AbstractString) = match(r"^([a-zA-Z]+)$", s) !== nothing
+
+is_duplicate(name::AbstractString, sourcefile::AbstractString) = name ∈ first.(split.(readlines(sourcefile)))
+
 """
     add_agf(agffile; agfdir = AGF_DIR, sourcefile = SOURCES_PATH, name = nothing, rebuild = true)
 
-Copies a downloaded AGF file at `agffile` to `agfdir` and appends a corresponding entry to the source list at
-`sourcefile`.
+Copies a file at `agffile` (this can be either a download link or local path) to `agfdir` and appends a corresponding
+entry to the source list at `sourcefile`.
 
 If a `name` is not provided for the catalog, an implicit name is derived from `agffile`.
 
@@ -26,18 +35,20 @@ function add_agf(
 )
     # check name
     if name === nothing
-        m = match(r"^([a-zA-Z]+)\.(agf|AGF)$", basename(agffile))
-        if m === nothing
+        name = match_agf_basename(agffile)
+        if name === nothing
             @error "invalid implicit catalog name \"$(basename(agffile))\". Should be purely alphabetical with a .agf/.AGF extension."
             return
         end
-        name = m[1]
-    else
-        if match(r"^([a-zA-Z]+)$", name) === nothing
-            @error "invalid catalog name \"$name\". Should be purely alphabetical."
-        end
+        name = uppercase(name)
     end
-    if name ∈ first.(split.(readlines(sourcefile)))
+
+    if !is_alphabetical(name)
+        @error "invalid catalog name \"$name\". Should be purely alphabetical."
+        return
+    end
+
+    if is_duplicate(name, sourcefile)
         @error "adding the catalog name \"$name\" would create a duplicate entry in source file $sourcefile"
         return
     end
@@ -118,11 +129,11 @@ function verify_source(agffile::AbstractString, expected_sha256sum::AbstractStri
 end
 
 """
-    download_source(agffile::AbstractString, url::AbstractString, POST_data::Union{Nothing,AbstractString} = nothing)
+    download_source(dest::AbstractString, url::AbstractString, POST_data::Union{Nothing,AbstractString} = nothing)
 
 Download and unzip an AGF glass catalog from a publicly available source. Supports POST requests.
 """
-function download_source(agffile::AbstractString, url::AbstractString, POST_data::Union{Nothing,AbstractString} = nothing)
+function download_source(dest::AbstractString, url::AbstractString, POST_data::Union{Nothing,AbstractString} = nothing)
     @info "Downloading source file from $url"
     try
         headers = ["Content-Type" => "application/x-www-form-urlencoded"]
@@ -135,7 +146,7 @@ function download_source(agffile::AbstractString, url::AbstractString, POST_data
             reader = ZipFile.Reader(IOBuffer(resp.body))
             agfdata = read(reader.files[findfirst(f -> endswith(lowercase(f.name), ".agf"), reader.files)])
         end
-        write(agffile, agfdata)
+        write(dest, agfdata)
     catch e
         @error e
     end
