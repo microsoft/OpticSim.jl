@@ -3,3 +3,20 @@ OHARA 0c9021bf11b8d4e660012191818685ad3110d4f9490699cabdc89aae1fd26d2e https://w
 HOYA b02c203e5a5b7a8918cc786badf0a9db1fe2572372c1c163dc306b0a8a908854 http://www.hoya-opticalworld.com/common/agf/HOYA20210105.agf
 SCHOTT e9aabbb8ebff116ba0c106a71afd86e72f2a397ac9bc447469129e325e795f4e https://www.schott.com/d/advanced_optics/6959f9a4-0e4f-4ef2-a302-2347468a82f5/1.31/schott-optical-glass-overview-zemax-format.zip
 Sumita 871ff2741c4998307b1ad654fcb313af973eb6f1e78eae9489a5e6ffcc99e028 https://www.sumita-opt.co.jp/en/wp/wp-content/themes/sumita-opt-en/download-files.php files%5B%5D=new_sumita.agf&category=data
+ARCHER 7df8c42fb499720165c86d77dc8065db5126541a71b4e9d6a4849e27b25dd82d https://raw.githubusercontent.com/nzhagen/zemaxglass/master/AGF_files/archer.agf
+ARTON d214e050f7330257c8cfcd517b1f35b64077dac62cf2729f73b3723e00a59263 https://raw.githubusercontent.com/nzhagen/zemaxglass/master/AGF_files/arton.agf
+BIREFRINGENT 2afcdc51c300a8d012e5dc2906feff28c6b49a1cbff95168617d69d4e06c15e1 https://raw.githubusercontent.com/nzhagen/zemaxglass/master/AGF_files/birefringent.agf
+CDGM 8274fe17c7707f61b27bc4d59a902749b8fd298643aecc667ff76e49bd1e0368 https://raw.githubusercontent.com/nzhagen/zemaxglass/master/AGF_files/cdgm.agf
+CORNING cd939b2576c94d9d0d401a177dab454ecb645306a248a66b7c0a41bfdfca6874 https://raw.githubusercontent.com/nzhagen/zemaxglass/master/AGF_files/corning.agf
+HERAEUS e4c49ba85fba46542f93cedc7a2bd6afe3763719f3fb4095e7e3d736e5b75a0a https://raw.githubusercontent.com/nzhagen/zemaxglass/master/AGF_files/heraeus.agf
+HIKARI 8b36599f6338a731bb311cce252a6aa2636e743b964cb5f9f1d2ce4ca577d7ba https://raw.githubusercontent.com/nzhagen/zemaxglass/master/AGF_files/hikari.agf
+INFRARED faafff491a872ab9a6c65bd27bf32e6b360aa3781200e2ede6b8d618b240534b https://raw.githubusercontent.com/nzhagen/zemaxglass/master/AGF_files/infrared.agf
+ISUZU 0398e3f3b3297814dec0f2e4e00d2c004bdf7b1a23652a5b327313dea6570108 https://raw.githubusercontent.com/nzhagen/zemaxglass/master/AGF_files/isuzu.agf
+LIEBETRAUT b72fb3eb41c7788d1a91a0865d92339285df8602f9bc148fc75505775555e841 https://raw.githubusercontent.com/nzhagen/zemaxglass/master/AGF_files/liebetraut.agf
+LIGHTPATH 53eb07e140c2dd54fec396e7f5e24129a37b9e5686463dfe935da08d08cbe96f https://raw.githubusercontent.com/nzhagen/zemaxglass/master/AGF_files/lightpath.agf
+LZOS ce6c47d35380593e354ef727473f49591fbe2ddee5515bce1d94340531f84dd1 https://raw.githubusercontent.com/nzhagen/zemaxglass/master/AGF_files/lzos.agf
+MISC 3edff292e367144f4525e0a9fe8278d469f5bff1ebebddfc9c8d08c4312a7f53 https://raw.githubusercontent.com/nzhagen/zemaxglass/master/AGF_files/misc.agf
+RPO 583f64396b92307f72bfcbc474ecfbe8ac3ac93cd857793b509b56923856925c https://raw.githubusercontent.com/nzhagen/zemaxglass/master/AGF_files/rpo.agf
+TOPAS 353267b11a5ceb0a3c792000afd905b334041e7a7184ac6b83c96875a242066f https://raw.githubusercontent.com/nzhagen/zemaxglass/master/AGF_files/topas.agf
+UMICORE 1466501ce1fbe4cbbed608a79bc102145638fad667ecd659a2470693041a534b https://raw.githubusercontent.com/nzhagen/zemaxglass/master/AGF_files/umicore.agf
+ZEON f9133b7bc9de195cbb7595dbd3a35858da5de2e57e3810cde006039b2d878fa2 https://raw.githubusercontent.com/nzhagen/zemaxglass/master/AGF_files/zeon.agf
