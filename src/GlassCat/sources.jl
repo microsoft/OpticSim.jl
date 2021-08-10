@@ -89,7 +89,7 @@ information provided in `sources`.
 
 Each `source ∈ sources` is a collection of strings in the format `name, sha256sum, url [, POST_data]`, where the last
 optional string is used to specify data to be sent in a POST request. This allows us to download a greater range of
-sources (e.g. Sumita).
+sources (e.g. SUMITA).
 
 Modifies `sources` in-place such that only verified sources remain.
 """

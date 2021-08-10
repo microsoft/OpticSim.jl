@@ -15,7 +15,7 @@ using Unitful.DefaultSymbols
     @testset "Build Tests" begin
         # check that all automatic downloads are working
         # this shouldn't be a test because we cannot guarantee that all downloads will work. Random network issues, changes in webpages, etc. can temporarily prevent downloads.
-        # for catname in split("HOYA NIKON OHARA SCHOTT Sumita")
+        # for catname in split("HOYA NIKON OHARA SCHOTT SUMITA")
         #     agffile = joinpath(GlassCat.AGF_DIR, catname * ".agf")
         #     @test isfile(agffile)
         # end
@@ -333,7 +333,7 @@ using Unitful.DefaultSymbols
         #     NIKON,
         #     OHARA,
         #     SCHOTT,
-        #     Sumita,
+        #     SUMITA,
         # ]
 
         # @test glassnames(CARGILLE) == [
@@ -348,7 +348,7 @@ using Unitful.DefaultSymbols
         #     NIKON,
         #     OHARA,
         #     SCHOTT,
-        #     Sumita,
+        #     SUMITA,
         # ]
         # @test length.(last.(glassnames())) == [
         #     3,
@@ -361,8 +361,8 @@ using Unitful.DefaultSymbols
 
         # @test findglass(x -> (x.Nd > 2.1 && x.λmin < 0.5 && x.λmax > 0.9)) == [
         #     HOYA.E_FDS3,
-        #     Sumita.K_PSFn214P,
-        #     Sumita.K_PSFn214P_M_,
+        #     SUMITA.K_PSFn214P,
+        #     SUMITA.K_PSFn214P_M_,
         # ]
 
         # TODO _child_modules() unit test

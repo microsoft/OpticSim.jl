@@ -5,7 +5,7 @@ NIKON.jl
 NHG.jl
 OHARA.jl
 SCHOTT.jl
-Sumita.jl
+SUMITA.jl
 *.agf
 
 # Don't track sysimage file: dll on windows, so on linux
