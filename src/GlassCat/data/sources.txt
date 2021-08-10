@@ -12,7 +12,6 @@ HERAEUS e4c49ba85fba46542f93cedc7a2bd6afe3763719f3fb4095e7e3d736e5b75a0a https:/
 HIKARI 8b36599f6338a731bb311cce252a6aa2636e743b964cb5f9f1d2ce4ca577d7ba https://raw.githubusercontent.com/nzhagen/zemaxglass/master/AGF_files/hikari.agf
 INFRARED faafff491a872ab9a6c65bd27bf32e6b360aa3781200e2ede6b8d618b240534b https://raw.githubusercontent.com/nzhagen/zemaxglass/master/AGF_files/infrared.agf
 ISUZU 0398e3f3b3297814dec0f2e4e00d2c004bdf7b1a23652a5b327313dea6570108 https://raw.githubusercontent.com/nzhagen/zemaxglass/master/AGF_files/isuzu.agf
-LIEBETRAUT b72fb3eb41c7788d1a91a0865d92339285df8602f9bc148fc75505775555e841 https://raw.githubusercontent.com/nzhagen/zemaxglass/master/AGF_files/liebetraut.agf
 LIGHTPATH 53eb07e140c2dd54fec396e7f5e24129a37b9e5686463dfe935da08d08cbe96f https://raw.githubusercontent.com/nzhagen/zemaxglass/master/AGF_files/lightpath.agf
 LZOS ce6c47d35380593e354ef727473f49591fbe2ddee5515bce1d94340531f84dd1 https://raw.githubusercontent.com/nzhagen/zemaxglass/master/AGF_files/lzos.agf
 MISC 3edff292e367144f4525e0a9fe8278d469f5bff1ebebddfc9c8d08c4312a7f53 https://raw.githubusercontent.com/nzhagen/zemaxglass/master/AGF_files/misc.agf
