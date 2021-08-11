@@ -6,11 +6,11 @@
 
 #############################################################################
 
-"""draw the 2 neighbors of the hex cell at coordinates (0,0)"""
+"""draw the 2 ring neighbors of the hex cell at coordinates (0,0)"""
 drawhexneighbors() =  Luxor.@svg Vis.drawcells(Repeat.HexBasis1(),50,Repeat.neighbors(Repeat.HexBasis1,(0,0),2))
 export drawneighbors
 
-"""draw hex cell at coordinates (0,0) and the 1 and 2 neighbors"""
+"""draw hex cell at coordinates (0,0) and the 1 and 2 ring neighbors"""
 drawhexregion() = Luxor.@svg Vis.drawcells(Repeat.HexBasis1(),50,Repeat.region(Repeat.HexBasis1,(0,0),2))
 export drawhexregion
 
