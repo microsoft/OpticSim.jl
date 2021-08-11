@@ -21,7 +21,7 @@ Here are links to several publicly available glass files:
 * [NHG](http://hbnhg.com/down/data/nhgagp.zip) (you have to manually download)
 * [OHARA](https://www.oharacorp.com/xls/OHARA_201130_CATALOG.zip) (automatically downloaded)
 * [HOYA](https://hoyaoptics.com/wp-content/uploads/2019/10/HOYA20170401.zip) (automatically downloaded)
-* [Sumita](https://www.sumita-opt.co.jp/en/download/) (automatically downloaded)
+* [SUMITA](https://www.sumita-opt.co.jp/en/download/) (automatically downloaded)
 * [SCHOTT](https://www.schott.com/advanced_optics/english/download/index.html) (automatically downloaded)
 
 OpticSim.jl will generate a glass database from the available files in `deps/downloads/glasscat/` and store it in the file `AGFClassCat.jl`. See [GlassCat](@ref) for a detailed description, including instructions on how to add more catalogs.

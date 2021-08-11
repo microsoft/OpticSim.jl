@@ -14,7 +14,7 @@ If unitless, arguments are interpretted as μm, °C and Atm respectively.
 
 # Examples
 ```julia-repl
-julia> absorption(GlassCat.Sumita.LAK7, 700u"nm")
+julia> absorption(GlassCat.SUMITA.LAK7, 700u"nm")
 0.0006018072325563021
 
 julia> absorption(GlassCat.SCHOTT.N_BK7, 0.55, temperature = 22.0)
@@ -93,7 +93,7 @@ If unitless, arguments are interpretted as μm, °C and Atm respectively.
 
 # Examples
 ```julia-repl
-julia> index(GlassCat.Sumita.LAK7, 700u"nm")
+julia> index(GlassCat.SUMITA.LAK7, 700u"nm")
 1.646494204478318
 
 julia> index(GlassCat.SCHOTT.N_BK7, 0.55, temperature = 22.0)

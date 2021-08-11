@@ -10,7 +10,7 @@ NIKON a49714470fa875ad4fd8d11cbc0edbf1adfe877f42926d7612c1649dd9441e75 https://w
 OHARA 0c9021bf11b8d4e660012191818685ad3110d4f9490699cabdc89aae1fd26d2e https://www.oharacorp.com/xls/OHARA_201130_CATALOG.zip
 HOYA b02c203e5a5b7a8918cc786badf0a9db1fe2572372c1c163dc306b0a8a908854 http://www.hoya-opticalworld.com/common/agf/HOYA20210105.agf
 SCHOTT e9aabbb8ebff116ba0c106a71afd86e72f2a397ac9bc447469129e325e795f4e https://www.schott.com/d/advanced_optics/6959f9a4-0e4f-4ef2-a302-2347468a82f5/1.31/schott-optical-glass-overview-zemax-format.zip
-Sumita c1093e42a1d08acbe30698aba730161e3b43f8f0d50533f65de8b6b11100fdc8 https://www.sumita-opt.co.jp/en/wp/wp-content/themes/sumita-opt-en/download-files.php files%5B%5D=new_sumita.agf&category=data
+SUMITA c1093e42a1d08acbe30698aba730161e3b43f8f0d50533f65de8b6b11100fdc8 https://www.sumita-opt.co.jp/en/wp/wp-content/themes/sumita-opt-en/download-files.php files%5B%5D=new_sumita.agf&category=data
 ```
 
 Each line corresponds to one AGF source, which is described by 2 to 4 space-delimited columns. The first column provides
@@ -37,7 +37,7 @@ OpticSim.GlassCat.add_agf
 Glass types are accessed like so: `OpticSim.GlassCat.CATALOG_NAME.GLASS_NAME`, e.g.
 
 ```julia
-OpticSim.GlassCat.Sumita.LAK7
+OpticSim.GlassCat.SUMITA.LAK7
 OpticSim.GlassCat.SCHOTT.PK3
 ```
 
@@ -45,7 +45,7 @@ All glasses and catalogs are exported in their respective modules, so it is poss
 
 ```julia
 using OpticSim
-GlassCat.Sumita.LAK7
+GlassCat.SUMITA.LAK7
 using OpticSim.GlassCat
 SCHOTT.PK3
 using OpticsSim.GlassCat.SCHOTT

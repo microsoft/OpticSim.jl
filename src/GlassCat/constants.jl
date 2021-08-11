@@ -14,7 +14,7 @@ const STATUS = ["Standard", "Preferred", "Obsolete", "Special", "Melt"]
 
 # paths for GlassCat source file builds
 const GLASSCAT_DIR = @__DIR__ # contains GlassCat.jl (pre-existing)
-const AGF_DIR = joinpath(GLASSCAT_DIR, "data", "agf") # contains SCHOTT.agf, Sumita.agf, etc.
+const AGF_DIR = joinpath(GLASSCAT_DIR, "data", "agf") # contains SCHOTT.agf, SUMITA.agf, etc.
 const JL_DIR = joinpath(GLASSCAT_DIR, "data", "jl") # contains AGFGlasscat.jl, SCHOTT.jl, etc.
 
 const SOURCES_PATH = joinpath(GLASSCAT_DIR, "data", "sources.txt")
