@@ -15,7 +15,7 @@ using Unitful.DefaultSymbols
     @testset "Build Tests" begin
         # check that all automatic downloads are working
         # this shouldn't be a test because we cannot guarantee that all downloads will work. Random network issues, changes in webpages, etc. can temporarily prevent downloads.
-        # for catname in split("HOYA NIKON OHARA SCHOTT Sumita")
+        # for catname in split("HOYA NIKON OHARA SCHOTT SUMITA")
         #     agffile = joinpath(GlassCat.AGF_DIR, catname * ".agf")
         #     @test isfile(agffile)
         # end
@@ -37,7 +37,12 @@ using Unitful.DefaultSymbols
             end
 
             @testset "file not found" begin
-                @test_logs (:error, "file not found at nonexistentfile.agf") add_agf("nonexistentfile.agf"; agfdir, sourcefile)
+                @test_logs(
+                    (:info, "Downloading source file from nonexistentfile.agf"),
+                    (:error, ArgumentError("missing or unsupported scheme in URL (expected http(s) or ws(s)): nonexistentfile.agf")),
+                    (:error, "failed to download from nonexistentfile.agf"),
+                    add_agf("nonexistentfile.agf"; agfdir, sourcefile)
+                )
             end
 
             @testset "add to source file" begin
@@ -52,14 +57,17 @@ using Unitful.DefaultSymbols
 
                 add_agf(joinpath(tmpdir, "a.agf"); agfdir, sourcefile, rebuild=false)
                 @test length(readlines(sourcefile)) === 1
-                @test readlines(sourcefile)[1] === "a $empty_sha"
+                @test readlines(sourcefile)[1] === "A $empty_sha"
 
                 add_agf(joinpath(tmpdir, "b.agf"); agfdir, sourcefile, rebuild=false)
                 @test length(readlines(sourcefile)) === 2
-                @test readlines(sourcefile)[1] === "a $empty_sha"
-                @test readlines(sourcefile)[2] === "b $empty_sha"
+                @test readlines(sourcefile)[1] === "A $empty_sha"
+                @test readlines(sourcefile)[2] === "B $empty_sha"
 
-                @test_logs (:error, "adding the catalog name \"a\" would create a duplicate entry in source file $sourcefile") add_agf(joinpath(tmpdir, "a.agf"); agfdir, sourcefile)
+                @test_logs(
+                    (:error, "adding the catalog name \"A\" would create a duplicate entry in source file $sourcefile"),
+                    add_agf(joinpath(tmpdir, "a.agf"); agfdir, sourcefile)
+                )
             end
 
             # TODO rebuild=true
@@ -333,7 +341,7 @@ using Unitful.DefaultSymbols
         #     NIKON,
         #     OHARA,
         #     SCHOTT,
-        #     Sumita,
+        #     SUMITA,
         # ]
 
         # @test glassnames(CARGILLE) == [
@@ -348,7 +356,7 @@ using Unitful.DefaultSymbols
         #     NIKON,
         #     OHARA,
         #     SCHOTT,
-        #     Sumita,
+        #     SUMITA,
         # ]
         # @test length.(last.(glassnames())) == [
         #     3,
@@ -361,8 +369,8 @@ using Unitful.DefaultSymbols
 
         # @test findglass(x -> (x.Nd > 2.1 && x.λmin < 0.5 && x.λmax > 0.9)) == [
         #     HOYA.E_FDS3,
-        #     Sumita.K_PSFn214P,
-        #     Sumita.K_PSFn214P_M_,
+        #     SUMITA.K_PSFn214P,
+        #     SUMITA.K_PSFn214P_M_,
         # ]
 
         # TODO _child_modules() unit test
