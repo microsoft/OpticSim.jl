@@ -20,7 +20,6 @@ function draw(tilebasis::Basis,tilesize,i,j,color,name)
    
     Luxor.poly(tile, :fill, close=true)
     Luxor.sethue("grey")
-    # Luxor.setdash("dash")
     Luxor.poly(tile, :stroke, close=true)
     Luxor.sethue("black")
     Luxor.circle(Luxor.Point(0,0),2.0,:fill)
@@ -31,12 +30,6 @@ function draw(tilebasis::Basis,tilesize,i,j,color,name)
         Luxor.text(name,Luxor.Point(-tilesize/4,-tilesize/4))
     end
 
-
-    # arrowlength = hexsize*.5*sqrt(3)/norm(e₁)
-    # Luxor.arrow(Luxor.Point(0.0,0.0),arrowlength*Luxor.Point(e₁...))
-    # Luxor.sethue("blue")
-    # Luxor.arrow(Luxor.Point(0.0,0.0),arrowlength*Luxor.Point(e₂...))
-    # Luxor.sethue("black")
     Luxor.translate(-offset)
 end
 
@@ -63,26 +56,6 @@ function drawcells(tilebasis::Basis, tilesize,cells; color::Union{AbstractArray,
         Luxor.preview()
     end
 end
-
-# """Draws the lattice points, represented as black filled circles"""
-# function draw(lattice::Repeat.Basis, scale = 50.0)
-#     Luxor.sethue("black")
-#     pt = scale*lattice[i,j]
-#     offset = Luxor.Point(pt[1],-pt[2]) #flip y so indices show up correctly
-#     luxor.circle(offset,scale*.1,:fill)
-#      #scale and offset text so coordinates are readable
-#      Luxor.fontsize(scale/3)
-#      Luxor.text("$i, $j",Luxor.Point(-scale/3,scale/9))
-# end
-# export draw
-
-# function draw(cluster::Repeat.LensletCluster,scale = 50.0)
-#     points = hcat(Repeat.clustercoordinates(cluster,0,0),Repeat.clustercoordinates(cluster,1,0),Repeat.clustercoordinates(cluster,0,1),Repeat.clustercoordinates(cluster,1,1),Repeat.clustercoordinates(cluster,-2,-2))
-#     ptvecs = [points[:,i] for i in 1:size(points)[2]]
-#     props = Repeat.properties(cluster)
-#     drawhexcells(scale,ptvecs,hcat(props[:,:Color],props[:,:Color],props[:,:Color],props[:,:Color],props[:,:Color]))
-# end
-# export draw
 
 function draw(clstr::Repeat.ClusterWithProperties,scale = 50.0)
     points = clustercoordinates(clstr,0,0)
