@@ -15,7 +15,6 @@ include("Lattice.jl")
 include("HexagonalLattice.jl")
 include("RectangularLattice.jl")
 include("Array.jl")
-include("Projections.jl")
 include("Cluster.jl")
 
 end #module
