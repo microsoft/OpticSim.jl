@@ -10,3 +10,6 @@ OpticSim = "24114763-4efb-45e7-af0e-cde916beb153"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
+
+[compat]
+Documenter = "< 0.27"
