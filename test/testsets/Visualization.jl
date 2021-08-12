@@ -33,6 +33,7 @@
 
         @test_nowarn Vis.draw(Examples.hex3RGB(),[0 1 0;0 0 1])
         @test_nowarn Examples.drawhexrect()
+        @test_nowarn Examples.drawhexneighbors()
 
     end
 end # testset Visualization
