@@ -127,9 +127,9 @@ export bbox
 """computes the basis coordinates of hexagonal cells defined in the Hex1Basis in a rectangular pattern 2*numi+1 by 2*numj+1 wide and high respectively."""
 function hexcellsinbox(numi,numj)
     #i2 and j2 are coordinates in the basis (1.5,.5√3),(0,-√3). The conditional tests are simpler in this basis. Convert to Hex1Basis1 coordinates before returning.
-    hexbasis2to1(i,j) = (i+j,-j)
+    hexbasis2to1(i,j) = [i+j,-j]
 
-    result = Array{Tuple{Int64,Int64},1}(undef,(2*numi+1)*(2*numj+1))
+    result = Matrix{Int}(undef,2,(2*numi+1)*(2*numj+1))
     for i2 in -numi:numi
         let offsetj
             if i2 < 0
@@ -143,7 +143,7 @@ function hexcellsinbox(numi,numj)
                 jtemp = j2-offsetj
                 # i1 = i2 + jtemp
                 # j1 = -jtemp
-                result[(i2+numi)*(2*numj+1) + j2+numj+1] = hexbasis2to1(i2,jtemp)
+                result[:,(i2+numi)*(2*numj+1) + j2+numj+1] = hexbasis2to1(i2,jtemp)
             end
         end
     end

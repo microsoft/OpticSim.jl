@@ -17,14 +17,14 @@ export drawhexregion
 """draw hex cells that fit within a rectangular box centered at coordinates (0,0). Use fill color yellow."""
 function drawhexrect() 
     cells = Repeat.hexcellsinbox(2,2)
-    Luxor.@svg Vis.drawcells(Repeat.HexBasis1(),50,cells,color = repeat(["yellow"],length(cells)))
+    Vis.drawcells(Repeat.HexBasis1(),50,cells,color = repeat(["yellow"],length(cells)))
 end
 export drawhexrect
 
 """draw hex cells that fit within a rectangular box centered at coordinates (0,0). Use random fill colors selected for maximum distinguishability."""
 function drawhexrectcolors()
     cells = Repeat.hexcellsinbox(4,4)
-    Luxor.@svg Vis.drawcells(Repeat.HexBasis1(),30,cells)
+    Vis.drawcells(Repeat.HexBasis1(),30,cells)
 end
 export drawhexrectcolors
 

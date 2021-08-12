@@ -20,10 +20,10 @@ function draw(tilebasis::Basis,tilesize,i,j,color,name)
     Luxor.sethue(color)
    
     Luxor.poly(tile, :fill, close=true)
-    Luxor.sethue("grey")
+    Luxor.sethue("lightgrey")
     Luxor.poly(tile, :stroke, close=true)
     Luxor.sethue("black")
-    Luxor.circle(Luxor.Point(0,0),2.0,:fill)
+
     #scale and offset text so coordinates are readable
     Luxor.fontsize(tilesize/3)
     Luxor.text("$i, $j",Luxor.Point(-tilesize/3,tilesize/2.5))
