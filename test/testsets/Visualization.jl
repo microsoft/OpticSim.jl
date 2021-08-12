@@ -30,5 +30,9 @@
         @test_nowarn Vis.draw(m)
         m = (Cylinder(0.5, 3.0) - Sphere(1.0))()
         @test_nowarn Vis.draw(m)
+
+        @test_nowarn Vis.draw(Examples.hex3RGB(),[0 1 0;0 0 1])
+        @test_nowarn Examples.drawhexrect()
+
     end
 end # testset Visualization
