@@ -36,6 +36,7 @@ export LatticeCluster
 clusterelements(a::LatticeCluster) = a.clusterelements
 export clusterelements
 elementbasis(a::LatticeCluster) = a.elementbasis
+clustersize(a::LatticeCluster) = length(a.clusterelements)
 
 """returns the positions of every element in a cluster given the cluster indices"""
 function Base.getindex(A::LatticeCluster{N1,N,T,B1,B2}, indices::Vararg{Int, N}) where{N1,N,T,B1<:Basis{N,Int},B2<:Basis{N,T}} 
@@ -77,6 +78,7 @@ struct ClusterWithProperties{N1,N,T}
     cluster::LatticeCluster{N1,N,T}
     properties::DataFrame
 end
+export ClusterWithProperties
 
 Base.getindex(A::ClusterWithProperties{N1,N,T}, indices::Vararg{Int,N}) where{N1,N,T} = cluster(A)[indices...]
 Base.setindex!(A::ClusterWithProperties, v, I::Vararg{Int, N}) where{N} = nothing #can't set lattice points. Might want to throw an exception instead.
@@ -88,69 +90,5 @@ export cluster
 clustercoordinates(a::ClusterWithProperties,indices...) = clustercoordinates(cluster(a),indices...)
 elementbasis(a::ClusterWithProperties) = elementbasis(cluster(a))
 export elementbasis
-
-function hex3cluster()
-    clusterelts = SVector((0,0),(-1,0),(-1,1))
-    eltlattice = HexBasis1()
-    clusterbasis = LatticeBasis(( -1,2),(2,-1))
-    return LatticeCluster(clusterbasis,eltlattice,clusterelts)
-end
-export hex3cluster
-
-""" Create a cluster with properties with three types of elements, R,G,B """
-function hex3RGB()
-    clusterelements = SVector((0,0),(-1,0),(-1,1))
-    colors = [color("red"),color("green"),color("blue")]
-    names = ["R","G","B"]
-    eltlattice = HexBasis1()
-    clusterbasis = LatticeBasis(( -1,2),(2,-1))
-    lattice = LatticeCluster(clusterbasis,eltlattice,clusterelements)
-    properties =  DataFrame(Color = colors, Name = names)
-    return ClusterWithProperties(lattice,properties)
-end
-export hex3RGB
-
-""" Create a cluster with properties with four types of elements, R,G,B,W """
-function hexRGBW()
-    clusterelements = SVector((0,0),(-1,0),(-1,1),(0,-1))
-    colors = [color("red"),color("green"),color("blue"),color("white")]
-    names = ["R","G","B","W"]
-    eltlattice = HexBasis1()
-    clusterbasis = LatticeBasis((0,2),(2,-2))
-    lattice = LatticeCluster(clusterbasis,eltlattice,clusterelements)
-    properties =  DataFrame(Color = colors, Name = names)
-    return ClusterWithProperties(lattice,properties)
-end
-export hexRGBW
-
-function hex12RGB()
-    clusterelements = SVector(
-        (-1,1),(0,1),
-        (-1,0),(0,0),(1,0),
-        (-1,-1),(0,-1),(1,-1),(2,-1),
-        (0,-2),(1,-2),(2,-2)
-    )
-    red = color("red")
-    grn = color("green")
-    blu = color("blue")
-    colors = [
-        grn,blu,
-        blu,red,grn,
-        red,grn,blu,red,
-        blu,red,grn
-        ]
-    names = [
-        "G3","B0",
-        "B2","R1","G2",
-        "R0","G1","B1","R3",
-        "B3","R2","G0"
-    ]
-    eltlattice = HexBasis3()
-    clusterbasis = LatticeBasis((2,2),(-3,2))
-    lattice = LatticeCluster(clusterbasis,eltlattice,clusterelements)
-    properties =  DataFrame(Color = colors, Name = names)
-    return ClusterWithProperties(lattice,properties)
-end
-export hex12RGB
-
-
+clustersize(a::ClusterWithProperties) = clustersize(a.cluster)
+export clustersize
