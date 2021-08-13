@@ -5,6 +5,8 @@
 
 
 #############################################################################
+drawrectlattice() = Vis.drawcells(Repeat.RectangularBasis(),50.0,SMatrix{2,4,Int64}(0,0,0,1,1,0,1,1))
+export drawrectlattice
 
 """draw the 2 ring neighbors of the hex cell at coordinates (0,0)"""
 drawhexneighbors() =  Vis.drawcells(Repeat.HexBasis1(),50,Repeat.neighbors(Repeat.HexBasis1,(0,0),2))

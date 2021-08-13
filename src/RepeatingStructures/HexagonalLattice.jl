@@ -27,15 +27,15 @@ basis(::HexBasis1{2,T}) where{T} = SMatrix{2,2,T}(T(1.5),T(.5)*sqrt(T(3)),T(1.5)
 function tilevertices(::HexBasis1{2,T}) where{T}
 sin60 = T(.5)*sqrt(T(3))
 cos60 = T(.5)
-return T.([
-		1 0;
-		cos60 -sin60;
-		-cos60 -sin60;
-		-1 0;
-		-cos60 sin60;
-		cos60 sin60
-		])
+return SMatrix{2,6}(
+		1, 0,
+		cos60, -sin60,
+		-cos60, -sin60,
+		-1, 0,
+		-cos60, sin60,
+		cos60, sin60)
 end
+export tilevertices
 
 # coordinate offsets to move up, down, etc., numsteps hex cells in a hex lattice defined in HexBasis1
 hexup(numsteps = 1) = numsteps .* (1,-1)
@@ -171,14 +171,13 @@ export HexBasis3
 function tilevertices(::HexBasis3{2,T}) where{T}
     sin60 = T(.5)*sqrt(T(3))
     cos60 = T(.5)
-    return T.([
-        0 1;
-        -sin60 cos60;
-        -sin60 -cos60;
-        0 -1;
-        sin60 -cos60;
-        sin60 cos60;
-            ])
+    return SMatrix{2,6,T}(
+        0, 1,
+        -sin60, cos60,
+        -sin60, -cos60,
+        0, -1,
+        sin60, -cos60,
+        sin60, cos60)
 end
 
 basis(::HexBasis3{2,T}) where{T} = SMatrix{2,2,T}(T(2*sin60),T(0),T(sin60),T(1.5))

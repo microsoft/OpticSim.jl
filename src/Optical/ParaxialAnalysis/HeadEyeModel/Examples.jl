@@ -15,6 +15,9 @@ using StaticArrays
 using Colors
 import Makie
 
+
+emitterarray(emitters, transform = identitytransform()) = Emitters.Sources.CompositeSource(transform, emitters)
+
 function example1()
 
     t = identitytransform()
@@ -36,11 +39,12 @@ function example1()
     # Vis.draw!(eli, transparency=true, color=RGBA(1.0, 0.2, 0.2, 0.4))
 
     csg = HeadEye.csg_sphere(radius=20.0)
-    csg = HeadEye.csg_cylinder(radius = 20.0, added_rotation = rotationX(π/2.0))
+    # csg = HeadEye.csg_cylinder(radius = 20.0, added_rotation = rotationX(π/2.0))
     # csg = HeadEye.csg_plane()
 
-    # shapes_2d = HeadEye.get_shapes(HeadEye.Hexagon, resolution=(8,5), radius=1.0)
-    shapes_2d = HeadEye.get_shapes(HeadEye.Rectangle, resolution=(5,5), size=1.0)
+    shapes_2d = HeadEye.get_shapes(HexBasis1{2,Float64}, resolution=(8,5), radius=1.0)
+    println(shapes_2d)
+    # shapes_2d = HeadEye.get_shapes(RectangularBasis{2,Float64}, resolution=(5,5), size=1.0)
 
     shapes_3d = HeadEye.project(shapes_2d, csg)
 
@@ -71,7 +75,7 @@ function example1()
     end
 
     mla = LensAssembly(paraxial_lenses...)
-    display = Emitters.Sources.CompositeSource(identitytransform(), emitters)
+    display = emitterarray(emitters)
 
     pupil = HeadEye.pupil(HeadEye.eye(h, :left))
     pupil_tr = HeadEye.tr(h, :left_pupil)
@@ -89,11 +93,14 @@ function example1()
         Vis.drawtracerays(sys; raygenerator=display, trackallrays = true, colorbynhits = true, test = true, numdivisions = 100, drawgen = false)
         # Vis.draw!(sys)
 
-        Vis.draw!(h, draw_head=true)
+        Vis.draw!(h, draw_head=false)
 
         Vis.draw!(display, debug=false)
     end
 end
+export example1
+
+
 
 
 end # module Test
