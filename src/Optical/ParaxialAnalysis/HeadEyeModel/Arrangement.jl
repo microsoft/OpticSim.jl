@@ -16,7 +16,7 @@ struct Shape{N, T} <: ArrangementConvexShape{N, T}
 
     """convenience function to make Shape constructor more compatible with functions in Repeat module, which use SMatrix{N1,N2} to represent vertices rather than Vector{SVector}"""
     function Shape(center::SVector{N, T}, points::SMatrix{N,N2,T}, coordinates::Tuple{Int,Int}) where {N, N2, T<:Real}
-        return new{N,T}(center, [points[:,i] for i in 1:N2],coordinates)
+        return new{N,T}(center, Vector{SVector{N,T}}([points[:,i] for i in 1:N2]),coordinates)
     end
 end
 
@@ -27,12 +27,22 @@ coordinates(h::Shape) = h._coordinates
 
 get_shapes(type::Type{Any};) = @error "Unknown Type [$type] - available types are Hexagon, Rectangle"
 
-function get_shapes(basis::HexBasis{2,T};resolution::Tuple{Int,Int}=(2,2), radius=1.5) where{T}
+function get_shapes(basis::HexBasis1{2,T};resolution::Tuple{Int,Int}=(2,2), radius=1.5) where{T}
     return get_shapes(basis,Repeat.hexcellsinbox(resolution[1],resolution[2]),radius)
 end
 
-function get_shapes(basis::RectangularBasis{2,T};:resolution::Tuple{Int,Int}=(2,2), size=1.5) where{T}
-    return get_shapes(basis,Iterators.product(-resolution[1]:resolution[1], -resolution[2]:resolution[2]))
+function get_shapes(basis::RectangularBasis{2,T};resolution::Tuple{Int,Int}=(2,2), size=1.5) where{T}
+    temp = collect(Iterators.product(-resolution[1]:resolution[1], -resolution[2]:resolution[2]))
+    cells = reshape(temp,length(temp))
+    result = MMatrix{2,length(temp),T}(undef)
+    
+    for i in 1:length(cells)
+        result[1,i] = cells[i][1]
+        result[2,i] = cells[i][2]
+    end
+    return result
+end
+
 function get_shapes(basis::Basis{2,T},cells::SMatrix{2,N,T}, radius::T) where{N,T}
     basic_tile = Repeat.tilevertices(basis) * radius
 
@@ -40,50 +50,13 @@ function get_shapes(basis::Basis{2,T},cells::SMatrix{2,N,T}, radius::T) where{N,
     for i in 1:N
         cell = cells[:,i]
         center = SVector(basis[cell[1], cell[2]]) * radius
-        points = [(SVector(p...) + center) for p in eachcol(basic_tile)]
+        points = [(SVector(p) + center) for p in eachcol(basic_tile)]
         center = center
         push!(res, Shape(center, points, (cell[1],cell[2])))
     end
     return res
 end
 
-# function get_shapes(::Type{Rectangle}; resolution::Tuple{Int,Int}=(2,2), size=1.5)::Vector{Shape{2, Float64}}
-#     if (typeof(size) == Float64)
-#         w = h = size
-#     elseif (typeof(size) == Tuple{Float64, Float64})
-#         w, h = size
-#     else
-#         @error "Unsupported size format [$size] - can be either a Float64 for a square or (Float64, Float64) for a rectangle"
-#     end
-
-#     cells = [[c for c in Iterators.product(-resolution[1]:resolution[1], -resolution[2]:resolution[2])]...]
-
-#     basic_tile = [w h; w -h; -w -h; -w h]
-
-#     res = Vector{Shape{2, Float64}}(undef, 0)
-#     for c in cells
-#         center = SVector(Float64(c[1])*w*2.0, Float64(c[2])*h*2.0)
-#         points = [(SVector(p...) + center) for p in eachrow(basic_tile)]
-#         center = center
-#         push!(res, Shape(center, points, c))
-#     end
-#     return res
-# end
-
-function get_shapes(::Type{RectangularBasis{2,T}}; resolution::Tuple{Int,Int}=(2,2), size=1.5) where{T}
-    cells = Iterators.product(-resolution[1]:resolution[1], -resolution[2]:resolution[2]) #don't want to collect but pairs doesn't work on Iterators.product
-    rectbasis = RectangularBasis()
-    res = Vector{Shape{2,T}}(undef,length(cells))
-    count = 1
-    for cell in cells
-        center = size*rectbasis[cell[1],cell[2]]
-        offsetpoints = size*tilevertices(rectbasis) .+ center
-        res[count] = Shape(center,offsetpoints,cell)
-        count += 1
-    end
-    return res
-end
-export get_shapes
 
 function project(shapes::Vector{Shape{2, T}}, csg::OpticSim.CSGTree{T})::Vector{Shape{3, T}} where {T<:Real}
     ray_origin_distance = -10.0
