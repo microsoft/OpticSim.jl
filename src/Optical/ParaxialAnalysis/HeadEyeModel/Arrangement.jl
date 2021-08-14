@@ -27,15 +27,19 @@ coordinates(h::Shape) = h._coordinates
 
 get_shapes(type::Type{Any};) = @error "Unknown Type [$type] - available types are Hexagon, Rectangle"
 
-function get_shapes(::Type{HexBasis1{2,T}}; resolution::Tuple{Int,Int}=(2,2), radius=1.5)::Vector{Shape{2, T}} where{T}
-    cells = Repeat.hexcellsinbox(resolution[1],resolution[2]) 
-    hexbasis = Repeat.HexBasis1()
-    basic_tile = Repeat.tilevertices(hexbasis) * radius
+function get_shapes(basis::HexBasis{2,T};resolution::Tuple{Int,Int}=(2,2), radius=1.5) where{T}
+    return get_shapes(basis,Repeat.hexcellsinbox(resolution[1],resolution[2]),radius)
+end
+
+function get_shapes(basis::RectangularBasis{2,T};:resolution::Tuple{Int,Int}=(2,2), size=1.5) where{T}
+    return get_shapes(basis,Iterators.product(-resolution[1]:resolution[1], -resolution[2]:resolution[2]))
+function get_shapes(basis::Basis{2,T},cells::SMatrix{2,N,T}, radius::T) where{N,T}
+    basic_tile = Repeat.tilevertices(basis) * radius
 
     res = Vector{Shape{2, T}}(undef, 0)
-    for i in 1:Base.size(cells)[2]
+    for i in 1:N
         cell = cells[:,i]
-        center = SVector(hexbasis[cell[1], cell[2]]) * radius
+        center = SVector(basis[cell[1], cell[2]]) * radius
         points = [(SVector(p...) + center) for p in eachcol(basic_tile)]
         center = center
         push!(res, Shape(center, points, (cell[1],cell[2])))
