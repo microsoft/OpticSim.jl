@@ -27,8 +27,8 @@ coordinates(h::Shape) = h._coordinates
 
 get_shapes(type::Type{Any};) = @error "Unknown Type [$type] - available types are Hexagon, Rectangle"
 
-function get_shapes(basis::HexBasis1{2,T};resolution::Tuple{Int,Int}=(2,2), radius=1.5) where{T}
-    return get_shapes(basis,Repeat.hexcellsinbox(resolution[1],resolution[2]),radius)
+function get_shapes(basis::HexBasis1{2,T};resolution::Tuple{Int,Int}=(2,2), size=1.5) where{T}
+    return get_shapes(basis,Repeat.hexcellsinbox(resolution[1],resolution[2]),size)
 end
 
 function get_shapes(basis::RectangularBasis{2,T};resolution::Tuple{Int,Int}=(2,2), size=1.5) where{T}
@@ -40,7 +40,7 @@ function get_shapes(basis::RectangularBasis{2,T};resolution::Tuple{Int,Int}=(2,2
         result[1,i] = cells[i][1]
         result[2,i] = cells[i][2]
     end
-    return result
+    getshapes(basis,result,size)
 end
 
 function get_shapes(basis::Basis{2,T},cells::SMatrix{2,N,T}, radius::T) where{N,T}

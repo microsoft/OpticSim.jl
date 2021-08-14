@@ -42,7 +42,7 @@ function example1()
     # csg = HeadEye.csg_cylinder(radius = 20.0, added_rotation = rotationX(π/2.0))
     # csg = HeadEye.csg_plane()
 
-    shapes_2d = HeadEye.get_shapes(HexBasis1{2,Float64}, resolution=(8,5), radius=1.0)
+    shapes_2d = HeadEye.get_shapes(HexBasis1{2,Float64}, resolution=(8,5), size=1.0)
     println(shapes_2d)
     # shapes_2d = HeadEye.get_shapes(RectangularBasis{2,Float64}, resolution=(5,5), size=1.0)
 
