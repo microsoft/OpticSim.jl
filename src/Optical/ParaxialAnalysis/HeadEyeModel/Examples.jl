@@ -42,9 +42,9 @@ function example1()
     # csg = HeadEye.csg_cylinder(radius = 20.0, added_rotation = rotationX(π/2.0))
     # csg = HeadEye.csg_plane()
 
-    shapes_2d = HeadEye.get_shapes(HexBasis1{2,Float64}, resolution=(8,5), size=1.0)
-    println(shapes_2d)
-    # shapes_2d = HeadEye.get_shapes(RectangularBasis{2,Float64}, resolution=(5,5), size=1.0)
+    # shapes_2d = HeadEye.get_shapes(HexBasis1(), resolution=(8,5), size=1.0)
+
+     shapes_2d = HeadEye.get_shapes(RectangularBasis(), resolution=(5,5), size=1.0)
 
     shapes_3d = HeadEye.project(shapes_2d, csg)
 
@@ -79,7 +79,7 @@ function example1()
 
     pupil = HeadEye.pupil(HeadEye.eye(h, :left))
     pupil_tr = HeadEye.tr(h, :left_pupil)
-    detector = Circle(HeadEye.size(pupil) / 2.0, forward(pupil_tr), origin(pupil_tr), interface = opaqueinterface())
+    detector = Circle(HeadEye.pupilsize(pupil) / 2.0, forward(pupil_tr), origin(pupil_tr), interface = opaqueinterface())
     sys = CSGOpticalSystem(mla, detector)
 
 

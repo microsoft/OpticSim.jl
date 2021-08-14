@@ -24,30 +24,12 @@ center(h::Shape) = h._center
 points(h::Shape) = h._points
 coordinates(h::Shape) = h._coordinates
 
-
-get_shapes(type::Type{Any};) = @error "Unknown Type [$type] - available types are Hexagon, Rectangle"
-
-function get_shapes(basis::HexBasis1{2,T};resolution::Tuple{Int,Int}=(2,2), size=1.5) where{T}
-    return get_shapes(basis,Repeat.hexcellsinbox(resolution[1],resolution[2]),size)
-end
-
-function get_shapes(basis::RectangularBasis{2,T};resolution::Tuple{Int,Int}=(2,2), size=1.5) where{T}
-    temp = collect(Iterators.product(-resolution[1]:resolution[1], -resolution[2]:resolution[2]))
-    cells = reshape(temp,length(temp))
-    result = MMatrix{2,length(temp),T}(undef)
-    
-    for i in 1:length(cells)
-        result[1,i] = cells[i][1]
-        result[2,i] = cells[i][2]
-    end
-    getshapes(basis,result,size)
-end
-
-function get_shapes(basis::Basis{2,T},cells::SMatrix{2,N,T}, radius::T) where{N,T}
+function get_shapes(basis::Basis{2,T},cells::AbstractMatrix{Int}, radius::T) where{T}
     basic_tile = Repeat.tilevertices(basis) * radius
-
+    cols = Base.size(cells)[2]
     res = Vector{Shape{2, T}}(undef, 0)
-    for i in 1:N
+
+    for i in 1:cols
         cell = cells[:,i]
         center = SVector(basis[cell[1], cell[2]]) * radius
         points = [(SVector(p) + center) for p in eachcol(basic_tile)]
@@ -56,6 +38,27 @@ function get_shapes(basis::Basis{2,T},cells::SMatrix{2,N,T}, radius::T) where{N,
     end
     return res
 end
+
+get_shapes(type::Type{Any};) = @error "Unknown Type [$type] - available types are Hexagon, Rectangle"
+
+function get_shapes(basis::HexBasis1{2,T};resolution::Tuple{Int,Int}=(2,2), size=1.5) where{T}
+    println(typeof(Repeat.hexcellsinbox(resolution[1],resolution[2])))
+    return get_shapes(basis,Repeat.hexcellsinbox(resolution[1],resolution[2]),size)
+end
+
+function get_shapes(basis::RectangularBasis{2,T};resolution::Tuple{Int,Int}=(2,2), size=1.5) where{T}
+    temp = collect(Iterators.product(-resolution[1]:resolution[1], -resolution[2]:resolution[2]))
+    cells = reshape(temp,length(temp))
+    result = Matrix{Int64}(undef,2,length(temp))
+    
+    for i in 1:length(cells)
+        result[1,i] = cells[i][1]
+        result[2,i] = cells[i][2]
+    end
+
+    get_shapes(basis,result,size)
+end
+
 
 
 function project(shapes::Vector{Shape{2, T}}, csg::OpticSim.CSGTree{T})::Vector{Shape{3, T}} where {T<:Real}
