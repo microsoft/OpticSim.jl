@@ -40,7 +40,7 @@ function example1()
     # csg = HeadEye.csg_plane()
 
     # shapes_2d = HeadEye.get_shapes(HeadEye.Hexagon, resolution=(8,5), radius=1.0)
-    shapes_2d = HeadEye.get_shapes(HeadEye.Rectangle, resolution=(5,5), size=1.0)
+    shapes_2d = HeadEye.get_shapes(HeadEye.Rectangle, resolution=(1,1), size=1.0)
 
     shapes_3d = HeadEye.project(shapes_2d, csg)
 
@@ -70,30 +70,32 @@ function example1()
         push!(emitters, emitter)
     end
 
-    mla = LensAssembly(paraxial_lenses...)
-    display = Emitters.Sources.CompositeSource(identitytransform(), emitters)
+    mla = LensAssembly.(paraxial_lenses)
+    # display = Emitters.Sources.CompositeSource(identitytransform(), emitters)
 
     pupil = HeadEye.pupil(HeadEye.eye(h, :left))
     pupil_tr = HeadEye.tr(h, :left_pupil)
     detector = Circle(HeadEye.size(pupil) / 2.0, forward(pupil_tr), origin(pupil_tr), interface = opaqueinterface())
-    sys = CSGOpticalSystem(mla, detector)
+    sys = CSGOpticalSystem.(mla, detector)
 
 
 
-    # -----------------------------------------------------------
-    # rendering
-    # -----------------------------------------------------------
-    Vis.set_current_mode(:normal)
+    # # -----------------------------------------------------------
+    # # rendering
+    # # -----------------------------------------------------------
+    # Vis.set_current_mode(:normal)
 
-    if (true)
-        Vis.drawtracerays(sys; raygenerator=display, trackallrays = true, colorbynhits = true, test = true, numdivisions = 100, drawgen = false)
-        # Vis.draw!(sys)
+    # if (true)
+    #     Vis.drawtracerays(sys; raygenerator=display, trackallrays = true, colorbynhits = true, test = true, numdivisions = 100, drawgen = false)
+    #     # Vis.draw!(sys)
 
-        Vis.draw!(h, draw_head=true)
+    #     Vis.draw!(h, draw_head=true)
 
-        Vis.draw!(display, debug=false)
-    end
+    #     Vis.draw!(display, debug=false)
+    # end
+    return sys,display
 end
+export example1
 
 
 end # module Test

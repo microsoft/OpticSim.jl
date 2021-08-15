@@ -450,6 +450,19 @@ function draw!(scene::Makie.LScene, ass::LensAssembly{T}; kwargs...) where {T<:R
 end
 
 """
+    draw!(scene::Makie.LScene, ass::IndexedOpticalSystem; kwargs...)
+
+Draw each element in an [`IndexedOpticalSystem`](@ref), with each element automatically given the color defined in the IndexedOpticalSystem.
+"""
+# function draw!(scene::Makie.LScene, system::IndexedOpticalSystem{T}; kwargs...) where {T<:Real}
+#     ass = optics(system)
+#     for (i, e) in enumerate(elements(ass))
+#         props = properties(system,e).color
+#         draw!(scene, e; kwargs..., color = indexedcolor2(i))
+#     end
+# end
+
+"""
     draw!(scene::Makie.LScene, sys::AbstractOpticalSystem; kwargs...)
 
 Draw each element in the lens assembly of an [`AbstractOpticalSystem`](@ref), with each element automatically colored differently, as well as the detector of the system.

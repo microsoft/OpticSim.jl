@@ -98,10 +98,15 @@ function surfaceintersection(rect::Rectangle{T}, r::AbstractRay{T,3}) where {T<:
     else
         intersect = halfspaceintersection(interval)
         p = point(intersect)
-        if abs(dot(p - centroid(rect), rect.uvec)) > rect.halfsizeu || abs(dot(p - centroid(rect), rect.vvec)) > rect.halfsizev
+        #compute these once here because these values are used in two places
+        unnormalizedu = dot(p - centroid(rect), rect.uvec)
+        unnormalizedv = dot(p - centroid(rect), rect.vvec)
+
+        if abs(unnormalizedu) > rect.halfsizeu || abs(unnormalizedv) > rect.halfsizev
             return EmptyInterval(T) # point outside rect
         else
-            u, v = uv(rect, p)
+            #normalize u,v values because that is the contract for parameterized surfaces
+            u, v = (unnormalizedu / rect.halfsizeu, unnormalizedv / rect.halfsizev)
             intuv = Intersection(α(intersect), p, normal(rect), u, v, interface(rect))
             if dot(normal(rect), direction(r)) < zero(T)
                 return positivehalfspace(intuv)
