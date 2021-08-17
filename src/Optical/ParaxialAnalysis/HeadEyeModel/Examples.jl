@@ -80,22 +80,26 @@ function example1()
 
 
 
-    # # -----------------------------------------------------------
-    # # rendering
-    # # -----------------------------------------------------------
-    # Vis.set_current_mode(:normal)
-
-    # if (true)
-    #     Vis.drawtracerays(sys; raygenerator=display, trackallrays = true, colorbynhits = true, test = true, numdivisions = 100, drawgen = false)
-    #     # Vis.draw!(sys)
-
-    #     Vis.draw!(h, draw_head=true)
-
-    #     Vis.draw!(display, debug=false)
-    # end
+   
     return sys,display
 end
 export example1
 
+function drawheadsystem()
+    sys, display = example1()
+    # -----------------------------------------------------------
+    # rendering
+    # -----------------------------------------------------------
+    Vis.set_current_mode(:normal)
+
+    if (true)
+        Vis.drawtracerays(sys; raygenerator=display, trackallrays = true, colorbynhits = true, test = true, numdivisions = 100, drawgen = false)
+        # Vis.draw!(sys)
+
+        Vis.draw!(h, draw_head=true)
+
+        Vis.draw!(display, debug=false)
+    end
+end
 
 end # module Test
