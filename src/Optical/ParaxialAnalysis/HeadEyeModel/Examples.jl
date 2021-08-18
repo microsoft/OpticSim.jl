@@ -10,6 +10,7 @@ using ..OpticSim.Repeat
 using ..OpticSim.Emitters
 using ..OpticSim.ParaxialAnalysis
 using ..OpticSim.ParaxialAnalysis.HeadEye
+using ..OpticSim.Vis
 
 using StaticArrays
 using Colors
@@ -19,7 +20,7 @@ function example1()
 
     t = identitytransform()
     t = Transform(OpticSim.Vec4(t[:,1]), OpticSim.Vec4(t[:,2]), OpticSim.Vec4(t[:,3])*-1.0, OpticSim.Vec4(t[:,4]))
-    h = HeadEye.Head(t)
+    head = HeadEye.Head(t)
 
     # HeadEye.lookAt!(HeadEye.eye(h, :left), SVector(-0.5, 0.0, 1.0))
 
@@ -29,9 +30,9 @@ function example1()
 
 
     # compute center of mla - in front of left eye - oposite the tirection of the head
-    left_eye_tr = Transform(origin(HeadEye.tr(h, :left_eye)), forward(HeadEye.tr(h, :head)))
+    left_eye_tr = Transform(origin(HeadEye.tr(head, :left_eye)), forward(HeadEye.tr(head, :head)))
     pos = local2world(left_eye_tr) * SVector(0.0, 0.0, 30.0) 
-    mla_rt = Transform(pos, forward(HeadEye.tr(h, :head)) * -1.0)
+    mla_rt = Transform(pos, forward(HeadEye.tr(head, :head)) * -1.0)
     # eli = Ellipse(7.0, 7.0, unitZ3(), pos)
     # Vis.draw!(eli, transparency=true, color=RGBA(1.0, 0.2, 0.2, 0.4))
 
@@ -40,12 +41,12 @@ function example1()
     # csg = HeadEye.csg_plane()
 
     # shapes_2d = HeadEye.get_shapes(HeadEye.Hexagon, resolution=(8,5), radius=1.0)
-    shapes_2d = HeadEye.get_shapes(HeadEye.Rectangle, resolution=(1,1), size=1.0)
+    shapes_2d = HeadEye.get_shapes(HeadEye.Rectangle, resolution=(5,5), size=1.0)
 
     shapes_3d = HeadEye.project(shapes_2d, csg)
 
     # create the planar polygons and the lenses
-    paraxial_lenses = Vector{ParaxialLens}(undef, 0)
+    paraxial_lenses = Vector(undef, 0)
     emitters = Vector{Emitters.Sources.Source}(undef, 0)
     for shape in shapes_3d
 
@@ -64,42 +65,39 @@ function example1()
             scale=0.99, 
             focal_length=30.0
         )
-        push!(paraxial_lenses, lens)
-
+        push!(paraxial_lenses, OpticSim.LensAssembly(lens))
+        
         emitter = HeadEye.build_emitter(lens; distance=1.0, size=(1.0, 1.0))
         push!(emitters, emitter)
     end
 
-    mla = LensAssembly.(paraxial_lenses)
     # display = Emitters.Sources.CompositeSource(identitytransform(), emitters)
 
-    pupil = HeadEye.pupil(HeadEye.eye(h, :left))
-    pupil_tr = HeadEye.tr(h, :left_pupil)
+    pupil = HeadEye.pupil(HeadEye.eye(head, :left))
+    pupil_tr = HeadEye.tr(head, :left_pupil)
     detector = Circle(HeadEye.size(pupil) / 2.0, forward(pupil_tr), origin(pupil_tr), interface = opaqueinterface())
-    sys = CSGOpticalSystem.(mla, detector)
 
+    sys = OpticSim.CSGOpticalSystem.(paraxial_lenses, Ref(detector),500,500) #Julia idiomatic way of preventing broadcasting on an argument is to use Ref(arg)
 
-
-   
-    return sys,display
+    return head,sys,emitters
 end
 export example1
 
 function drawheadsystem()
-    sys, display = example1()
+   head, sys, emitters = example1()
     # -----------------------------------------------------------
     # rendering
     # -----------------------------------------------------------
     Vis.set_current_mode(:normal)
 
-    if (true)
-        Vis.drawtracerays(sys; raygenerator=display, trackallrays = true, colorbynhits = true, test = true, numdivisions = 100, drawgen = false)
-        # Vis.draw!(sys)
 
-        Vis.draw!(h, draw_head=true)
+    Vis.draw!(head, draw_head=true)
 
-        Vis.draw!(display, debug=false)
+    for (onesys,emitter) in zip(sys,emitters)
+        Vis.drawtracerays!(onesys; raygenerator=emitter, trackallrays = true, colorbynhits = true, test = true, numdivisions = 100, drawgen = false)
+        Vis.draw!(emitter, debug=false)
     end
 end
+export drawheadsystem
 
-end # module Test
+end # module Examples
