@@ -4,10 +4,10 @@
 
 module HeadEye
 
-using ..OpticSim
-using ..OpticSim.Geometry
-using ..OpticSim.Repeat
-using ..OpticSim.Emitters
+using ...OpticSim
+using ...OpticSim.Geometry
+using ...OpticSim.Repeat
+using ...OpticSim.Emitters
 
 using Colors
 using StaticArrays, Statistics
@@ -18,7 +18,6 @@ import Makie, GeometryBasics, FileIO, MeshIO
 include("Misc.jl")
 include("Arrangement.jl")
 include("HeadEyeClasses.jl")
-include("Examples.jl")
 
 
 end # module HeadEye

@@ -229,7 +229,7 @@ function typed_elements(ass::LensAssembly{T}) where {T<:Real}
     try
         _typed_elements(ass)
     catch MethodError
-        @warn "First time call to LensAssembly of previously unused size, performance will be worse than normal." maxlog = 1
+        @info "First time call to LensAssembly of previously unused size, performance will be worse than normal." maxlog = 1
         Base.invokelatest(_typed_elements, ass)
     end
 end
@@ -245,7 +245,7 @@ function closestintersection(ass::LensAssembly{T}, r::AbstractRay{T,N})::Union{N
     try
         _closestintersection(ass, r)
     catch MethodError
-        @warn "First time call to LensAssembly of previously unused size, performance will be worse than normal." maxlog = 1
+        @info "First time call to LensAssembly of previously unused size, performance will be worse than normal." maxlog = 1
         Base.invokelatest(_closestintersection, ass, r)
     end
 end

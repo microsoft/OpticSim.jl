@@ -22,6 +22,7 @@ import Luxor
 include("docs_examples.jl")
 include("other_examples.jl")
 include("repeating_structure_examples.jl.jl")
+include("mla_examples.jl")
 
 end #module Examples
 export Examples

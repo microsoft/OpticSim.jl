@@ -2,19 +2,7 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # See LICENSE in the project root for full license information.
 
-module Examples
-
-using ..OpticSim
-using ..OpticSim.Geometry
-using ..OpticSim.Repeat
-using ..OpticSim.Emitters
-using ..OpticSim.ParaxialAnalysis
 using ..OpticSim.ParaxialAnalysis.HeadEye
-using ..OpticSim.Vis
-
-using StaticArrays
-using Colors
-import Makie
 
 function example1()
 
@@ -36,9 +24,9 @@ function example1()
     # eli = Ellipse(7.0, 7.0, unitZ3(), pos)
     # Vis.draw!(eli, transparency=true, color=RGBA(1.0, 0.2, 0.2, 0.4))
 
-    csg = HeadEye.csg_sphere(radius=20.0)
-    csg = HeadEye.csg_cylinder(radius = 20.0, added_rotation = rotationX(π/2.0))
-    # csg = HeadEye.csg_plane()
+    # csg = HeadEye.csg_sphere(radius=20.0)
+    # csg = HeadEye.csg_cylinder(radius = 20.0, added_rotation = rotationX(π/2.0))
+     csg = HeadEye.csg_plane()
 
     # shapes_2d = HeadEye.get_shapes(HeadEye.Hexagon, resolution=(8,5), radius=1.0)
     shapes_2d = HeadEye.get_shapes(HeadEye.Rectangle, resolution=(5,5), size=1.0)
@@ -91,13 +79,11 @@ function drawheadsystem()
     Vis.set_current_mode(:normal)
 
 
-    Vis.draw!(head, draw_head=true)
+    Vis.draw(head, draw_head=true)
 
     for (onesys,emitter) in zip(sys,emitters)
-        Vis.drawtracerays!(onesys; raygenerator=emitter, trackallrays = true, colorbynhits = true, test = true, numdivisions = 100, drawgen = false)
+        Vis.drawtracerays!(onesys; raygenerator=emitter, trackallrays = true, colorbynhits = true, test = true, numdivisions = 100, drawsys = true)
         Vis.draw!(emitter, debug=false)
     end
 end
 export drawheadsystem
-
-end # module Examples

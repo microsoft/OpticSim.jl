@@ -8,6 +8,7 @@ using StaticArrays: promote_tuple_eltype
 using ..OpticSim
 using ..OpticSim.Geometry
 using ..OpticSim.Repeat
+
 using StaticArrays
 using LinearAlgebra
 import LazySets
