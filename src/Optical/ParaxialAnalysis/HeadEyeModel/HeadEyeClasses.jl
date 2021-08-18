@@ -86,6 +86,7 @@ function tr(h::Head, part::Symbol)
 end
 
 function shape(h::Head, part::Symbol)
+end
 
 # -------------------------------------------------------
 

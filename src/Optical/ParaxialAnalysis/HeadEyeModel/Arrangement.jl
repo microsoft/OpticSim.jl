@@ -29,24 +29,17 @@ function get_shapes(basis::Basis{2,T},cells::AbstractMatrix{Int}, radius::T) whe
     cols = Base.size(cells)[2]
     res = Vector{Shape{2, T}}(undef, 0)
 
-get_shapes(type::Type{Any};) = @error "Unknown Type [$type] - available types are :hexagon, :rectangle"
-
-function get_shapes(::Type{Hexagon}; resolution::Tuple{Int,Int}=(2,2), radius=1.5)::Vector{Shape{2, Float64}}
-    cells = Repeat.hexcellsinbox(resolution[1],resolution[2]) 
-    hexbasis = Repeat.HexBasis1()
-    basic_tile = Repeat.tilevertices(hexbasis) * radius
-
-    res = Vector{Shape{2, Float64}}(undef, 0)
-    for c in cells
-        center = SVector(hexbasis[c[1], c[2]]) * radius
-        points = [(SVector(p...) + center) for p in eachrow(basic_tile)]
+    for i in 1:cols
+        cell = cells[:,i]
+        center = SVector(basis[cell[1], cell[2]]) * radius
+        points = [(SVector(p) + center) for p in eachcol(basic_tile)]
         center = center
         push!(res, Shape(center, points, (cell[1],cell[2])))
     end
     return res
 end
 
-get_shapes(type::Type{Any};) = @error "Unknown Type [$type] - available types are Hexagon, Rectangle"
+# get_shapes(type::Type{Any};) = @error "Unknown Type [$type] - available types are Hexagon, Rectangle"
 
 function get_shapes(basis::HexBasis1{2,T};resolution::Tuple{Int,Int}=(2,2), size=1.5) where{T}
     println(typeof(Repeat.hexcellsinbox(resolution[1],resolution[2])))
