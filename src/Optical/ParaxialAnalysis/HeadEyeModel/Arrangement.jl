@@ -10,8 +10,13 @@ struct Shape{N, T} <: ArrangementConvexShape{N, T}
     _points::Vector{SVector{N, T}}
     _coordinates::Tuple{Int,Int}
 
-    function Shape(center::SVector{N, T}, points::Vector{SVector{N, T}}, coordinates::Tuple{Int,Int}) where {N, T<:Real}
+    function Shape(center::SVector{N, T}, points::AbstractVector{SVector{N, T}}, coordinates::Tuple{Int,Int}) where {N, T<:Real}
         return new{N, T}(center, points, coordinates)
+    end
+
+    """convenience function to make Shape constructor more compatible with functions in Repeat module, which use SMatrix{N1,N2} to represent vertices rather than Vector{SVector}"""
+    function Shape(center::SVector{N, T}, points::SMatrix{N,N2,T}, coordinates::Tuple{Int,Int}) where {N, N2, T<:Real}
+        return new{N,T}(center, Vector{SVector{N,T}}([points[:,i] for i in 1:N2]),coordinates)
     end
 end
 
@@ -19,98 +24,41 @@ center(h::Shape) = h._center
 points(h::Shape) = h._points
 coordinates(h::Shape) = h._coordinates
 
+function get_shapes(basis::Basis{2,T},cells::AbstractMatrix{Int}, radius::T) where{T}
+    basic_tile = Repeat.tilevertices(basis) * radius
+    cols = Base.size(cells)[2]
+    res = Vector{Shape{2, T}}(undef, 0)
 
-get_shapes(type::Type{Any};) = @error "Unknown Type [$type] - available types are :hexagon, :rectangle"
-
-# function get_shapes(type::Symbol; resolution::Tuple{Int,Int}=(2,2), size=1.5)::Vector{Shape{2, Float64}}
-#     if (type == :hexagon)
-#         return get_hexagons(resolution, size)
-#     elseif (type == :rectangle)
-#         return get_rectangles(resolution, size)
-#     else
-#         @error "Unknown Type [$type] - available types are :hexagon, :rectangle"
-#         return nothing
-#     end
-# end
-
-function get_shapes(::Type{Hexagon}; resolution::Tuple{Int,Int}=(2,2), radius=1.5)::Vector{Shape{2, Float64}}
-    cells = Repeat.hexcellsinbox(resolution[1],resolution[2]) 
-    hexbasis = Repeat.HexBasis1()
-    basic_tile = Repeat.tilevertices(hexbasis) * radius
-
-    res = Vector{Shape{2, Float64}}(undef, 0)
-    for c in cells
-        center = SVector(hexbasis[c[1], c[2]]) * radius
-        points = [(SVector(p...) + center) for p in eachrow(basic_tile)]
+    for i in 1:cols
+        cell = cells[:,i]
+        center = SVector(basis[cell[1], cell[2]]) * radius
+        points = [(SVector(p) + center) for p in eachcol(basic_tile)]
         center = center
-        push!(res, Shape(center, points, c))
+        push!(res, Shape(center, points, (cell[1],cell[2])))
     end
     return res
 end
 
-function get_shapes(::Type{Rectangle}; resolution::Tuple{Int,Int}=(2,2), size=1.5)::Vector{Shape{2, Float64}}
-    if (typeof(size) == Float64)
-        w = h = size
-    elseif (typeof(size) == Tuple{Float64, Float64})
-        w, h = size
-    else
-        @error "Unsupported size format [$size] - can be either a Float64 for a square or (Float64, Float64) for a rectangle"
-    end
+get_shapes(type::Type{Any};) = @error "Unknown Type [$type] - available types are Hexagon, Rectangle"
 
-    cells = [[c for c in Iterators.product(-resolution[1]:resolution[1], -resolution[2]:resolution[2])]...]
-    # hexbasis = Repeat.HexBasis1()
-    # basic_tile = Repeat.tilevertices(hexbasis) * radius
-    basic_tile = [w h; w -h; -w -h; -w h]
-
-    res = Vector{Shape{2, Float64}}(undef, 0)
-    for c in cells
-        center = SVector(Float64(c[1])*w*2.0, Float64(c[2])*h*2.0)
-        points = [(SVector(p...) + center) for p in eachrow(basic_tile)]
-        center = center
-        push!(res, Shape(center, points, c))
-    end
-    return res
+function get_shapes(basis::HexBasis1{2,T};resolution::Tuple{Int,Int}=(2,2), size=1.5) where{T}
+    println(typeof(Repeat.hexcellsinbox(resolution[1],resolution[2])))
+    return get_shapes(basis,Repeat.hexcellsinbox(resolution[1],resolution[2]),size)
 end
 
-# function get_hexagons(resolution::Tuple{Int,Int}=(2,2), radius=1.5)::Vector{Shape{2, Float64}}
-#     cells = Repeat.hexcellsinbox(resolution[1],resolution[2]) 
-#     hexbasis = Repeat.HexBasis1()
-#     basic_tile = Repeat.tilevertices(hexbasis) * radius
-
-#     res = Vector{Shape{2, Float64}}(undef, 0)
-#     for c in cells
-#         center = SVector(hexbasis[c[1], c[2]]) * radius
-#         points = [(SVector(p...) + center) for p in eachrow(basic_tile)]
-#         center = center
-#         push!(res, Shape(center, points, c))
-#     end
-#     return res
-# end
-
-# function get_rectangles(resolution::Tuple{Int,Int}=(2,2), size=1.5)::Vector{Shape{2, Float64}}
+function get_shapes(basis::RectangularBasis{2,T};resolution::Tuple{Int,Int}=(2,2), size=1.5) where{T}
+    temp = collect(Iterators.product(-resolution[1]:resolution[1], -resolution[2]:resolution[2]))
+    cells = reshape(temp,length(temp))
+    result = Matrix{Int64}(undef,2,length(temp))
     
-#     if (typeof(size) == Float64)
-#         w = h = size
-#     elseif (typeof(size) == Tuple{Float64, Float64})
-#         w, h = size
-#     else
-#         @error "Unsupported size format [$size] - can be either a Float64 for a square or (Float64, Float64) for a rectangle"
-#     end
+    for i in 1:length(cells)
+        result[1,i] = cells[i][1]
+        result[2,i] = cells[i][2]
+    end
 
-#     cells = [[c for c in Iterators.product(-resolution[1]:resolution[1], -resolution[2]:resolution[2])]...]
-#     # hexbasis = Repeat.HexBasis1()
-#     # basic_tile = Repeat.tilevertices(hexbasis) * radius
-#     basic_tile = [w h; w -h; -w -h; -w h]
+    get_shapes(basis,result,size)
+end
 
-#     res = Vector{Shape{2, Float64}}(undef, 0)
-#     for c in cells
-#         center = SVector(Float64(c[1])*w*2.0, Float64(c[2])*h*2.0)
-#         points = [(SVector(p...) + center) for p in eachrow(basic_tile)]
-#         center = center
-#         push!(res, Shape(center, points, c))
-#     end
-#     return res
-# end
 
 
 function project(shapes::Vector{Shape{2, T}}, csg::OpticSim.CSGTree{T})::Vector{Shape{3, T}} where {T<:Real}

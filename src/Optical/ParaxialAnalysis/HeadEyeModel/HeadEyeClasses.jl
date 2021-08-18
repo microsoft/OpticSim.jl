@@ -16,7 +16,7 @@ end
 
 tr(p::Pupil) = p._tr
 text(p::Pupil) = p._size
-size(p::Pupil) = p._size
+pupilsize(p::Pupil) = p._size
 
 
 # --------------------------------------------------------

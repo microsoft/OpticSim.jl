@@ -8,6 +8,7 @@ using ..OpticSim
 using ..OpticSim.Geometry
 using ..OpticSim.Repeat
 using ..OpticSim.Emitters
+using ..OpticSim.Repeat
 
 using Colors
 using StaticArrays, Statistics
