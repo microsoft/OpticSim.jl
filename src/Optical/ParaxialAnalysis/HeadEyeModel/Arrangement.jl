@@ -22,17 +22,6 @@ coordinates(h::Shape) = h._coordinates
 
 get_shapes(type::Type{Any};) = @error "Unknown Type [$type] - available types are :hexagon, :rectangle"
 
-# function get_shapes(type::Symbol; resolution::Tuple{Int,Int}=(2,2), size=1.5)::Vector{Shape{2, Float64}}
-#     if (type == :hexagon)
-#         return get_hexagons(resolution, size)
-#     elseif (type == :rectangle)
-#         return get_rectangles(resolution, size)
-#     else
-#         @error "Unknown Type [$type] - available types are :hexagon, :rectangle"
-#         return nothing
-#     end
-# end
-
 function get_shapes(::Type{Hexagon}; resolution::Tuple{Int,Int}=(2,2), radius=1.5)::Vector{Shape{2, Float64}}
     cells = Repeat.hexcellsinbox(resolution[1],resolution[2]) 
     hexbasis = Repeat.HexBasis1()
@@ -71,47 +60,6 @@ function get_shapes(::Type{Rectangle}; resolution::Tuple{Int,Int}=(2,2), size=1.
     end
     return res
 end
-
-# function get_hexagons(resolution::Tuple{Int,Int}=(2,2), radius=1.5)::Vector{Shape{2, Float64}}
-#     cells = Repeat.hexcellsinbox(resolution[1],resolution[2]) 
-#     hexbasis = Repeat.HexBasis1()
-#     basic_tile = Repeat.tilevertices(hexbasis) * radius
-
-#     res = Vector{Shape{2, Float64}}(undef, 0)
-#     for c in cells
-#         center = SVector(hexbasis[c[1], c[2]]) * radius
-#         points = [(SVector(p...) + center) for p in eachrow(basic_tile)]
-#         center = center
-#         push!(res, Shape(center, points, c))
-#     end
-#     return res
-# end
-
-# function get_rectangles(resolution::Tuple{Int,Int}=(2,2), size=1.5)::Vector{Shape{2, Float64}}
-    
-#     if (typeof(size) == Float64)
-#         w = h = size
-#     elseif (typeof(size) == Tuple{Float64, Float64})
-#         w, h = size
-#     else
-#         @error "Unsupported size format [$size] - can be either a Float64 for a square or (Float64, Float64) for a rectangle"
-#     end
-
-#     cells = [[c for c in Iterators.product(-resolution[1]:resolution[1], -resolution[2]:resolution[2])]...]
-#     # hexbasis = Repeat.HexBasis1()
-#     # basic_tile = Repeat.tilevertices(hexbasis) * radius
-#     basic_tile = [w h; w -h; -w -h; -w h]
-
-#     res = Vector{Shape{2, Float64}}(undef, 0)
-#     for c in cells
-#         center = SVector(Float64(c[1])*w*2.0, Float64(c[2])*h*2.0)
-#         points = [(SVector(p...) + center) for p in eachrow(basic_tile)]
-#         center = center
-#         push!(res, Shape(center, points, c))
-#     end
-#     return res
-# end
-
 
 function project(shapes::Vector{Shape{2, T}}, csg::OpticSim.CSGTree{T})::Vector{Shape{3, T}} where {T<:Real}
     ray_origin_distance = -10.0

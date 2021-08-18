@@ -63,8 +63,8 @@ function example1()
 
     pupil = HeadEye.pupil(HeadEye.eye(head, :left))
     pupil_tr = HeadEye.tr(head, :left_pupil)
-    detector = Circle(HeadEye.size(pupil) / 2.0, forward(pupil_tr), origin(pupil_tr), interface = opaqueinterface())
-
+    detector = HeadEye.shape(pupil)
+println(detector)
     sys = OpticSim.CSGOpticalSystem.(paraxial_lenses, Ref(detector),500,500) #Julia idiomatic way of preventing broadcasting on an argument is to use Ref(arg)
 
     return head,sys,emitters
