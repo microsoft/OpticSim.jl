@@ -28,8 +28,9 @@ function example1()
     # csg = HeadEye.csg_cylinder(radius = 20.0, added_rotation = rotationX(π/2.0))
      csg = HeadEye.csg_plane()
 
-    # shapes_2d = HeadEye.get_shapes(HeadEye.Hexagon, resolution=(8,5), radius=1.0)
-    shapes_2d = HeadEye.get_shapes(HeadEye.Rectangle, resolution=(5,5), size=1.0)
+    # shapes_2d = HeadEye.get_shapes(HexBasis1(), resolution=(8,5), size=1.0)
+
+     shapes_2d = HeadEye.get_shapes(RectangularBasis(), resolution=(5,5), size=1.0)
 
     shapes_3d = HeadEye.project(shapes_2d, csg)
 

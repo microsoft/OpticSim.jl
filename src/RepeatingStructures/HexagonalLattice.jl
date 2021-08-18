@@ -2,9 +2,6 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # See LICENSE in the project root for full license information.
 
-""" Special type for 2D hexagonal lattices """
-abstract type HexagonalLattice{N,T} <: Basis{N,T} end
-
 const sin60 = .5*sqrt(3)
 const cos60 = .5
 """coordinates of a unit hexagon tile polygon with unit length sides centered about the point (0,0)"""
@@ -17,30 +14,28 @@ const hexcoords = [
 		cos60 sin60
 		]
 
-
-hexe₁(::Type{T}=Float64) where{T<:Real} = SVector{2,T}(T(1.5),T(.5)*sqrt(T(3)))
-hexe₂(::Type{T}=Float64) where{T<:Real} = SVector{2,T}(T(1.5),T(-.5)*(sqrt(T(3))))
-
-struct HexBasis1{N,T} <: HexagonalLattice{N,T}
+struct HexBasis1{N,T} <: Basis{N,T}
     HexBasis1(::Type{T} = Float64) where{T<:Real} = new{2,T}()
 end
 export HexBasis1
 
-basis(::HexBasis1{2,T}) where{T} = SVector{2,SVector{2,T}}(hexe₁(T),hexe₂(T))
+basis(::HexBasis1{2,T}) where{T} = SMatrix{2,2,T}(T(1.5),T(.5)*sqrt(T(3)),T(1.5),T(-.5)*(sqrt(T(3))))
+
+# SVector{2,SVector{2,T}}(hexe₁(T),hexe₂(T))
 
 """Returns the vertices of the unit tile polygon for the basis"""
 function tilevertices(::HexBasis1{2,T}) where{T}
 sin60 = T(.5)*sqrt(T(3))
 cos60 = T(.5)
-return T.([
-		1 0;
-		cos60 -sin60;
-		-cos60 -sin60;
-		-1 0;
-		-cos60 sin60;
-		cos60 sin60
-		])
+return SMatrix{2,6}(
+		1, 0,
+		cos60, -sin60,
+		-cos60, -sin60,
+		-1, 0,
+		-cos60, sin60,
+		cos60, sin60)
 end
+export tilevertices
 
 # coordinate offsets to move up, down, etc., numsteps hex cells in a hex lattice defined in HexBasis1
 hexup(numsteps = 1) = numsteps .* (1,-1)
@@ -82,22 +77,34 @@ Vis.@wrapluxor Vis.drawhexcells(50, hexregion((0,0),2))
 """
 function region(::Type{HexBasis1},centerpoint::Tuple{Int64,Int64}, n::Int64) 
     f(i) = i==0 ? () : (neighbors(HexBasis1,centerpoint,i)...,f(i-1)...)
-    return (centerpoint,f(n)...)
+    cells = (centerpoint...,f(n)...)
+    numcells = length(cells) ÷ 2
+    println(numcells)
+    # convert to matrix form since that is what the drawing code expects
+    temp = MMatrix{2,numcells,Int64}(undef)
+    for i in 1:numcells
+        println(cells[i])
+        temp[1,i] = cells[2*i-1]
+        temp[2,i] = cells[2*i]
+    end
+
+    return SMatrix{2,numcells,Int64}(temp)
 end
 export region
 
 """Returns all hex cells contained in the ring of size n centered around centerpoint. Use region if you want all the cells contained in the ring of size n."""
 function neighbors(::Type{HexBasis1}, centerpoint::Tuple{Int64,Int64},n::Int) where{T}
-    temp = MVector{n*6,Tuple{Int64,Int64}}(undef)
+    temp = MMatrix{2,n*6,Int64}(undef)
     hoffsets = ringoffsets(Val{n})
     latticepoint = centerpoint .+ n .* (hexdown())
 
     #convert hexoffsets to absolute coordinate positions
-    for i in 1:length(temp)
-        temp[i] = latticepoint
+    for i in 1:size(temp)[2]
+        temp[1,i] = latticepoint[1]
+        temp[2,i] = latticepoint[2]
         latticepoint = latticepoint .+ hoffsets[i] #last computed value of latticepoint won't be used
     end
-    return SVector{n*6,Tuple{Int64,Int64}}(temp)
+    return SMatrix{2,n*6,Int64}(temp)
 end
 export neighbors
 
@@ -132,9 +139,9 @@ export bbox
 """computes the basis coordinates of hexagonal cells defined in the Hex1Basis in a rectangular pattern 2*numi+1 by 2*numj+1 wide and high respectively."""
 function hexcellsinbox(numi,numj)
     #i2 and j2 are coordinates in the basis (1.5,.5√3),(0,-√3). The conditional tests are simpler in this basis. Convert to Hex1Basis1 coordinates before returning.
-    hexbasis2to1(i,j) = (i+j,-j)
+    hexbasis2to1(i,j) = [i+j,-j]
 
-    result = Array{Tuple{Int64,Int64},1}(undef,(2*numi+1)*(2*numj+1))
+    result = Matrix{Int}(undef,2,(2*numi+1)*(2*numj+1))
     for i2 in -numi:numi
         let offsetj
             if i2 < 0
@@ -148,10 +155,30 @@ function hexcellsinbox(numi,numj)
                 jtemp = j2-offsetj
                 # i1 = i2 + jtemp
                 # j1 = -jtemp
-                result[(i2+numi)*(2*numj+1) + j2+numj+1] = hexbasis2to1(i2,jtemp)
+                result[:,(i2+numi)*(2*numj+1) + j2+numj+1] = hexbasis2to1(i2,jtemp)
             end
         end
     end
     return result
 end
 export Repeat
+
+struct HexBasis3{N,T}<:Basis{N,T}
+    HexBasis3(::Type{T} = Float64) where{T} = new{2,T}()
+end
+export HexBasis3
+
+function tilevertices(::HexBasis3{2,T}) where{T}
+    sin60 = T(.5)*sqrt(T(3))
+    cos60 = T(.5)
+    return SMatrix{2,6,T}(
+        0, 1,
+        -sin60, cos60,
+        -sin60, -cos60,
+        0, -1,
+        sin60, -cos60,
+        sin60, cos60)
+end
+
+basis(::HexBasis3{2,T}) where{T} = SMatrix{2,2,T}(T(2*sin60),T(0),T(sin60),T(1.5))
+

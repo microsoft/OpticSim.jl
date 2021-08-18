@@ -7,13 +7,15 @@ module Repeat
 export basis
 
 using Base: offset_if_vec
-using StaticArrays:SVector,MVector
+using StaticArrays:SVector,MVector,SMatrix,MMatrix
+using DataFrames:DataFrame
+using Colors
 
 include("Lattice.jl")
 include("HexagonalLattice.jl")
 include("RectangularLattice.jl")
 include("Array.jl")
-include("Projections.jl")
+include("Cluster.jl")
 
 end #module
 export Repeat
