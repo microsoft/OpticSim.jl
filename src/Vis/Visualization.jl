@@ -476,6 +476,7 @@ draw!(scene::Makie.LScene, sys::AxisymmetricOpticalSystem{T}; kwargs...) where {
 
 onlydetectorrays(system::Q, tracevalue::LensTrace{T,3}) where {T<:Real,Q<:AbstractOpticalSystem{T}} = onsurface(detector(system), point(tracevalue))
 
+
 ## RAY GEN
 """
     drawtracerays(system::Q; raygenerator::S = Source(transform = Transform.translation(0.0,0.0,10.0), origins = Origins.RectGrid(10.0,10.0,25,25),directions = Constant(0.0,0.0,-1.0)), test::Bool = false, trackallrays::Bool = false, colorbysourcenum::Bool = false, colorbynhits::Bool = false, rayfilter::Union{Nothing,Function} = onlydetectorrays, kwargs...)
@@ -511,6 +512,7 @@ function drawtracerays!(scene::Makie.LScene, system::Q; raygenerator::S = Source
 
     verbose && println("Tracing...")
     for (i, r) in enumerate(raygenerator)
+
         if i % 1000 == 0 && verbose
             print("\r $i / $(length(raygenerator))")
         end

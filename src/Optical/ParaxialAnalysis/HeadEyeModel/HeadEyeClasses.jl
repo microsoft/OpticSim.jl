@@ -17,7 +17,7 @@ end
 tr(p::Pupil) = p._tr
 text(p::Pupil) = p._size
 size(p::Pupil) = p._size
-shape(p::Pupil) = Circle(size(p) / 2.0, forward(tr(p)), origin(tr(p)), interface = opaqueinterface())
+
 
 
 # --------------------------------------------------------
@@ -85,8 +85,7 @@ function tr(h::Head, part::Symbol)
     end
 end
 
-function shape(h::Head, part::Symbol)
-end
+leftpupil(h::Head) = return Circle(size(pupil(eye(h,:left_pupil))) / 2.0, forward(tr(h,:left_pupil)), origin(tr(h,:left_pupil)), interface = opaqueinterface())
 
 # -------------------------------------------------------
 

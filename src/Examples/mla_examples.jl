@@ -42,10 +42,11 @@ function example1()
         # sanity test to change the lens optical center according to the shape's coordinates (relative to the center)
         # this one is for rectangles - need better algorithm for hexagons
         coord = HeadEye.coordinates(shape)
-        center_point = SVector(-3.0*coord[1], 0.0)
-        center_point = SVector(-3.0*coord[1], -3.0*coord[2])
+
+        # center_point = SVector(-3.0*coord[1], 0.0)
+        # center_point = SVector(-3.0*coord[1], -3.0*coord[2])
         # center_point = SVector(0.0, -3.0*coord[2])
-        # center_point = SVector(0.0, 0.0)
+        center_point = SVector(0.0, 0.0)
 
         lens = HeadEye.build_paraxial_lens(
             shape, 
@@ -62,10 +63,8 @@ function example1()
 
     # display = Emitters.Sources.CompositeSource(identitytransform(), emitters)
 
-    pupil = HeadEye.pupil(HeadEye.eye(head, :left))
-    pupil_tr = HeadEye.tr(head, :left_pupil)
-    detector = HeadEye.shape(pupil)
-println(detector)
+    detector = HeadEye.leftpupil(head)
+
     sys = OpticSim.CSGOpticalSystem.(paraxial_lenses, Ref(detector),500,500) #Julia idiomatic way of preventing broadcasting on an argument is to use Ref(arg)
 
     return head,sys,emitters
@@ -83,7 +82,7 @@ function drawheadsystem()
     Vis.draw(head, draw_head=true)
 
     for (onesys,emitter) in zip(sys,emitters)
-        Vis.drawtracerays!(onesys; raygenerator=emitter, trackallrays = true, colorbynhits = true, test = true, numdivisions = 100, drawsys = true)
+        Vis.drawtracerays!(onesys; raygenerator=emitter, trackallrays = true, colorbynhits = true, test = true, numdivisions = 100, drawsys = true, rayfilter = nothing)
         Vis.draw!(emitter, debug=false)
     end
 end
