@@ -17,13 +17,57 @@ ParaxialLensConvexPoly(focaldistance, local_frame, local_polygon_points, local_c
 ```
 """
 struct ParaxialLens{T} <: Surface{T}
-    shape::Union{Rectangle{T},Ellipse{T},Hexagon{T},ConvexPolygon{T}}
+    shape::Union{Rectangle{T},Ellipse{T},Hexagon{T},ConvexPolygon{N, T} where {N}} 
     interface::ParaxialInterface{T}
 
-    function ParaxialLens(shape::Union{Rectangle{T},Ellipse{T},Hexagon{T},ConvexPolygon{T}}, interface::ParaxialInterface{T}) where {T<:Real}
+    function ParaxialLens(shape::Union{Rectangle{T},Ellipse{T},Hexagon{T},ConvexPolygon{N, T} where {N}}, interface::ParaxialInterface{T}) where {T<:Real}
             new{T}(shape, interface)
     end
 end
+
+opticalcenter(a::ParaxialLens) = opticalcenter(a.interface)
+export opticalcenter
+focallength(a::ParaxialLens) = focallength(a.interface)
+export focallength
+"""returns the 2 dimensional vertex points of the shape defining the lens aperture. These points lie in the plane of the shape"""
+vertices(a::ParaxialLens) = vertices(a.shape)
+
+struct VirtualPoint{T<:Real}
+    center::SVector{3,T}
+    direction::SVector{3,T}
+    distance::T
+ 
+    function VirtualPoint(center::AbstractVector{T},direction::AbstractVector{T},distance::T) where{T<:Real}
+        @assert distance ≥ 0  #direction is encoded in the direction vector, but distance might have a sign. Need to discard it.
+        new{T}(SVector{3,T}(center),SVector{3,T}(direction),distance)
+    end
+
+end
+
+"""This will return (Inf,Inf,Inf) if the point is at infinity. In this case you probably should be using the direction of the VirtualPoint rather than its position"""
+point(a::VirtualPoint) = a.center + a.direction*a.distance
+
+distancefromplane(lens::ParaxialLens,point::AbstractVector) = distancefromplane(lens.shape,SVector{3}(point))
+export distancefromplane
+
+"""returns the virtual distance of the point from the lens plane. When |distance| == focallength then virtualdistance = ∞"""
+function virtualdistance(focallength::T,distance::T) where{T<:Real}
+    if abs(distance) == focallength
+        return sign(distance)*T(Inf)
+    else
+        return distance*focallength/(focallength-abs(distance))
+    end
+end
+
+"""computes the virtual point position corresponding to the input `point`, or returns nothing for points at infinity. `point` is specified in the lens coordinate frame"""
+function virtualpoint(lens::ParaxialLens{T}, point::AbstractVector{T}) where{T}
+    oc = opticalcenter(lens)
+    point_oc = normalize(point - oc)
+    distance = distancefromplane(lens,point)
+    vdistance = virtualdistance(focallength(lens),distance)
+    return VirtualPoint(oc,point_oc,abs(vdistance))
+end
+export virtualpoint
 
 function ParaxialLensRect(focaldistance::T, halfsizeu::T, halfsizev::T, surfacenormal::AbstractArray{T,1}, centrepoint::AbstractArray{T,1}; rotationvec::AbstractArray{T,1} = SVector{3,T}(0.0, 1.0, 0.0), outsidematerial::OpticSim.GlassCat.AbstractGlass = OpticSim.GlassCat.Air, decenteruv::Tuple{T,T} = (zero(T), zero(T))) where {T<:Real}
     @assert length(surfacenormal) == 3 && length(centrepoint) == 3
@@ -74,6 +118,8 @@ uv(r::ParaxialLens{T}, x::T, y::T, z::T) where {T<:Real} = uv(r, SVector{3,T}(x,
 uv(r::ParaxialLens{T}, p::SVector{3,T}) where {T<:Real} = uv(r.shape, p)
 
 function surfaceintersection(l::ParaxialLens{T}, r::AbstractRay{T,3}) where {T<:Real}
+    #this code seems unnecessary. If the ParaxialInterface is stored in the shape instead of the ParaxialLens then can do this: 
+    #surfaceintersection(l::ParaxialLens....) = surfaceintersection(l.shape). Should be much faster than this code.
     itvl = surfaceintersection(l.shape, r)
     if itvl isa EmptyInterval{T}
         return EmptyInterval(T)

@@ -1,0 +1,58 @@
+name: Nightly
+on:
+  schedule:
+    - cron: '00 00 * * 0'
+  workflow_dispatch:
+jobs:
+  test:
+    name: Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.arch }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        version: ['nightly']
+        os: [ubuntu-latest, windows-latest]
+        arch: [x64]
+        include:
+          - os: ubuntu-latest
+            prefix: xvfb-run
+    steps:
+      - uses: actions/checkout@v2
+      - uses: julia-actions/setup-julia@v1
+        with:
+          version: ${{ matrix.version }}
+          arch: ${{ matrix.arch }}
+        id: setup-julia
+      - name: Install Mesa (Windows only)
+        if: runner.os == 'Windows'
+        shell: cmd
+        working-directory: ${{ steps.setup-julia.outputs.julia-bindir }}
+        run: |
+          curl.exe -L --output mesa.7z --url https://github.com/pal1000/mesa-dist-win/releases/download/20.3.2/mesa3d-20.3.2-release-msvc.7z
+          "C:\Program Files\7-Zip\7z.exe" x mesa.7z
+          mklink opengl32.dll "x64\opengl32.dll"
+          mklink libglapi.dll "x64\libglapi.dll"
+      - name: Install GR dependencies (Linux only)
+        if: runner.os == 'Linux'
+        run: sudo apt install libxt6 libxrender1 libxext6 libgl1-mesa-glx libqt5widgets5
+      - uses: actions/cache@v2
+        env:
+          cache-name: cache-artifacts
+        with:
+          path: ~/.julia/artifacts
+          key: ${{ runner.os }}-${{ matrix.arch }}-test-${{ env.cache-name }}-${{ hashFiles('**/Project.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.arch }}-test-${{ env.cache-name }}-
+            ${{ runner.os }}-${{ matrix.arch }}-test-
+            ${{ runner.os }}-${{ matrix.arch }}-
+            ${{ runner.os }}-
+      - uses: alfredclwong/julia-buildpkg@master
+        with:
+          prefix: ${{ matrix.prefix }}
+      - uses: julia-actions/julia-runtest@latest
+        with:
+          prefix: ${{ matrix.prefix }}
+      - uses: julia-actions/julia-processcoverage@v1
+      - uses: codecov/codecov-action@v1
+        with:
+          file: lcov.info

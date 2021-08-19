@@ -15,7 +15,7 @@ Hexagon(side_length::T, [surfacenormal::SVector{3,T}, centrepoint::SVector{3,T}]
 
 The minimal case returns a rectangle centered at the origin with `surfacenormal = [0, 0, 1]`.
 """
-struct Hexagon{T} <: Surface{T}
+struct Hexagon{T} <: PlanarShape{T}
     plane::Plane{T,3}
     side_length::T
     uvec::SVector{3,T}
@@ -46,8 +46,7 @@ export Hexagon
 
 Base.show(io::IO, hex::Hexagon{T}) where {T<:Real} = print(io, "Hexagon{$T}($(centroid(hex)), $(normal(hex)), $(hex.side_length), $(interface(hex)))")
 centroid(hex::Hexagon{T}) where {T<:Real} = hex.plane.pointonplane
-interface(hex::Hexagon{T}) where {T<:Real} = interface(hex.plane)
-normal(hex::Hexagon{T}) where {T<:Real} = normal(hex.plane)
+
 
 function surfaceintersection(hex::Hexagon{T}, r::AbstractRay{T,3}) where {T<:Real}
     interval = surfaceintersection(hex.plane, r)
@@ -73,6 +72,32 @@ function surfaceintersection(hex::Hexagon{T}, r::AbstractRay{T,3}) where {T<:Rea
             end
         end
     end
+end
+
+"""Returns the vertices of the Hexagon represented in the local coordinate frame. The vertices lie in the z = 0 plane and are 2D"""
+function vertices3d(hex::Hexagon{T}) where{T<:Real} #written this way to ensure 0 allocations. Higher level features like ... allocate.
+    uvec = hex.side_length * hex.uvec
+    vvec = hex.side_length * hex.vvec
+    c = centroid(hex)
+    h = sin(π\3)
+    pts = SVector{6,SVector{3,T}}(
+        uvec + c,
+        (.5*uvec + vvec*h)+ c,
+        (-.5*uvec + vvec*h)+ c,
+        (-uvec)+ c,
+        (-.5*uvec - vvec*h)+ c,
+        (.5*uvec - vvec*h)+ c,
+        )
+
+    temp = MMatrix{3,6,T}(undef)
+
+    for (j,pt) in pairs(pts)
+        for i in 1:3
+            temp[i,j] = pts[j][i]
+        end
+    end
+
+    return SMatrix{3,6,T}(temp)
 end
 
 function makemesh(hex::Hexagon{T}, ::Int = 0) where {T<:Real}

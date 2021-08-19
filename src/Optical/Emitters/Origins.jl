@@ -10,6 +10,7 @@ using ...Emitters
 using ...Geometry
 using LinearAlgebra
 using Distributions
+using Random
 
 abstract type AbstractOriginDistribution{T<:Real} end
 
@@ -63,9 +64,10 @@ struct RectUniform{T} <: AbstractOriginDistribution{T}
     width::T
     height::T
     samples_count::Int64
+    rng::Random.AbstractRNG
 
-    function RectUniform(width::T, height::T, samples_count::Int64) where {T<:Real}
-        return new{T}(width, height, samples_count)
+    function RectUniform(width::T, height::T, samples_count::Int64; rng=Random.GLOBAL_RNG) where {T<:Real}
+        return new{T}(width, height, samples_count, rng)
     end
 end
 
@@ -75,8 +77,8 @@ Emitters.visual_size(o::RectUniform) = max(o.width, o.height)
 # generate origin on the agrid
 function Emitters.generate(o::RectUniform{T}, n::Int64) where {T<:Real}
     n = mod(n, length(o))
-    u = rand(Distributions.Uniform(-one(T), one(T)))
-    v = rand(Distributions.Uniform(-one(T), one(T)))
+    u = rand(o.rng, Distributions.Uniform(-one(T), one(T)))
+    v = rand(o.rng, Distributions.Uniform(-one(T), one(T)))
     return zero(Vec3{T}) + ((o.width / 2) * u * unitX3(T)) + ((o.height/2) * v * unitY3(T))
 end
 

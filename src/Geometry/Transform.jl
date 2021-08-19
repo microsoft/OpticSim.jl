@@ -17,11 +17,7 @@ using LinearAlgebra
 `Vec3` defines a series of convenience constructors, so you can just type e.g. `Vec3(1, 2, 3)` or `Vec3([1.0, 2.0, 3.0])`. 
 It also supports comprehensions, and the `zeros()`, `ones()`, `fill()`, `rand()` and `randn()` functions, such as `Vec3(rand(3))`.
 """
-struct Vec3{T} <: FieldVector{3, T}
-    _x::T
-    _y::T
-    _z::T
-end
+Vec3{T} = SVector{3,T}
 export Vec3
 
 # empty constructor - initialized with zeros
@@ -52,26 +48,11 @@ export unitX3, unitY3, unitZ3
 `Vec4` defines a series of convenience constructors, so you can just type e.g. `Vec3(1, 2, 3, 4)` or `Vec3([1.0, 2.0, 3.0, 4.0])`. 
 It also supports comprehensions, and the `zeros()`, `ones()`, `fill()`, `rand()` and `randn()` functions, such as `Vec4(rand(4))`.
 """
-struct Vec4{T} <: FieldVector{4, T}
-    _x::T
-    _y::T
-    _z::T
-    _w::T
-end
-export Vec4
+Vec4{T} = SVector{4,T}
 
 # empty constructor - initialized with zeros
 Vec4(::Type{T} = Float64) where {T<:Real} = zeros(Vec4{T})
-
-# convert vec3 to vec4
-"""
-    Vec4(v::Vec3{T}) -> Vec4
-
-Accept `Vec3` and create a `Vec4` type [v[1], v[2], v[3], 1]
-"""
-function Vec4(v::Vec3{T}) where {T<:Real}
-    return Vec4{T}(v[1], v[2], v[3], one(T))
-end
+export Vec4
 
 """
     Vec4(v::SVector{3, T}) where {T<:Real} -> Vec4{T}
@@ -82,6 +63,13 @@ function Vec4(v::SVector{3, T}) where {T<:Real}
     return Vec4{T}(v[1], v[2], v[3], one(T))
 end
 
+""" 
+    Vec4(m::SMatrix{3,N,T} where{N,T<:Real} -> SMatrix{3,N,T})
+Input is matrix of 3d points, each column is one point. Returns matrix of 3d points with 1 appended in the last row.
+"""
+function Vec4(m::SMatrix{3,N,T}) where {N,T<:Real}
+    return vcat(m,ones(SMatrix{1,N,T}))::SMatrix{4,N,T}
+end
 """
 returns the unit vector `[1, 0, 0, 0]`
 """
@@ -445,15 +433,6 @@ function world2local(t::Transform{T}) where {T<:Real}
 end
 export world2local
 
-function Base.:*(t::Transform{T}, v::Vec3{T}) where {T<:Real}
-    res = t * Vec4(v)
-    if (t[4,4] == one(T))
-        return Vec3(res[1], res[2], res[3])
-    else    
-        return Vec3(res[1]/res[4], res[2]/res[4], res[3]/res[4])
-    end
-end
-
 function Base.:*(t::Transform{T}, v::SVector{3,T}) where {T<:Real}
     res = t * Vec4(v)
     if (t[4,4] == one(T))
@@ -463,20 +442,27 @@ function Base.:*(t::Transform{T}, v::SVector{3,T}) where {T<:Real}
     end
 end
 
-# function Base.:*(t::Transform{T}, v::SVector{3,T}) where {T<:Real}
-#     res = t * Vec4(v)
-#     if (t[4,4] == one(T))
-#         return Vec3(res[1], res[2], res[3])
-#     else    
-#         return Vec3(res[1]/res[4], res[2]/res[4], res[3]/res[4])
-#     end
-# end
 
-# function Base.:*(t::Transform{T}, v::Vec4{T}) where {T<:Real}
-#     res = SMatrix(t) * v
-# end
+function Base.:*(t::Transform{T}, m::SMatrix{3,N,T}) where{N,T<:Real}
+    res = MMatrix{3,N,T}(undef)
 
-
+    for outcol in 1:N
+        for row in 1:3
+            sum = T(0)
+            for incol in 1:3
+                sum += t[row,incol]*m[incol,outcol]
+            end
+            #implicit 1 w coordinate value
+            sum += t[row,4]
+            res[row,outcol] = sum
+        end
+        if t[4,4] != 1
+            res[:,outcol] /= t[4,4]
+        end
+    end
+    return SMatrix{3,N,T}(res)
+end
+    
 """
     decomposeRTS(tr::Transform{T}) where {T<:Real}
 
@@ -500,8 +486,8 @@ export decomposeRTS
 
 Returns the rotation matrix of type `S` (default `Float64`) representing the rotation between vetors `a` and `b`, i.e. rotation(a,b) * a = b.
 """
-rotmatbetween(a::Vec3{T}, b::Vec3{T}) where {T<:Real} = rotmatbetween(Float64, a, b)
-function rotmatbetween(::Type{S}, a::Vec3{T}, b::Vec3{T}) where {T<:Real,S<:Real}
+rotmatbetween(a::SVector{3,T}, b::SVector{3,T}) where {T<:Real} = rotmatbetween(Float64, a, b)
+function rotmatbetween(::Type{S}, a::SVector{3,T}, b::SVector{3,T}) where {T<:Real,S<:Real}
     # TODO: Brian, is there a hidden assumption that a and b are normalized?
     v = cross(a, b)
     c = dot(a, b)
@@ -509,12 +495,6 @@ function rotmatbetween(::Type{S}, a::Vec3{T}, b::Vec3{T}) where {T<:Real,S<:Real
     R = I + V + V^2 * one(T) / (one(T) + c)
     return SMatrix{3,3,S,9}(R)
 end
-rotmatbetween(a::SVector{3,T}, b::SVector{3,T}) where {T<:Real} = rotmatbetween(Float64, Vec3(a), Vec3(b))
-function rotmatbetween(type::Type{S}, a::SVector{3,T}, b::SVector{3,T}) where {T<:Real,S<:Real}
-    return rotmatbetween(type, Vec3(a), Vec3(b))
-end
-export rotmatbetween
-
 
 """
     rotmatd([S::Type], θ::T, ϕ::T, ψ::T) -> SMatrix{3,3,S}

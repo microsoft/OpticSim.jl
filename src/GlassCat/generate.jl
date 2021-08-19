@@ -139,8 +139,8 @@ function agffile_to_catalog(agffile::AbstractString)
         end
 
         if token ∉ keys(rowspecs)
-            @error "Unrecognised row token: $token" rowbuffer
-            return
+            # unrecognized token: treat the row as a comment (ignore)
+            token = "CC"
         end
         rowspec = rowspecs[token]
 

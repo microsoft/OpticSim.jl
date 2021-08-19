@@ -11,11 +11,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        version: ['1.5', '1.6', 'nightly']
-        os: [ubuntu-18.04, windows-latest]
+        version: ['1.6']
+        os: [ubuntu-latest, windows-latest]
         arch: [x64]
         include:
-          - os: ubuntu-18.04
+          - os: ubuntu-latest
             prefix: xvfb-run
     steps:
       - uses: actions/checkout@v2

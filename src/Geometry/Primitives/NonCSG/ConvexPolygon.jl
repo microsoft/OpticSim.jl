@@ -7,7 +7,7 @@ import Statistics
 const _abs_err_orientation_2d = 2*eps(Float64)
 
 """
-    ConvexPolygon{T} <: Surface{T}
+    ConvexPolygon{N, T<:Real} <: PlanarShape{T} 
 
 General Convex Polygon surface, not a valid CSG object.
 The rotation of the polygon around its normal is defined by `rotationvec`.
@@ -21,11 +21,11 @@ The local frame defines the plane (spans by the right and up vectors) with the p
 the local_polygon_points are given with respect to the local frame and are 2D points.
 NOTE: This class uses static vectors to hold the points which will lead to more efficient performance, but should not be used with polygons with more than 20-30 points.
 """
-struct ConvexPolygon{T<:Real}  <: Surface{T} 
+struct ConvexPolygon{N,T<:Real}  <: PlanarShape{T} 
     plane::Plane{T,3}
     local_frame::Transform{T}
-    local_points::Vector{SVector{2, T}}
-
+    # local_points::Vector{SVector{2, T}}
+    local_points::SMatrix{2,N,T}
     # for efficency
     _local_frame_inv::Transform{T}                                  # cache the inverse matrix to avoid computing it for every intersection test
     _local_lines::Vector{SVector{3, SVector{2, T}}}                 # defines the edge points + a third point representing the slopes in order to save some calculationsduring ray checking
@@ -56,17 +56,44 @@ struct ConvexPolygon{T<:Real}  <: Surface{T}
         )
 
         plane = Plane(forward(local_frame), world_center, interface = interface)
-        new{T}(plane, local_frame, local_polygon_points, inv(local_frame), local_lines, length(local_lines))
+        N = length(local_polygon_points)
+        temp = MMatrix{2,N,T}(undef)
+        for (i,pt) in pairs(local_polygon_points)
+            temp[:,i] = pt
+        end
+
+        N2 = 2*N
+        new{N,T}(plane, local_frame, SMatrix{2,N,T,N2}(temp), inv(local_frame), local_lines, length(local_lines))
     end
 end
 export ConvexPolygon
 
-# Base.show(io::IO, poly::ConvexPolygon{T}) where {T<:Real} = print(io, "ConvexPolygon{$T}($(centroid(hex)), $(normal(hex)), $(hex.side_length), $(interface(hex)))")
 centroid(poly::ConvexPolygon) = poly.plane.pointonplane
-interface(poly::ConvexPolygon) = interface(poly.plane)
-normal(poly::ConvexPolygon) = normal(poly.plane)
 
-function surfaceintersection(poly::ConvexPolygon{T}, r::AbstractRay{T,3}) where {T<:Real}
+#function barrier to make vertices allocate less and be faster.
+function to3d(pts::SMatrix{2,N,T,L}) where{N,L,T}
+    temp = MMatrix{3,N,T}(undef)
+    for row in 1:2
+        for col in 1:N
+            temp[row,col] = pts[row,col]
+        end
+    end
+
+    for col in 1:N 
+        temp[3,col] = T(0)
+    end
+
+    return SMatrix{3,N,T}(temp)
+return temp
+end
+
+#this function allocates. Don't know why, it shouldn't but it does.
+function vertices(poly::ConvexPolygon{N,T}) where{N,T<:Real}
+   return poly.local_frame * to3d(poly.local_points)
+end
+
+
+function surfaceintersection(poly::ConvexPolygon{N,T}, r::AbstractRay{T,3}) where {N,T<:Real}
     interval = surfaceintersection(poly.plane, r)
     if interval isa EmptyInterval{T} || isinfiniteinterval(interval)
         return EmptyInterval(T) # no ray plane intersection or inside plane but no hit
@@ -111,20 +138,20 @@ end
 
 
 """
-    makemesh(poly::ConvexPolygon{T}, ::Int = 0) where {T<:Real} -> TriangleMesh
+    makemesh(poly::ConvexPolygon{N, T}, ::Int = 0) where {N, T<:Real} -> TriangleMesh
 
 Create a triangle mesh that can be rendered by iterating on the polygon's edges and for each edge use the centroid as the third vertex of the triangle.
 """
-function makemesh(poly::ConvexPolygon{T}, ::Int = 0) where {T<:Real}
+function makemesh(poly::ConvexPolygon{N,T}, ::Int = 0) where {N,T<:Real}
     c = centroid(poly)
 
     l2w = local2world(poly.local_frame)
-    len = length(poly.local_points)
+    len = Size(poly.local_points)[2] 
 
     triangles = []
     for i in 1:len
-        p1 = poly.local_points[i]
-        p2 = poly.local_points[mod(i,len) + 1]
+        p1 = poly.local_points[:,i]
+        p2 = poly.local_points[:,mod(i,len) + 1]
 
         tri = Triangle(
             Vector(l2w * Vec3(p2[1], p2[2], zero(T))), 

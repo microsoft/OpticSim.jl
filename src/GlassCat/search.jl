@@ -63,7 +63,7 @@ julia> glassnames()
     OpticSim.GlassCat.NIKON => ["BAF10", "BAF11"  …  "_7054"]
     OpticSim.GlassCat.OHARA => ["L_BAL35", "L_BAL35P"  …  "S_TIM8"]
    OpticSim.GlassCat.SCHOTT => ["AF32ECO", "BAFN6"  …  "SFL6"]
-   OpticSim.GlassCat.Sumita => ["BAF1", "BAF10"  …  "ZNSF8"]
+   OpticSim.GlassCat.SUMITA => ["BAF1", "BAF10"  …  "ZNSF8"]
 ```
 """
 glassnames() = [m => glassnames(m) for m in _child_modules(GlassCat)]

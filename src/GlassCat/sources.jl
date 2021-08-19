@@ -7,11 +7,20 @@ import SHA
 import ZipFile
 using Pkg
 
+function match_agf_basename(s::AbstractString)
+    m = match(r"^([a-zA-Z]+)\.(agf|AGF)$", basename(s))
+    return m === nothing ? nothing : m[1]
+end
+
+is_alphabetical(s::AbstractString) = match(r"^([a-zA-Z]+)$", s) !== nothing
+
+is_duplicate(name::AbstractString, sourcefile::AbstractString) = name ∈ first.(split.(readlines(sourcefile)))
+
 """
     add_agf(agffile; agfdir = AGF_DIR, sourcefile = SOURCES_PATH, name = nothing, rebuild = true)
 
-Copies a downloaded AGF file at `agffile` to `agfdir` and appends a corresponding entry to the source list at
-`sourcefile`.
+Copies a file at `agffile` (this can be either a download link or local path) to `agfdir` and appends a corresponding
+entry to the source list at `sourcefile`.
 
 If a `name` is not provided for the catalog, an implicit name is derived from `agffile`.
 
@@ -26,34 +35,43 @@ function add_agf(
 )
     # check name
     if name === nothing
-        m = match(r"^([a-zA-Z]+)\.(agf|AGF)$", basename(agffile))
-        if m === nothing
+        name = match_agf_basename(agffile)
+        if name === nothing
             @error "invalid implicit catalog name \"$(basename(agffile))\". Should be purely alphabetical with a .agf/.AGF extension."
             return
         end
-        name = m[1]
-    else
-        if match(r"^([a-zA-Z]+)$", name) === nothing
-            @error "invalid catalog name \"$name\". Should be purely alphabetical."
-        end
+        name = uppercase(name)
     end
-    if name ∈ first.(split.(readlines(sourcefile)))
+
+    if !is_alphabetical(name)
+        @error "invalid catalog name \"$name\". Should be purely alphabetical."
+        return
+    end
+
+    if is_duplicate(name, sourcefile)
         @error "adding the catalog name \"$name\" would create a duplicate entry in source file $sourcefile"
         return
     end
 
-    # copy agffile to agfdir
-    if !isfile(agffile)
-        @error "file not found at $agffile"
-        return
-    end
+    # download agffile from url if necessary
     mkpath(agfdir)
-    cp(agffile, joinpath(agfdir, name * ".agf"), force=true)
+    dest = joinpath(agfdir, name * ".agf")
+
+    if isfile(agffile)
+        cp(agffile, dest, force=true)
+    else
+        download_source(dest, agffile)
+        if !isfile(dest)
+            @error "failed to download from $agffile"
+            return
+        end
+    end
 
     # append a corresponding entry to the source list at sourcefile
-    sha256sum = SHA.bytes2hex(SHA.sha256(read(agffile)))
+    sha256sum = SHA.bytes2hex(SHA.sha256(read(dest)))
     open(sourcefile, "a") do io
-        write(io, join([name, sha256sum], ' ') * '\n')
+        source = isfile(agffile) ? [name, sha256sum] : [name, sha256sum, agffile]
+        write(io, join(source, ' ') * '\n')
     end
 
     # optional rebuild
@@ -71,7 +89,7 @@ information provided in `sources`.
 
 Each `source ∈ sources` is a collection of strings in the format `name, sha256sum, url [, POST_data]`, where the last
 optional string is used to specify data to be sent in a POST request. This allows us to download a greater range of
-sources (e.g. Sumita).
+sources (e.g. SUMITA).
 
 Modifies `sources` in-place such that only verified sources remain.
 """
@@ -97,29 +115,32 @@ function verify_sources!(sources::AbstractVector{<:AbstractVector{<:AbstractStri
 end
 
 """
-    verify_source(agffile::AbstractString, sha256sum::AbstractString)
+    verify_source(agffile::AbstractString, expected_sha256sum::AbstractString)
 
 Verify a source file using SHA256, returning true if successful. Otherwise, remove the file and return false.
 """
-function verify_source(agffile::AbstractString, sha256sum::AbstractString)
+function verify_source(agffile::AbstractString, expected_sha256sum::AbstractString)
     if !isfile(agffile)
         @info "[-] Missing file at $agffile"
-    elseif sha256sum == SHA.bytes2hex(SHA.sha256(read(agffile)))
-        @info "[✓] Verified file at $agffile"
-        return true
     else
-        @info "[x] Removing unverified file at $agffile"
-        rm(agffile)
+        sha256sum = SHA.bytes2hex(SHA.sha256(read(agffile)))
+        if expected_sha256sum == sha256sum
+            @info "[✓] Verified file at $agffile"
+            return true
+        else
+            @info "[x] Removing unverified file at $agffile (expected $expected_sha256sum, got $sha256sum)"
+            rm(agffile)
+        end
     end
     return false
 end
 
 """
-    download_source(agffile::AbstractString, url::AbstractString, POST_data::Union{Nothing,AbstractString} = nothing)
+    download_source(dest::AbstractString, url::AbstractString, POST_data::Union{Nothing,AbstractString} = nothing)
 
 Download and unzip an AGF glass catalog from a publicly available source. Supports POST requests.
 """
-function download_source(agffile::AbstractString, url::AbstractString, POST_data::Union{Nothing,AbstractString} = nothing)
+function download_source(dest::AbstractString, url::AbstractString, POST_data::Union{Nothing,AbstractString} = nothing)
     @info "Downloading source file from $url"
     try
         headers = ["Content-Type" => "application/x-www-form-urlencoded"]
@@ -132,7 +153,7 @@ function download_source(agffile::AbstractString, url::AbstractString, POST_data
             reader = ZipFile.Reader(IOBuffer(resp.body))
             agfdata = read(reader.files[findfirst(f -> endswith(lowercase(f.name), ".agf"), reader.files)])
         end
-        write(agffile, agfdata)
+        write(dest, agfdata)
     catch e
         @error e
     end
