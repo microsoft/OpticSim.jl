@@ -60,6 +60,7 @@ function example1()
             focal_length=1.0
         )
         push!(paraxial_lenses, OpticSim.LensAssembly(lens,eyelens))
+
         
         emitter = HeadEye.build_emitter(lens; distance=1.0, size=(.5, .5))
         push!(emitters, emitter)

@@ -107,7 +107,8 @@ function leftpupil(h::Head)
     lens = ParaxialLensEllipse(17.0,rad,rad,forward(transform),origin(transform))
     stop = CircularAperture(rad,forward(transform),origin(transform))
 
-    return LensAssembly(lens,stop)
+    return lens
+    # return LensAssembly(lens,stop)
 end
 
 # -------------------------------------------------------
