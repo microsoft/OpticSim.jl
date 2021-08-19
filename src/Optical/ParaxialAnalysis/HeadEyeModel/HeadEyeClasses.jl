@@ -6,40 +6,50 @@
 # Pupil
 # --------------------------------------------------------
 mutable struct Pupil
-    _tr::Transform
-    _size::Float64
+    tr::Transform
+    radius::Float64
 
-    function Pupil(tr::Transform, size::Float64)
-        return new(tr, size)
-    end
+    Pupil(tr::Transform, radius::Float64) = new(tr, radius)
 end
 
-tr(p::Pupil) = p._tr
-text(p::Pupil) = p._size
-size(p::Pupil) = p._size
+tr(p::Pupil) = p.tr
+text(p::Pupil) = p.radius
+radius(p::Pupil) = p.radius
+lens(p::Pupil) = p.lens
+stop(p::Pupil) = p.stop
 
+mutable struct Retina
+    tr::Transform
+    shape::Rectangle{Float64}
 
+    Retina(tr::Transform) = new(tr,Rectangle(34.0,34.0,interface = opaqueinterface()))
+end
 
+shape(r::Retina) = r.shape
 # --------------------------------------------------------
 # Eye
 # --------------------------------------------------------
 mutable struct Eye
-    _tr::Transform
-    _text::String
-    _pupil::Pupil
+    tr::Transform
+    text::String
+    pupil::Pupil
+    retina::Retina
 
     function Eye(tr::Transform, text::String)
-        pupil = Pupil(Transform(SVector(0.0, 0.0, 8)), 4.0)
+        pupil = Pupil(Transform(SVector(0.0, 0.0, 5)), 4.0)
+        retina = Retina(Transform(SVector(0.0,0.0,-12.0)))
 
-        return new(tr, text, pupil)
+        return new(tr, text, pupil,retina)
     end
 end
 
-tr(e::Eye) =  e._tr
-text(e::Eye) =  e._text
-pupil(e::Eye) =  e._pupil
+tr(e::Eye) =  e.tr
+text(e::Eye) =  e.text
+pupil(e::Eye) =  e.pupil
+retina(e::Eye) = e.retina
+
 function tr!(e::Eye, t::Transform) 
-    e._tr = t
+    e.tr = t
 end
 function lookAt!(e::Eye, dir::Vec3) 
     tr!(e, Transform(origin(tr(e)), dir))
@@ -85,7 +95,20 @@ function tr(h::Head, part::Symbol)
     end
 end
 
-leftpupil(h::Head) = return Circle(size(pupil(eye(h,:left_pupil))) / 2.0, forward(tr(h,:left_pupil)), origin(tr(h,:left_pupil)), interface = opaqueinterface())
+# leftpupil(h::Head) = return Circle(size(pupil(eye(h,:leftpupil))) / 2.0, forward(tr(h,:leftpupil)), origin(tr(h,:leftpupil)), interface = opaqueinterface())
+
+lefteye(h::Head) = h._eyes[1]
+righteye(h::Head) = h._eyes[2]
+
+function leftpupil(h::Head)
+    pupl = pupil(eye(h,:left_eye))
+    rad = radius(pupl)
+    transform = tr(h,:left_pupil)
+    lens = ParaxialLensEllipse(17.0,rad,rad,forward(transform),origin(transform))
+    stop = CircularAperture(rad,forward(transform),origin(transform))
+
+    return LensAssembly(lens,stop)
+end
 
 # -------------------------------------------------------
 

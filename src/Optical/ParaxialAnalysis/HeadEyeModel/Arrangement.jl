@@ -129,8 +129,8 @@ function build_emitter(lens::ParaxialLens{T}; parent_transform::Transform = iden
     local_frame = Transform(Vec3(OpticSim.centroid(lens)), Vec3(normal(lens)))
     S = Emitters.Spectrum.Uniform()
     P = Emitters.AngularPower.Lambertian()
-    O = Emitters.Origins.RectGrid(size[1], size[2], 2, 2)
-    D = Emitters.Directions.Constant()
+    O = Emitters.Origins.RectGrid(size[1], size[2], 1,1)
+    D = Emitters.Directions.UniformCone(Vec3(0.0,0.0,1.0),π/6,100)
     local Tr = parent_transform * Transform(local2world(local_frame) * (unitZ3() * -distance), forward(local_frame) )
     source = Emitters.Sources.Source(Tr, S, O, D, P)    
     return source

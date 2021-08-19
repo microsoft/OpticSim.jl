@@ -30,13 +30,17 @@ function example1()
 
     # shapes_2d = HeadEye.get_shapes(HexBasis1(), resolution=(8,5), size=1.0)
 
-     shapes_2d = HeadEye.get_shapes(RectangularBasis(), resolution=(5,5), size=1.0)
+     shapes_2d = HeadEye.get_shapes(RectangularBasis(), resolution=(15,15), size=1.0)
 
     shapes_3d = HeadEye.project(shapes_2d, csg)
+
+    #create pupil lens
 
     # create the planar polygons and the lenses
     paraxial_lenses = Vector(undef, 0)
     emitters = Vector{Emitters.Sources.Source}(undef, 0)
+    eyelens = HeadEye.leftpupil(head)
+
     for shape in shapes_3d
 
         # sanity test to change the lens optical center according to the shape's coordinates (relative to the center)
@@ -53,18 +57,15 @@ function example1()
             local_center_point = center_point,
             parent_transform = mla_rt, 
             scale=0.99, 
-            focal_length=30.0
+            focal_length=1.0
         )
-        push!(paraxial_lenses, OpticSim.LensAssembly(lens))
+        push!(paraxial_lenses, OpticSim.LensAssembly(lens,eyelens))
         
-        emitter = HeadEye.build_emitter(lens; distance=1.0, size=(1.0, 1.0))
+        emitter = HeadEye.build_emitter(lens; distance=1.0, size=(.5, .5))
         push!(emitters, emitter)
     end
 
-    # display = Emitters.Sources.CompositeSource(identitytransform(), emitters)
-
-    detector = HeadEye.leftpupil(head)
-
+    detector = HeadEye.shape(HeadEye.retina(HeadEye.lefteye(head)))
     sys = OpticSim.CSGOpticalSystem.(paraxial_lenses, Ref(detector),500,500) #Julia idiomatic way of preventing broadcasting on an argument is to use Ref(arg)
 
     return head,sys,emitters
@@ -80,8 +81,9 @@ function drawheadsystem()
 
 
     Vis.draw(head, draw_head=true)
-
-    for (onesys,emitter) in zip(sys,emitters)
+    emitter = emitters[60]
+    for onesys in sys
+    # for (onesys,emitter) in zip(sys,emitters)
         Vis.drawtracerays!(onesys; raygenerator=emitter, trackallrays = true, colorbynhits = true, test = true, numdivisions = 100, drawsys = true, rayfilter = nothing)
         Vis.draw!(emitter, debug=false)
     end
