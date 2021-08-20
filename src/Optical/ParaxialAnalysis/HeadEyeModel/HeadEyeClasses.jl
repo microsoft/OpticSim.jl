@@ -108,7 +108,7 @@ function leftpupil(h::Head)
     stop = CircularAperture(rad,forward(transform),origin(transform))
 
     return lens
-    # return LensAssembly(lens,stop)
+    # dreturn LensAssembly(lens,stop)
 end
 
 # -------------------------------------------------------

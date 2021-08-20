@@ -69,12 +69,13 @@ function example1()
     detector = HeadEye.shape(HeadEye.retina(HeadEye.lefteye(head)))
     sys = OpticSim.CSGOpticalSystem.(paraxial_lenses, Ref(detector),500,500) #Julia idiomatic way of preventing broadcasting on an argument is to use Ref(arg)
 
-    return head,sys,emitters
+    return head,Repeat.ArrayStructures.LensArray(sys,emitters)
 end
 export example1
 
+
 function drawheadsystem()
-   head, sys, emitters = example1()
+   head, lensarray = example1()
     # -----------------------------------------------------------
     # rendering
     # -----------------------------------------------------------
@@ -82,6 +83,8 @@ function drawheadsystem()
 
 
     Vis.draw(head, draw_head=true)
+    emitters,lenses = (emitters(lensarray),lenses(lensarray))
+
     emitter = emitters[60]
     for onesys in sys
     # for (onesys,emitter) in zip(sys,emitters)

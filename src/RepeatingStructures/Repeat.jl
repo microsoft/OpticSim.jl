@@ -16,6 +16,7 @@ include("HexagonalLattice.jl")
 include("RectangularLattice.jl")
 include("Array.jl")
 include("Cluster.jl")
+include("LensArray/ArrayStructures.jl")
 
 end #module
 export Repeat
