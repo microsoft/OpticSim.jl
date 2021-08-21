@@ -1,7 +1,7 @@
 module ArrayStructures
 export LensArray
 
-using ...OpticSim
+using ...OpticSim,...OpticSim.Repeat
 
 struct LensArray
     lenses::Vector{OpticSim.CSGOpticalSystem}
@@ -12,17 +12,19 @@ emitters(a::LensArray) = a.emitters
 lenses(a::LensArray) = a.lenses
 
 function trace(array::LensArray)
-    lesvec, emitvec = lenses(array),emitters(array)
+    lensvec, emitvec = lenses(array),emitters(array)
+
     Threads.@threads for i in 1:length(lensvec)
+        println(Threads.threadid())
         lens = lensvec[i]
         emitter = emitvec[i]
-        trace(lens,emitter,printprog=false)
+        OpticSim.trace(lens,emitter,printprog=false)
     end
-    return sum(detectorimage.(lenses))
+    return sum(OpticSim.detectorimage.(lensvec))
 end
 export trace
 
-moduletest() = println(CSGOpticalSystem)
+moduletest() = println(OpticSim.CSGOpticalSystem)
 export moduletest
 
 end #module
