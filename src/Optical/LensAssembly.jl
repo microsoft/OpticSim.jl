@@ -166,7 +166,7 @@ for N in 1:PREGENERATED_LENS_ASSEMBLY_SIZE
     end
 end
 
-function LensAssembly(elements::Vararg{LensAssemblyElement}; axis::SVector{3,T} = SVector{3,T}(0.0, 0.0, 1.0)) where {T<:Real}
+function LensAssembly(elements::Vararg{LensAssemblyElement{T}}; axis::SVector{3,T} = SVector{3,T}(0.0, 0.0, 1.0)) where {T<:Real}
     # make the actual object
     actual_elements = []
     rectangles = Vector{Rectangle{T}}(undef, 0)
