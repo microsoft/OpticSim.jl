@@ -2,6 +2,9 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # See LICENSE in the project root for full license information.
 
+export LensAssembly, elements, access
+export LensTrace, intersection
+
 """
     LensAssembly{T<:Real}
 
@@ -34,14 +37,16 @@ LensAssembly(elements::Vararg{Union{Surface{T},CSGTree{T},LensAssembly{T}}}; axi
 ```
 """
 abstract type LensAssembly{T<:Real} end
-export LensAssembly
+
+LensAssemblyElement{T} = Union{Surface{T}, CSGTree{T}, LensAssembly{T}}
 
 Base.show(io::IO, ::Type{<:LensAssembly}) = print(io, "LensAssembly")
-Base.show(io::IO, a::LensAssembly{T}) where {T<:Real} = print(io, "LensAssembly{$T}($(length(a.rectangles) + length(a.ellipses) + length(a.hexagons) + length(typed_elements(a))) elements)")
+Base.show(io::IO, a::LensAssembly{T}) where {T<:Real} = print(io, "LensAssembly{$T}($(length(elements(a))) elements)")
 
-# in order to prevent type ambiguities lens assembly must be paramaterised by its elements, but we want lens assembly to have an arbitrary number of elements
-# as such we have to use macros to create lens assembly structs of a given size, and methods to handle them in a type unambiguous way
-# we may often end up with lots of simple surfaces (Rectangle, Ellipse) in the assembly, and we can store these more efficiently in Vectors
+# in order to prevent type ambiguities lens assembly must be paramaterised by its elements, but we want lens assembly to
+# have an arbitrary number of elements as such we have to use macros to create lens assembly structs of a given size,
+# and methods to handle them in a type unambiguous way we may often end up with lots of simple surfaces (Rectangle,
+# Ellipse) in the assembly, and we can store these more efficiently in Vectors
 macro lensassembly_constructor(N)
     # generate the type definition for a lens assembly of size N
     typesig = [:($(Symbol("T$(i)")) <: Union{Surface{T},CSGTree{T}}) for i in 1:N]
@@ -59,28 +64,9 @@ macro lensassembly_constructor(N)
     end)
 end
 
-# This is the basic idea of what each closestintersection implementation does:
-# function closestintersection(ass::LensAssembly{T}, r::AbstractRay{T,N})::Union{Nothing,Intersection{T,N}} where {T<:Real,N}
-#     αmin = typemax(T)
-#     closest = nothing
-#     for element in elements(ass)
-#         allintscts = surfaceintersection(element, r)
-#         if !(allintscts isa EmptyInterval)
-#             intsct = closestintersection(allintscts)
-#             if intsct !== nothing
-#                 αcurr = α(intsct)
-#                 if αcurr < αmin
-#                     αmin = αcurr
-#                     closest = intsct
-#                 end
-#             end
-#         end
-#     end
-#     return closest
-# end
-
 macro lensassembly_intersection(N)
-    # generates the _closestintersection() function for a lens assembly of size N, this should never be called directly, instead call closestintersection() in all cases
+    # generates the _closestintersection() function for a lens assembly of size N, this should never be called directly,
+    # instead call closestintersection() in all cases
     type = :($(Symbol("LensAssembly$(N)")))
     fieldnames = [Symbol("E$(i)") for i in 1:N]
     checks = [quote
@@ -100,8 +86,8 @@ macro lensassembly_intersection(N)
         function _closestintersection(obj::$(type){T}, r::AbstractRay{T,N})::Union{Nothing,Intersection{T,N}} where {T<:Real,N}
             αmin = typemax(T)
             closest = nothing
-            for rect in obj.rectangles
-                intvl = surfaceintersection(rect, r)
+            for element in obj.rectangles
+                intvl = surfaceintersection(element, r)
                 if !(intvl isa EmptyInterval)
                     intsct = closestintersection(intvl::Union{Interval{T},DisjointUnion{T}})
                     if intsct !== nothing
@@ -113,8 +99,8 @@ macro lensassembly_intersection(N)
                     end
                 end
             end
-            for ell in obj.ellipses
-                intvl = surfaceintersection(ell, r)
+            for element in obj.ellipses
+                intvl = surfaceintersection(element, r)
                 if !(intvl isa EmptyInterval)
                     intsct = closestintersection(intvl::Union{Interval{T},DisjointUnion{T}})
                     if intsct !== nothing
@@ -126,8 +112,8 @@ macro lensassembly_intersection(N)
                     end
                 end
             end
-            for hex in obj.hexagons
-                intvl = surfaceintersection(hex, r)
+            for element in obj.hexagons
+                intvl = surfaceintersection(element, r)
                 if !(intvl isa EmptyInterval)
                     intsct = closestintersection(intvl::Union{Interval{T},DisjointUnion{T}})
                     if intsct !== nothing
@@ -139,8 +125,8 @@ macro lensassembly_intersection(N)
                     end
                 end
             end
-            for par in obj.paraxials
-                intvl = surfaceintersection(par, r)
+            for element in obj.paraxials
+                intvl = surfaceintersection(element, r)
                 if !(intvl isa EmptyInterval)
                     intsct = closestintersection(intvl::Union{Interval{T},DisjointUnion{T}})
                     if intsct !== nothing
@@ -170,19 +156,20 @@ macro lensassembly_elements(N)
     end)
 end
 
-# pregenerate a small number at compile time
-for N in 1:PREGENERATED_LENS_ASSEMBLY_SIZE
-    type = :($(Symbol("LensAssembly$(N)")))
-    if !isdefined(OpticSim, type)
+function compile_lensassembly(N)
+    if !isdefined(OpticSim, :($(Symbol("LensAssembly$N"))))
         @eval @lensassembly_constructor($N)
         @eval @lensassembly_intersection($N)
         @eval @lensassembly_elements($N)
     end
 end
 
-function LensAssembly(elements::Vararg{Union{Surface{T},CSGTree{T},LensAssembly{T}}}; axis::SVector{3,T} = SVector{3,T}(0.0, 0.0, 1.0)) where {T<:Real}
+# pregenerate a small number at compile time
+compile_lensassembly.(1:PREGENERATED_LENS_ASSEMBLY_SIZE)
+
+function LensAssembly(elements::Vararg{LensAssemblyElement{T}}; axis::SVector{3,T} = SVector{3,T}(0.0, 0.0, 1.0)) where {T<:Real}
     # make the actual object
-    actual_elements = []
+    typed_elements = Vector{Union{Surface{T}, CSGTree{T}}}(undef, 0)
     rectangles = Vector{Rectangle{T}}(undef, 0)
     ellipses = Vector{Ellipse{T}}(undef, 0)
     hexagons = Vector{Hexagon{T}}(undef, 0)
@@ -197,28 +184,27 @@ function LensAssembly(elements::Vararg{Union{Surface{T},CSGTree{T},LensAssembly{
         elseif e isa ParaxialLens{T}
             push!(paraxials, e)
         elseif e isa Surface{T} || e isa CSGTree{T}
-            push!(actual_elements, e)
-        else
+            push!(typed_elements, e)
+        elseif e isa LensAssembly{T}
             # unpack the lens assembly
             rectangles = vcat(rectangles, e.rectangles)
             ellipses = vcat(ellipses, e.ellipses)
             hexagons = vcat(hexagons, e.hexagons)
-            for lae in OpticSim.typed_elements(e)
-                push!(actual_elements, lae)
-            end
+            paraxials = vcat(paraxials, e.paraxials)
+            append!(typed_elements, typed_elements(e))
+        else
+            error("Unrecognized LensAssembly element type $typeof(e)")
         end
     end
-    N = length(actual_elements)
+
     # make the methods for this N
+    N = length(typed_elements)
+    compile_lensassembly(N)
+
     type = :($(Symbol("LensAssembly$(N)")))
-    if !isdefined(OpticSim, type)
-        @eval @lensassembly_constructor($N)
-        @eval @lensassembly_intersection($N)
-        @eval @lensassembly_elements($N)
-    end
-    eltypes = typeof.(actual_elements)
+    eltypes = typeof.(typed_elements)
     naxis = normalize(axis)
-    return eval(:($(type){$T,$(eltypes...)}($naxis, $rectangles, $ellipses, $hexagons, $paraxials, $(actual_elements...))))
+    return eval(:($(type){$T,$(eltypes...)}($naxis, $rectangles, $ellipses, $hexagons, $paraxials, $(typed_elements...))))
 end
 
 function typed_elements(ass::LensAssembly{T}) where {T<:Real}
@@ -234,8 +220,7 @@ function typed_elements(ass::LensAssembly{T}) where {T<:Real}
     end
 end
 
-elements(ass::LensAssembly{T}) where {T<:Real} = (ass.rectangles..., ass.ellipses..., ass.hexagons..., ass.paraxials..., typed_elements(ass)...)
-export elements
+elements(ass::LensAssembly{T}) where {T<:Real} = [ass.rectangles..., ass.ellipses..., ass.hexagons..., ass.paraxials..., typed_elements(ass)...]
 
 function closestintersection(ass::LensAssembly{T}, r::AbstractRay{T,N})::Union{Nothing,Intersection{T,N}} where {T<:Real,N}
     # under certain circumstances we run into the world age problem (see https://discourse.julialang.org/t/how-to-bypass-the-world-age-problem/7012)
@@ -262,7 +247,6 @@ function BoundingBox(la::LensAssembly{T}) where {T<:Real}
 end
 
 axis(a::LensAssembly{T}) where {T<:Real} = a.axis
-export axis
 
 #############################################################################
 
@@ -290,7 +274,6 @@ struct LensTrace{T<:Real,N}
     ray::OpticalRay{T,N}
     intersection::Intersection{T,N}
 end
-export LensTrace
 
 ray(a::LensTrace{T,N}) where {T<:Real,N} = a.ray
 intersection(a::LensTrace{T,N}) where {T<:Real,N} = a.intersection
@@ -301,7 +284,6 @@ point(a::LensTrace{T,N}) where {T<:Real,N} = point(intersection(a))
 uv(a::LensTrace{T,N}) where {T<:Real,N} = uv(intersection(a))
 sourcenum(a::LensTrace{T,N}) where {T<:Real,N} = sourcenum(ray(a))
 nhits(a::LensTrace{T,N}) where {T<:Real,N} = nhits(ray(a))
-export intersection
 
 function Base.print(io::IO, a::LensTrace{T,N}) where {T,N}
     println(io, "Ray\n$(ray(a))")
