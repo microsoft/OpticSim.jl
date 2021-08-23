@@ -18,9 +18,7 @@ Each struct looks like this:
 ```julia
 struct LensAssemblyN{T,T1,T2,...,TN} <: LensAssembly{T}
     axis::SVector{3,T}
-    rectangles::Vector{Rectangle{T}}
-    ellipses::Vector{Ellipse{T}}
-    hexagons::Vector{Hexagon{T}}
+    planarshapes::Vector{PlanarShape{T}}
     paraxials::Vector{ParaxialLens{T}}
     E1::T1
     E2::T2
