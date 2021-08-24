@@ -45,6 +45,8 @@ struct BoundingBox{T<:Real}
 end
 export BoundingBox
 
+BoundingBox(object::Object) = BoundingBox(object.object)
+
 function BoundingBox(s::ParametricSurface{T,3}, transform::Transform{T} = identitytransform(T)) where {T<:Real}
     # get the bounding box of a transformed bounding box
     bbox = BoundingBox(s)

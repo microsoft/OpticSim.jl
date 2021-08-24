@@ -136,6 +136,8 @@ Transform(rotation::AbstractArray{S,2}, translation::AbstractArray{S,1})
 Transform{T} = SMatrix{4,4,T,16}
 export Transform
 
+transform(object::Object, tr::Transform) = Object(transform(object.object, tr), object.id)
+
 # for compatability ith the "old" RigidBodyTransform
 """
 identitytransform([S::Type]) -> Transform{S}

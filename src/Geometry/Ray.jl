@@ -5,6 +5,8 @@
 abstract type AbstractRay{T<:Real,N} end
 export AbstractRay
 
+surfaceintersection(object::Object, ray::AbstractRay) = surfaceintersection(object.object, ray)
+
 """
     Ray{T,N} <: AbstractRay{T,N}
 

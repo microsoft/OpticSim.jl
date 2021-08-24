@@ -10,7 +10,7 @@ struct Object{T}
     object::T
     id::UUID
 
-    Object(object::T) where {T} = new{T}(object, uuid())
+    Object(object::T, id::UUID = uuid()) where {T} = new{T}(object, id)
 end
 
 Base.show(io::IO, object::Object) = print(io, "[$(object.id)]")

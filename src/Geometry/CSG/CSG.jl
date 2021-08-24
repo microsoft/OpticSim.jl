@@ -13,70 +13,70 @@ abstract type CSGTree{T} <: Primitive{T} end
 An evaluated complement node within the CSG tree, must be the second child of a [`IntersectionNode`](@ref) forming a
 subtraction.
 """
-struct ComplementNode{T,C<:CSGTree{T}} <: CSGTree{T}
+struct ComplementNode{T,C<:unionobject(CSGTree{T})} <: CSGTree{T}
     child::C
 
-    function ComplementNode(child::C) where {T<:Real,C<:CSGTree{T}}
+    function ComplementNode(child::C) where {T<:Real,C<:unionobject(CSGTree{T})}
         return new{T,C}(child)
     end
 end
-Base.show(io::IO, a::ComplementNode{T}) where {T} = print(io, "Complement($(a.child))")
-BoundingBox(a::ComplementNode{T}) where {T<:Real} = BoundingBox(a.child)
+Base.show(io::IO, a::ComplementNode) = print(io, "Complement($(a.child))")
+BoundingBox(a::ComplementNode) = BoundingBox(a.child)
 
 """
     UnionNode{T,L<:CSGTree{T},R<:CSGTree{T}} <: CSGTree{T}
 
 An evaluated union node within the CSG tree.
 """
-struct UnionNode{T,L<:CSGTree{T},R<:CSGTree{T}} <: CSGTree{T}
+struct UnionNode{T,L<:unionobject(CSGTree{T}),R<:unionobject(CSGTree{T})} <: CSGTree{T}
     leftchild::L
     rightchild::R
     bbox::BoundingBox{T}
 
-    function UnionNode(a::L, b::R) where {T<:Real,L<:CSGTree{T},R<:CSGTree{T}}
+    function UnionNode(a::L, b::R) where {T<:Real,L<:unionobject(CSGTree{T}),R<:unionobject(CSGTree{T})}
         # union should never contain a complement so should be fine
         return new{T,L,R}(a, b, union(BoundingBox(a), BoundingBox(b)))
     end
 end
-Base.show(io::IO, a::UnionNode{T}) where {T} = print(io, "Union($(a.leftchild), $(a.rightchild))")
+Base.show(io::IO, a::UnionNode) = print(io, "Union($(a.leftchild), $(a.rightchild))")
 
 """
     IntersectionNode{T,L<:CSGTree{T},R<:CSGTree{T}} <: CSGTree{T}
 
 An evaluated intersection node within the CSG tree.
 """
-struct IntersectionNode{T,L<:CSGTree{T},R<:CSGTree{T}} <: CSGTree{T}
+struct IntersectionNode{T,L<:unionobject(CSGTree{T}),R<:unionobject(CSGTree{T})} <: CSGTree{T}
     leftchild::L
     rightchild::R
     bbox::BoundingBox{T}
 
-    function IntersectionNode(a::L, b::R) where {T<:Real,L<:CSGTree{T},R<:CSGTree{T}}
+    function IntersectionNode(a::L, b::R) where {T<:Real,L<:unionobject(CSGTree{T}),R<:unionobject(CSGTree{T})}
         # normal intersection is fine for most nodes
         return new{T,L,R}(a, b, intersection(BoundingBox(a), BoundingBox(b)))
     end
 
-    function IntersectionNode(a::L, b::R) where {T<:Real,L<:CSGTree{T},R<:ComplementNode{T}}
+    function IntersectionNode(a::L, b::R) where {T<:Real,L<:unionobject(CSGTree{T}),R<:unionobject(ComplementNode{T})}
         # this is a subtraction so just take the original unclipped bounding box for simplicity
         return new{T,L,R}(a, b, BoundingBox(a))
     end
 end
-Base.show(io::IO, a::IntersectionNode{T}) where {T} = print(io, "Intersection($(a.leftchild), $(a.rightchild))")
+Base.show(io::IO, a::IntersectionNode) = print(io, "Intersection($(a.leftchild), $(a.rightchild))")
 
 """
-    LeafNode{T,S<:ParametricSurface{T}} <: CSGTree{T}
+    LeafNode{T,S<:unionobject(ParametricSurface{T})} <: CSGTree{T}
 
 An evaluated leaf node in the CSG tree, `geometry` attribute which contains a [`ParametricSurface`](@ref) of type `S`.
 The leaf node also has a transform associated which is the composition of all nodes above it in the tree.
 As such, transforming points from the geometry using this transform puts them in world space, and transforming rays by
 the inverse transform puts them in object space.
 """
-struct LeafNode{T,S<:ParametricSurface{T,3}} <: CSGTree{T}
+struct LeafNode{T,S<:unionobject(ParametricSurface{T,3})} <: CSGTree{T}
     geometry::S
     transform::Transform{T}
     invtransform::Transform{T}
     bbox::BoundingBox{T}
 
-    function LeafNode(a::S, transform::Transform{T}) where {T<:Real,S<:ParametricSurface{T,3}}
+    function LeafNode(a::S, transform::Transform{T}) where {T<:Real,S<:unionobject(ParametricSurface{T,3})}
         # store the transformed bounding box so nodes higher in the tree have correct global space bounding boxes
         return new{T,S}(a, transform, inv(transform), BoundingBox(a, transform))
     end
@@ -111,20 +111,30 @@ struct CSGGenerator{T<:Real}
     f::Function
 end
 
-function (a::CSGGenerator{T})(transform::Transform{T})::CSGTree{T} where {T<:Real}
+function (a::CSGGenerator)(transform::Transform)#::CSGTree
     a.f(transform)
 end
-function (a::CSGGenerator{T})()::CSGTree{T} where {T<:Real}
-    a.f(identitytransform(T))
+function (a::Object{<:CSGGenerator})(transform::Transform)#::Object{<:CSGTree}
+    Object(a.object.f(transform))
+end
+
+function (a::CSGGenerator{T})() where {T<:Real}#::CSGTree{T} where {T<:Real}
+    a(identitytransform(T))
+end
+function (a::Object{<:CSGGenerator{T}})() where {T<:Real}#::Object{<:CSGTree{T}} where {T<:Real}
+    Object(a.object(identitytransform(T)))
 end
 
 """
-    leaf(surf::ParametricSurface{T}, transform::Transform{T} = identitytransform(T)) -> CSGGenerator{T}
+    leaf(surf::unionobject(ParametricSurface{T}), transform::Transform{T} = identitytransform(T)) -> CSGGenerator{T}
 
 Create a leaf node from a parametric surface with a given transform.
 """
 function leaf(surf::ParametricSurface{T}, transform::Transform{T} = identitytransform(T)) where {T<:Real}
     return CSGGenerator{T}((parenttransform) -> LeafNode(surf, parenttransform * transform))
+end
+function leaf(surf::Object{<:ParametricSurface{T}}, transform::Transform{T} = identitytransform(T)) where {T<:Real}
+    return Object(leaf(surf.object, transform))
 end
 
 """
@@ -136,6 +146,9 @@ structure with different transforms, for example in an MLA.
 function transform(n::CSGGenerator{T}, transform::Transform{T} = identitytransform(T)) where {T<:Real}
     return CSGGenerator{T}((parenttransform) -> n(parenttransform * transform))
 end
+function transform(n::Object{<:CSGGenerator{T}}, transform::Transform{T} = identitytransform(T)) where {T<:Real}
+    return Object(transform(n.object, transform))
+end
 
 # CSG objects are trees, not graphs, since it makes no sense to reuse intermediate results. Hence no need to keep track
 # of common subexpressions.
@@ -144,7 +157,10 @@ end
 # Wrap the csg operations in function that delays evaluation until the transform has been computed.
 
 """
-    ∩(a::Union{CSGGenerator{T},ParametricSurface{T}}, b::Union{CSGGenerator{T},ParametricSurface{T}}) where {T<:Real}
+    ∩(
+        a::unionobject(Union{CSGGenerator{T},ParametricSurface{T}}),
+        b::unionobject(Union{CSGGenerator{T},ParametricSurface{T}})
+    ) where {T<:Real}
 
 Create a binary node in the CSG tree representing an intersection between `a` and `b`.
 
@@ -152,18 +168,21 @@ Create a binary node in the CSG tree representing an intersection between `a` an
 """
 Base.:∩
 
-function Base.:∩(a::CSGGenerator{T}, b::CSGGenerator{T}) where {T<:Real}
+function Base.:∩(a::unionobject(CSGGenerator{T}), b::unionobject(CSGGenerator{T})) where {T<:Real}
     return CSGGenerator{T}((parenttransform) -> IntersectionNode(a(parenttransform), b(parenttransform)))
 end
-Base.:∩(a::ParametricSurface, b::ParametricSurface) = leaf(a) ∩ leaf(b)
-Base.:∩(a::ParametricSurface, b::CSGGenerator) = leaf(a) ∩ b
-Base.:∩(a::CSGGenerator, b::ParametricSurface) = a ∩ leaf(b)
+Base.:∩(a::unionobject(ParametricSurface), b::unionobject(ParametricSurface)) = leaf(a) ∩ leaf(b)
+Base.:∩(a::unionobject(ParametricSurface), b::unionobject(CSGGenerator)) = leaf(a) ∩ b
+Base.:∩(a::unionobject(CSGGenerator), b::unionobject(ParametricSurface)) = a ∩ leaf(b)
 
 @deprecate csgintersection(a, b) a ∩ b
 @deprecate csgintersection(a, b, tr) transform(a ∩ b, tr)
 
 """
-    ∪(a::Union{CSGGenerator{T},ParametricSurface{T}}, b::Union{CSGGenerator{T},ParametricSurface{T}}) where {T<:Real}
+    ∪(
+        a::unionobject(Union{CSGGenerator{T},ParametricSurface{T}}),
+        b::unionobject(Union{CSGGenerator{T},ParametricSurface{T}})
+    ) where {T<:Real}
 
 Create a binary node in the CSG tree representing a union between `a` and `b`.
 
@@ -171,18 +190,21 @@ Create a binary node in the CSG tree representing a union between `a` and `b`.
 """
 Base.:∪
 
-function Base.:∪(a::CSGGenerator{T}, b::CSGGenerator{T}) where {T<:Real}
+function Base.:∪(a::unionobject(CSGGenerator{T}), b::unionobject(CSGGenerator{T})) where {T<:Real}
     return CSGGenerator{T}((parenttransform) -> UnionNode(a(parenttransform), b(parenttransform)))
 end
-Base.:∪(a::ParametricSurface, b::ParametricSurface) = leaf(a) ∪ leaf(b)
-Base.:∪(a::ParametricSurface, b::CSGGenerator) = leaf(a) ∪ b
-Base.:∪(a::CSGGenerator, b::ParametricSurface) = a ∪ leaf(b)
+Base.:∪(a::unionobject(ParametricSurface), b::unionobject(ParametricSurface)) = leaf(a) ∪ leaf(b)
+Base.:∪(a::unionobject(ParametricSurface), b::unionobject(CSGGenerator)) = leaf(a) ∪ b
+Base.:∪(a::unionobject(CSGGenerator), b::unionobject(ParametricSurface)) = a ∪ leaf(b)
 
 @deprecate csgunion(a, b) a ∪ b
 @deprecate csgunion(a, b, tr) transform(a ∪ b, tr)
 
 """
-    -(a::Union{CSGGenerator{T},ParametricSurface{T}}, b::Union{CSGGenerator{T},ParametricSurface{T}}) where {T<:Real}
+    -(
+        a::unionobject(Union{CSGGenerator{T},ParametricSurface{T}}),
+        b::unionobject(Union{CSGGenerator{T},ParametricSurface{T}})
+    ) where {T<:Real}
 
 Create a binary node in the CSG tree representing the difference of `a` and `b`, essentially `a - b`.
 
@@ -190,12 +212,12 @@ Create a binary node in the CSG tree representing the difference of `a` and `b`,
 """
 Base.:-
 
-function Base.:-(a::CSGGenerator{T}, b::CSGGenerator{T}) where {T<:Real}
+function Base.:-(a::unionobject(CSGGenerator{T}), b::unionobject(CSGGenerator{T})) where {T<:Real}
     return CSGGenerator{T}((parenttransform) -> IntersectionNode(a(parenttransform), ComplementNode(b(parenttransform))))
 end
-Base.:-(a::ParametricSurface, b::ParametricSurface) = leaf(a) - leaf(b)
-Base.:-(a::ParametricSurface, b::CSGGenerator) = leaf(a) - b
-Base.:-(a::CSGGenerator, b::ParametricSurface) = a - leaf(b)
+Base.:-(a::unionobject(ParametricSurface), b::unionobject(ParametricSurface)) = leaf(a) - leaf(b)
+Base.:-(a::unionobject(ParametricSurface), b::unionobject(CSGGenerator)) = leaf(a) - b
+Base.:-(a::unionobject(CSGGenerator), b::unionobject(ParametricSurface)) = a - leaf(b)
 
 @deprecate csgdifference(a, b) a - b
 @deprecate csgdifference(a, b, tr) transform(a - b, tr)
@@ -210,6 +232,10 @@ Base.:-(a::CSGGenerator, b::ParametricSurface) = a - leaf(b)
 [TODO]
 """
 function evalcsg end
+
+function evalcsg(object::Object, ray::AbstractRay{T,N}, normalreverse::Bool = false) where {T<:Real,N}
+    evalcsg(object.object, ray, normalreverse)
+end
 
 function evalcsg(a::UnionNode{T}, ray::AbstractRay{T,N}, normalreverse::Bool = false) where {T<:Real,N}
     if !doesintersect(a.bbox, ray)
@@ -329,6 +355,7 @@ function onsurface(a::UnionNode{T}, point::SVector{3,T}) where {T<:Real}
     )
 end
 onsurface(a::LeafNode{T}, point::SVector{3,T}) where {T<:Real} = onsurface(a.geometry, a.invtransform * point)
+onsurface(object::Object, kwargs...) = onsurface(object.object, kwargs...)
 
 """
     inside(obj::CSGTree{T}, point::SVector{3,T}) -> Bool
@@ -347,6 +374,7 @@ end
 function inside(a::LeafNode{T}, point::SVector{3,T}) where {T<:Real}
     return inside(a.bbox, point) && inside(a.geometry, a.invtransform * point)
 end
+inside(object::Object, kwargs...) = inside(object.object, kwargs...)
 
 ########################################################################################################################
 
@@ -465,6 +493,11 @@ function intersecttri!(
     elseif in3 && !in1 && !in2
         splittri1out!(csg, v3, v1, v2, triangles)
     end
+end
+function intersecttri!(
+    csg::Object{<:CSGTree{T}}, tri::Triangle{T}, triangles::Vector{Triangle{T}}, thisforcoplanar::Bool = false
+) where {T<:Real}
+    intersecttri!(csg.object, tri, triangles, thisforcoplanar)
 end
 
 function splittri1out!(
@@ -635,3 +668,5 @@ function makemesh(c::CSGTree{T}, subdivisions::Int = 30)::TriangleMesh{T} where 
     emptyintervalpool!(T)
     return m
 end
+
+makemesh(c::Object{<:CSGTree{T}}, subdivisions::Int = 30) where {T<:Real} = makemesh(c.object, subdivisions)
