@@ -63,6 +63,14 @@ function drawcurves(curves::Vararg{Spline{P,S,N,M}}; numpoints::Int = 200, canva
     Luxor.preview()
 end
 
+function getcolor(object::Object, properties::Properties, i::Int = 0)
+    if object isa Object && object.id in keys(properties) && "color" in keys(properties[object.id])
+        color = properties[object.id]["color"]
+    else
+        color = indexedcolor2(i)
+    end
+end
+
 #############################################################################
 
 # all functions follow the pattern draw(obj) and draw!(scene, obj) where the first case draws the object in a blank
@@ -268,6 +276,16 @@ function draw!(ob; kwargs...)
     end
 end
 
+function draw!(object::Object; properties::Properties = Properties(), kwargs...)
+    color = getcolor(object, properties)
+    draw!(object.object; color, kwargs...)
+end
+
+function draw!(scene::Makie.LScene, object::Object; properties::Properties = Properties(), kwargs...)
+    color = getcolor(object, properties)
+    draw!(scene, object.object; color, kwargs...)
+end
+
 """
     save(path::String)
 
@@ -465,7 +483,7 @@ function draw!(scene::Makie.LScene, meshes::Vararg{Union{TriangleMesh,Surface}};
     end
 end
 
-function draw(meshes::Vararg{Union{TriangleMesh{T},Surface{T}}}; kwargs...)
+function draw(meshes::Vararg{Union{TriangleMesh,Surface}}; kwargs...)
     scene, lscene = Vis.scene()
     draw!(lscene, meshes...; kwargs...)
     Makie.display(scene)
@@ -510,9 +528,10 @@ end
 
 Draw each element in a [`LensAssembly`](@ref), with each element automatically colored differently.
 """
-function draw!(scene::Makie.LScene, ass::LensAssembly{T}; kwargs...) where {T<:Real}
+function draw!(scene::Makie.LScene, ass::LensAssembly; properties::Properties = Properties(), kwargs...)
     for (i, e) in enumerate(elements(ass))
-        draw!(scene, e; kwargs..., color = indexedcolor2(i))
+        color = getcolor(e, properties, i)
+        draw!(scene, e; kwargs..., color)
     end
 end
 
@@ -522,8 +541,8 @@ end
 Draw each element in the lens assembly of an [`AbstractOpticalSystem`](@ref), with each element automatically colored
 differently, as well as the detector of the system.
 """
-function draw!(scene::Makie.LScene, sys::CSGOpticalSystem; kwargs...)
-    draw!(scene, sys.assembly; kwargs...)
+function draw!(scene::Makie.LScene, sys::CSGOpticalSystem; properties::Properties = Properties(), kwargs...)
+    draw!(scene, sys.assembly; properties, kwargs...)
     draw!(scene, sys.detector; kwargs...)
 end
 
@@ -580,6 +599,7 @@ function drawtracerays(
     rayfilter::Union{Nothing,Function} = onlydetectorrays,
     verbose::Bool = false,
     resolution::Tuple{Int,Int} = (1000, 1000),
+    properties::Properties = Properties(),
     kwargs...
 ) where {T<:Real,Q<:AbstractOpticalSystem{T},S<:AbstractRayGenerator{T}}
     verbose && println("Drawing System...")
@@ -588,7 +608,8 @@ function drawtracerays(
     drawsys = drawgen = true
     drawtracerays!(
         ls, system;
-        raygenerator, test, colorbysourcenum, colorbynhits, rayfilter, trackallrays, verbose, drawsys, drawgen, kwargs...
+        raygenerator, test, colorbysourcenum, colorbynhits, rayfilter, trackallrays, verbose, drawsys, drawgen,
+        properties, kwargs...
     )
 
     display(s)
@@ -615,12 +636,13 @@ function drawtracerays!(
     verbose::Bool = false,
     drawsys::Bool = false,
     drawgen::Bool = false,
+    properties::Properties = Properties(),
     kwargs...
 ) where {T<:Real,Q<:AbstractOpticalSystem{T},S<:AbstractRayGenerator{T}}
     raylines = Vector{LensTrace{T,3}}(undef, 0)
 
-    drawgen && draw!(scene, raygenerator, norays = true; kwargs...)
-    drawsys && draw!(scene, system; kwargs...)
+    drawgen && draw!(scene, raygenerator; kwargs...)
+    drawsys && draw!(scene, system; properties, kwargs...)
 
     verbose && println("Tracing...")
     for (i, r) in enumerate(raygenerator)
