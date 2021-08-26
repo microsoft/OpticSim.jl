@@ -5,7 +5,14 @@
 
 #############################################################################
 
-function drawcurve!(canvassize::Int, curve::Spline{P,S,N,M}, numpoints::Int; linewidth = 0.5, curvecolor = RGB(1, 0, 1), controlpointcolor = RGB(0, 0, 0), controlpointsize = 5, controlpolygoncolor = RGB(0, 0, 0)) where {P,S,N,M}
+function drawcurve!(
+    canvassize::Int, curve::Spline{P,S,N,M}, numpoints::Int;
+    linewidth = 0.5,
+    curvecolor = RGB(1, 0, 1),
+    controlpointcolor = RGB(0, 0, 0),
+    controlpointsize = 5,
+    controlpolygoncolor = RGB(0, 0, 0)
+) where {P,S,N,M}
     step = 1.0 / numpoints
 
     point1 = point(curve, 0.0) .* canvassize
@@ -47,7 +54,10 @@ function drawcurves(curves::Vararg{Spline{P,S,N,M}}; numpoints::Int = 200, canva
     Luxor.background("white")
     drawcurve!(canvassize, curves[1], numpoints, linewidth = 5, curvecolor = RGB(0, 1, 1))
     for curve in curves[2:end]
-        drawcurve!(canvassize, curve, numpoints, linewidth = 1, controlpointcolor = RGB(1, 0, 0), controlpointsize = 3, controlpolygoncolor = RGB(0, 1, 0))
+        drawcurve!(
+            canvassize, curve, numpoints;
+            linewidth = 1, controlpointcolor = RGB(1, 0, 0), controlpointsize = 3, controlpolygoncolor = RGB(0, 1, 0)
+        )
     end
     Luxor.finish()
     Luxor.preview()
@@ -55,8 +65,9 @@ end
 
 #############################################################################
 
-# all functions follow the pattern draw(obj) and draw!(scene, obj) where the first case draws the object in a blank scene and displays it, and
-# the second case draws the object in an existing scene, draw!(obj) can also be used to draw the object in the current scene
+# all functions follow the pattern draw(obj) and draw!(scene, obj) where the first case draws the object in a blank
+# scene and displays it, and the second case draws the object in an existing scene, draw!(obj) can also be used to draw
+# the object in the current scene
 
 global current_main_scene = nothing
 global current_layout_scene = nothing
@@ -92,7 +103,9 @@ function scene(resolution = (1000, 1000))
     scene, layout = Makie.layoutscene(resolution = resolution)
     global current_main_scene = scene
     global current_layout_scene = layout
-    lscene = layout[1, 1] = Makie.LScene(scene, scenekw = (camera = Makie.cam3d_cad!, axis_type = Makie.axis3d!, raw = false))
+    lscene = layout[1, 1] = Makie.LScene(
+        scene, scenekw = (camera = Makie.cam3d_cad!, axis_type = Makie.axis3d!, raw = false)
+    )
     global current_3d_scene = lscene
 
     # in these modes we want to skip the creation of the utility buttons as these modes are not interactive
@@ -125,7 +138,8 @@ function scene(resolution = (1000, 1000))
         yield()
     end
 
-    layout[2, 1] = Makie.grid!(hcat(threedbutton, twodxbutton, twodybutton, savebutton), tellwidth = false, tellheight = true)
+    buttons = hcat(threedbutton, twodxbutton, twodybutton, savebutton)
+    layout[2, 1] = Makie.grid!(buttons, tellwidth = false, tellheight = true)
     return scene, lscene
 end
 
@@ -138,7 +152,11 @@ function make3d(scene::Makie.LScene = current_3d_scene)
     # show all the axis ticks
     s[Makie.OldAxis].attributes.showticks[] = (true, true, true)
     # reset tick and axis label rotation and position
-    rot = (Makie.Quaternion(0.0, 0.0, -0.7071067811865476, -0.7071067811865475), Makie.Quaternion(0.0, 0.0, 1.0, 0.0), Makie.Quaternion(0.0, 0.7071067811865475, 0.7071067811865476, 0.0))
+    rot = (
+        Makie.Quaternion(0.0, 0.0, -0.7071067811865476, -0.7071067811865475),
+        Makie.Quaternion(0.0, 0.0, 1.0, 0.0),
+        Makie.Quaternion(0.0, 0.7071067811865475, 0.7071067811865476, 0.0)
+    )
     s[Makie.OldAxis].attributes.ticks.rotation[] = rot
     s[Makie.OldAxis].attributes.names.rotation[] = rot
     s[Makie.OldAxis].attributes.ticks.align = ((:left, :center), (:right, :center), (:right, :center))
@@ -311,10 +329,23 @@ indexedcolor2(i::Int) = ColorSchemes.hsv[1.0 - rem(i / (2.1 * π), 1.0)] .* 0.5
 ## displaying imported meshes
 
 Base.:*(a::Transform, p::GeometryBasics.PointMeta) = a * p.main
-Base.:*(a::Real, p::GeometryBasics.PointMeta{N,S}) where {S<:Real,N} = GeometryBasics.Point{N,S}((a * SVector{N,S}(p))...)
-Base.:*(a::Transform, p::GeometryBasics.Point{N,S}) where {S<:Real,N} = GeometryBasics.Point{N,S}((a.rotation * SVector{N,S}(p) + a.translation)...)
+function Base.:*(a::Real, p::GeometryBasics.PointMeta{N,S}) where {S<:Real,N}
+    GeometryBasics.Point{N,S}((a * SVector{N,S}(p))...)
+end
+function Base.:*(a::Transform, p::GeometryBasics.Point{N,S}) where {S<:Real,N}
+    GeometryBasics.Point{N,S}((a.rotation * SVector{N,S}(p) + a.translation)...)
+end
 
-function draw!(scene::Makie.LScene, ob::AbstractString; color = :gray, linewidth = 3, shaded::Bool = true, wireframe::Bool = false, transform::Transform{Float64} = identitytransform(Float64), scale::Float64 = 1.0, kwargs...)
+function draw!(
+    scene::Makie.LScene, ob::AbstractString;
+    color = :gray,
+    linewidth = 3,
+    shaded::Bool = true,
+    wireframe::Bool = false,
+    transform::Transform{Float64} = identitytransform(Float64),
+    scale::Float64 = 1.0,
+    kwargs...
+)
     if any(endswith(lowercase(ob), x) for x in [".obj", "ply", ".2dm", ".off", ".stl"])
         meshdata = FileIO.load(ob)
         if transform != identitytransform(Float64) || scale != 1.0
@@ -337,14 +368,16 @@ end
 ## GEOMETRY
 
 """
-    draw!(scene::Makie.LScene, surf::Surface{T}; numdivisions = 20, normals = false, normalcolor = :blue, kwargs...)
+    draw!(scene::Makie.LScene, surf::Surface; numdivisions = 20, normals = false, normalcolor = :blue, kwargs...)
 
 Transforms `surf` into a mesh using [`makemesh`](@ref) and draws the result.
 `normals` of the surface can be drawn at evenly sampled points with provided `normalcolor`.
 `numdivisions` determines the resolution with which the mesh is triangulated.
 `kwargs` is passed on to the [`TriangleMesh`](@ref) drawing function.
 """
-function draw!(scene::Makie.LScene, surf::Surface{T}; numdivisions::Int = 30, normals::Bool = false, normalcolor = :blue, kwargs...) where {T<:Real}
+function draw!(
+    scene::Makie.LScene, surf::Surface; numdivisions::Int = 30, normals::Bool = false, normalcolor = :blue, kwargs...
+)
     mesh = makemesh(surf, numdivisions)
     if nothing === mesh
         return
@@ -353,19 +386,45 @@ function draw!(scene::Makie.LScene, surf::Surface{T}; numdivisions::Int = 30, no
     if normals
         ndirs = Makie.Point3f0.(samplesurface(surf, normal, numdivisions ÷ 10))
         norigins = Makie.Point3f0.(samplesurface(surf, point, numdivisions ÷ 10))
-        Makie.arrows!(scene, norigins, ndirs, arrowsize = 0.2, arrowcolor = normalcolor, linecolor = normalcolor, linewidth = 2)
+        Makie.arrows!(
+            scene, norigins, ndirs, arrowsize = 0.2, arrowcolor = normalcolor, linecolor = normalcolor, linewidth = 2
+        )
     end
 end
 
 """
-    draw!(scene::Makie.LScene, tmesh::TriangleMesh{T}; linewidth = 3, shaded = true, wireframe = false, color = :orange, normals = false, normalcolor = :blue, transparency = false, kwargs...)
+    draw!(
+        scene::Makie.LScene, tmesh::TriangleMesh;
+        linewidth = 3,
+        shaded = true,
+        wireframe = false,
+        color = :orange,
+        normals = false,
+        normalcolor = :blue,
+        transparency = false,
+        kwargs...
+    )
 
-Draw a [`TriangleMesh`](@ref), optionially with a visible `wireframe`. `kwargs` are passed on to [`Makie.mesh`](http://makie.juliaplots.org/stable/plotting_functions.html#mesh).
+Draw a [`TriangleMesh`](@ref), optionially with a visible `wireframe`. `kwargs` are passed on to
+[`Makie.mesh`](http://makie.juliaplots.org/stable/plotting_functions.html#mesh).
 """
-function draw!(scene::Makie.LScene, tmesh::TriangleMesh{T}; linewidth = 3, shaded::Bool = true, wireframe::Bool = false, color = :orange, normals::Bool = false, normalcolor = :blue, transparency::Bool = false, kwargs...) where {T<:Real}
+function draw!(
+    scene::Makie.LScene, tmesh::TriangleMesh;
+    linewidth = 3,
+    shaded::Bool = true,
+    wireframe::Bool = false,
+    color = :orange,
+    normals::Bool = false,
+    normalcolor = :blue,
+    transparency::Bool = false,
+    kwargs...
+)
     points, indices = makiemesh(tmesh)
     if length(points) > 0 && length(indices) > 0
-        Makie.mesh!(scene, points, indices; kwargs..., color = color, shading = shaded, transparency = transparency, visible = shaded)
+        Makie.mesh!(
+            scene, points, indices;
+            kwargs..., color = color, shading = shaded, transparency = transparency, visible = shaded
+        )
         if wireframe
             mesh = scene.scene[end][1]
             if shaded
@@ -380,18 +439,22 @@ function draw!(scene::Makie.LScene, tmesh::TriangleMesh{T}; linewidth = 3, shade
         norigins = [Makie.Point3f0(centroid(t)) for t in tmesh.triangles[1:10:end]]
         ndirs = [Makie.Point3f0(normal(t)) for t in tmesh.triangles[1:10:end]]
         if length(norigins) > 0
-            Makie.arrows!(scene, norigins, ndirs, arrowsize = 0.2, arrowcolor = normalcolor, linecolor = normalcolor, linewidth = 2)
+            Makie.arrows!(
+                scene, norigins, ndirs, arrowsize=0.2, arrowcolor=normalcolor, linecolor=normalcolor, linewidth=2
+            )
         end
     end
 end
 
 """
-    draw!(scene::Makie.LScene, meshes::Vararg{S}; colors::Bool = false, kwargs...) where {T<:Real,S<:Union{TriangleMesh{T},Surface{T}}}
+    draw!(scene::Makie.LScene, meshes::Vararg{Union{TriangleMesh,Surface}}; colors::Bool = false, kwargs...)
 
-Draw a series of [`TriangleMesh`](@ref) or [`Surface`](@ref) objects, if `colors` is true then each mesh will be colored automatically with a diverse series of colors.
-`kwargs` are is passed on to the drawing function for each element.
+Draw a series of [`TriangleMesh`](@ref) or [`Surface`](@ref) objects, if `colors` is true then each mesh will be colored
+automatically with a diverse series of colors.
+
+`kwargs` are passed on to the drawing function for each element.
 """
-function draw!(scene::Makie.LScene, meshes::Vararg{S}; colors::Bool = false, kwargs...) where {T<:Real,S<:Union{TriangleMesh{T},Surface{T}}}
+function draw!(scene::Makie.LScene, meshes::Vararg{Union{TriangleMesh,Surface}}; colors::Bool = false, kwargs...)
     for i in 1:length(meshes)
         if colors
             col = indexedcolor2(i)
@@ -402,7 +465,7 @@ function draw!(scene::Makie.LScene, meshes::Vararg{S}; colors::Bool = false, kwa
     end
 end
 
-function draw(meshes::Vararg{S}; kwargs...) where {T<:Real,S<:Union{TriangleMesh{T},Surface{T}}}
+function draw(meshes::Vararg{Union{TriangleMesh{T},Surface{T}}}; kwargs...)
     scene, lscene = Vis.scene()
     draw!(lscene, meshes...; kwargs...)
     Makie.display(scene)
@@ -414,9 +477,12 @@ end
 """
     draw!(scene::Makie.LScene, csg::Union{CSGTree,CSGGenerator}; numdivisions::Int = 20, kwargs...)
 
-Convert a CSG object ([`CSGTree`](@ref) or [`CSGGenerator`](@ref)) to a mesh using [`makemesh`](@ref) with resolution set by `numdivisions` and draw the resulting [`TriangleMesh`](@ref).
+Convert a CSG object ([`CSGTree`](@ref) or [`CSGGenerator`](@ref)) to a mesh using [`makemesh`](@ref) with resolution
+set by `numdivisions` and draw the resulting [`TriangleMesh`](@ref).
 """
-draw!(scene::Makie.LScene, csg::CSGTree{T}; numdivisions::Int = 30, kwargs...) where {T<:Real} = draw!(scene, makemesh(csg, numdivisions); kwargs...)
+function draw!(scene::Makie.LScene, csg::CSGTree{T}; numdivisions::Int = 30, kwargs...) where {T<:Real}
+    draw!(scene, makemesh(csg, numdivisions); kwargs...)
+end
 draw!(scene::Makie.LScene, csg::CSGGenerator{T}; kwargs...) where {T<:Real} = draw!(scene, csg(); kwargs...)
 
 """
@@ -433,7 +499,8 @@ function draw!(scene::Makie.LScene, bbox::BoundingBox{T}; kwargs...) where {T<:R
     p6 = SVector{3,T}(bbox.xmax, bbox.ymax, bbox.zmin)
     p7 = SVector{3,T}(bbox.xmax, bbox.ymax, bbox.zmax)
     p8 = SVector{3,T}(bbox.xmax, bbox.ymin, bbox.zmax)
-    Makie.linesegments!(scene, [p1, p2, p2, p3, p3, p4, p4, p1, p1, p5, p2, p6, p3, p7, p4, p8, p5, p6, p6, p7, p7, p8, p8, p5]; kwargs...)
+    lines = [p1, p2, p2, p3, p3, p4, p4, p1, p1, p5, p2, p6, p3, p7, p4, p8, p5, p6, p6, p7, p7, p8, p8, p5]
+    Makie.linesegments!(scene, lines; kwargs...)
 end
 
 ## OPTICS
@@ -452,35 +519,77 @@ end
 """
     draw!(scene::Makie.LScene, sys::AbstractOpticalSystem; kwargs...)
 
-Draw each element in the lens assembly of an [`AbstractOpticalSystem`](@ref), with each element automatically colored differently, as well as the detector of the system.
+Draw each element in the lens assembly of an [`AbstractOpticalSystem`](@ref), with each element automatically colored
+differently, as well as the detector of the system.
 """
-function draw!(scene::Makie.LScene, sys::CSGOpticalSystem{T}; kwargs...) where {T<:Real}
+function draw!(scene::Makie.LScene, sys::CSGOpticalSystem; kwargs...)
     draw!(scene, sys.assembly; kwargs...)
     draw!(scene, sys.detector; kwargs...)
 end
 
-draw!(scene::Makie.LScene, sys::AxisymmetricOpticalSystem{T}; kwargs...) where {T<:Real} = draw!(scene, sys.system; kwargs...)
+draw!(scene::Makie.LScene, sys::AxisymmetricOpticalSystem; kwargs...) = draw!(scene, sys.system; kwargs...)
 
-onlydetectorrays(system::Q, tracevalue::LensTrace{T,3}) where {T<:Real,Q<:AbstractOpticalSystem{T}} = onsurface(detector(system), point(tracevalue))
+function onlydetectorrays(system::Q, tracevalue::LensTrace{T,3}) where {T<:Real,Q<:AbstractOpticalSystem{T}}
+    onsurface(detector(system), point(tracevalue))
+end
 
 ## RAY GEN
 """
-    drawtracerays(system::Q; raygenerator::S = Source(transform = Transform.translation(0.0,0.0,10.0), origins = Origins.RectGrid(10.0,10.0,25,25),directions = Constant(0.0,0.0,-1.0)), test::Bool = false, trackallrays::Bool = false, colorbysourcenum::Bool = false, colorbynhits::Bool = false, rayfilter::Union{Nothing,Function} = onlydetectorrays, kwargs...)
+    drawtracerays(
+        system::Q;
+        raygenerator::S = Source(
+            transform = Transform.translation(0.0,0.0,10.0),
+            origins = Origins.RectGrid(10.0,10.0,25,25),
+            directions = Constant(0.0,0.0,-1.0)
+        ),
+        test::Bool = false,
+        trackallrays::Bool = false,
+        colorbysourcenum::Bool = false,
+        colorbynhits::Bool = false,
+        rayfilter::Union{Nothing,Function} = onlydetectorrays,
+        kwargs...
+    )
 
 Displays a model of the optical system.
+
 `raygenerator` is an iterator that generates rays.
-If `trackallrays` is true then ray paths from the emitter will be displayed otherwise just the final rays that intersect the image detector will be shown, not the entire ray path.
-`colorbysourcenum` and `colorbynhits` will color rays accordingly, otherwise rays will be colored according to their wavelength.
 
-By default only ray paths that eventually intersect the detector surface are displayed. If you want to display all ray paths set `rayfilter = nothing`.
+If `trackallrays` is true then ray paths from the emitter will be displayed otherwise just the final rays that intersect
+the image detector will be shown, not the entire ray path.
 
-Also `drawtracerays!` to add to an existing scene, with `drawsys` and `drawgen` to specify whether `system` and `raygenerator` should be drawn respectively.
+`colorbysourcenum` and `colorbynhits` will color rays accordingly, otherwise rays will be colored according to their
+wavelength.
+
+By default only ray paths that eventually intersect the detector surface are displayed. If you want to display all ray
+paths set `rayfilter = nothing`.
+
+Also `drawtracerays!` to add to an existing scene, with `drawsys` and `drawgen` to specify whether `system` and
+`raygenerator` should be drawn respectively.
 """
-function drawtracerays(system::Q; raygenerator::S = Source(transform = translation(0.0,0.0,10.0), origins = Origins.RectGrid(10.0,10.0,25,25),directions = Constant(0.0,0.0,-1.0)), test::Bool = false, trackallrays::Bool = false, colorbysourcenum::Bool = false, colorbynhits::Bool = false, rayfilter::Union{Nothing,Function} = onlydetectorrays, verbose::Bool = false, resolution::Tuple{Int,Int} = (1000, 1000), kwargs...) where {T<:Real,Q<:AbstractOpticalSystem{T},S<:AbstractRayGenerator{T}}
+function drawtracerays(
+    system::Q;
+    raygenerator::S = Source(
+        transform = translation(0.0,0.0,10.0),
+        origins = Origins.RectGrid(10.0,10.0,25,25),
+        directions = Constant(0.0,0.0,-1.0)
+    ),
+    test::Bool = false,
+    trackallrays::Bool = false,
+    colorbysourcenum::Bool = false,
+    colorbynhits::Bool = false,
+    rayfilter::Union{Nothing,Function} = onlydetectorrays,
+    verbose::Bool = false,
+    resolution::Tuple{Int,Int} = (1000, 1000),
+    kwargs...
+) where {T<:Real,Q<:AbstractOpticalSystem{T},S<:AbstractRayGenerator{T}}
     verbose && println("Drawing System...")
     s, ls = Vis.scene(resolution)
 
-    drawtracerays!(ls, system, raygenerator = raygenerator, test = test, colorbysourcenum = colorbysourcenum, colorbynhits = colorbynhits, rayfilter = rayfilter, trackallrays = trackallrays, verbose = verbose, drawsys = true, drawgen = true; kwargs...)
+    drawsys = drawgen = true
+    drawtracerays!(
+        ls, system;
+        raygenerator, test, colorbysourcenum, colorbynhits, rayfilter, trackallrays, verbose, drawsys, drawgen, kwargs...
+    )
 
     display(s)
     if (get_current_mode() == :pluto || get_current_mode() == :docs)
@@ -488,9 +597,26 @@ function drawtracerays(system::Q; raygenerator::S = Source(transform = translati
     end
 end
 
-drawtracerays!(system::Q; kwargs...) where {T<:Real,Q<:AbstractOpticalSystem{T}} = drawtracerays!(current_3d_scene, system; kwargs...)
+drawtracerays!(system::AbstractOpticalSystem; kwargs...) = drawtracerays!(current_3d_scene, system; kwargs...)
 
-function drawtracerays!(scene::Makie.LScene, system::Q; raygenerator::S = Source(transform = translation(0.0,0.0,10.0), origins = Origins.RectGrid(10.0,10.0,25,25),directions = Constant(0.0,0.0,-1.0)), test::Bool = false, trackallrays::Bool = false, colorbysourcenum::Bool = false, colorbynhits::Bool = false, rayfilter::Union{Nothing,Function} = onlydetectorrays, verbose::Bool = false, drawsys::Bool = false, drawgen::Bool = false, kwargs...) where {T<:Real,Q<:AbstractOpticalSystem{T},S<:AbstractRayGenerator{T}}
+function drawtracerays!(
+    scene::Makie.LScene,
+    system::Q;
+    raygenerator::S = Source(
+        transform = translation(0.0,0.0,10.0),
+        origins = Origins.RectGrid(10.0,10.0,25,25),
+        directions = Constant(0.0,0.0,-1.0)
+    ),
+    test::Bool = false,
+    trackallrays::Bool = false,
+    colorbysourcenum::Bool = false,
+    colorbynhits::Bool = false,
+    rayfilter::Union{Nothing,Function} = onlydetectorrays,
+    verbose::Bool = false,
+    drawsys::Bool = false,
+    drawgen::Bool = false,
+    kwargs...
+) where {T<:Real,Q<:AbstractOpticalSystem{T},S<:AbstractRayGenerator{T}}
     raylines = Vector{LensTrace{T,3}}(undef, 0)
 
     drawgen && draw!(scene, raygenerator, norays = true; kwargs...)
@@ -528,11 +654,29 @@ function drawtracerays!(scene::Makie.LScene, system::Q; raygenerator::S = Source
 end
 
 """
-    drawtraceimage(system::Q; raygenerator::S = Source(transform = translation(0.0,0.0,10.0), origins = Origins.RectGrid(10.0,10.0,25,25),directions = Constant(0.0,0.0,-1.0)), test::Bool = false)
+    drawtraceimage(
+        system::Q;
+        raygenerator::S = Source(
+            transform = translation(0.0,0.0,10.0),
+            origins = Origins.RectGrid(10.0,10.0,25,25),
+            directions = Constant(0.0,0.0,-1.0)
+        ),
+        test::Bool = false
+    )
 
-Traces rays from `raygenerator` through `system` and shows and returns the detector image. `verbose` will print progress updates.
+Traces rays from `raygenerator` through `system` and shows and returns the detector image. `verbose` will print progress
+updates.
 """
-function drawtraceimage(system::Q; raygenerator::S = Source(transform = translation(0.0,0.0,10.0), origins = Origins.RectGrid(10.0,10.0,25,25),directions = Constant(0.0,0.0,-1.0)), test::Bool = false, verbose::Bool = false) where {T<:Real,Q<:AbstractOpticalSystem{T},S<:AbstractRayGenerator{T}}
+function drawtraceimage(
+    system::Q;
+    raygenerator::S = Source(
+        transform = translation(0.0,0.0,10.0),
+        origins = Origins.RectGrid(10.0,10.0,25,25),
+        directions = Constant(0.0,0.0,-1.0)
+    ),
+    test::Bool = false,
+    verbose::Bool = false
+) where {T<:Real,Q<:AbstractOpticalSystem{T},S<:AbstractRayGenerator{T}}
     resetdetector!(system)
     start_time = time()
     for (i, r) in enumerate(raygenerator)
@@ -575,12 +719,14 @@ function draw!(scene::Makie.LScene, traces::AbstractVector{LensTrace{T,N}}; kwar
 end
 
 """
-    draw!(scene::Makie.LScene, trace::LensTrace{T,N}; colorbysourcenum::Bool = false, colorbynhits::Bool = false, kwargs...)
+    draw!(scene::Makie.LScene, trace::LensTrace; colorbysourcenum::Bool = false, colorbynhits::Bool = false, kwargs...)
 
 Draw a [`LensTrace`](@ref) as a line which can be colored automatically by its `sourcenum` or `nhits` attributes.
 The alpha is determined by the `power` attribute of `trace`.
 """
-function draw!(scene::Makie.LScene, trace::LensTrace{T,N}; colorbysourcenum::Bool = false, colorbynhits::Bool = false, kwargs...) where {T<:Real,N}
+function draw!(
+    scene::Makie.LScene, trace::LensTrace; colorbysourcenum::Bool = false, colorbynhits::Bool = false, kwargs...
+)
     if colorbysourcenum
         color = indexedcolor(sourcenum(trace))
     elseif colorbynhits
@@ -588,17 +734,22 @@ function draw!(scene::Makie.LScene, trace::LensTrace{T,N}; colorbysourcenum::Boo
     else
         color = λtoRGB(wavelength(trace))
     end
-    draw!(scene, (origin(ray(trace)), point(intersection(trace))); kwargs..., color = RGBA(color.r, color.g, color.b, sqrt(power(trace))), transparency = true)
+    draw!(
+        scene, (origin(ray(trace)), point(intersection(trace)));
+        kwargs..., color = RGBA(color.r, color.g, color.b, sqrt(power(trace))), transparency = true
+    )
 end
 
 """
-    draw!(scene::Makie.LScene, ray::OpticalRay{T,N}; colorbysourcenum::Bool = false, colorbynhits::Bool = false, kwargs...)
+    draw!(scene::Makie.LScene, ray::OpticalRay; colorbysourcenum::Bool = false, colorbynhits::Bool = false, kwargs...)
 
 Draw an [`OpticalRay`](@ref) which can be colored automatically by its `sourcenum` or `nhits` attributes.
 The alpha of the ray is determined by the `power` attribute of `ray`.
 `kwargs` are passed to `draw!(scene, ray::Ray)`.
 """
-function draw!(scene::Makie.LScene, r::OpticalRay{T,N}; colorbysourcenum::Bool = false, colorbynhits::Bool = false, kwargs...) where {T<:Real,N}
+function draw!(
+    scene::Makie.LScene, r::OpticalRay; colorbysourcenum::Bool = false, colorbynhits::Bool = false, kwargs...
+)
     if colorbysourcenum
         color = indexedcolor(sourcenum(r))
     elseif colorbynhits
@@ -606,26 +757,32 @@ function draw!(scene::Makie.LScene, r::OpticalRay{T,N}; colorbysourcenum::Bool =
     else
         color = λtoRGB(wavelength(r))
     end
-    draw!(scene, ray(r); kwargs..., color = RGBA(color.r, color.g, color.b, sqrt(power(r))), transparency = true, rayscale = power(r))
+    draw!(
+        scene, ray(r);
+        kwargs..., color = RGBA(color.r, color.g, color.b, sqrt(power(r))), transparency = true, rayscale = power(r)
+    )
 end
 
 """
-    draw!(scene::Makie.LScene, ray::Ray{T,N}; color = :yellow, rayscale = 1.0, kwargs...)
+    draw!(scene::Makie.LScene, ray::Ray; color = :yellow, rayscale = 1.0, kwargs...)
 
 Draw a [`Ray`](@ref) in a given `color` optionally scaling the size using `rayscale`.
 `kwargs` are passed to [`Makie.arrows`](http://makie.juliaplots.org/stable/plotting_functions.html#arrows).
 """
-function draw!(scene::Makie.LScene, ray::AbstractRay{T,N}; color = :yellow, rayscale = 1.0, kwargs...) where {T<:Real,N}
-    arrow_size = min(0.05, rayscale * 0.05)
-    Makie.arrows!(scene, [Makie.Point3f0(origin(ray))], [Makie.Point3f0(rayscale * direction(ray))]; kwargs..., arrowsize = arrow_size, arrowcolor = color, linecolor = color, linewidth=arrow_size * 0.5)
+function draw!(scene::Makie.LScene, ray::AbstractRay; color = :yellow, rayscale = 1.0, kwargs...)
+    arrowsize = min(0.05, rayscale * 0.05)
+    Makie.arrows!(
+        scene, [Makie.Point3f0(origin(ray))], [Makie.Point3f0(rayscale * direction(ray))];
+        kwargs..., arrowsize, arrowcolor = color, linecolor = color, linewidth = arrowsize * 0.5
+    )
 end
 
 """
-    draw!(scene::Makie.LScene, du::DisjointUnion{T}; kwargs...)
+    draw!(scene::Makie.LScene, du::DisjointUnion; kwargs...)
 
 Draw each [`Interval`](@ref) in a [`DisjointUnion`](@ref).
 """
-function draw!(scene::Makie.LScene, du::DisjointUnion{T}; kwargs...) where {T<:Real}
+function draw!(scene::Makie.LScene, du::DisjointUnion; kwargs...)
     draw!(scene, intervals(du); kwargs...)
 end
 
@@ -691,7 +848,8 @@ end
 """
     draw!(scene::Makie.LScene, line::Tuple{AbstractVector{T},AbstractVector{T}}; color = :yellow, kwargs...)
 
-Draw a line between two points, `kwargs` are passed to [`Makie.linesegments`](http://makie.juliaplots.org/stable/plotting_functions.html#linesegments).
+Draw a line between two points, `kwargs` are passed to
+[`Makie.linesegments`](http://makie.juliaplots.org/stable/plotting_functions.html#linesegments).
 """
 function draw!(scene::Makie.LScene, line::Tuple{P,P}; color = :yellow, kwargs...) where {T<:Real,P<:AbstractVector{T}}
     Makie.linesegments!(scene, [line[1], line[2]]; kwargs..., color = color)
@@ -712,13 +870,25 @@ end
 Draw a vector of points.
 `kwargs` are passed to [`Makie.scatter`](http://makie.juliaplots.org/stable/plotting_functions.html#scatter).
 """
-function draw!(scene::Makie.LScene, points::AbstractVector{P}; markersize = 20, color = :black, kwargs...) where {T<:Real,P<:AbstractVector{T}}
+function draw!(
+    scene::Makie.LScene, points::AbstractVector{<:AbstractVector}; markersize = 20, color = :black, kwargs...
+)
     Makie.scatter!(scene, points, markersize = markersize, color = color, strokewidth = 0; kwargs...)
 end
 
 #######################################################
 
-function plotOPD!(sys::AxisymmetricOpticalSystem{T}; label = nothing, color = nothing, collimated::Bool = true, axis::Int = 1, samples::Int = 5, wavelength::T = 0.55, sourcepos::SVector{3,T} = SVector{3,T}(0.0, 0.0, 10.0), kwargs...) where {T<:Real}
+function plotOPD!(
+    sys::AxisymmetricOpticalSystem{T};
+    label = nothing,
+    color = nothing,
+    collimated::Bool = true,
+    axis::Int = 1,
+    samples::Int = 5,
+    wavelength::T = 0.55,
+    sourcepos::SVector{3,T} = SVector{3,T}(0.0, 0.0, 10.0),
+    kwargs...
+) where {T<:Real}
     sysdiam = semidiameter(sys)
     rays = Vector{OpticalRay{T,3}}(undef, 0)
     positions = Vector{T}(undef, 0)
@@ -768,7 +938,7 @@ function plotOPD!(sys::AxisymmetricOpticalSystem{T}; label = nothing, color = no
         lt = trace(sys, r, test = true)
         if !(nothing === lt)
             push!(xs, positions[i + 1])
-            push!(opls, (pathlength(lt) - pathlength(chiefres)) / (wavelength / 1000)) # wavelength is um while OPD is mm
+            push!(opls, (pathlength(lt) - pathlength(chiefres)) / (wavelength / 1000)) # wavelength is um, OPD is mm
         end
     end
     p = Plots.plot!(xs, opls, color = nothing === color ? λtoRGB(wavelength) : color, label = label)
@@ -791,12 +961,23 @@ function spotdiag(sys::CSGOpticalSystem{T}, raygenerator::OpticalRayGenerator{T}
 end
 
 """
-    spotdiag(sys::AxisymmetricOpticalSystem{T}; size = (500, 500), hexapolar::Bool = true, collimated::Bool = true, samples::Int = 5, wavelength::T = 0.55, sourceangle::T = zero(T), sourcepos::SVector{3,T} = SVector{3,T}(0.0, 0.0, 10.0), kwargs...)
+    spotdiag(
+        sys::AxisymmetricOpticalSystem{T};
+        size = (500, 500),
+        hexapolar::Bool = true,
+        collimated::Bool = true,
+        samples::Int = 5,
+        wavelength::T = 0.55,
+        sourceangle::T = zero(T),
+        sourcepos::SVector{3,T} = SVector{3,T}(0.0, 0.0, 10.0),
+        kwargs...
+    )
 
-Plot a spot diagram for an [`AxisymmetricOpticalSystem`](@ref), rays are distributed across the entrance pupil of the system either in a hexapolar of rectangular grid pattern depending on `hexapolar`.
+Plot a spot diagram for an [`AxisymmetricOpticalSystem`](@ref), rays are distributed across the entrance pupil of the
+system either in a hexapolar of rectangular grid pattern depending on `hexapolar`.
 
-The input rays can be `collimated`, in which case the `sourceangle` parameter determines their direction.
-Otherwise rays are treated as coming from a point source at `sourcepos`.
+The input rays can be `collimated`, in which case the `sourceangle` parameter determines their direction. Otherwise rays
+are treated as coming from a point source at `sourcepos`.
 
 Also `spotdiag!` of the same arguments to add to an existing plot.
 """
@@ -805,16 +986,29 @@ function spotdiag(sys::AxisymmetricOpticalSystem{T}; kwargs...) where {T<:Real}
     return spotdiag!(sys; kwargs...)
 end
 
-function spotdiag!(sys::AxisymmetricOpticalSystem{T}; color = nothing, hexapolar::Bool = true, collimated::Bool = true, samples::Int = 5, wavelength::T = 0.55, sourceangle::T = zero(T), sourcepos::SVector{3,T} = SVector{3,T}(0.0, 0.0, 10.0), kwargs...) where {T<:Real}
+function spotdiag!(
+    sys::AxisymmetricOpticalSystem{T};
+    color = nothing,
+    hexapolar::Bool = true,
+    collimated::Bool = true,
+    samples::Int = 5,
+    wavelength::T = 0.55,
+    sourceangle::T = zero(T),
+    sourcepos::SVector{3,T} = SVector{3,T}(0.0, 0.0, 10.0),
+    kwargs...
+) where {T<:Real}
     if hexapolar
-        source = HexapolarField(sys, samples = samples, collimated = collimated, wavelength = wavelength, sourcepos = sourcepos, sourceangle = sourceangle)
+        source = HexapolarField(sys; samples, collimated, wavelength, sourcepos, sourceangle)
     else
-        source = GridField(sys, samples = samples, collimated = collimated, wavelength = wavelength, sourcepos = sourcepos, sourceangle = sourceangle)
+        source = GridField(sys; samples, collimated, wavelength, sourcepos, sourceangle)
     end
-    return spotdiag!(sys.system, source, color = color; kwargs...)
+    return spotdiag!(sys.system, source; color, kwargs...)
 end
 
-function spotdiag!(sys::CSGOpticalSystem{T}, raygenerator::OpticalRayGenerator{T}; color = nothing, label = nothing, size = (500, 500), kwargs...) where {T<:Real}
+function spotdiag!(
+    sys::CSGOpticalSystem{T}, raygenerator::OpticalRayGenerator{T};
+    color = nothing, label = nothing, size = (500, 500), kwargs...
+) where {T<:Real}
     xs = Vector{T}()
     ys = Vector{T}()
     det = detector(sys)
@@ -829,15 +1023,30 @@ function spotdiag!(sys::CSGOpticalSystem{T}, raygenerator::OpticalRayGenerator{T
     cen = sum(xs) / length(xs), sum(ys) / length(ys)
     xs .-= cen[1]
     ys .-= cen[2]
-    p = Plots.scatter!(xs, ys, color = (color === nothing) ? λtoRGB(wavelength(raygenerator[0])) : color, label = label, marker = :+, markerstrokewidth = 0, markerstrokealpha = 0, size = size, aspect_ratio = :equal)
+    color = (color === nothing) ? λtoRGB(wavelength(raygenerator[0])) : color
+    p = Plots.scatter!(
+        xs,
+        ys,
+        color = color,
+        label = label,
+        marker = :+,
+        markerstrokewidth = 0,
+        markerstrokealpha = 0,
+        size = size,
+        aspect_ratio = :equal
+    )
     Plots.xlabel!(p, "x (mm)")
     Plots.ylabel!(p, "y (mm)")
     return p
 end
 
-spotdiaggrid(sys::AxisymmetricOpticalSystem{T}, raygenerators::Vector{<:OpticalRayGenerator{T}}; kwargs...) where {T<:Real} = spotdiaggrid(sys.system, raygenerators; kwargs...)
+function spotdiaggrid(sys::AxisymmetricOpticalSystem, raygenerators::Vector{<:OpticalRayGenerator}; kwargs...)
+    spotdiaggrid(sys.system, raygenerators; kwargs...)
+end
 
-function spotdiaggrid(sys::CSGOpticalSystem{T}, raygenerators::Vector{<:OpticalRayGenerator{T}}; colorbynum::Bool = false, kwargs...) where {T<:Real}
+function spotdiaggrid(
+    sys::CSGOpticalSystem, raygenerators::Vector{<:OpticalRayGenerator}; colorbynum::Bool = false, kwargs...
+)
     plots = []
     x = Int(floor(sqrt(length(raygenerators))))
     y = length(raygenerators) ÷ x
@@ -867,7 +1076,13 @@ function spotdiaggrid(sys::CSGOpticalSystem{T}, raygenerators::Vector{<:OpticalR
 end
 
 """
-    surfacesag(object::Union{CSGTree{T},Surface{T}}, resolution::Tuple{Int,Int}, halfsizes::Tuple{T,T}; offset::T = T(10), position::SVector{3,T} = SVector{3,T}(0.0, 0.0, 10.0), direction::SVector{3,T} = SVector{3,T}(0.0, 0.0, -1.0), rotationvec::SVector{3,T} = SVector{3,T}(0.0, 1.0, 0.0))
+    surfacesag(
+        object::Union{CSGTree{T},Surface{T}}, resolution::Tuple{Int,Int}, halfsizes::Tuple{T,T};
+        offset::T = T(10),
+        position::SVector{3,T} = SVector{3,T}(0.0, 0.0, 10.0),
+        direction::SVector{3,T} = SVector{3,T}(0.0, 0.0, -1.0),
+        rotationvec::SVector{3,T} = SVector{3,T}(0.0, 1.0, 0.0)
+    )
 
 Calculates and displays the surface sag of an arbitrary [`Surface`](@ref) or [`CSGTree`](@ref).
 
@@ -875,7 +1090,13 @@ Rays are shot in a grid of size defined by `resolution` across a arectangular ar
 This rectangle is centred at `postion` with normal along `direction` and rotation defined by `rotationvec`.
 `offset` is subtracted from the sag measurements to provide values relative to the appropriate zero level.
 """
-function surfacesag(object::Union{CSGTree{T},Surface{T}}, resolution::Tuple{Int,Int}, halfsizes::Tuple{T,T}; offset::T = T(10), position::SVector{3,T} = SVector{3,T}(0.0, 0.0, 10.0), direction::SVector{3,T} = SVector{3,T}(0.0, 0.0, -1.0), rotationvec::SVector{3,T} = SVector{3,T}(0.0, 1.0, 0.0)) where {T<:Real}
+function surfacesag(
+    object::Union{CSGTree{T},Surface{T}}, resolution::Tuple{Int,Int}, halfsizes::Tuple{T,T};
+    offset::T = T(10),
+    position::SVector{3,T} = SVector{3,T}(0.0, 0.0, 10.0),
+    direction::SVector{3,T} = SVector{3,T}(0.0, 0.0, -1.0),
+    rotationvec::SVector{3,T} = SVector{3,T}(0.0, 1.0, 0.0)
+) where {T<:Real}
     direction = normalize(direction)
     if abs(dot(rotationvec, direction)) == one(T)
         rotationvec = SVector{3,T}(1.0, 0.0, 0.0)
@@ -898,25 +1119,56 @@ function surfacesag(object::Union{CSGTree{T},Surface{T}}, resolution::Tuple{Int,
             end
         end
     end
-    p = Plots.heatmap((-halfsizes[1]):(2 * halfsizes[1] / resolution[1]):halfsizes[1], (-halfsizes[2]):(2 * halfsizes[2] / resolution[2]):halfsizes[2], image, c = :jet1, aspect_ratio = :equal, size = (1000, 1000))
+    p = Plots.heatmap(
+        (-halfsizes[1]):(2 * halfsizes[1] / resolution[1]):halfsizes[1],
+        (-halfsizes[2]):(2 * halfsizes[2] / resolution[2]):halfsizes[2],
+        image,
+        c = :jet1,
+        aspect_ratio = :equal,
+        size = (1000, 1000)
+    )
     Plots.xlims!(p, -halfsizes[1], halfsizes[1])
     Plots.ylims!(p, -halfsizes[2], halfsizes[2])
     return p
 end
 
 """
-    eyebox_eval_eye(assembly::LensAssembly{T}, raygen::OpticalRayGenerator{T}, eye_rotation_x::T, eye_rotation_y::T, sample_points_x::Int, sample_points_y::Int; pupil_radius::T = T(2.0), resolution::Int = 512, eye_transform::Transform{T} = identitytransform(T))
+    eyebox_eval_eye(
+        assembly::LensAssembly{T},
+        raygen::OpticalRayGenerator{T},
+        eye_rotation_x::T,
+        eye_rotation_y::T,
+        sample_points_x::Int,
+        sample_points_y::Int;
+        pupil_radius::T = T(2.0),
+        resolution::Int = 512,
+        eye_transform::Transform{T} = identitytransform(T)
+    )
 
-Visualise the images formed when tracing `assembly` with a human eye for an evenly sampled `sample_points_x × sample_points_y` grid in the angular range of eyeball rotations `-eye_rotation_x:eye_rotation_x` and `-eye_rotation_y:eye_rotation_y` in each dimension respectively.
+Visualise the images formed when tracing `assembly` with a human eye for an evenly sampled
+`sample_points_x × sample_points_y` grid in the angular range of eyeball rotations `-eye_rotation_x:eye_rotation_x` and
+`-eye_rotation_y:eye_rotation_y` in each dimension respectively.
+
 `resolution` is the size of the detector image (necessarily square).
 
-The eye must be positioned appropriately relative to the system using `eye_transform`, this should transform the eye to the correct position and orientation when at 0 rotation in both dimensions.
-By default the eye is directed along the positive z-axis with the vertex of the cornea at the origin.
+The eye must be positioned appropriately relative to the system using `eye_transform`, this should transform the eye to
+the correct position and orientation when at 0 rotation in both dimensions. By default the eye is directed along the
+positive z-axis with the vertex of the cornea at the origin.
 
-The result is displayed as a 4D image - the image seen by the eye is shown in 2D as normal with sliders to vary eye rotation in x and y.
-The idea being that the whole image should be visible for all rotations in the range.
+The result is displayed as a 4D image - the image seen by the eye is shown in 2D as normal with sliders to vary eye
+rotation in x and y. The idea being that the whole image should be visible for all rotations in the range.
 """
-function eyebox_eval_eye(assembly::LensAssembly{T}, raygen::OpticalRayGenerator{T}, eye_rotation_x::T, eye_rotation_y::T, sample_points_x::Int, sample_points_y::Int; pupil_radius::T = T(2.0), resolution::Int = 512, eye_transform::Transform{T} = identitytransform(T)) where {T<:Real}
+function eyebox_eval_eye(
+    assembly::LensAssembly{T},
+    raygen::OpticalRayGenerator{T},
+    eye_rotation_x::T,
+    eye_rotation_y::T,
+    sample_points_x::Int,
+    sample_points_y::Int;
+    pupil_radius::T = T(2.0),
+    resolution::Int = 512,
+    eye_transform::Transform{T} = identitytransform(T)
+) where {T<:Real}
     out_image = zeros(Float32, resolution, resolution, sample_points_y, sample_points_x)
     xrange = sample_points_x > 1 ? range(-eye_rotation_x, stop = eye_rotation_x, length = sample_points_x) : [0.0]
     yrange = sample_points_y > 1 ? range(-eye_rotation_y, stop = eye_rotation_y, length = sample_points_y) : [0.0]
@@ -927,11 +1179,7 @@ function eyebox_eval_eye(assembly::LensAssembly{T}, raygen::OpticalRayGenerator{
             r = OpticSim.rotmatd(T, ery, erx, 0.0)
             ov = OpticSim.rotate(eye_transform, SVector{3,T}(0.0, 0.0, 13.0))
             t = r * ov - ov
-            sys = ModelEye(assembly, pupil_radius = pupil_radius, detpixels = resolution, transform = eye_transform * Transform(r, t))
-            # Vis.draw(sys)
-            # Vis.draw!((eye_transform.translation - ov - SVector(0.0, 20.0, 0.0), eye_transform.translation - ov + SVector(0.0, 20.0, 0.0)))
-            # Vis.draw!((eye_transform.translation - ov - SVector(20.0, 0.0, 0.0), eye_transform.translation - ov + SVector(20.0, 0.0, 0.0)))
-            # Vis.draw!(eye_transform.translation, markersize = 500.0)
+            sys = ModelEye(assembly; pupil_radius, detpixels = resolution, transform = eye_transform * Transform(r, t))
             out_image[:, :, yi, xi] = traceMT(sys, raygen, printprog = false)
         end
     end
@@ -940,21 +1188,41 @@ function eyebox_eval_eye(assembly::LensAssembly{T}, raygen::OpticalRayGenerator{
 end
 
 """
-    eyebox_eval_planar(assembly::LensAssembly{T}, raygen::OpticalRayGenerator{T}, eyebox::Rectangle{T}, sample_points_x::Int, sample_points_y::Int, vsize::T; pupil_radius::T = T(2.0), resolution::Int = 512)
+    eyebox_eval_planar(
+        assembly::LensAssembly{T},
+        raygen::OpticalRayGenerator{T},
+        eyebox::Rectangle{T},
+        sample_points_x::Int,
+        sample_points_y::Int,
+        vsize::T;
+        pupil_radius::T = T(2.0),
+        resolution::Int = 512
+    )
 
 Visualise the images formed when tracing `assembly` for multiple pupil positions within a planar `eyebox`.
-Any angles which are present in a circle radius `pupil_radius` around each sampling point on an even `sample_points_x × sample_points_y` grid on the `eyebox` are added to the sub-image at that grid point.
+Any angles which are present in a circle radius `pupil_radius` around each sampling point on an even
+`sample_points_x × sample_points_y` grid on the `eyebox` are added to the sub-image at that grid point.
 
 A paraxial lens focal length 1mm is placed at the eyebox and a detector of size `vsize × vsize`mm placed 1mm behind it.
 The normal of the detector rectangle should point towards the system (and away from the fake detector).
 Any rays which miss the detector are ignored.
 
-The pupil is always fully contained in the eyebox, i.e., the extreme sample position in u would be `eyebox.halfsizeu - pupil_radius`, for example.
+The pupil is always fully contained in the eyebox, i.e., the extreme sample position in u would be
+`eyebox.halfsizeu - pupil_radius`, for example.
 
 The result is displayed as a 4D image - each sub-image is shown as normal with sliders to vary eye rotation in x and y.
 The idea being that the whole FoV should be visible for all rotations in the range.
 """
-function eyebox_eval_planar(assembly::LensAssembly{T}, raygen::OpticalRayGenerator{T}, eyebox::Rectangle{T}, sample_points_x::Int, sample_points_y::Int, vsize::T; pupil_radius::T = T(2.0), resolution::Int = 512) where {T<:Real}
+function eyebox_eval_planar(
+    assembly::LensAssembly{T},
+    raygen::OpticalRayGenerator{T},
+    eyebox::Rectangle{T},
+    sample_points_x::Int,
+    sample_points_y::Int,
+    vsize::T;
+    pupil_radius::T = T(2.0),
+    resolution::Int = 512
+) where {T<:Real}
     sys = CSGOpticalSystem(assembly, eyebox, 1, 1)
     hits = tracehitsMT(sys, raygen)
     println("Calculating results...")
@@ -967,12 +1235,16 @@ function eyebox_eval_planar(assembly::LensAssembly{T}, raygen::OpticalRayGenerat
             x = u * eyebox.halfsizeu
             y = v * eyebox.halfsizev
 
-            raydirection = normalize((centroid(eyebox) - point(res)) + direction(ray(res)) / dot(-normal(eyebox), direction(ray(res))))
+            raydirection = normalize(
+                (centroid(eyebox) - point(res)) + direction(ray(res)) / dot(-normal(eyebox), direction(ray(res)))
+            )
             focal_plane_hit = surfaceintersection(det, Ray(point(res), raydirection))
             if focal_plane_hit isa EmptyInterval
                 continue
             end
-            px, py = OpticSim.uvtopix(det, uv(OpticSim.halfspaceintersection(focal_plane_hit)), (resolution, resolution))
+            px, py = OpticSim.uvtopix(
+                det, uv(OpticSim.halfspaceintersection(focal_plane_hit)), (resolution, resolution)
+            )
 
             hsu = eyebox.halfsizeu - pupil_radius
             hsv = eyebox.halfsizev - pupil_radius
