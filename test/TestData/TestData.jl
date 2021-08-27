@@ -11,6 +11,8 @@ using OpticSim
 using OpticSim: tobeziersegments # try to use only exported functions so this list should stay short
 using OpticSim.Geometry
 using OpticSim.Emitters
+using OpticSim.GlassCat
+
 using StaticArrays
 using DataFrames: DataFrame
 using Unitful
