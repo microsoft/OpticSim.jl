@@ -37,7 +37,7 @@ end
 """ Create a ClusterWithProperties with three types of elements, R,G,B """
 function hex3RGB()
     clusterelements = SVector((0,0),(-1,0),(-1,1))
-    colors = [color("red"),color("green"),color("blue")]
+    colors = [colorant"red",colorant"green",colorant"blue"]
     names = ["R","G","B"]
     eltlattice = HexBasis1()
     clusterbasis = LatticeBasis(( -1,2),(2,-1))
@@ -49,7 +49,7 @@ end
 """ Create a ClusterWithProperties with four types of elements, R,G,B,W """
 function hexRGBW()
     clusterelements = SVector((0,0),(-1,0),(-1,1),(0,-1))
-    colors = [color("red"),color("green"),color("blue"),color("white")]
+    colors = [colorant"red",colorant"green",colorant"blue",colorant"white"]
     names = ["R","G","B","W"]
     eltlattice = HexBasis1()
     clusterbasis = LatticeBasis((0,2),(2,-2))
@@ -65,9 +65,9 @@ function hex12RGB()
         (-1,-1),(0,-1),(1,-1),(2,-1),
         (0,-2),(1,-2),(2,-2)
     )
-    red = color("red")
-    grn = color("green")
-    blu = color("blue")
+    red = colorant"red"
+    grn = colorant"green"
+    blu = colorant"blue"
     colors = [
         grn,blu,
         blu,red,grn,
