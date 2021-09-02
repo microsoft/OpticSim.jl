@@ -36,8 +36,9 @@ cooke_triplet() = trace, (TestData.cooketriplet(), optray())
 chebyshev_lens() = trace, (TestData.chebyshevsystem(), perturboptray())
 gridsag_lens() = trace, (TestData.gridsagsystem(), perturboptray())
 multi_hoe() = trace, (TestData.multiHOE(), OpticalRay(SVector(0.0, 3.0, 3.0), SVector(0.0, -1.0, -1.0), 1.0, 0.55))
+planar_shapes() = trace, (TestData.planarshapes(), optray())
 
-system_benchmarks() = double_concave, double_convex, aspheric_lens, zernike_lens, chebyshev_lens, gridsag_lens, cooke_triplet, multi_hoe
+system_benchmarks() = double_concave, double_convex, aspheric_lens, zernike_lens, chebyshev_lens, gridsag_lens, cooke_triplet, multi_hoe, planar_shapes
 
 triangle() = surfaceintersection, (Triangle(SVector(-1.0, -1.0, 0.0), SVector(1.0, 0.0, 0.0), SVector(0.0, 1.0, 0.0)), rayz())
 sphericalcap() = surfaceintersection, (SphericalCap(1.0, π / 3), rayz())

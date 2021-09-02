@@ -112,6 +112,36 @@ function planoplano(::Type{T} = Float64) where {T<:Real}
     )
 end
 
+"""
+    planarshapes()
+
+Returns a CSGOpticalSystem containing a vertical stack (along the z-axis) of alternating planar shapes and a detector
+placed at the end of the stack. This is for the purpose of benchmarking allocations when planar shapes are stored in a
+shared Vector within LensAssembly.
+"""
+function planarshapes()
+    interface = FresnelInterface{Float64}(SCHOTT.N_BK7, Air; interfacemode=Transmit)
+    s = 10.0
+    surfacenormal = SVector(0., 0., 1.)
+
+    elements = []
+    for i = 1:9
+        centrepoint = SVector(0., 0., -i)
+        if i % 3 == 1
+            push!(elements, Ellipse(s, s, surfacenormal, centrepoint; interface))
+        elseif i % 3 == 2
+            push!(elements, Hexagon(s, surfacenormal, centrepoint; interface))
+        elseif i % 3 == 0
+            push!(elements, Rectangle(s, s, surfacenormal, centrepoint; interface))
+        end
+    end
+
+    lensassembly = LensAssembly(elements...)
+    detector = Rectangle(s, s, surfacenormal, SVector(0., 0., -10.); interface = opaqueinterface())
+
+    return CSGOpticalSystem(lensassembly, detector)
+end
+
 zernikesystem() = CSGOpticalSystem(LensAssembly(zernikelens()), Rectangle(40.0, 40.0, [0.0, 0.0, 1.0], [0.0, 0.0, -67.8], interface = opaqueinterface()))
 asphericsystem() = CSGOpticalSystem(LensAssembly(asphericlens()), Rectangle(25.0, 25.0, [0.0, 0.0, 1.0], [0.0, 0.0, -67.8], interface = opaqueinterface()))
 conicsystemZ() = CSGOpticalSystem(LensAssembly(coniclensZ()), Rectangle(25.0, 25.0, [0.0, 0.0, 1.0], [0.0, 0.0, -67.8], interface = opaqueinterface()))
