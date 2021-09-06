@@ -1,3 +1,7 @@
+# MIT license
+# Copyright (c) Microsoft Corporation. All rights reserved.
+# See LICENSE in the project root for full license information.
+
 intersectionat(α::Float64) = Intersection(α, [0.7071067811865475, 0.7071067811865475, 0.0] * α, [0.0, 0.0, 0.0], 0.0, 0.0, NullInterface())
 
 const greenwavelength = Unitful.u"550nm"

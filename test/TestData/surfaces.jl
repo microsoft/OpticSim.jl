@@ -1,3 +1,7 @@
+# MIT license
+# Copyright (c) Microsoft Corporation. All rights reserved.
+# See LICENSE in the project root for full license information.
+
 function bsplinesurface()
     vknots = KnotVector{Float64}([0.0, 0.0, 0.0, 0.0, 0.5, 1.0, 1.0, 1.0, 1.0])
     uknots = KnotVector{Float64}([0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0])

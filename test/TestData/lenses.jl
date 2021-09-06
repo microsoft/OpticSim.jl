@@ -1,3 +1,7 @@
+# MIT license
+# Copyright (c) Microsoft Corporation. All rights reserved.
+# See LICENSE in the project root for full license information.
+
 function zernikelens()
     topsurface = leaf(AcceleratedParametricSurface(ZernikeSurface(9.5, zcoeff = [(1, 0.0), (4, -1.0), (7, 0.5)]), interface = FresnelInterface{Float64}(OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air)), translation(0.0, 0.0, 5.0))
     botsurface = leaf(Plane(0.0, 0.0, -1.0, 0.0, 0.0, -5.0, vishalfsizeu = 9.5, vishalfsizev = 9.5, interface = FresnelInterface{Float64}(OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air)))

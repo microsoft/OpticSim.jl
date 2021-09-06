@@ -1,3 +1,7 @@
+# MIT license
+# Copyright (c) Microsoft Corporation. All rights reserved.
+# See LICENSE in the project root for full license information.
+
 function cooketriplet(::Type{T} = Float64) where {T<:Real}
     return AxisymmetricOpticalSystem{T}(
         DataFrame(

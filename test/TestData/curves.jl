@@ -1,3 +1,7 @@
+# MIT license
+# Copyright (c) Microsoft Corporation. All rights reserved.
+# See LICENSE in the project root for full license information.
+
 function bsplinecurve()
     knots = KnotVector{Float64}([0.0, 0.0, 0.0, 0.0, 0.3, 0.6, 1.0, 1.0, 1.0, 1.0])
     points = Array{MVector{2,Float64},1}([(0.05, 0.05), (0.05, 0.8), (0.6, 0.0), (0.7, 0.5), (0.5, 0.95), (0.95, 0.5)])
