@@ -10,7 +10,7 @@
 
 # lattice visualizations are drawn with Luxor because it is easier to do 2D drawings with Luxor than with Makie.
 
-function draw(tilebasis::Basis,tilesize,i,j,color,name)
+function draw(tilebasis::Basis,tilesize,i,j,color,name) 
     vertices = Repeat.tilevertices(tilebasis)
     tile = tilesize*[Luxor.Point(vertices[:,i]...) for i in 1:size(vertices)[2]]
     pt = tilesize*tilebasis[i,j]
