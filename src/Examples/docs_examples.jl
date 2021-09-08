@@ -130,11 +130,13 @@ function draw_lensconstruction(filename::Union{Nothing,AbstractString} = nothing
     barrel = Cylinder(
         9.0, 20.0, interface = FresnelInterface{Float64}(SCHOTT.N_BK7, Air, reflectance=0.0, transmission=0.0)
     )
-    lens = (barrel ∩ topsurface ∩ botsurface)(Transform{Float64}(0.0, Float64(π), 0.0, 0.0, 0.0, -5.0))
+    lens = Object(barrel ∩ topsurface ∩ botsurface)(Transform{Float64}(0.0, Float64(π), 0.0, 0.0, 0.0, -5.0))
     detector = Rectangle(15.0, 15.0, [0.0, 0.0, 1.0], [0.0, 0.0, -67.8], interface = opaqueinterface())
     sys = CSGOpticalSystem(LensAssembly(lens), detector)
 
-    Vis.drawtracerays(sys, test = true, trackallrays = true, colorbynhits = true)
+    properties = Properties(lens.id => Dict("color" => colorant"magenta"))
+
+    Vis.drawtracerays(sys; properties, test = true, trackallrays = true, colorbynhits = true)
     Vis.save(filename)
     return nothing
 end
