@@ -2,7 +2,7 @@ using Base: uniontypes
 using Random
 using UUIDs
 
-export Object, Properties
+export Object, Properties, getobjectproperty
 
 uuid() = uuid1(Random.GLOBAL_RNG)
 
@@ -26,3 +26,8 @@ hasid(::Type) = WithoutID()
 hasid(::Object) = WithID()
 
 const Properties = Dict{UUID,Dict{String,Any}}
+
+function getobjectproperty(property::String, object::Object, properties::Properties, default)
+    objectproperties = get(properties, object.id, Dict())
+    return get(objectproperties, property, default)
+end

@@ -63,14 +63,6 @@ function drawcurves(curves::Vararg{Spline{P,S,N,M}}; numpoints::Int = 200, canva
     Luxor.preview()
 end
 
-function getcolor(object::Object, properties::Properties, i::Int = 0)
-    if object isa Object && object.id in keys(properties) && "color" in keys(properties[object.id])
-        color = properties[object.id]["color"]
-    else
-        color = indexedcolor2(i)
-    end
-end
-
 #############################################################################
 
 # all functions follow the pattern draw(obj) and draw!(scene, obj) where the first case draws the object in a blank
@@ -277,12 +269,12 @@ function draw!(ob; kwargs...)
 end
 
 function draw!(object::Object; properties::Properties = Properties(), kwargs...)
-    color = getcolor(object, properties)
+    color = getobjectproperty("color", object, properties, colorant"orange")
     draw!(object.object; color, kwargs...)
 end
 
 function draw!(scene::Makie.LScene, object::Object; properties::Properties = Properties(), kwargs...)
-    color = getcolor(object, properties)
+    color = getobjectproperty("color", object, properties, colorant"orange")
     draw!(scene, object.object; color, kwargs...)
 end
 
@@ -530,7 +522,7 @@ Draw each element in a [`LensAssembly`](@ref), with each element automatically c
 """
 function draw!(scene::Makie.LScene, ass::LensAssembly; properties::Properties = Properties(), kwargs...)
     for (i, e) in enumerate(elements(ass))
-        color = getcolor(e, properties, i)
+        color = getobjectproperty("color", e, properties, indexedcolor2(i))
         draw!(scene, e; kwargs..., color)
     end
 end
