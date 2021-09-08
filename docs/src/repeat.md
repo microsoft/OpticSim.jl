@@ -20,7 +20,7 @@ tilevertices(a::S) where{S<:Basis}
 A lattice is described by a set of lattice vectors eᵢ which are stored in a [`Basis`](@ref sources) object. You can create bases in any dimension. Points in the lattice are indexed by integer coordinates. These lattice coordinates can be converted to Cartesian coordinates by indexing the LatticeBasis object. 
 ``` @example example
 using OpticSim, OpticSim.Repeat
-a = LatticeBasis([1.0,5.0],[0.0,1.0])
+a = LatticeBasis((1.0,5.0),(0.0,1.0))
 a[3,3]
 ```
 
