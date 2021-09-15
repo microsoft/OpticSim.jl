@@ -35,3 +35,5 @@ function getobjectproperty(property::String, object::Object, properties::Propert
     objectproperties = get(properties, object.id, Dict())
     return get(objectproperties, property, default)
 end
+
+getobjectproperty(property::String, object, properties::Properties, default) = default
