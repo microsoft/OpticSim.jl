@@ -4,6 +4,7 @@ using OpticSim.Geometry
 
 using StaticArrays
 using UUIDs
+using Base.Iterators
 
 R = 125. # radius of curvature of inner spherical surface
 r = 3. # radial thickness of spherical surface
@@ -14,8 +15,9 @@ r = 3. # radial thickness of spherical surface
 material = SCHOTT.N_BK7
 
 δθ = deg2rad(1)
-δϕ = deg2rad(1)
+δϕ = deg2rad(1.5)
 
+# create the spherical base plate
 function sphericalsurface(R::T, r::T, θ1::T, θ2::T, ϕ1::T, ϕ2::T, material::GlassCat.AbstractGlass) where {T<:Real}
     i1 = FresnelInterface{T}(material, Air; interfacemode = Reflect) # air outside
     i2 = FresnelInterface{T}(Air, material; interfacemode = Transmit) # air inside
@@ -32,6 +34,7 @@ function sphericalsurface(R::T, r::T, θ1::T, θ2::T, ϕ1::T, ϕ2::T, material::
     return Object(((s_outer - s_inner) ∩ p_left ∩ p_right ∩ p_bottom ∩ p_top)())
 end
 
+# this is essentially an AxisymmetricOpticalSystem
 function lensstack(radius::T, height::T) where {T<:Real}
     # aspherics = [
     #     (4, -4.61356730446999984E-04),
@@ -55,29 +58,40 @@ function lensstack(radius::T, height::T) where {T<:Real}
     return topsurface ∩ barrel ∩ botsurface
 end
 
+# create a bunch of lens stacks, transform them into a spherical hex grid, and group them by lens type (HEX7)
 function tiledlensstacks(
     nx, ny, hexradius::T, δθ::T, δϕ::T, R::T, r::T, θ1::T, θ2::T, ϕ1::T, ϕ2::T, material::GlassCat.AbstractGlass
 ) where {T<:Real}
     ρ = R + 1.5r
+    origin = [θ1 + θ2; ϕ1 + ϕ2] / 2
     coords = Repeat.hexcellsinbox(nx, ny)
 
-    lensstacks::Vector{Object{<:CSGTree{T}}} = []
-    tiling::Vector{Vector{UUID}} = fill([], 7)
+    lensstacks::Vector{Vector{Object{<:CSGTree{T}}}} = fill([], 7)
 
     for (i, j) in eachcol(coords)
-        θ, ϕ = [θ1 + θ2; ϕ1 + ϕ2] / 2 + Repeat.HexBasis1()[i, j] .* [δθ, δϕ]
+        lenstype = mod(i - 2j, 7) + 1
+
+        θ, ϕ = origin + Repeat.HexBasis1()[i, j] .* [δθ, δϕ]
         transform = rotation(zero(T), θ, ϕ) * translation(zero(T), zero(T), ρ)
-        push!(lensstacks, Object(lensstack(hexradius, r))(transform))
+        transformedlensstack = lensstack(hexradius, r)(transform)
+
+        push!(lensstacks[lenstype], Object(transformedlensstack))
     end
 
     return lensstacks
 end
 
-assembly = LensAssembly(
-    tiledlensstacks(5, 5, 2., δθ, δϕ, R, r, θ1, θ2, ϕ1, ϕ2, material)...,
-    sphericalsurface(R, r, θ1, θ2, ϕ1, ϕ2, material)
+lensstacks = tiledlensstacks(5, 4, 2., δθ, δϕ, R, r, θ1, θ2, ϕ1, ϕ2, material)
+baseplate = sphericalsurface(R, r, θ1, θ2, ϕ1, ϕ2, material)
+
+colors = [color(c) for c in split("white red orange green blue cyan purple")]
+properties = Properties(
+    [object.id => Dict("color" => colors[i]) for i in 1:7 for object in lensstacks[i]]...,
+    baseplate.id => Dict("color" => colorant"black")
 )
-Vis.draw(assembly)
+
+assembly = LensAssembly(reduce(vcat, lensstacks)..., baseplate)
+Vis.draw(assembly; properties)
 
 # Vis.draw(sphericalsurface(R, r, θ1, θ2, ϕ1, ϕ2, material))
 # Vis.draw(Object(lensstack(5., 2.))(Transform{Float64}(0.0, Float64(π/4), 0.0, 0.0, 0.0, -5.0)))
