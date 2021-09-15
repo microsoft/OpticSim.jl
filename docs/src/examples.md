@@ -115,3 +115,14 @@ draw_stackedbeamsplitters(["assets/deterministic_trace_$i.png" for i in 1:3]) # 
 ![Nondeterministic Raytrace](assets/deterministic_trace_1.png)
 ![Transmission only](assets/deterministic_trace_2.png)
 ![Reflection only](assets/deterministic_trace_3.png)
+
+## Gestel
+```@example highlight
+mdparse(@code_string draw_gestel()) # hide
+```
+
+```@example example
+draw_gestel("assets/gestel.png") # hide
+```
+
+![Gestel spherical mockup](assets/gestel.png)
