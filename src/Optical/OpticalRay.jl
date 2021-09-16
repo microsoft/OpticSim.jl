@@ -36,21 +36,21 @@ struct OpticalRay{T,N} <: AbstractRay{T,N}
     nhits::Int
     sourcepower::T
     sourcenum::Int
-    polarization::Chipman #this will only work if N = 3.
+    polarization::Chipman{T} #this will only work if N = 3.
 
     function OpticalRay(ray::Ray{T,N}, power::T, wavelength::T; opl::T = zero(T), nhits::Int = 0, sourcenum::Int = 0, sourcepower::T = power) where {T<:Real,N}
-        return new{T,N}(ray, power, wavelength, opl, nhits, sourcepower, sourcenum, Chipman())
+        return new{T,N}(ray, power, wavelength, opl, nhits, sourcepower, sourcenum, Chipman{T}())
     end
 
     function OpticalRay(origin::SVector{N,T}, direction::SVector{N,T}, power::T, wavelength::T; opl::T = zero(T), nhits::Int = 0, sourcenum::Int = 0, sourcepower::T = power) where {T<:Real,N}
-        return new{T,N}(Ray(origin, normalize(direction)), power, wavelength, opl, nhits, sourcepower, sourcenum, Chipman())
+        return new{T,N}(Ray(origin, normalize(direction)), power, wavelength, opl, nhits, sourcepower, sourcenum, Chipman{T}())
     end
 
     function OpticalRay(origin::AbstractArray{T,1}, direction::AbstractArray{T,1}, power::T, wavelength::T; opl::T = zero(T), nhits::Int = 0, sourcenum::Int = 0, sourcepower::T = power) where {T<:Real}
         throw(ErrorException("error"))
         @assert length(origin) == length(direction) "origin (dimension $(length(origin))) and direction (dimension $(length(direction))) vectors do not have the same dimension"
         N = length(origin)
-        return new{T,N}(Ray(SVector{N,T}(origin), normalize(SVector{N,T}(direction))), power, wavelength, opl, nhits, sourcepower, sourcenum, Chipman())
+        return new{T,N}(Ray(SVector{N,T}(origin), normalize(SVector{N,T}(direction))), power, wavelength, opl, nhits, sourcepower, sourcenum, Chipman{T}())
     end
 
     # Convenience constructor. Not as much typing
