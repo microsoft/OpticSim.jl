@@ -2,6 +2,7 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # See LICENSE in the project root for full license information.
 
+
 """
     OpticalRay{T,N} <: AbstractRay{T,N}
 
@@ -35,35 +36,37 @@ struct OpticalRay{T,N} <: AbstractRay{T,N}
     nhits::Int
     sourcepower::T
     sourcenum::Int
+    polarization::Chipman #this will only work if N = 3.
 
     function OpticalRay(ray::Ray{T,N}, power::T, wavelength::T; opl::T = zero(T), nhits::Int = 0, sourcenum::Int = 0, sourcepower::T = power) where {T<:Real,N}
-        return new{T,N}(ray, power, wavelength, opl, nhits, sourcepower, sourcenum)
+        return new{T,N}(ray, power, wavelength, opl, nhits, sourcepower, sourcenum, Chipman())
     end
 
     function OpticalRay(origin::SVector{N,T}, direction::SVector{N,T}, power::T, wavelength::T; opl::T = zero(T), nhits::Int = 0, sourcenum::Int = 0, sourcepower::T = power) where {T<:Real,N}
-        return new{T,N}(Ray(origin, normalize(direction)), power, wavelength, opl, nhits, sourcepower, sourcenum)
+        return new{T,N}(Ray(origin, normalize(direction)), power, wavelength, opl, nhits, sourcepower, sourcenum, Chipman())
     end
 
     function OpticalRay(origin::AbstractArray{T,1}, direction::AbstractArray{T,1}, power::T, wavelength::T; opl::T = zero(T), nhits::Int = 0, sourcenum::Int = 0, sourcepower::T = power) where {T<:Real}
+        throw(ErrorException("error"))
         @assert length(origin) == length(direction) "origin (dimension $(length(origin))) and direction (dimension $(length(direction))) vectors do not have the same dimension"
         N = length(origin)
-        return new{T,N}(Ray(SVector{N,T}(origin), normalize(SVector{N,T}(direction))), power, wavelength, opl, nhits, sourcepower, sourcenum)
+        return new{T,N}(Ray(SVector{N,T}(origin), normalize(SVector{N,T}(direction))), power, wavelength, opl, nhits, sourcepower, sourcenum, Chipman())
     end
 
     # Convenience constructor. Not as much typing
-    OpticalRay(ox::T, oy::T, oz::T, dx::T, dy::T, dz::T; wavelength = 0.55) where {T<:Real} = OpticalRay(SVector{3,T}(ox, oy, oz), SVector{3,T}(dx, dy, dz), one(T), T(wavelength), one(T)) #doesn't have to be inside struct definition but if it is then VSCode displays hover information. If it's outside the struct definition it doesn't.
+    OpticalRay(ox::T, oy::T, oz::T, dx::T, dy::T, dz::T; wavelength = 0.55) where {T<:Real} = OpticalRay(SVector{3,T}(ox, oy, oz), SVector{3,T}(dx, dy, dz), one(T), T(wavelength)) #doesn't have to be inside struct definition but if it is then VSCode displays hover information. If it's outside the struct definition it doesn't.
 end
 export OpticalRay
 
-ray(r::OpticalRay{T,N}) where {T<:Real,N} = r.ray
-direction(r::OpticalRay{T,N}) where {T<:Real,N} = direction(ray(r))
-origin(r::OpticalRay{T,N}) where {T<:Real,N} = origin(ray(r))
-power(r::OpticalRay{T,N}) where {T<:Real,N} = r.power
-wavelength(r::OpticalRay{T,N}) where {T<:Real,N} = r.wavelength
-pathlength(r::OpticalRay{T,N}) where {T<:Real,N} = r.opl
-nhits(r::OpticalRay{T,N}) where {T<:Real,N} = r.nhits
-sourcepower(r::OpticalRay{T,N}) where {T<:Real,N} = r.sourcepower
-sourcenum(r::OpticalRay{T,N}) where {T<:Real,N} = r.sourcenum
+ray(r::OpticalRay)  = r.ray
+direction(r::OpticalRay)  = direction(ray(r))
+origin(r::OpticalRay)  = origin(ray(r))
+power(r::OpticalRay)  = r.power
+wavelength(r::OpticalRay) = r.wavelength
+pathlength(r::OpticalRay)  = r.opl
+nhits(r::OpticalRay) = r.nhits
+sourcepower(r::OpticalRay)  = r.sourcepower
+sourcenum(r::OpticalRay)  = r.sourcenum
 export ray, power, wavelength, pathlength, nhits, sourcepower, sourcenum
 
 function Base.print(io::IO, a::OpticalRay{T,N}) where {T,N}
