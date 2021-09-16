@@ -92,15 +92,14 @@ function runforpipeline(ismaster::Bool)
     write(io, "Function, Memory, Allocs, Min Time, Mean Time, Max Time\n")
     for f in all_benchmarks()
         b = runbenchmark(f)
-        write(io, [
+        join(io, [
             "$f",
             "$(BenchmarkTools.prettymemory(b.memory))",
             "$(b.allocs)",
             "$(BenchmarkTools.prettytime(minimum(b.times)))",
             "$(BenchmarkTools.prettytime(BenchmarkTools.mean(b.times)))",
             "$(BenchmarkTools.prettytime(maximum(b.times)))\n"
-        ].join(", ")
-        )
+        ], ", ")
     end
     close(io)
 end
