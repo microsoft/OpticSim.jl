@@ -28,7 +28,7 @@ nhits(r::OpticalRay{T,N}) -> Int
 sourcenum(r::OpticalRay{T,N}) -> Int
 ```
 """
-struct OpticalRay{T,N} <: AbstractRay{T,N}
+struct OpticalRay{T,N,P<:Polarization.AbstractPolarization{T}} <: AbstractRay{T,N}
     ray::Ray{T,N}
     power::T
     wavelength::T
@@ -36,21 +36,21 @@ struct OpticalRay{T,N} <: AbstractRay{T,N}
     nhits::Int
     sourcepower::T
     sourcenum::Int
-    polarization::Polarization.Chipman{T} #this will only work if N = 3.
+    polarization::P #this will only work if N = 3.
 
-    function OpticalRay(ray::Ray{T,N}, power::T, wavelength::T; opl::T = zero(T), nhits::Int = 0, sourcenum::Int = 0, sourcepower::T = power) where {T<:Real,N}
-        return new{T,N}(ray, power, wavelength, opl, nhits, sourcepower, sourcenum, Chipman{T}())
+    function OpticalRay(ray::Ray{T,N}, power::T, wavelength::T; opl::T = zero(T), nhits::Int = 0, sourcenum::Int = 0, sourcepower::T = power, polarization::P = Polarization.NoPolarization{T}()) where {T<:Real,N,P}
+        return new{T,N,P}(ray, power, wavelength, opl, nhits, sourcepower, sourcenum, polarization)
     end
 
-    function OpticalRay(origin::SVector{N,T}, direction::SVector{N,T}, power::T, wavelength::T; opl::T = zero(T), nhits::Int = 0, sourcenum::Int = 0, sourcepower::T = power) where {T<:Real,N}
-        return new{T,N}(Ray(origin, normalize(direction)), power, wavelength, opl, nhits, sourcepower, sourcenum, Chipman{T}())
+    
+    function OpticalRay(origin::SVector{N,T}, direction::SVector{N,T}, power::T, wavelength::T; opl::T = zero(T), nhits::Int = 0, sourcenum::Int = 0, sourcepower::T = power, polarization::P = Polarization.NoPolarization{T}()) where {T<:Real,N,P}
+        return new{T,N,P}(Ray(origin, normalize(direction)), power, wavelength, opl, nhits, sourcepower, sourcenum, polarization)
     end
 
-    function OpticalRay(origin::AbstractArray{T,1}, direction::AbstractArray{T,1}, power::T, wavelength::T; opl::T = zero(T), nhits::Int = 0, sourcenum::Int = 0, sourcepower::T = power) where {T<:Real}
-        throw(ErrorException("error"))
+    function OpticalRay(origin::AbstractArray{T,1}, direction::AbstractArray{T,1}, power::T, wavelength::T; opl::T = zero(T), nhits::Int = 0, sourcenum::Int = 0, sourcepower::T = power, polarization::P = Polarization.NoPolarization{T}()) where {T<:Real,P}
         @assert length(origin) == length(direction) "origin (dimension $(length(origin))) and direction (dimension $(length(direction))) vectors do not have the same dimension"
         N = length(origin)
-        return new{T,N}(Ray(SVector{N,T}(origin), normalize(SVector{N,T}(direction))), power, wavelength, opl, nhits, sourcepower, sourcenum, Chipman{T}())
+        return new{T,N,P}(Ray(SVector{N,T}(origin), normalize(SVector{N,T}(direction))), power, wavelength, opl, nhits, sourcepower, sourcenum, polarization)
     end
 
     # Convenience constructor. Not as much typing
@@ -67,7 +67,8 @@ pathlength(r::OpticalRay)  = r.opl
 nhits(r::OpticalRay) = r.nhits
 sourcepower(r::OpticalRay)  = r.sourcepower
 sourcenum(r::OpticalRay)  = r.sourcenum
-export ray, power, wavelength, pathlength, nhits, sourcepower, sourcenum
+polarization(r::OpticalRay) = r.polarization
+export ray, power, wavelength, pathlength, nhits, sourcepower, sourcenum,polarization
 
 function Base.print(io::IO, a::OpticalRay{T,N}) where {T,N}
     println(io, "$(rpad("Origin:", 25)) $(origin(a))")

@@ -347,16 +347,16 @@ function trace(assembly::LensAssembly{T}, r::OpticalRay{T,N}, temperature::T = T
         if temp === nothing
             return nopower
         else
-            raydirection, raypower, raypathlength = temp
+            raydirection, raypower, raypathlength, polarization = temp #polarization type is determined by the type of the input ray, r.
             if trackrays !== nothing
                 # we want the power that is hitting the surface, i.e. power on incident ray, but the path length at this intersection
                 # i.e. with the path length for this intersection added and power modulated by absorption only
-                push!(trackrays, LensTrace(OpticalRay(ray(r), raypower, λ, opl = raypathlength, nhits = nhits(r), sourcenum = sourcenum(r), sourcepower = sourcepower(r)), intsct))
+                push!(trackrays, LensTrace(OpticalRay(ray(r), raypower, λ, opl = raypathlength, nhits = nhits(r), sourcenum = sourcenum(r), sourcepower = sourcepower(r),polarization = polarization), intsct))
             end
-            offsetray = OpticalRay(surfintsct + RAY_OFFSET * raydirection, raydirection, raypower, λ, opl = raypathlength, nhits = nhits(r) + 1, sourcenum = sourcenum(r), sourcepower = sourcepower(r))
+            offsetray = OpticalRay(surfintsct + RAY_OFFSET * raydirection, raydirection, raypower, λ, opl = raypathlength, nhits = nhits(r) + 1, sourcenum = sourcenum(r), sourcepower = sourcepower(r),polarization = polarization)
             res = trace(assembly, offsetray, temperature, pressure, trackrays = trackrays, test = test, recursion = recursion + 1)
             if res === nothing
-                return LensTrace(OpticalRay(surfintsct, raydirection, raypower, λ, opl = raypathlength, nhits = nhits(r), sourcenum = sourcenum(r), sourcepower = sourcepower(r)), intsct)
+                return LensTrace(OpticalRay(surfintsct, raydirection, raypower, λ, opl = raypathlength, nhits = nhits(r), sourcenum = sourcenum(r), sourcepower = sourcepower(r),polarization = polarization), intsct)
             else
                 return res
             end
