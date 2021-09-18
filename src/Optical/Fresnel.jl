@@ -27,7 +27,11 @@ function snell(surfacenormal::S, raydirection::S, nᵢ::T, nₜ::T) where {T<:Re
 
     @assert zero(T) <= sinθᵢ
 
-    sinθₜ = nᵢ / nₜ * sinθᵢ
+    if isa(Complex,nₜ)
+        sinθₜ = zero(T) #this is a bit hacky. When the transmitted index is complex, which it is for metals, sinθₜ is not defined. Set it to zero. It will be ignored in the specialized version of fresnel which handles complex index of refraction.
+    else
+        sinθₜ = nᵢ / nₜ * sinθᵢ
+    end
     @assert zero(T) <= sinθₜ
 
     return sinθᵢ, sinθₜ
@@ -103,7 +107,7 @@ function fresnel(nᵢ::T, nₜ::T, sinθᵢ::T, sinθₜ::T) where {T<:Real}
 end
 
 """Fresnel equations for dielectric/metal interface. Metal will have complex index of refraction. This takes much longer than the case for real index of refraction so use specialized function. The assumption is that the light not reflected from the metal surface is completely absorbed. This will need to be extended for partially silvered mirrors."""
-function fresnel(nᵢ::T, nₜ::Complex{T}, sinθᵢ::T) where {T<:Real}
+function fresnel(nᵢ::T, nₜ::Complex{T}, sinθᵢ::T, sinθₜ::T) where {T<:Real}
     n² = (nₜ/nᵢ)^2
 
     cosθᵢ = sqrt(one(T) - sinθᵢ^2)
@@ -163,6 +167,7 @@ function processintersection(opticalinterface::FresnelInterface{T}, point::SVect
         nₜ = index(glassforid(mₜ)::OpticSim.GlassCat.Glass, λ, temperature = temperature, pressure = pressure)::T
     end
     (sinθᵢ, sinθₜ) = snell(normal, direction(incidentray), nᵢ, nₜ)
+    rₛ,tₛ,rₚ,tₚ,Tₐ = fresnel(nᵢ, nₜ, sinθᵢ, sinθₜ)
     (powᵣ, powₜ) = fresnel(nᵢ, nₜ, sinθᵢ, sinθₜ)
 
     incident_pow = power(incidentray)
@@ -205,6 +210,17 @@ function processintersection(opticalinterface::FresnelInterface{T}, point::SVect
     end
 end
 
+function composepmatrix(interface::OpticalInterface{T}, normal::SVector{N,T}, ray::OpticalRay{T,N,Polarization.Chipman{T}}) where{T<:Real,N}
+    polarizationinput = polarization(ray)
+    pinput = Polarization.pmatrix(polarizationinput)
+    evector = Polarization.electricfieldvector(polarizationinput)
+
+    #compute worldtolocal for incident ray
+    plocal = pinputmatrix*Polarization.worldtolocal(normal,direction(ray))
+    #compute s,p components for reflected and transmitted values these are Jones matrix values, potentially complex.
+    #compute reflected,refracted transformation
+
+end
 
 """
 processintersection(opticalinterface::OpticalInterface{T}, point::SVector{N,T}, normal::SVector{N,T}, incidentray::OpticalRay{T,N}, temperature::T, pressure::T, ::Bool, firstray::Bool = false) -> Tuple{SVector{N,T}, T, T}
@@ -240,8 +256,7 @@ function processintersection(opticalinterface::FresnelInterface{T}, point::SVect
     #needs to be modified for the case of complex index of refraction
     (sinθᵢ, sinθₜ) = snell(normal, direction(incidentray), nᵢ, nₜ)
 
-    wtoloc = Polarization.worldtolocal(-normal,incidentray)
-    localpmat = wtoloc*pmatrix(incidentray)
+   
 
     incident_pow = power(incidentray)
 

@@ -18,7 +18,9 @@ end
 export Chipman
 
 pmatrix(a::Chipman) = a.pmatrix
+export pmatrix
 electricfieldvector(a::Chipman) = a.electricfieldvector
+export electricfieldvector
 
 struct NoPolarization{T<:Real} <: AbstractPolarization{T}
 end
@@ -36,17 +38,7 @@ worldtolocal(surfacenormal::AbstractVector{T},incidentvector::AbstractVector{T})
 """For Fresnel reflection need to compute reflected and/or refracted P matrix. This looks like:
 see if normal is on the """
 
-function composepmatrix(interface::OpticalInterface{T}, ray::OpticalRay{T,N,Polarization.Chipman{T}}) where{T<:Real,N}
-    polarizationinput = polarization(ray)
-    pinput = pmatrix(polarizationinput)
-    evector = electricfieldvector(polarizationinput)
 
-    #compute worldtolocal for incident ray
-    plocal = pinputmatrix*worldtolocal(localtoworld(normal(interface),direction(ray)))
-    #compute s,p components for reflected and transmitted values these are Jones matrix values, potentially complex.
-    #compute reflected,refracted transformation
-
-end
 
 
 
