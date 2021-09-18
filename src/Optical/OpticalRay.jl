@@ -36,7 +36,7 @@ struct OpticalRay{T,N} <: AbstractRay{T,N}
     nhits::Int
     sourcepower::T
     sourcenum::Int
-    polarization::Chipman{T} #this will only work if N = 3.
+    polarization::Polarization.Chipman{T} #this will only work if N = 3.
 
     function OpticalRay(ray::Ray{T,N}, power::T, wavelength::T; opl::T = zero(T), nhits::Int = 0, sourcenum::Int = 0, sourcepower::T = power) where {T<:Real,N}
         return new{T,N}(ray, power, wavelength, opl, nhits, sourcepower, sourcenum, Chipman{T}())
