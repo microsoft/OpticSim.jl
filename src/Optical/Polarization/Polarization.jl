@@ -12,8 +12,9 @@ export AbstractPolarization
 struct Chipman{T<:Real} <: AbstractPolarization{T}
     electricfieldvector::SVector{3,T}
     pmatrix::SMatrix{3,3,Complex{T},9} #3D polarization matrix
-    
-    Chipman{T}() where{T<:Real}= new{T}(SVector{3,T}(T(1),T(0),T(0)), SMatrix{3,3,Complex{T},9}(T(0) + T(0)im,T(0) + T(0)im,T(0) + T(0)im,T(0) + T(0)im,T(0) + T(0)im,T(0) + T(0)im,T(0) + T(0)im,T(0) + T(0)im,T(0) + T(0)im))
+       
+    Chipman{T}() where{T<:Real}= new{T}(SVector{3,Complex{T}}(T(1),T(0),T(0)), SMatrix{3,3,Complex{T},9}(I))
+    Chipman{T}(evec::SVector{3,Complex{T}},pmatrix::SMatrix{3,3,Complex{T},9}) where{T<:Real}= new{T}(evec,pmatrix)
 end
 export Chipman
 
@@ -32,13 +33,19 @@ function localtoworld(surfacenormal::AbstractVector{T},incidentvector::AbstractV
     p̂ = incidentvector × surfacenormal
     return SMatrix{3,3,T,9}(ŝ[1],ŝ[2],ŝ[3],p̂[1],p̂[2],p̂[3],k̂[1],k̂[2],k̂[3])
 end
+export localtoworld
 
 worldtolocal(surfacenormal::AbstractVector{T},incidentvector::AbstractVector{T}) where{T<:Real} = localtoworld(surfacenormal,incidentvector)'
-
+export worldtolocal
 """For Fresnel reflection need to compute reflected and/or refracted P matrix. This looks like:
 see if normal is on the """
 
-
+"""Create jones matrix for dielectric interfaces"""
+jonesmatrix(s::Complex{T},p::Complex{T}) where{T<:Real} = SMatrix{3,3,Complex{T},9}(s,0,0,0,p,0,0,0,1)
+jonesmatrix(s::T,p::Complex{T}) where{T<:Real} = jonesmatrix(Complex{T}(r),p)
+jonesmatrix(s::Complex{T},p::T) where{T<:Real} = jonesmatrix(r,Complex(p))
+jonesmatrix(s::T,p::T) where{T<:Real} = jonesmatrix(Complex(r),Complex(p))
+export jonesmatrix
 
 
 

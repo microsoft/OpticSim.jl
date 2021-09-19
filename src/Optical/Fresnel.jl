@@ -2,7 +2,7 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # See LICENSE in the project root for full license information.
 
-mᵢandmₜ(matout, matin, surfacenormal::SVector{N,T}, r::AbstractRay{T,N}) where {T<:Real,N} = dot(surfacenormal, direction(r)) < zero(T) ? (matout, matin) : (matin, matout)
+mᵢandmₜ(matout, matin, surfacenormal::SVector{N,T}, r::SVector{N,T}) where {T<:Real,N} = dot(surfacenormal, r) < zero(T) ? (matout, matin) : (matin, matout)
 
 """
     snell(surfacenormal::AbstractVector{T}, raydirection::AbstractVector{T}, nᵢ::T, nₜ::T) -> Tuple{T,T}
@@ -27,7 +27,7 @@ function snell(surfacenormal::S, raydirection::S, nᵢ::T, nₜ::T) where {T<:Re
 
     @assert zero(T) <= sinθᵢ
 
-    if isa(Complex,nₜ)
+    if isa(nₜ,Complex)
         sinθₜ = zero(T) #this is a bit hacky. When the transmitted index is complex, which it is for metals, sinθₜ is not defined. Set it to zero. It will be ignored in the specialized version of fresnel which handles complex index of refraction.
     else
         sinθₜ = nᵢ / nₜ * sinθᵢ
@@ -46,7 +46,7 @@ function reflectedray(surfacenormal::S, raydirection::S) where {T<:Real,S<:Abstr
         return -r
     end
 
-    return r - 2 * nₛ * (tdot)
+    return normalize(r - 2 * nₛ * (tdot))
 end
 
 function refractedray(incidenceindex::T, transmittedindex::T, surfacenormal::S, raydirection::S) where {T<:Real,S<:AbstractArray{T,1}}
@@ -126,7 +126,7 @@ function aluminumfresnel()
     p = Vector{Complex{Float64}}(undef,0)
 
     for θ in 0.0:.01:π/2
-        rₛ,_,rₚ,_,_ = fresnel(nᵢ,nₜ,sin(θ))
+        rₛ,_,rₚ,_,_ = fresnel(nᵢ,nₜ,sin(θ),0.0)
         push!(s,rₛ)
         push!(p,rₚ)
     end
@@ -136,6 +136,14 @@ end
 
 
 ############################################################################################################################
+
+"""assuming random polarization this computes the average power across all polarization angles for the reflected and transmitted paths"""
+function averagepower(rₛ, rₚ, tₛ, tₚ, Tₐ)
+    # assuming random polarization
+    powᵣ = 0.5 * (rₛ + rₚ)
+    powₜ = 0.5 * (tₛ + tₚ) * Tₐ  #compensate for change in intensity per area caused by the differing angles of incidence and refraction as well as differing indices.
+    return powᵣ,powₜ
+end
 
 """
     processintersection(opticalinterface::OpticalInterface{T}, point::SVector{N,T}, normal::SVector{N,T}, incidentray::OpticalRay{T,N}, temperature::T, pressure::T, ::Bool, firstray::Bool = false) -> Tuple{SVector{N,T}, T, T}
@@ -168,7 +176,9 @@ function processintersection(opticalinterface::FresnelInterface{T}, point::SVect
     end
     (sinθᵢ, sinθₜ) = snell(normal, direction(incidentray), nᵢ, nₜ)
     rₛ,tₛ,rₚ,tₚ,Tₐ = fresnel(nᵢ, nₜ, sinθᵢ, sinθₜ)
-    (powᵣ, powₜ) = fresnel(nᵢ, nₜ, sinθᵢ, sinθₜ)
+
+    
+    powᵣ,powₜ = averagepower(rₛ,tₛ,rₚ,tₚ,Tₐ)
 
     incident_pow = power(incidentray)
 
@@ -206,21 +216,44 @@ function processintersection(opticalinterface::FresnelInterface{T}, point::SVect
     if raydirection === nothing
         return nothing
     else
-        return normalize(raydirection), raypower, raypathlength
+        return raydirection, raypower, raypathlength, Polarization.NoPolarization()
     end
 end
 
-function composepmatrix(interface::OpticalInterface{T}, normal::SVector{N,T}, ray::OpticalRay{T,N,Polarization.Chipman{T}}) where{T<:Real,N}
-    polarizationinput = polarization(ray)
+function composepolarization(s::Complex{T},p::Complex{T}, Tₐ::T, normal::SVector{N,T}, incidentray::SVector{3,T},exitray::SVector{3,T},polarizationinput::P) where{T<:Real,N,P<:Polarization.NoPolarization{T}}
+    return NoPolarization{T}()
+end
+
+function composepolarization(s::Complex{T},p::Complex{T}, Tₐ::T, normal::SVector{N,T}, incidentray::SVector{3,T},exitray::SVector{3,T},polarizationinput::P) where{T<:Real,N,P<:Polarization.Chipman{T}}
     pinput = Polarization.pmatrix(polarizationinput)
     evector = Polarization.electricfieldvector(polarizationinput)
 
     #compute worldtolocal for incident ray
-    plocal = pinputmatrix*Polarization.worldtolocal(normal,direction(ray))
-    #compute s,p components for reflected and transmitted values these are Jones matrix values, potentially complex.
-    #compute reflected,refracted transformation
-
+    plocal = Polarization.worldtolocal(normal,incidentray)*pinput
+    temp = Polarization.jonesmatrix(s,p) * plocal
+    poutput = Polarization.localtoworld(normal,exitray)*temp
+    evectorout = poutput*evector*sqrt(Tₐ)
+    return Polarization.Chipman{T}(evectorout,poutput)
 end
+
+function refractiveindices(opticalinterface::FresnelInterface{T},normal::SVector{N,T},λ::T,incidentray::SVector{N,T},temperature,pressure) where{T,N}
+    mᵢ, mₜ = mᵢandmₜ(outsidematerialid(opticalinterface), insidematerialid(opticalinterface), normal, incidentray)
+    nᵢ = one(T)
+    nₜ = one(T)
+    α = zero(T)
+    if !isair(mᵢ)
+        mat = glassforid(mᵢ)::OpticSim.GlassCat.Glass
+        nᵢ = index(mat, λ, temperature = temperature, pressure = pressure)::T
+        α = absorption(mat, λ, temperature = temperature, pressure = pressure)::T
+    end
+    if !isair(mₜ)
+        #need to add extensions to GlassCat to allow for complex indices of refraction for metals.
+        nₜ = index(glassforid(mₜ)::OpticSim.GlassCat.Glass, λ, temperature = temperature, pressure = pressure)::T
+    end
+
+    return nᵢ, nₜ
+end
+
 
 """
 processintersection(opticalinterface::OpticalInterface{T}, point::SVector{N,T}, normal::SVector{N,T}, incidentray::OpticalRay{T,N}, temperature::T, pressure::T, ::Bool, firstray::Bool = false) -> Tuple{SVector{N,T}, T, T}
@@ -240,24 +273,12 @@ The values returned are the normalized direction of the ray after the intersecti
 i.e. If the interface should modulate power to 76% then 24% of calls to this function should return `nothing`.
 """
 function processintersection(opticalinterface::FresnelInterface{T}, point::SVector{N,T}, normal::SVector{N,T}, incidentray::OpticalRay{T,N,Polarization.Chipman{T}}, temperature::T, pressure::T, test::Bool, firstray::Bool = false) where {T<:Real,N}
-    λ = wavelength(incidentray)
-    mᵢ, mₜ = mᵢandmₜ(outsidematerialid(opticalinterface), insidematerialid(opticalinterface), normal, incidentray)
-    nᵢ = one(T)
-    nₜ = one(T)
-    α = zero(T)
-    if !isair(mᵢ)
-        mat = glassforid(mᵢ)::OpticSim.GlassCat.Glass
-        nᵢ = index(mat, λ, temperature = temperature, pressure = pressure)::T
-        α = absorption(mat, λ, temperature = temperature, pressure = pressure)::T
-    end
-    if !isair(mₜ)
-        nₜ = index(glassforid(mₜ)::OpticSim.GlassCat.Glass, λ, temperature = temperature, pressure = pressure)::T
-    end
-    #needs to be modified for the case of complex index of refraction
+    nᵢ,nₜ = refractiveindices(opticalinterface, normal, wavelength(incidentray), direction(incidentray),temperature,pressure)
+    
     (sinθᵢ, sinθₜ) = snell(normal, direction(incidentray), nᵢ, nₜ)
-
+    rₛ,tₛ,rₚ,tₚ,Tₐ = fresnel(nᵢ, nₜ, sinθᵢ, sinθₜ)
    
-
+    powᵣ,powₜ = averagepower(rₛ,tₛ,rₚ,tₚ,Tₐ)
     incident_pow = power(incidentray)
 
     # optical distance from ray origin to point of intersection in mm. Compensate for the fact that the ray has been slightly shortened.
@@ -267,20 +288,26 @@ function processintersection(opticalinterface::FresnelInterface{T}, point::SVect
 
     # compute updated power based on absorption coefficient of material using Beer's law
     internal_trans = one(T)
-    if α > zero(T)
-        internal_trans = exp(-α * geometricpathlength)
-    end
+
+    #TODO fix this after getting polarization stuff working
+    # if α > zero(T)
+    #     internal_trans = exp(-α * geometricpathlength)
+    # end
 
     r = !test * rand()
+
+
     # assuming (powᵣ + powₜ) <= 1 (asserted in constructor)
     if interfacemode(opticalinterface) == Transmit || (interfacemode(opticalinterface) == ReflectOrTransmit && r < powₜ)
         # refraction
         raydirection = refractedray(nᵢ, nₜ, normal, direction(incidentray))
         raypower = powₜ * incident_pow
+        polarizationinfo = composepolarization(Complex(tₛ),Complex(tₚ),Tₐ,normal,direction(incidentray),raydirection,polarization(incidentray))
     elseif interfacemode(opticalinterface) == Reflect || (interfacemode(opticalinterface) == ReflectOrTransmit && r < (powᵣ + powₜ))
         # reflection
         raypower = powᵣ * incident_pow
         raydirection = reflectedray(normal, direction(incidentray))
+        polarizationinfo = composepolarization(Complex(rₛ),Complex(rₚ),Tₐ,normal,direction(incidentray),raydirection,polarization(incidentray))
     else
         return nothing
     end
@@ -288,8 +315,8 @@ function processintersection(opticalinterface::FresnelInterface{T}, point::SVect
     if raydirection === nothing
         return nothing
     else
-        return normalize(raydirection), raypower, raypathlength
+
+        return normalize(raydirection), raypower, raypathlength, polarizationinfo
     end
-    #jones matrices [rₛ 0;0 rₚ], [tₛ 0;0 tₚ]
 
 end
