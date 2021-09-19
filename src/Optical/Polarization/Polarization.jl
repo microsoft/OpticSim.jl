@@ -30,7 +30,7 @@ end
 function localtoworld(surfacenormal::AbstractVector{T},incidentvector::AbstractVector{T}) where{T<:Real}
     k̂ = normalize(incidentvector)
     ŝ = normalize(k̂ × surfacenormal)
-    p̂ = incidentvector × surfacenormal
+    p̂ = incidentvector × ŝ
     return SMatrix{3,3,T,9}(ŝ[1],ŝ[2],ŝ[3],p̂[1],p̂[2],p̂[3],k̂[1],k̂[2],k̂[3])
 end
 export localtoworld

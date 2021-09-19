@@ -95,10 +95,10 @@ function fresnel(nᵢ::T, nₜ::T, sinθᵢ::T, sinθₜ::T) where {T<:Real}
     cosθᵢ = sqrt(one(T) - sinθᵢ^2)
 
     # nᵢ*sin(θᵢ) = nₜ*sin(θₜ)
-    rₛ = ((nᵢ * cosθₜ - nₜ * cosθᵢ) / (nᵢ * cosθₜ + nₜ * cosθᵢ))^2
-    tₛ = (2nᵢ * cosθᵢ / (nᵢ * cosθₜ + nₜ * cosθᵢ))^2
-    rₚ = ((nᵢ * cosθᵢ - nₜ * cosθₜ) / (nᵢ * cosθᵢ + nₜ * cosθₜ))^2
-    tₚ = (2nᵢ * cosθᵢ / (nᵢ * cosθᵢ + nₜ * cosθₜ))^2
+    rₛ = ((nᵢ * cosθᵢ - nₜ * cosθₜ) / (nᵢ * cosθᵢ + nₜ * cosθₜ))
+    tₛ = (2nᵢ * cosθᵢ / (nᵢ * cosθᵢ + nₜ * cosθₜ))
+    rₚ = ((nₜ * cosθᵢ - nᵢ * cosθₜ) / (nₜ * cosθᵢ + nᵢ * cosθₜ))
+    tₚ = (2nᵢ * cosθᵢ / (nₜ * cosθᵢ + nᵢ * cosθₜ))
 
     # transmitted amplitude scale factor
     Tₐ = ((nₜ * cosθₜ) / (nᵢ * cosθᵢ))
@@ -235,6 +235,7 @@ function composepolarization(s::Complex{T},p::Complex{T}, Tₐ::T, normal::SVect
     evectorout = poutput*evector*sqrt(Tₐ)
     return Polarization.Chipman{T}(evectorout,poutput)
 end
+export composepolarization
 
 function refractiveindices(opticalinterface::FresnelInterface{T},normal::SVector{N,T},λ::T,incidentray::SVector{N,T},temperature,pressure) where{T,N}
     mᵢ, mₜ = mᵢandmₜ(outsidematerialid(opticalinterface), insidematerialid(opticalinterface), normal, incidentray)
