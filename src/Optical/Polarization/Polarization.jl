@@ -37,16 +37,32 @@ export localtoworld
 
 worldtolocal(surfacenormal::AbstractVector{T},incidentvector::AbstractVector{T}) where{T<:Real} = localtoworld(surfacenormal,incidentvector)'
 export worldtolocal
-"""For Fresnel reflection need to compute reflected and/or refracted P matrix. This looks like:
-see if normal is on the """
 
 """Create jones matrix for dielectric interfaces"""
 jonesmatrix(s::Complex{T},p::Complex{T}) where{T<:Real} = SMatrix{3,3,Complex{T},9}(s,0,0,0,p,0,0,0,1)
-jonesmatrix(s::T,p::Complex{T}) where{T<:Real} = jonesmatrix(Complex{T}(r),p)
-jonesmatrix(s::Complex{T},p::T) where{T<:Real} = jonesmatrix(r,Complex(p))
-jonesmatrix(s::T,p::T) where{T<:Real} = jonesmatrix(Complex(r),Complex(p))
+jonesmatrix(s::T,p::Complex{T}) where{T<:Real} = jonesmatrix(Complex{T}(s),p)
+jonesmatrix(s::Complex{T},p::T) where{T<:Real} = jonesmatrix(s,Complex(p))
+jonesmatrix(s::T,p::T) where{T<:Real} = jonesmatrix(Complex(s),Complex(p))
 export jonesmatrix
 
+""" specialized function for no polarization case"""
+function composepolarization(s::Complex{T},p::Complex{T}, Tₐ::T, normal::SVector{N,T}, incidentray::SVector{3,T},exitray::SVector{3,T},polarizationinput::P) where{T<:Real,N,P<:Polarization.NoPolarization{T}}
+    return NoPolarization{T}()
+end
+
+""" computes the polarization information for an interface given an input polarization of type Chipman"""
+function composepolarization(s::Complex{T},p::Complex{T}, Tₐ::T, normal::SVector{N,T}, incidentray::SVector{3,T},exitray::SVector{3,T},polarizationinput::P) where{T<:Real,N,P<:Polarization.Chipman{T}}
+    pinput = Polarization.pmatrix(polarizationinput)
+    evector = Polarization.electricfieldvector(polarizationinput)
+
+    #compute worldtolocal for incident ray
+    plocal = Polarization.worldtolocal(normal,incidentray)*pinput
+    temp = Polarization.jonesmatrix(s,p) * plocal
+    poutput = Polarization.localtoworld(normal,exitray)*temp
+    evectorout = poutput*evector*sqrt(Tₐ)
+    return Polarization.Chipman{T}(evectorout,poutput)
+end
+export composepolarization
 
 
 end #module

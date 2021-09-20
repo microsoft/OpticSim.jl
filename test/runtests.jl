@@ -94,6 +94,7 @@ end
 include("Benchmarks/Benchmarks.jl")
 
 alltestsets = [
+    "Polarization",
     "ParaxialAnalysis",
     "Paraxial",
     "JuliaLang",

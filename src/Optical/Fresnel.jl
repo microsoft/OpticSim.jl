@@ -220,23 +220,7 @@ function processintersection(opticalinterface::FresnelInterface{T}, point::SVect
     end
 end
 
-function composepolarization(s::Complex{T},p::Complex{T}, Tₐ::T, normal::SVector{N,T}, incidentray::SVector{3,T},exitray::SVector{3,T},polarizationinput::P) where{T<:Real,N,P<:Polarization.NoPolarization{T}}
-    return NoPolarization{T}()
-end
-
-function composepolarization(s::Complex{T},p::Complex{T}, Tₐ::T, normal::SVector{N,T}, incidentray::SVector{3,T},exitray::SVector{3,T},polarizationinput::P) where{T<:Real,N,P<:Polarization.Chipman{T}}
-    pinput = Polarization.pmatrix(polarizationinput)
-    evector = Polarization.electricfieldvector(polarizationinput)
-
-    #compute worldtolocal for incident ray
-    plocal = Polarization.worldtolocal(normal,incidentray)*pinput
-    temp = Polarization.jonesmatrix(s,p) * plocal
-    poutput = Polarization.localtoworld(normal,exitray)*temp
-    evectorout = poutput*evector*sqrt(Tₐ)
-    return Polarization.Chipman{T}(evectorout,poutput)
-end
-export composepolarization
-
+"""extracts the indices of refraction from the optical interface in the correct order, n₁, nₜ, where nᵢ is the incident index of refraction and nₜ is the transmitted index of refraction"""
 function refractiveindices(opticalinterface::FresnelInterface{T},normal::SVector{N,T},λ::T,incidentray::SVector{N,T},temperature,pressure) where{T,N}
     mᵢ, mₜ = mᵢandmₜ(outsidematerialid(opticalinterface), insidematerialid(opticalinterface), normal, incidentray)
     nᵢ = one(T)
