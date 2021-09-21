@@ -112,7 +112,7 @@ function plotreflectedvsrefractedpower()
         nml = SVector{3,Float64}(0.0, 0.0, 1.0)
 
         rdir = direction(r)
-        (nᵢ, nₜ) = OpticSim.mᵢandmₜ(incidentindex, transmittedindex, nml, r)
+        (nᵢ, nₜ) = OpticSim.mᵢandmₜ(incidentindex, transmittedindex, nml, direction(r))
         reflected = OpticSim.reflectedray(nml, rdir)
         refracted = OpticSim.refractedray(nᵢ, nₜ, nml, rdir)
 

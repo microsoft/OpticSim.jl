@@ -38,4 +38,21 @@
         rtol = 1e-5
     )
 
+    #not used yet but will when we write a test that uses aluminum mirrors
+    function aluminumfresnel()
+        #index of refraction of aluminum at 633nm is 1.374 + 7.620im
+        nₜ = 1.374 + 7.620im
+        nᵢ = 1.0 #assume air
+        s = Vector{Complex{Float64}}(undef,0)
+        p = Vector{Complex{Float64}}(undef,0)
+    
+        for θ in 0.0:.01:π/2
+            rₛ,_,rₚ,_,_ = fresnelcomplex(nᵢ,nₜ,sin(θ),0.0)
+            push!(s,rₛ)
+            push!(p,rₚ)
+        end
+    
+        return s,p
+    end
+
 end #testset

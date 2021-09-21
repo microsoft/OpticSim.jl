@@ -73,7 +73,7 @@ function processintersection(opticalinterface::ThinGratingInterface{T}, point::S
         normal = -normal
     end
 
-    mᵢ, mₜ = mᵢandmₜ(outsidematerialid(opticalinterface), insidematerialid(opticalinterface), normal, incidentray)
+    mᵢ, mₜ = mᵢandmₜ(outsidematerialid(opticalinterface), insidematerialid(opticalinterface), normal, direction(incidentray))
     nᵢ = one(T)
     nₜ = one(T)
     α = zero(T)

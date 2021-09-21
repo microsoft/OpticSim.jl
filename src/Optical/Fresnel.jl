@@ -107,7 +107,7 @@ function fresnel(nᵢ::T, nₜ::T, sinθᵢ::T, sinθₜ::T) where {T<:Real}
 end
 
 """Fresnel equations for dielectric/metal interface. Metal will have complex index of refraction. This takes much longer than the case for real index of refraction so use specialized function. The assumption is that the light not reflected from the metal surface is completely absorbed. This will need to be extended for partially silvered mirrors."""
-function fresnel(nᵢ::T, nₜ::Complex{T}, sinθᵢ::T, sinθₜ::T) where {T<:Real}
+function fresnelcomplex(nᵢ::T, nₜ::Complex{T}, sinθᵢ::T) where {T<:Real}
     n² = (nₜ/nᵢ)^2
 
     cosθᵢ = sqrt(one(T) - sinθᵢ^2)
@@ -116,22 +116,6 @@ function fresnel(nᵢ::T, nₜ::Complex{T}, sinθᵢ::T, sinθₜ::T) where {T<:
     rₚ = (n²*cosθᵢ - sqrt(n²-sinθᵢ^2))/(n²*cosθᵢ + sqrt(n²-sinθᵢ^2))
 
     return rₛ,T(0),rₚ,T(0),T(1) #for metals transmission is assumed to be zero. Tₐ = 1 because reflected area = incident area
-end
-
-function aluminumfresnel()
-    #index of refraction of aluminum at 633nm is 1.374 + 7.620im
-    nₜ = 1.374 + 7.620im
-    nᵢ = 1.0 #assume air
-    s = Vector{Complex{Float64}}(undef,0)
-    p = Vector{Complex{Float64}}(undef,0)
-
-    for θ in 0.0:.01:π/2
-        rₛ,_,rₚ,_,_ = fresnel(nᵢ,nₜ,sin(θ),0.0)
-        push!(s,rₛ)
-        push!(p,rₚ)
-    end
-
-    return s,p
 end
 
 
@@ -160,9 +144,9 @@ The values returned are the normalized direction of the ray after the intersecti
 `nothing` is returned if the ray should stop here, in order to obtain the correct intensity on the detector through monte carlo integration `nothing` should be returned proportionally to create the correct power distribution.
 i.e. If the interface should modulate power to 76% then 24% of calls to this function should return `nothing`.
 """
-function processintersection(opticalinterface::FresnelInterface{T}, point::SVector{N,T}, normal::SVector{N,T}, incidentray::OpticalRay{T,N}, temperature::T, pressure::T, test::Bool, firstray::Bool = false) where {T<:Real,N}
+function processintersection(opticalinterface::FresnelInterface{T}, point::SVector{N,T}, normal::SVector{N,T}, incidentray::OpticalRay{T,N,OpticSim.Polarization.NoPolarization}, temperature::T, pressure::T, test::Bool, firstray::Bool = false) where {T<:Real,N}
     λ = wavelength(incidentray)
-    mᵢ, mₜ = mᵢandmₜ(outsidematerialid(opticalinterface), insidematerialid(opticalinterface), normal, incidentray)
+    mᵢ, mₜ = mᵢandmₜ(outsidematerialid(opticalinterface), insidematerialid(opticalinterface), normal, direction(incidentray))
     nᵢ = one(T)
     nₜ = one(T)
     α = zero(T)
@@ -174,7 +158,7 @@ function processintersection(opticalinterface::FresnelInterface{T}, point::SVect
     if !isair(mₜ)
         nₜ = index(glassforid(mₜ)::OpticSim.GlassCat.Glass, λ, temperature = temperature, pressure = pressure)::T
     end
-    (sinθᵢ, sinθₜ) = snell(normal, direction(incidentray), nᵢ, nₜ)
+    sinθᵢ, sinθₜ = snell(normal, direction(incidentray), nᵢ, nₜ)
     rₛ,tₛ,rₚ,tₚ,Tₐ = fresnel(nᵢ, nₜ, sinθᵢ, sinθₜ)
 
     
@@ -216,7 +200,7 @@ function processintersection(opticalinterface::FresnelInterface{T}, point::SVect
     if raydirection === nothing
         return nothing
     else
-        return raydirection, raypower, raypathlength, Polarization.NoPolarization()
+        return raydirection, raypower, raypathlength, Polarization.NoPolarization{T}()
     end
 end
 
@@ -260,8 +244,14 @@ i.e. If the interface should modulate power to 76% then 24% of calls to this fun
 function processintersection(opticalinterface::FresnelInterface{T}, point::SVector{N,T}, normal::SVector{N,T}, incidentray::OpticalRay{T,N,Polarization.Chipman{T}}, temperature::T, pressure::T, test::Bool, firstray::Bool = false) where {T<:Real,N}
     nᵢ,nₜ = refractiveindices(opticalinterface, normal, wavelength(incidentray), direction(incidentray),temperature,pressure)
     
-    (sinθᵢ, sinθₜ) = snell(normal, direction(incidentray), nᵢ, nₜ)
-    rₛ,tₛ,rₚ,tₚ,Tₐ = fresnel(nᵢ, nₜ, sinθᵢ, sinθₜ)
+    sinθᵢ, sinθₜ = snell(normal, direction(incidentray), nᵢ, nₜ)
+
+    #TODO the choice of which fresnel function to use depending on whether nₜ is complex should be hidden better in fresnel function. Maybe put the call to snell in fresnel?
+    if is(nₜ,Complex)
+        rₛ,tₛ,rₚ,tₚ,Tₐ = fresnelcomplex(nᵢ, nₜ, sinθᵢ)
+    else
+        rₛ,tₛ,rₚ,tₚ,Tₐ = fresnel(nᵢ, nₜ, sinθᵢ, sinθₜ)
+    end
    
     powᵣ,powₜ = averagepower(rₛ,tₛ,rₚ,tₚ,Tₐ)
     incident_pow = power(incidentray)
