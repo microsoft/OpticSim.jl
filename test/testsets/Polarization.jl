@@ -1,5 +1,4 @@
 @testset "Polarization" begin
-    #All test data, unless otherwise noted, is from Polarized Light and Optical Systems by Chipman et al
     function chipman(k̂ᵣ, n̂, nᵢ, nₜ) 
         (sinθᵢ, sinθₜ) = OpticSim.snell(n̂, k̂ᵣ, nᵢ, nₜ)
         rₛ,tₛ,rₚ,tₚ,Tₐ = OpticSim.fresnel(nᵢ, nₜ, sinθᵢ, sinθₜ)
@@ -29,7 +28,7 @@
         )
     end
 
-    #test data is from Chipman pg 333 example 9.4
+    #test data is from Polarized Light and Optical Systems by Chipman et al pg 333 example 9.4
     @test isapprox(real.(OpticSim.Polarization.pmatrix(chipmanexample9_4()[1])), [
         -.240408 0.0        0.0;
         0       .130825    .501818;
