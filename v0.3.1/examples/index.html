@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Examples · OpticSim.jl</title><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.11.1/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script><link href="../assets/logo.svg" rel="icon" type="image/x-icon"/></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../"><img class="docs-light-only" src="../assets/logo.svg" alt="OpticSim.jl logo"/><img class="docs-dark-only" src="../assets/logo-dark.svg" alt="OpticSim.jl logo"/></a><div class="docs-package-name"><span class="docs-autofit">OpticSim.jl</span></div><form class="docs-search" action="../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../">Home</a></li><li class="is-active"><a class="tocitem" href>Examples</a><ul class="internal"><li><a class="tocitem" href="#Cooke-Triplet"><span>Cooke Triplet</span></a></li><li><a class="tocitem" href="#Zoom-Lens"><span>Zoom Lens</span></a></li><li><a class="tocitem" href="#Schmidt-Cassegrain-Telescope"><span>Schmidt Cassegrain Telescope</span></a></li><li><a class="tocitem" href="#Lens-Construction"><span>Lens Construction</span></a></li><li><a class="tocitem" href="#HOEs"><span>HOEs</span></a></li></ul></li><li><span class="tocitem">Geometry</span><ul><li><a class="tocitem" href="../primitives/">Primitives</a></li><li><a class="tocitem" href="../csg/">CSG</a></li></ul></li><li><span class="tocitem">Optical</span><ul><li><a class="tocitem" href="../systems/">Systems</a></li><li><a class="tocitem" href="../emitters/">Emitters</a></li><li><a class="tocitem" href="../interfaces/">Interfaces</a></li><li><a class="tocitem" href="../lenses/">Lenses</a></li></ul></li><li><a class="tocitem" href="../vis/">Visualization</a></li><li><a class="tocitem" href="../glasscat/">Glass Functions</a></li><li><a class="tocitem" href="../optimization/">Optimization</a></li><li><a class="tocitem" href="../ref/">Reference</a></li><li><a class="tocitem" href="../roadmap/">Roadmap</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Examples</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Examples</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/microsoft/OpticSim.jl/blob/master/docs/src/examples.md" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="Examples"><a class="docs-heading-anchor" href="#Examples">Examples</a><a id="Examples-1"></a><a class="docs-heading-anchor-permalink" href="#Examples" title="Permalink"></a></h1><h2 id="Cooke-Triplet"><a class="docs-heading-anchor" href="#Cooke-Triplet">Cooke Triplet</a><a id="Cooke-Triplet-1"></a><a class="docs-heading-anchor-permalink" href="#Cooke-Triplet" title="Permalink"></a></h2><pre><code class="language-julia">using OpticSim
+
+using DataFrames
+sys = AxisymmetricOpticalSystem(
+    DataFrame(Surface = [:Object, 1, 2, 3, :Stop, 5, 6, :Image],
+              Radius = [Inf, 26.777, 66.604, -35.571, 35.571, 35.571, -26.777, Inf],
+              Thickness = [Inf, 4.0, 2.0, 4.0, 2.0, 4.0, 44.748, missing],
+              Material = [OpticSim.GlassCat.Air, OpticSim.GlassCat.SCHOTT.N_SK16, OpticSim.GlassCat.Air, OpticSim.GlassCat.SCHOTT.N_SF2, OpticSim.GlassCat.Air, OpticSim.GlassCat.SCHOTT.N_SK16, OpticSim.GlassCat.Air, missing],
+              SemiDiameter = [Inf, 8.580, 7.513, 7.054, 6.033, 7.003, 7.506, 15.0]))
+@show sys
+f1 = HexapolarField(sys, collimated = true, samples = 4, sourcenum = 1)
+f2 = HexapolarField(sys, collimated = true, samples = 4, sourceangle = -10 / 180 * π, sourcenum = 2)
+Vis.drawtracerays(sys, raygenerator = f1, test = true, trackallrays = true, colorbysourcenum = true, resolution = (1000, 700))
+Vis.drawtracerays!(sys, raygenerator = f2, test = true, trackallrays = true, colorbysourcenum = true)</code></pre><pre class="documenter-example-output">sys = 8×5 DataFrame
+ Row │ Surface  Radius   Thickness    Material       SemiDiameter
+     │ Any      Float64  Float64?     Abstract…?     Float64
+─────┼────────────────────────────────────────────────────────────
+   1 │ Object   Inf          Inf      Air                 Inf
+   2 │ 1         26.777        4.0    SCHOTT.N_SK16         8.58
+   3 │ 2         66.604        2.0    Air                   7.513
+   4 │ 3        -35.571        4.0    SCHOTT.N_SF2          7.054
+   5 │ Stop      35.571        2.0    Air                   6.033
+   6 │ 5         35.571        4.0    SCHOTT.N_SK16         7.003
+   7 │ 6        -26.777       44.748  Air                   7.506
+   8 │ Image    Inf      missing      missing              15.0</pre><p><img src="../assets/cooke.png" alt="Cooke triplet visualization"/></p><h2 id="Zoom-Lens"><a class="docs-heading-anchor" href="#Zoom-Lens">Zoom Lens</a><a id="Zoom-Lens-1"></a><a class="docs-heading-anchor-permalink" href="#Zoom-Lens" title="Permalink"></a></h2><pre><code class="language-">using OpticSim
+
+using DataFrames
+function zoom_lens(pos = 1)
+    if pos == 0
+        stop = 2.89
+        zoom = 9.48
+        dist = 4.46970613
+    elseif pos == 1
+        stop = 3.99
+        zoom = 4.48
+        dist = 21.21
+    else
+        stop = 4.90
+        zoom = 2.00
+        dist = 43.81
+    end
+    return AxisymmetricOpticalSystem{Float64}(
+        DataFrame(Surface = [:Object, :Stop, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, :Image],
+                  Radius = [Inf64, Inf64, -1.6202203499676E+01, -4.8875855327468E+01, 1.5666614444619E+01, -4.2955326460481E+01, 1.0869565217391E+02, 2.3623907394283E+01, -1.6059097478722E+01, -4.2553191489362E+02, -3.5435861091425E+01, -1.4146272457208E+01, -2.5125628140704E+02, -2.2502250225023E+01, -1.0583130489999E+01, -4.4444444444444E+01, Inf64],
+                  Aspherics = [missing, missing, missing, missing, missing, [(4, 1.03860000000E-04), (6, 1.42090000000E-07), (8, -8.84950000000E-09), (10, 1.24770000000E-10), (12, -1.03670000000E-12), (14, 3.65560000000E-15)], missing, missing, [(4, 4.27210000000E-05), (6, 1.24840000000E-07), (8, 9.70790000000E-09), (10, -1.84440000000E-10), (12, 1.86440000000E-12), (14, -7.79750000000E-15)], [(4, 1.13390000000E-04), (6, 4.81650000000E-07), (8, 1.87780000000E-08), (10, -5.75710000000E-10), (12, 8.99940000000E-12), (14, -4.67680000000E-14)], missing, missing, missing, missing, missing, missing, missing],
+                  Thickness = [Inf64, 0.0, 5.18, 0.10, 4.40, 0.16, 1.0, 4.96, zoom, 4.04, 1.35, 1.0, 2.80, 3.0, 1.22, dist, missing],
+                  Material = [OpticSim.GlassCat.Air, OpticSim.GlassCat.Air, OpticSim.GlassCat.OHARA.S_LAH66, OpticSim.GlassCat.Air, OpticSim.GlassCat.NIKON.LLF6, OpticSim.GlassCat.Air, OpticSim.GlassCat.OHARA.S_TIH6, OpticSim.GlassCat.OHARA.S_FSL5, OpticSim.GlassCat.Air, OpticSim.GlassCat.OHARA.S_FSL5, OpticSim.GlassCat.Air, OpticSim.GlassCat.OHARA.S_LAL8, OpticSim.GlassCat.OHARA.S_FSL5, OpticSim.GlassCat.Air, OpticSim.GlassCat.OHARA.S_LAH66, OpticSim.GlassCat.Air, missing],
+                  SemiDiameter = [Inf64, stop, 3.85433218451, 3.85433218451, 4.36304692871, 4.36304692871, 4.72505505439, 4.72505505439, 4.72505505439, 4.45240784026, 4.45240784026, 4.50974054117, 4.50974054117, 4.50974054117, 4.76271114409, 4.76271114409, 15.0]))
+end
+@show zoom_lens(0)
+Vis.drawtracerays(zoom_lens(0), test = true, trackallrays = true, numdivisions = 50, resolution = (1200, 600))
+Vis.make2dy() # hide
+Vis.save(&quot;assets/zoom0.png&quot;) # hide
+Vis.drawtracerays(zoom_lens(1), test = true, trackallrays = true, numdivisions = 50, resolution = (1200, 600))
+Vis.make2dy() # hide
+Vis.save(&quot;assets/zoom1.png&quot;) # hide
+Vis.drawtracerays(zoom_lens(2), test = true, trackallrays = true, numdivisions = 50, resolution = (1200, 600))
+Vis.make2dy() # hide
+Vis.save(&quot;assets/zoom2.png&quot;) # hide
+nothing # hide</code></pre><p><img src="assets/zoom0.png" alt="Zoom position 1 visualization"/> <img src="assets/zoom1.png" alt="Zoom position 2 visualization"/> <img src="assets/zoom2.png" alt="Zoom position 3 visualization"/></p><h2 id="Schmidt-Cassegrain-Telescope"><a class="docs-heading-anchor" href="#Schmidt-Cassegrain-Telescope">Schmidt Cassegrain Telescope</a><a id="Schmidt-Cassegrain-Telescope-1"></a><a class="docs-heading-anchor-permalink" href="#Schmidt-Cassegrain-Telescope" title="Permalink"></a></h2><pre><code class="language-julia">using OpticSim
+using StaticArrays
+
+
+# glass entrance lens on telescope
+topsurf = Plane(SVector(0.0, 0.0, 1.0), SVector(0.0, 0.0, 0.0), interface = FresnelInterface{Float64}(OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air), vishalfsizeu = 12.00075, vishalfsizev = 12.00075)
+botsurf = AcceleratedParametricSurface(ZernikeSurface(12.00075, radius = -1.14659768e+4, aspherics = [(4, 3.68090959e-7), (6, 2.73643352e-11), (8, 3.20036892e-14)]), 17, interface = FresnelInterface{Float64}(OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air))
+coverlens = csgintersection(leaf(Cylinder(12.00075, 1.4)), csgintersection(leaf(topsurf), leaf(botsurf, RigidBodyTransform(OpticSim.rotmatd(0, 180, 0), SVector(0.0, 0.0, -0.65)))))
+# big mirror with a hole in it
+bigmirror = ConicLens(OpticSim.GlassCat.SCHOTT.N_BK7, -72.65, -95.2773500000134, 0.077235, Inf, 0.0, 0.2, 12.18263, frontsurfacereflectance = 1.0)
+bigmirror = csgdifference(bigmirror, leaf(Cylinder(4.0, 0.3, interface = opaqueinterface()), translation(0.0, 0.0, -72.75)))
+# small mirror supported on a spider
+smallmirror = SphericalLens(OpticSim.GlassCat.SCHOTT.N_BK7, -40.65, Inf, -49.6845, 1.13365, 4.3223859, backsurfacereflectance = 1.0)
+obscuration1 = Circle(4.5, SVector(0.0, 0.0, 1.0), SVector(0.0, 0.0, -40.649), interface = opaqueinterface())
+obscurations2 = Spider(3, 0.5, 12.0, SVector(0.0, 0.0, -40.65))
+# put it together with the detector
+la = LensAssembly(coverlens(), bigmirror(), smallmirror(), obscuration1, obscurations2...)
+det = Circle(3.0, SVector(0.0, 0.0, 1.0), SVector(0.0, 0.0, -92.4542988), interface = opaqueinterface())
+tele = CSGOpticalSystem(la, det)
+
+Vis.drawtracerays(tele, raygenerator = UniformOpticalSource(CollimatedSource(GridRectOriginPoints(5, 5, 10.0, 10.0, position = SVector(0.0, 0.0, 20.0))), 0.55), trackallrays = true, colorbynhits = true, test = true)</code></pre><p><img src="../assets/tele.png" alt="Schmidt Cassegrain Telescope visualization"/></p><h2 id="Lens-Construction"><a class="docs-heading-anchor" href="#Lens-Construction">Lens Construction</a><a id="Lens-Construction-1"></a><a class="docs-heading-anchor-permalink" href="#Lens-Construction" title="Permalink"></a></h2><pre><code class="language-julia">using OpticSim
+using StaticArrays
+
+topsurface = leaf(AcceleratedParametricSurface(QTypeSurface(9.0, radius = -25.0, conic = 0.3, αcoeffs = [(1, 0, 0.3), (1, 1, 1.0)], βcoeffs = [(1, 0, -0.1), (2, 0, 0.4), (3, 0, -0.6)], normradius = 9.5), interface = FresnelInterface{Float64}(OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air)), translation(0.0, 0.0, 5.0))
+botsurface = leaf(Plane(0.0, 0.0, -1.0, 0.0, 0.0, -5.0, vishalfsizeu = 9.5, vishalfsizev = 9.5, interface = FresnelInterface{Float64}(OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air)))
+barrel = leaf(Cylinder(9.0, 20.0, interface = FresnelInterface{Float64}(OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air, reflectance = zero(Float64), transmission = zero(Float64))))
+lens = csgintersection(barrel, csgintersection(topsurface, botsurface))(RigidBodyTransform{Float64}(0.0, Float64(π), 0.0, 0.0, 0.0, -5.0))
+sys = CSGOpticalSystem(LensAssembly(lens), Rectangle(15.0, 15.0, [0.0, 0.0, 1.0], [0.0, 0.0, -67.8], interface = opaqueinterface()))
+Vis.drawtracerays(sys, test = true, trackallrays = true)</code></pre><p><img src="../assets/qtype.png" alt="lens construction example"/></p><h2 id="HOEs"><a class="docs-heading-anchor" href="#HOEs">HOEs</a><a id="HOEs-1"></a><a class="docs-heading-anchor-permalink" href="#HOEs" title="Permalink"></a></h2><h3 id="Focusing"><a class="docs-heading-anchor" href="#Focusing">Focusing</a><a id="Focusing-1"></a><a class="docs-heading-anchor-permalink" href="#Focusing" title="Permalink"></a></h3><pre><code class="language-julia">using OpticSim
+using StaticArrays
+
+rect = Rectangle(5.0, 5.0, SVector(0.0, 0.0, 1.0), SVector(0.0, 0.0, 0.0))
+int = HologramInterface(SVector(0.0, -3.0, -20.0), ConvergingBeam, SVector(0.0, 0.0, -1.0), CollimatedBeam, 0.55, 9.0, OpticSim.GlassCat.Air, OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air, OpticSim.GlassCat.Air, OpticSim.GlassCat.Air, 0.05, false)
+obj = HologramSurface(rect, int)
+sys = CSGOpticalSystem(LensAssembly(obj), Rectangle(10.0, 10.0, SVector(0.0, 0.0, 1.0), SVector(0.0, 0.0, -25.0), interface = opaqueinterface()))
+Vis.drawtracerays(sys; raygenerator = UniformOpticalSource(CollimatedSource(GridRectOriginPoints(5, 5, 3.0, 3.0, position = SVector(0.0, 0.0, 10.0), direction = SVector(0.0, 0.0, -1.0))), 0.55), trackallrays = true, rayfilter = nothing, test = true)</code></pre><p><img src="../assets/hoe_f.png" alt="Focusing HOE example"/></p><h3 id="Collimating"><a class="docs-heading-anchor" href="#Collimating">Collimating</a><a id="Collimating-1"></a><a class="docs-heading-anchor-permalink" href="#Collimating" title="Permalink"></a></h3><pre><code class="language-julia">using OpticSim
+using StaticArrays
+
+rect = Rectangle(5.0, 5.0, SVector(0.0, 0.0, 1.0), SVector(0.0, 0.0, 0.0))
+int = HologramInterface(SVector(0.1, -0.05, -1.0), CollimatedBeam, SVector(0.0, 0.0, 10), DivergingBeam, 0.55, 9.0, OpticSim.GlassCat.Air, OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air, OpticSim.GlassCat.Air, OpticSim.GlassCat.Air, 0.05, false)
+obj = HologramSurface(rect, int)
+sys = CSGOpticalSystem(LensAssembly(obj), Rectangle(10.0, 10.0, SVector(0.0, 0.0, 1.0), SVector(0.0, 0.0, -25.0), interface = opaqueinterface()))
+Vis.drawtracerays(sys; raygenerator = UniformOpticalSource(GridSource(OriginPoint{Float64}(1, position = SVector(0.0, 0.0, 10.0), direction = SVector(0.0, 0.0, -1.0)), 5, 5, π / 4, π / 4), 0.55), trackallrays = true, rayfilter = nothing, test = true)</code></pre><p><img src="../assets/hoe_c.png" alt="Collimating HOE example"/></p><h3 id="Multi"><a class="docs-heading-anchor" href="#Multi">Multi</a><a id="Multi-1"></a><a class="docs-heading-anchor-permalink" href="#Multi" title="Permalink"></a></h3><pre><code class="language-julia">using OpticSim
+using StaticArrays
+
+rect = Rectangle(5.0, 5.0, SVector(0.0, 0.0, 1.0), SVector(0.0, 0.0, 0.0))
+int1 = HologramInterface(SVector(-5.0, 0.0, -20.0), ConvergingBeam, SVector(0.0, -1.0, -1.0), CollimatedBeam, 0.55, 100.0, OpticSim.GlassCat.Air, OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air, OpticSim.GlassCat.Air, OpticSim.GlassCat.Air, 0.05, false)
+int2 = HologramInterface(SVector(5.0, 0.0, -20.0), ConvergingBeam, SVector(0.0, 1.0, -1.0), CollimatedBeam, 0.55, 100.0, OpticSim.GlassCat.Air, OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air, OpticSim.GlassCat.Air, OpticSim.GlassCat.Air, 0.05, false)
+mint = MultiHologramInterface(int1, int2)
+obj = MultiHologramSurface(rect, mint)
+sys = CSGOpticalSystem(LensAssembly(obj), Rectangle(10.0, 10.0, SVector(0.0, 0.0, 1.0), SVector(0.0, 0.0, -20.0), interface = opaqueinterface()))
+s1 = UniformOpticalSource(CollimatedSource(RandomRectOriginPoints(500, 3.0, 3.0, position = SVector(0.0, 3.0, 3.0), direction = SVector(0.0, -1.0, -1.0))), 0.55, sourcenum = 1)
+s2 = UniformOpticalSource(CollimatedSource(RandomRectOriginPoints(500, 3.0, 3.0, position = SVector(0.0, -3.0, 3.0), direction = SVector(0.0, 1.0, -1.0))), 0.55, sourcenum = 2)
+s3 = UniformOpticalSource(CollimatedSource(RandomRectOriginPoints(500, 3.0, 3.0, position = SVector(0.0, 0.0, 3.0), direction = SVector(0.0, 0.0, -1.0))), 0.55, sourcenum = 3)
+Vis.drawtracerays(sys; raygenerator = s1, trackallrays = true, colorbysourcenum = true, rayfilter = nothing)
+Vis.drawtracerays!(sys; raygenerator = s2, trackallrays = true, colorbysourcenum = true, rayfilter = nothing, drawgen = true)
+Vis.drawtracerays!(sys; raygenerator = s3, trackallrays = true, colorbysourcenum = true, rayfilter = nothing, drawgen = true)</code></pre><pre class="documenter-example-output">┌ Warning: Order 1 not valid for this configuration, skipping this ray
+└ @ OpticSim ~/work/OpticSim.jl/OpticSim.jl/src/Optical/Grating.jl:300
+┌ Warning: Order 1 not valid for this configuration, skipping this ray
+└ @ OpticSim ~/work/OpticSim.jl/OpticSim.jl/src/Optical/Grating.jl:300</pre><p><img src="../assets/hoe_m.png" alt="Multi-HOE example"/></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« Home</a><a class="docs-footer-nextpage" href="../primitives/">Primitives »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Thursday 25 March 2021 18:25">Thursday 25 March 2021</span>. Using Julia version 1.5.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Examples · OpticSim.jl</title><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.11.1/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script><link href="../assets/logo.svg" rel="icon" type="image/x-icon"/></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../"><img class="docs-light-only" src="../assets/logo.svg" alt="OpticSim.jl logo"/><img class="docs-dark-only" src="../assets/logo-dark.svg" alt="OpticSim.jl logo"/></a><div class="docs-package-name"><span class="docs-autofit">OpticSim.jl</span></div><form class="docs-search" action="../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../">Home</a></li><li class="is-active"><a class="tocitem" href>Examples</a><ul class="internal"><li><a class="tocitem" href="#Pluto-Notebooks"><span>Pluto Notebooks</span></a></li><li><a class="tocitem" href="#Cooke-Triplet"><span>Cooke Triplet</span></a></li><li><a class="tocitem" href="#Zoom-Lens"><span>Zoom Lens</span></a></li><li><a class="tocitem" href="#Schmidt-Cassegrain-Telescope"><span>Schmidt Cassegrain Telescope</span></a></li><li><a class="tocitem" href="#Lens-Construction"><span>Lens Construction</span></a></li><li><a class="tocitem" href="#HOEs"><span>HOEs</span></a></li><li><a class="tocitem" href="#Deterministic-Raytracing"><span>Deterministic Raytracing</span></a></li></ul></li><li><span class="tocitem">Geometry</span><ul><li><a class="tocitem" href="../basic_types/">Basic Types</a></li><li><a class="tocitem" href="../primitives/">Primitives</a></li><li><a class="tocitem" href="../csg/">CSG</a></li></ul></li><li><span class="tocitem">Optical</span><ul><li><a class="tocitem" href="../systems/">Systems</a></li><li><a class="tocitem" href="../emitters/">Emitters</a></li><li><a class="tocitem" href="../interfaces/">Interfaces</a></li><li><a class="tocitem" href="../lenses/">Lenses</a></li></ul></li><li><a class="tocitem" href="../vis/">Visualization</a></li><li><a class="tocitem" href="../glasscat/">Glass Functions</a></li><li><a class="tocitem" href="../optimization/">Optimization</a></li><li><a class="tocitem" href="../cloud/">Cloud Execution</a></li><li><a class="tocitem" href="../notebooksutils/">Notebook utilities</a></li><li><a class="tocitem" href="../ref/">Reference</a></li><li><a class="tocitem" href="../roadmap/">Roadmap</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Examples</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Examples</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/microsoft/OpticSim.jl/blob/master/docs/src/examples.md" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="Examples"><a class="docs-heading-anchor" href="#Examples">Examples</a><a id="Examples-1"></a><a class="docs-heading-anchor-permalink" href="#Examples" title="Permalink"></a></h1><h2 id="Pluto-Notebooks"><a class="docs-heading-anchor" href="#Pluto-Notebooks">Pluto Notebooks</a><a id="Pluto-Notebooks-1"></a><a class="docs-heading-anchor-permalink" href="#Pluto-Notebooks" title="Permalink"></a></h2><p>The <a href="index.html"><code>OpticSim</code></a> package comes with several <a href="https://github.com/fonsp/Pluto.jl"><code>Pluto</code></a> notebooks (code snippets are coming soon) that allow the user to change and run sample code and view the results in real-time. We highly recommend for you to try these out. The notebooks are located in the <strong>samples</strong> folder, and you can try them by running:</p><pre><code class="language-julia">import OpticSim.NotebooksUtils as NB    # the **as** option was added in Julia v1.6
+
+NB.run_sample(&quot;EmittersIntro.jl&quot;)</code></pre><p>The <strong>run_sample</strong> method will <strong>copy</strong> the notebook to your current folder (if it does not exist) and launch Pluto to run the notebook in the browser.</p><h2 id="Cooke-Triplet"><a class="docs-heading-anchor" href="#Cooke-Triplet">Cooke Triplet</a><a id="Cooke-Triplet-1"></a><a class="docs-heading-anchor-permalink" href="#Cooke-Triplet" title="Permalink"></a></h2><div class="markdown"><pre><code class="language-julia">function draw_cooketriplet&#40;filename::Union&#123;Nothing,AbstractString&#125; &#61; nothing&#41;
+    g1, g2 &#61; SCHOTT.N_SK16, SCHOTT.N_SF2
+    sys &#61; AxisymmetricOpticalSystem&#123;Float64&#125;&#40;DataFrame&#40;
+        SurfaceType  &#61; &#91;&quot;Object&quot;, &quot;Standard&quot;, &quot;Standard&quot;, &quot;Standard&quot;, &quot;Stop&quot;, &quot;Standard&quot;, &quot;Standard&quot;, &quot;Image&quot;&#93;,
+        Radius       &#61; &#91;Inf,      26.777,     66.604,     -35.571,    35.571, 35.571,     -26.777,    Inf    &#93;,
+        Thickness    &#61; &#91;Inf,      4.0,        2.0,        4.0,        2.0,    4.0,        44.748,     missing&#93;,
+        Material     &#61; &#91;Air,      g1,         Air,        g2,         Air,    g1,         Air,        missing&#93;,
+        SemiDiameter &#61; &#91;Inf,      8.580,      7.513,      7.054,      6.033,  7.003,      7.506,      15.0   &#93;,
+    &#41;&#41;
+
+    origins &#61; Origins.Hexapolar&#40;8, 15.0, 15.0&#41;
+    directions &#61; Directions.Constant&#40;0.0, 0.0, -1.0&#41;
+    s1 &#61; Sources.Source&#40;; origins, directions, sourcenum&#61;1&#41;
+
+    transform &#61; Transform&#40;rotmatd&#40;10, 0, 0&#41;, unitZ3&#40;&#41;&#41;
+    s2 &#61; Sources.Source&#40;; transform, origins, directions, sourcenum&#61;2&#41;
+
+    raygenerator &#61; Sources.CompositeSource&#40;Transform&#40;&#41;, &#91;s1, s2&#93;&#41;
+
+    trackallrays &#61; test &#61; colorbysourcenum &#61; true; resolution &#61; &#40;1000, 700&#41;
+    Vis.drawtracerays&#40;sys; raygenerator, trackallrays, test, colorbysourcenum, resolution&#41;
+    Vis.make2dy&#40;&#41;; Vis.save&#40;filename&#41;
+    return sys
+end</code></pre>
+</div><pre class="documenter-example-output">sys = 8×5 DataFrame
+ Row │ SurfaceType  Radius   Thickness    Material       SemiDiameter
+     │ String       Float64  Float64?     Abstract…?     Float64
+─────┼────────────────────────────────────────────────────────────────
+   1 │ Object       Inf          Inf      Air                 Inf
+   2 │ Standard      26.777        4.0    SCHOTT.N_SK16         8.58
+   3 │ Standard      66.604        2.0    Air                   7.513
+   4 │ Standard     -35.571        4.0    SCHOTT.N_SF2          7.054
+   5 │ Stop          35.571        2.0    Air                   6.033
+   6 │ Standard      35.571        4.0    SCHOTT.N_SK16         7.003
+   7 │ Standard     -26.777       44.748  Air                   7.506
+   8 │ Image        Inf      missing      missing              15.0</pre><p><img src="../assets/cooke.png" alt="Cooke triplet visualization"/></p><h2 id="Zoom-Lens"><a class="docs-heading-anchor" href="#Zoom-Lens">Zoom Lens</a><a id="Zoom-Lens-1"></a><a class="docs-heading-anchor-permalink" href="#Zoom-Lens" title="Permalink"></a></h2><div class="markdown"><pre><code class="language-julia">function draw_zoomlenses&#40;filenames::Vector&#123;&lt;:Union&#123;Nothing,AbstractString&#125;&#125; &#61; repeat&#40;&#91;nothing&#93;, 3&#41;&#41;
+    stops &#61; &#91;2.89, 3.99, 4.90&#93;
+    zooms &#61; &#91;9.48, 4.48, 2.00&#93;
+    dists &#61; &#91;4.46970613, 21.21, 43.81&#93;
+
+    transform &#61; translation&#40;0.0, 0.0, 10.0&#41;
+    origins &#61; Origins.Hexapolar&#40;8, 10.0, 10.0&#41;
+    directions &#61; Directions.Constant&#40;0.0, 0.0, -1.0&#41;
+    raygenerator &#61; Sources.Source&#40;; transform, origins, directions&#41;
+
+    aspherics &#61; &#91;
+        &#91;&quot;4&quot; &#61;&gt; 1.0386E-04, &quot;6&quot; &#61;&gt; 1.4209E-07, &quot;8&quot; &#61;&gt; -8.8495E-09, &quot;10&quot; &#61;&gt; 1.2477E-10, &quot;12&quot; &#61;&gt; -1.0367E-12, &quot;14&quot; &#61;&gt; 3.6556E-15&#93;,
+        &#91;&quot;4&quot; &#61;&gt; 4.2721E-05, &quot;6&quot; &#61;&gt; 1.2484E-07, &quot;8&quot; &#61;&gt; 9.7079E-09, &quot;10&quot; &#61;&gt; -1.8444E-10, &quot;12&quot; &#61;&gt; 1.8644E-12, &quot;14&quot; &#61;&gt; -7.7975E-15&#93;,
+        &#91;&quot;4&quot; &#61;&gt; 1.1339E-04, &quot;6&quot; &#61;&gt; 4.8165E-07, &quot;8&quot; &#61;&gt; 1.8778E-08, &quot;10&quot; &#61;&gt; -5.7571E-10, &quot;12&quot; &#61;&gt; 8.9994E-12, &quot;14&quot; &#61;&gt; -4.6768E-14&#93;,
+    &#93;
+    syss &#61; &#91;
+        AxisymmetricOpticalSystem&#123;Float64&#125;&#40;DataFrame&#40;
+            SurfaceType &#61; &#91;&quot;Object&quot;, &quot;Stop&quot;, &quot;Standard&quot;, &quot;Standard&quot;, &quot;Standard&quot;, &quot;Aspheric&quot;, &quot;Standard&quot;, &quot;Standard&quot;, &quot;Aspheric&quot;, &quot;Aspheric&quot;, &quot;Standard&quot;, &quot;Standard&quot;, &quot;Standard&quot;, &quot;Standard&quot;, &quot;Standard&quot;, &quot;Standard&quot;, &quot;Image&quot;&#93;,
+            Radius &#61; &#91;Inf64, Inf64, -1.6202203499676E&#43;01, -4.8875855327468E&#43;01, 1.5666614444619E&#43;01, -4.2955326460481E&#43;01, 1.0869565217391E&#43;02, 2.3623907394283E&#43;01, -1.6059097478722E&#43;01, -4.2553191489362E&#43;02, -3.5435861091425E&#43;01, -1.4146272457208E&#43;01, -2.5125628140704E&#43;02, -2.2502250225023E&#43;01, -1.0583130489999E&#43;01, -4.4444444444444E&#43;01, Inf64&#93;,
+            Parameters &#61; &#91;missing, missing, missing, missing, missing, aspherics&#91;1&#93;, missing, missing, aspherics&#91;2&#93;, aspherics&#91;3&#93;, missing, missing, missing, missing, missing, missing, missing&#93;,
+            Thickness &#61; &#91;Inf64, 0.0, 5.18, 0.10, 4.40, 0.16, 1.0, 4.96, zoom, 4.04, 1.35, 1.0, 2.80, 3.0, 1.22, dist, missing&#93;,
+            Material &#61; &#91;Air, Air, OHARA.S_LAH66, Air, NIKON.LLF6, Air, OHARA.S_TIH6, OHARA.S_FSL5, Air, OHARA.S_FSL5, Air, OHARA.S_LAL8, OHARA.S_FSL5, Air, OHARA.S_LAH66, Air, missing&#93;,
+            SemiDiameter &#61; &#91;Inf64, stop, 3.85433218451, 3.85433218451, 4.36304692871, 4.36304692871, 4.72505505439, 4.72505505439, 4.72505505439, 4.45240784026, 4.45240784026, 4.50974054117, 4.50974054117, 4.50974054117, 4.76271114409, 4.76271114409, 15.0&#93;&#41;&#41;
+        for &#40;stop, zoom, dist&#41; in zip&#40;stops, zooms, dists&#41;&#93;
+
+    for &#40;sys, filename&#41; in zip&#40;syss, filenames&#41;
+        Vis.drawtracerays&#40;sys; raygenerator, trackallrays&#61;true, test&#61;true, numdivisions&#61;50, resolution&#61;&#40;1200, 600&#41;&#41;
+        Vis.make2dy&#40;&#41;; Vis.save&#40;filename&#41;
+    end
+    return syss
+end</code></pre>
+</div><pre class="documenter-example-output">syss[1] = 17×6 DataFrame
+ Row │ SurfaceType  Radius     Parameters                         Thickness      Material       SemiDiameter
+     │ String       Float64    Array…?                            Float64?       Abstract…?     Float64
+─────┼───────────────────────────────────────────────────────────────────────────────────────────────────────
+   1 │ Object        Inf       missing                                Inf        Air               Inf
+   2 │ Stop          Inf       missing                                  0.0      Air                 2.89
+   3 │ Standard      -16.2022  missing                                  5.18     OHARA.S_LAH66       3.85433
+   4 │ Standard      -48.8759  missing                                  0.1      Air                 3.85433
+   5 │ Standard       15.6666  missing                                  4.4      NIKON.LLF6          4.36305
+   6 │ Aspheric      -42.9553  [&quot;4&quot;=&gt;0.00010386, &quot;6&quot;=&gt;1.4209e-7…        0.16     Air                 4.36305
+   7 │ Standard      108.696   missing                                  1.0      OHARA.S_TIH6        4.72506
+   8 │ Standard       23.6239  missing                                  4.96     OHARA.S_FSL5        4.72506
+   9 │ Aspheric      -16.0591  [&quot;4&quot;=&gt;4.2721e-5, &quot;6&quot;=&gt;1.2484e-7,…        9.48     Air                 4.72506
+  10 │ Aspheric     -425.532   [&quot;4&quot;=&gt;0.00011339, &quot;6&quot;=&gt;4.8165e-7…        4.04     OHARA.S_FSL5        4.45241
+  11 │ Standard      -35.4359  missing                                  1.35     Air                 4.45241
+  12 │ Standard      -14.1463  missing                                  1.0      OHARA.S_LAL8        4.50974
+  13 │ Standard     -251.256   missing                                  2.8      OHARA.S_FSL5        4.50974
+  14 │ Standard      -22.5023  missing                                  3.0      Air                 4.50974
+  15 │ Standard      -10.5831  missing                                  1.22     OHARA.S_LAH66       4.76271
+  16 │ Standard      -44.4444  missing                                  4.46971  Air                 4.76271
+  17 │ Image         Inf       missing                            missing        missing            15.0</pre><p><img src="../assets/zoom1.png" alt="Zoom position 1 visualization"/> <img src="../assets/zoom2.png" alt="Zoom position 2 visualization"/> <img src="../assets/zoom3.png" alt="Zoom position 3 visualization"/></p><h2 id="Schmidt-Cassegrain-Telescope"><a class="docs-heading-anchor" href="#Schmidt-Cassegrain-Telescope">Schmidt Cassegrain Telescope</a><a id="Schmidt-Cassegrain-Telescope-1"></a><a class="docs-heading-anchor-permalink" href="#Schmidt-Cassegrain-Telescope" title="Permalink"></a></h2><div class="markdown"><pre><code class="language-julia">function draw_schmidtcassegraintelescope&#40;filename::Union&#123;Nothing,AbstractString&#125; &#61; nothing&#41;
+    # glass entrance lens on telescope
+    topsurf &#61; Plane&#40;
+        SVector&#40;0.0, 0.0, 1.0&#41;,
+        SVector&#40;0.0, 0.0, 0.0&#41;,
+        interface &#61; FresnelInterface&#123;Float64&#125;&#40;SCHOTT.N_BK7, Air&#41;,
+        vishalfsizeu &#61; 12.00075,
+        vishalfsizev &#61; 12.00075&#41;
+    botsurf &#61; AcceleratedParametricSurface&#40;ZernikeSurface&#40;
+        12.00075,
+        radius &#61; -1.14659768e&#43;4,
+        aspherics &#61; &#91;&#40;4, 3.68090959e-7&#41;, &#40;6, 2.73643352e-11&#41;, &#40;8, 3.20036892e-14&#41;&#93;&#41;,
+        17,
+        interface &#61; FresnelInterface&#123;Float64&#125;&#40;SCHOTT.N_BK7, Air&#41;&#41;
+    coverlens &#61; csgintersection&#40;
+        leaf&#40;Cylinder&#40;12.00075, 1.4&#41;&#41;,
+        csgintersection&#40;
+            leaf&#40;topsurf&#41;, 
+            leaf&#40;botsurf, Transform&#40;rotmatd&#40;0, 180, 0&#41;, Vec3&#40;0.0, 0.0, -0.65&#41;&#41;&#41;&#41;&#41;
+
+    # big mirror with a hole in it
+    bigmirror &#61; csgdifference&#40;
+        ConicLens&#40;SCHOTT.N_BK7, -72.65, -95.2773500000134, 0.077235, Inf, 0.0, 0.2, 12.18263, frontsurfacereflectance &#61; 1.0&#41;,
+        leaf&#40;Cylinder&#40;4.0, 0.3, interface &#61; opaqueinterface&#40;&#41;&#41;, translation&#40;0.0, 0.0, -72.75&#41;&#41;&#41;
+
+    # small mirror supported on a spider
+    smallmirror &#61; SphericalLens&#40;SCHOTT.N_BK7, -40.65, Inf, -49.6845, 1.13365, 4.3223859, backsurfacereflectance &#61; 1.0&#41;
+
+    obscuration1 &#61; Circle&#40;4.5, SVector&#40;0.0, 0.0, 1.0&#41;, SVector&#40;0.0, 0.0, -40.649&#41;, interface &#61; opaqueinterface&#40;&#41;&#41;
+    obscurations2 &#61; Spider&#40;3, 0.5, 12.0, SVector&#40;0.0, 0.0, -40.65&#41;&#41;
+
+    # put it together with the detector
+    la &#61; LensAssembly&#40;coverlens&#40;&#41;, bigmirror&#40;&#41;, smallmirror&#40;&#41;, obscuration1, obscurations2...&#41;
+    det &#61; Circle&#40;3.0, SVector&#40;0.0, 0.0, 1.0&#41;, SVector&#40;0.0, 0.0, -92.4542988&#41;, interface &#61; opaqueinterface&#40;&#41;&#41;
+    sys &#61; CSGOpticalSystem&#40;la, det&#41;
+
+    # define ray generator
+    transform &#61; translation&#40;0.0, 0.0, 10.0&#41;
+    origins &#61; Origins.Hexapolar&#40;8, 20.0, 20.0&#41;
+    directions &#61; Directions.Constant&#40;0.0, 0.0, -1.0&#41;
+    raygenerator &#61; Sources.Source&#40;; transform, origins, directions&#41;
+
+    # draw and output
+    Vis.drawtracerays&#40;sys; raygenerator, trackallrays &#61; true, colorbynhits &#61; true, test &#61; true, numdivisions &#61; 100, drawgen &#61; false&#41;
+    Vis.save&#40;filename&#41;
+    return nothing
+end</code></pre>
+</div><p><img src="../assets/tele.png" alt="Schmidt Cassegrain Telescope visualization"/></p><h2 id="Lens-Construction"><a class="docs-heading-anchor" href="#Lens-Construction">Lens Construction</a><a id="Lens-Construction-1"></a><a class="docs-heading-anchor-permalink" href="#Lens-Construction" title="Permalink"></a></h2><div class="markdown"><pre><code class="language-julia">function draw_lensconstruction&#40;filename::Union&#123;Nothing,AbstractString&#125; &#61; nothing&#41;
+    topsurface &#61; leaf&#40;
+        AcceleratedParametricSurface&#40;
+            QTypeSurface&#40;
+                9.0,
+                radius &#61; -25.0,
+                conic &#61; 0.3,
+                αcoeffs &#61; &#91;&#40;1, 0, 0.3&#41;, &#40;1, 1, 1.0&#41;&#93;,
+                βcoeffs &#61; &#91;&#40;1, 0, -0.1&#41;, &#40;2, 0, 0.4&#41;, &#40;3, 0, -0.6&#41;&#93;,
+                normradius &#61; 9.5&#41;,
+            interface &#61; FresnelInterface&#123;Float64&#125;&#40;SCHOTT.N_BK7, Air&#41;&#41;,
+        translation&#40;0.0, 0.0, 5.0&#41;&#41;
+    botsurface &#61; leaf&#40;
+        Plane&#40;
+            SVector&#40;0.0, 0.0, -1.0&#41;,
+            SVector&#40;0.0, 0.0, -5.0&#41;,
+            vishalfsizeu &#61; 9.5,
+            vishalfsizev &#61; 9.5,
+            interface &#61; FresnelInterface&#123;Float64&#125;&#40;SCHOTT.N_BK7, Air&#41;&#41;&#41;
+    barrel &#61; leaf&#40;
+        Cylinder&#40;
+            9.0,
+            20.0,
+            interface &#61; FresnelInterface&#123;Float64&#125;&#40;SCHOTT.N_BK7, Air, reflectance &#61; 0.0, transmission &#61; 0.0&#41;&#41;&#41;
+    lens &#61; csgintersection&#40;
+        barrel,
+        csgintersection&#40;topsurface, botsurface&#41;,
+        Transform&#123;Float64&#125;&#40;0.0, Float64&#40;π&#41;, 0.0, 0.0, 0.0, -5.0&#41;&#41;&#40;&#41;
+    sys &#61; CSGOpticalSystem&#40;
+        LensAssembly&#40;lens&#41;,
+        Rectangle&#40;15.0, 15.0, &#91;0.0, 0.0, 1.0&#93;, &#91;0.0, 0.0, -67.8&#93;, interface &#61; opaqueinterface&#40;&#41;&#41;&#41;
+
+    Vis.drawtracerays&#40;sys, test &#61; true, trackallrays &#61; true, colorbynhits &#61; true&#41;
+    Vis.save&#40;filename&#41;
+    return nothing
+end</code></pre>
+</div><p><img src="../assets/qtype.png" alt="lens construction example"/></p><h2 id="HOEs"><a class="docs-heading-anchor" href="#HOEs">HOEs</a><a id="HOEs-1"></a><a class="docs-heading-anchor-permalink" href="#HOEs" title="Permalink"></a></h2><h3 id="Focusing"><a class="docs-heading-anchor" href="#Focusing">Focusing</a><a id="Focusing-1"></a><a class="docs-heading-anchor-permalink" href="#Focusing" title="Permalink"></a></h3><div class="markdown"><pre><code class="language-julia">function draw_HOEfocus&#40;filename::Union&#123;Nothing,AbstractString&#125; &#61; nothing&#41;
+    rect &#61; Rectangle&#40;5.0, 5.0, SVector&#40;0.0, 0.0, 1.0&#41;, SVector&#40;0.0, 0.0, 0.0&#41;&#41;
+    int &#61; HologramInterface&#40;
+        SVector&#40;0.0, -3.0, -20.0&#41;, ConvergingBeam,
+        SVector&#40;0.0, 0.0, -1.0&#41;, CollimatedBeam,
+        0.55, 9.0, Air, SCHOTT.N_BK7, Air, Air, Air, 0.05, false&#41;
+    obj &#61; HologramSurface&#40;rect, int&#41;
+    sys &#61; CSGOpticalSystem&#40;
+        LensAssembly&#40;obj&#41;,
+        Rectangle&#40;10.0, 10.0, SVector&#40;0.0, 0.0, 1.0&#41;, SVector&#40;0.0, 0.0, -25.0&#41;,
+        interface &#61; opaqueinterface&#40;&#41;&#41;&#41;
+
+    raygenerator &#61; Sources.Source&#40;;
+        transform &#61; translation&#40;0.0, 0.0, 10.0&#41;,
+        spectrum &#61; Spectrum.DeltaFunction&#40;0.55&#41;,
+        origins &#61; Origins.RectGrid&#40;3.0, 3.0, 5, 5&#41;,
+        directions &#61; Directions.Constant&#40;0.0, 0.0, -1.0&#41;&#41;
+
+    Vis.drawtracerays&#40;sys; raygenerator, trackallrays &#61; true, rayfilter &#61; nothing, test &#61; true&#41;
+    Vis.save&#40;filename&#41;
+    return nothing
+end</code></pre>
+</div><p><img src="../assets/hoe_f.png" alt="Focusing HOE example"/></p><h3 id="Collimating"><a class="docs-heading-anchor" href="#Collimating">Collimating</a><a id="Collimating-1"></a><a class="docs-heading-anchor-permalink" href="#Collimating" title="Permalink"></a></h3><div class="markdown"><pre><code class="language-julia">function draw_HOEcollimate&#40;filename::Union&#123;Nothing,AbstractString&#125; &#61; nothing&#41;
+    rect &#61; Rectangle&#40;5.0, 5.0, SVector&#40;0.0, 0.0, 1.0&#41;, SVector&#40;0.0, 0.0, 0.0&#41;&#41;
+    int &#61; HologramInterface&#40;
+        SVector&#40;0.1, -0.05, -1.0&#41;, CollimatedBeam,
+        SVector&#40;0.0, 0.0, 10&#41;, DivergingBeam,
+        0.55, 9.0, Air, SCHOTT.N_BK7, Air, Air, Air, 0.05, false&#41;
+    obj &#61; HologramSurface&#40;rect, int&#41;
+    sys &#61; CSGOpticalSystem&#40;
+        LensAssembly&#40;obj&#41;,
+        Rectangle&#40;10.0, 10.0, SVector&#40;0.0, 0.0, 1.0&#41;, SVector&#40;0.0, 0.0, -25.0&#41;,
+        interface &#61; opaqueinterface&#40;&#41;&#41;&#41;
+
+    raygenerator &#61; Sources.Source&#40;
+        transform &#61; Transform&#40;rotmatd&#40;180, 0, 0&#41;, Vec3&#40;0.0, 0.0, 10.0&#41;&#41;,
+        spectrum &#61; Spectrum.DeltaFunction&#40;0.55&#41;,
+        origins &#61; Origins.Point&#40;&#41;,
+        directions &#61; Directions.RectGrid&#40;π/4, π/4, 8, 8&#41;&#41;
+
+    Vis.drawtracerays&#40;sys; raygenerator, trackallrays &#61; true, rayfilter &#61; nothing, test &#61; true&#41;
+    Vis.save&#40;filename&#41;
+    return nothing
+end</code></pre>
+</div><p><img src="../assets/hoe_c.png" alt="Collimating HOE example"/></p><h3 id="Multi"><a class="docs-heading-anchor" href="#Multi">Multi</a><a id="Multi-1"></a><a class="docs-heading-anchor-permalink" href="#Multi" title="Permalink"></a></h3><div class="markdown"><pre><code class="language-julia">function draw_multiHOE&#40;filename::Union&#123;Nothing,AbstractString&#125; &#61; nothing&#41;
+    rect &#61; Rectangle&#40;5.0, 5.0, SVector&#40;0.0, 0.0, 1.0&#41;, SVector&#40;0.0, 0.0, 0.0&#41;&#41;
+    int1 &#61; HologramInterface&#40;
+        SVector&#40;-5.0, 0.0, -20.0&#41;, ConvergingBeam,
+        SVector&#40;0.0, -1.0, -1.0&#41;, CollimatedBeam,
+        0.55, 100.0, Air, SCHOTT.N_BK7, Air, Air, Air, 0.05, false&#41;
+    int2 &#61; HologramInterface&#40;
+        SVector&#40;5.0, 0.0, -20.0&#41;, ConvergingBeam,
+        SVector&#40;0.0, 1.0, -1.0&#41;, CollimatedBeam,
+        0.55, 100.0, Air, SCHOTT.N_BK7, Air, Air, Air, 0.05, false&#41;
+    mint &#61; MultiHologramInterface&#40;int1, int2&#41;
+    obj &#61; MultiHologramSurface&#40;rect, mint&#41;
+    sys &#61; CSGOpticalSystem&#40;
+        LensAssembly&#40;obj&#41;,
+        Rectangle&#40;10.0, 10.0, SVector&#40;0.0, 0.0, 1.0&#41;, SVector&#40;0.0, 0.0, -20.0&#41;, interface &#61; opaqueinterface&#40;&#41;&#41;&#41;
+
+    spectrum &#61; Spectrum.DeltaFunction&#40;0.55&#41;
+    origins &#61; Origins.RectUniform&#40;3.0, 3.0, 500&#41;
+    directions &#61; Directions.Constant&#40;0.0, 0.0, -1.0&#41;
+    s1 &#61; Sources.Source&#40;; spectrum, origins, directions, sourcenum &#61; 1,
+        transform &#61; Transform&#40;rotmatd&#40;-45, 0, 0&#41;, Vec3&#40;0.0, 3.0, 3.0&#41;&#41;&#41;
+    s2 &#61; Sources.Source&#40;; spectrum, origins, directions, sourcenum &#61; 2,
+        transform &#61; Transform&#40;rotmatd&#40;45, 0, 0&#41;, Vec3&#40;0.0, -3.0, 3.0&#41;&#41;&#41;
+    s3 &#61; Sources.Source&#40;; spectrum, origins, directions, sourcenum &#61; 3,
+        transform &#61; translation&#40;0.0, 0.0, 3.0&#41;&#41;
+    raygenerator &#61; Sources.CompositeSource&#40;Transform&#40;&#41;, &#91;s1, s2, s3&#93;&#41;
+
+    Vis.drawtracerays&#40;sys; raygenerator, trackallrays &#61; true, colorbysourcenum &#61; true, rayfilter &#61; nothing, drawgen &#61; true&#41;
+    Vis.save&#40;filename&#41;
+    return nothing
+end</code></pre>
+</div><pre class="documenter-example-output">┌ Warning: Order 1 not valid for this configuration, skipping this ray
+└ @ OpticSim ~/work/OpticSim.jl/OpticSim.jl/src/Optical/Grating.jl:282</pre><p><img src="../assets/hoe_m.png" alt="Multi-HOE example"/></p><h2 id="Deterministic-Raytracing"><a class="docs-heading-anchor" href="#Deterministic-Raytracing">Deterministic Raytracing</a><a id="Deterministic-Raytracing-1"></a><a class="docs-heading-anchor-permalink" href="#Deterministic-Raytracing" title="Permalink"></a></h2><div class="markdown"><pre><code class="language-julia">function draw_stackedbeamsplitters&#40;filenames::Vector&#123;&lt;:Union&#123;Nothing,AbstractString&#125;&#125; &#61; repeat&#40;&#91;nothing&#93;, 3&#41;&#41;
+    # ReflectOrTransmit: nondeterministic
+    # Transmit: deterministic, all beamsplitters transmissive
+    # Reflect: deterministic, all beamsplitters reflective
+    interfacemodes &#61; &#91;ReflectOrTransmit, Transmit, Reflect&#93;
+
+    for &#40;interfacemode, filename&#41; in zip&#40;interfacemodes, filenames&#41;
+        interface &#61; FresnelInterface&#123;Float64&#125;&#40;SCHOTT.N_BK7, Air; reflectance&#61;0.5, transmission&#61;0.5, interfacemode&#41;
+        bs_1 &#61; leaf&#40;
+            leaf&#40;
+                Cuboid&#40;10.0, 20.0, 2.0; interface&#41;,
+                rotationX&#40;π/4&#41;&#41;,
+            translation&#40;0.0, 0.0, -30.0-2*sqrt&#40;2&#41;&#41;&#41;
+        l1 &#61; leaf&#40;
+            SphericalLens&#40;SCHOTT.N_BK7, -70.0, 30.0, Inf, 5.0, 10.0&#41;,
+            translation&#40;0.0, -1.34, 0.0&#41;&#41;
+        bs_2 &#61; leaf&#40;
+            leaf&#40;
+                Cuboid&#40;10.0, 20.0, 2.0; interface&#41;,
+                rotationX&#40;π/4&#41;&#41;,
+            translation&#40;0.0, 40.0, -30.0&#43;2*sqrt&#40;2&#41;&#41;&#41;
+        l2 &#61; leaf&#40;
+            SphericalLens&#40;SCHOTT.N_BK7, -70.0, 30.0, Inf, 5.0, 10.0&#41;,
+            translation&#40;0.0, 40.0, 0.0&#41;&#41;
+        la &#61; LensAssembly&#40;bs_1&#40;&#41;, l1&#40;&#41;, bs_2&#40;&#41;, l2&#40;&#41;&#41;
+        detector &#61; Rectangle&#40;20.0, 40.0, SVector&#40;0.0, 0.0, 1.0&#41;, SVector&#40;0.0, 20.0, -130.0&#41;; interface &#61; opaqueinterface&#40;&#41;&#41;
+        sys &#61; CSGOpticalSystem&#40;la, detector&#41;
+
+        Vis.drawtracerays&#40;sys; trackallrays&#61;true, rayfilter&#61;nothing, colorbynhits&#61;true&#41;
+        Vis.save&#40;filename&#41;
+    end
+    return nothing
+end</code></pre>
+</div><p><img src="../assets/deterministic_trace_1.png" alt="Nondeterministic Raytrace"/> <img src="../assets/deterministic_trace_2.png" alt="Transmission only"/> <img src="../assets/deterministic_trace_3.png" alt="Reflection only"/></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« Home</a><a class="docs-footer-nextpage" href="../basic_types/">Basic Types »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Wednesday 19 May 2021 20:39">Wednesday 19 May 2021</span>. Using Julia version 1.6.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
