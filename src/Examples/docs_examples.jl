@@ -328,25 +328,35 @@ function draw_gestel(filename::Union{Nothing,AbstractString} = nothing)
     r = 3. # radial thickness of spherical surface
     θ1 = deg2rad(-49) # left limit of lens
     θ2 = deg2rad(-15) # right limit of lens
-    ϕ1 = deg2rad(-10) # bottom limit of lens
-    ϕ2 = deg2rad(10) # top limit of lens
+    ϕ1 = deg2rad(-15) # bottom limit of lens
+    ϕ2 = deg2rad(15) # top limit of lens
     material = SCHOTT.N_BK7
 
-    δθ = deg2rad(1)
-    δϕ = deg2rad(1.5)
+    δθ = deg2rad(.7)
+    δϕ = deg2rad(.9)
+    nθ = 8
+    nϕ = 6
 
-    lensstacks = tiledlensstacks(5, 4, 2., δθ, δϕ, R, r, θ1, θ2, ϕ1, ϕ2, material)
-    baseplate = sphericalsurface(R, r, θ1, θ2, ϕ1, ϕ2, material)
+    l_lensstacks = tiledlensstacks(nθ, nϕ, 2., δθ, δϕ, R, r, θ1, θ2, ϕ1, ϕ2, material)
+    r_lensstacks = tiledlensstacks(nθ, nϕ, 2., δθ, δϕ, R, r, -θ2, -θ1, ϕ1, ϕ2, material)
+    l_baseplate = sphericalsurface(R, r, θ1, θ2, ϕ1, ϕ2, material)
+    r_baseplate = sphericalsurface(R, r, -θ2, -θ1, ϕ1, ϕ2, material)
 
     colors = [color(c) for c in split("white red orange green blue cyan purple")]
+    baseplatecolor = colorant"gray"
     properties = Properties(
-        [object.id => Dict("color" => colors[i]) for i in 1:7 for object in lensstacks[i]]...,
-        baseplate.id => Dict("color" => colorant"black")
+        [object.id => Dict("color" => colors[i]) for i in 1:7 for object in l_lensstacks[i]]...,
+        [object.id => Dict("color" => colors[i]) for i in 1:7 for object in r_lensstacks[i]]...,
+        l_baseplate.id => Dict("color" => baseplatecolor),
+        r_baseplate.id => Dict("color" => baseplatecolor)
     )
 
-    assembly = LensAssembly(reduce(vcat, lensstacks)..., baseplate)
+    assembly = LensAssembly(reduce(vcat, l_lensstacks)..., reduce(vcat, r_lensstacks)..., l_baseplate, r_baseplate)
 
     Vis.draw(assembly; properties)
-    Vis.save(filename)
-    return nothing
+
+    if filename !== nothing
+        Vis.save(filename)
+        return nothing
+    end
 end
