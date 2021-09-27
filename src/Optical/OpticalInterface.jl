@@ -170,9 +170,6 @@ struct ThinGratingInterface{T} <: OpticalInterface{T}
         @assert maxorder >= minorder
         norders = maxorder - minorder + 1
         @assert norders <= GRATING_MAX_ORDERS "Thin grating is limited to $GRATING_MAX_ORDERS orders"
-        @assert zero(T) <= sum(reflectance) <= one(T)
-        @assert zero(T) <= sum(transmission) <= one(T)
-        @assert zero(T) <= sum(reflectance) + sum(transmission) <= one(T)
         @assert ((reflectance === nothing) || length(reflectance) == norders) && ((transmission === nothing) || length(transmission) == norders)
         if reflectance !== nothing
             sreflectance = vcat(SVector{length(reflectance),T}(reflectance), ones(SVector{GRATING_MAX_ORDERS - length(reflectance),T}))
@@ -184,6 +181,9 @@ struct ThinGratingInterface{T} <: OpticalInterface{T}
         else
             stransmission = ones(SVector{GRATING_MAX_ORDERS,T})
         end
+        @assert zero(T) <= sum(sreflectance) <= one(T)
+        @assert zero(T) <= sum(stransmission) <= one(T)
+        @assert zero(T) <= sum(sreflectance) + sum(stransmission) <= one(T)
         new{T}(glassid(insidematerial), glassid(outsidematerial), normalize(vector), period, maxorder, minorder, sreflectance, stransmission)
     end
 end
