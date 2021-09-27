@@ -45,6 +45,11 @@ OpticSim.NotebooksUtils.SetDocsBackend("Web")                                   
 using OpticSim, OpticSim.Geometry, OpticSim.Emitters
 ```
 
+```@example
+OpticSim.Examples
+draw_gestel()
+```
+
 ### Simple functions for creating commonly used emitters
 Many optical systems by convention have their optical axis parallel to the z axis. These utility functions provide a simple interface to the Emitters package to create emitters that direct their rays in the negative z direction, toward the entrance of the optical system.
 

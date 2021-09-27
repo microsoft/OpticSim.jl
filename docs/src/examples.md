@@ -121,8 +121,8 @@ draw_stackedbeamsplitters(["assets/deterministic_trace_$i.png" for i in 1:3]) # 
 mdparse(@code_string draw_gestel()) # hide
 ```
 
-```@example example
-draw_gestel("assets/gestel.png") # hide
+```@example
+using OpticSim, OpticSim.Examples
+OpticSim.NotebooksUtils.SetDocsBackend("Web")
+draw_gestel()
 ```
-
-![Gestel spherical mockup](assets/gestel.png)
