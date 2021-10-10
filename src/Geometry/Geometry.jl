@@ -51,6 +51,7 @@ include("Primitives/Curves/PowerBasis.jl")
 
 include("CSG/CSG.jl")
 
+include("Primitives/AsphericSurface.jl")
 include("Primitives/Zernike.jl")
 include("Primitives/Qtype.jl")
 include("Primitives/Chebyshev.jl")
