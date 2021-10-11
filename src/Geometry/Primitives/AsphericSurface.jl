@@ -47,17 +47,17 @@ struct AsphericSurface{T,N,Q} <: ParametricSurface{T,N}
 
         acs = []
         if aspherics !== nothing
-            asphericTerms = aspherics[:][1]
+            asphericTerms = [i for (i, ) in aspherics]
             minAsphericTerm = minimum(asphericTerms)
             maxAsphericTerm = maximum(asphericTerms)
-            @assert minAsphericTerm > 2 "Aspheric Orders must be A3 or higher (A$minAsphericTerm)"
-            acs = zeros(T, maxAsphericTerm -2 )
+            @assert minAsphericTerm > 0 "Aspheric Terms must be A1 or higher (A$minAsphericTerm)"
+            acs = zeros(T, maxAsphericTerm )
             for (i, k) in aspherics
-                acs[i-2] = k
+                acs[i] = k
             end
         end
         Q = length(acs)
-        new{T,3,P,Q}(semidiameter, SVector{P,Tuple{Int,Int,T}}(zcs), SVector{Q,T}(acs), 1 / radius, conic, normradius, Cylinder(semidiameter, interface = opaqueinterface(T))) # TODO!! incorrect interface on cylinder
+        new{T,3,Q}(semidiameter, SVector{P,Tuple{Int,Int,T}}(zcs), SVector{Q,T}(acs), 1 / radius, conic, normradius, Cylinder(semidiameter, interface = opaqueinterface(T))) # TODO!! incorrect interface on cylinder
     end
 
 end
@@ -81,12 +81,11 @@ function point(z::AsphericSurface{T,3,Q}, ρ::T, ϕ::T)::SVector{3,T} where {T<:
     end
     h = z.curvature * r2 / (one(T) + sqrt(t))
     # sum aspheric
-    prod = r*r
+    prod = one(T)
     for asp in aspherics
         prod *= r
         h += asp * prod
     end
-    # sum zernike
     return SVector{3,T}(r * cos(ϕ), r * sin(ϕ), h)
 end
 
@@ -99,10 +98,12 @@ function partials(z::AsphericSurface{T,3,Q}, ρ::T, ϕ::T)::Tuple{SVector{3,T},S
     end
     dhdρ = rad * z.curvature * r * sqrt(t) / t
     # sum aspherics partial
-    prod = r
-    for (m,asp) in enumerate(aspherics)
-        prod *= r
-        dhdρ += rad * (m+2) * asp * prod #aspherics has order 3 and above
+    ((m, asp), rest) = peel(enumerate(aspherics))
+    dhdρ += rad * asp  #first term m=1 and prod = one(T)
+    prod = one(T)
+    for (m,asp) in rest
+        prod *= r 
+        dhdρ += rad * m * asp * prod 
     end
     dhdϕ = zero(T)
     cosϕ = cos(ϕ)
