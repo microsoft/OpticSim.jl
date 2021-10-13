@@ -11,7 +11,7 @@
 """
     AsphericSurface{T,N,Q} <: ParametricSurface{T,N}
 
-Surface incorporating an aspheric polynomial - radius, conic and aspherics are defined relative to absolute semi-diameter, Zernike terms are normalized according to the `normradius` parameter.
+Surface incorporating an aspheric polynomial - radius, conic and aspherics are defined relative to absolute semi-diameter,.
 `T` is the datatype, `N` is the dimensionality,  and `Q` is the number of aspheric terms. 
 
 The surface is centered at the origin and treated as being the cap of an infinite cylinder, thus creating a true half-space.
@@ -19,10 +19,10 @@ Outside of `0 <= ρ <= 1` the height of the surface is not necessarily well defi
 
 
 ```julia
-AsphericSurface(semidiameter, radius, conic, aspherics=nothing, normradius = semidiameter,)
+AsphericSurface(semidiameter; radius, conic, aspherics=nothing, normradius = semidiameter)
 ```
 
-`aspherics` should be a vector containing the aspheric polynomial coefficients starting at A3
+`aspherics` should be a vector containing the aspheric polynomial coefficients starting at A1
 
 The sag is defined by the equation
 
@@ -40,7 +40,7 @@ struct AsphericSurface{T,N,Q} <: ParametricSurface{T,N}
     normradius::T
     boundingcylinder::Cylinder{T,N}
 
-    function AsphericSurface(semidiameter::T; radius::T = typemax(T), conic::T, aspherics::Union{Nothing,Vector{Tuple{Int,T}}} = nothing, normradius::T = semidiameter) where {T<:Real}
+    function AsphericSurface(semidiameter::T; radius::T = typemax(T), conic::T= zero(T), aspherics::Union{Nothing,Vector{Tuple{Int,T}}} = nothing, normradius::T = semidiameter) where {T<:Real}
         @assert semidiameter > 0
         @assert !isnan(semidiameter) && !isnan(radius) && !isnan(conic)
         @assert one(T) - (1 / radius)^2 * (conic + one(T)) * semidiameter^2 > 0 "Invalid surface (conic/radius combination: $radius, $conic)"
@@ -57,7 +57,7 @@ struct AsphericSurface{T,N,Q} <: ParametricSurface{T,N}
             end
         end
         Q = length(acs)
-        new{T,3,Q}(semidiameter, SVector{P,Tuple{Int,Int,T}}(zcs), SVector{Q,T}(acs), 1 / radius, conic, normradius, Cylinder(semidiameter, interface = opaqueinterface(T))) # TODO!! incorrect interface on cylinder
+        new{T,3,Q}(semidiameter, SVector{Q,T}(acs), 1 / radius, conic, normradius, Cylinder(semidiameter, interface = opaqueinterface(T))) # TODO!! incorrect interface on cylinder
     end
 
 end
@@ -82,7 +82,7 @@ function point(z::AsphericSurface{T,3,Q}, ρ::T, ϕ::T)::SVector{3,T} where {T<:
     h = z.curvature * r2 / (one(T) + sqrt(t))
     # sum aspheric
     prod = one(T)
-    for asp in aspherics
+    for asp in z.aspherics
         prod *= r
         h += asp * prod
     end
@@ -98,12 +98,14 @@ function partials(z::AsphericSurface{T,3,Q}, ρ::T, ϕ::T)::Tuple{SVector{3,T},S
     end
     dhdρ = rad * z.curvature * r * sqrt(t) / t
     # sum aspherics partial
-    ((m, asp), rest) = peel(enumerate(aspherics))
-    dhdρ += rad * asp  #first term m=1 and prod = one(T)
-    prod = one(T)
-    for (m,asp) in rest
-        prod *= r 
-        dhdρ += rad * m * asp * prod 
+    if length(z.aspherics) != 0
+        ((m, asp), rest) = Iterators.peel(enumerate(z.aspherics))
+        dhdρ += rad * asp  #first term m=1 and prod = one(T)
+        prod = one(T)
+        for (m,asp) in rest
+            prod *= r 
+            dhdρ += rad * m * asp * prod 
+        end
     end
     dhdϕ = zero(T)
     cosϕ = cos(ϕ)

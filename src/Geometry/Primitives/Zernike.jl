@@ -140,7 +140,7 @@ z(r,\\phi) = \\frac{cr^2}{1 + \\sqrt{1 - (1+k)c^2r^2}} + \\sum_{i}^{Q}\\alpha_ir
 
 where ``\\rho = \\frac{r}{\\texttt{normradius}}``, ``c = \\frac{1}{\\texttt{radius}}``, ``k = \\texttt{conic}`` and ``Z_n`` is the nᵗʰ Zernike polynomial.
 """
-struct ZernikeSurface{T,N,P,Q} <: ParametricSurface{T,N}
+struct ZernikeSurface{T,N,P, Q} <: ParametricSurface{T,N}
     asp::AsphericSurface{T,N,Q}
     #semidiameter::T
     coeffs::SVector{P,Tuple{Int,Int,T}}
@@ -152,9 +152,8 @@ struct ZernikeSurface{T,N,P,Q} <: ParametricSurface{T,N}
 
     function ZernikeSurface(semidiameter::T; radius::T = typemax(T), conic::T = zero(T), zcoeff::Union{Nothing,Vector{Tuple{Int,T}}} = nothing, aspherics::Union{Nothing,Vector{Tuple{Int,T}}} = nothing, normradius::T = semidiameter, indexing::ZernikeIndexType = ZernikeIndexingOSA) where {T<:Real}
         asp = AsphericSurface(semidiameter; radius, conic, aspherics, normradius)
-        #@assert semidiameter > 0
-        #@assert !isnan(semidiameter) && !isnan(radius) && !isnan(conic)
-        #@assert one(T) - (1 / radius)^2 * (conic + one(T)) * semidiameter^2 > 0 "Invalid surface (conic/radius combination: $radius, $conic)"
+        Q = length(asp.aspherics) #this is not the same as the aspherics variable passed to the function!
+
         zcs = []
         if zcoeff !== nothing
             for (i, k) in zcoeff
@@ -170,7 +169,7 @@ struct ZernikeSurface{T,N,P,Q} <: ParametricSurface{T,N}
         end
         P = length(zcs)
         
-        new{T,3,P,Q}(asp, SVector{P,Tuple{Int,Int,T}}(zcs), Cylinder(semidiameter, interface = opaqueinterface(T))) # TODO!! incorrect interface on cylinder
+        new{T,3,P, Q}(asp, SVector{P,Tuple{Int,Int,T}}(zcs), Cylinder(semidiameter, interface = opaqueinterface(T))) # TODO!! incorrect interface on cylinder
     end
 
 end
@@ -188,26 +187,32 @@ function point(z::ZernikeSurface{T,3,P,Q}, ρ::T, ϕ::T)::SVector{3,T} where {T<
     pnt = point(z.asp, ρ, ϕ)
 
     # sum zernike
-    u = r / z.normradius
+    rad=z.asp.semidiameter
+    r=ρ * rad
+    u = r / z.asp.normradius
+    h = zero(T)
     @inbounds @simd for m in 1:P
         (R, S, k) = z.coeffs[m]
-        pnt[3] += k * Zernike.ζ(R, S, u, ϕ)
+        h += k * Zernike.ζ(R, S, u, ϕ)
     end
-    return pnt  #pnt is already the right type and length
+    return SVector{3,T}(pnt[1], pnt[2], pnt[3] + h)  
 end
 
 function partials(z::ZernikeSurface{T,3,P,Q}, ρ::T, ϕ::T)::Tuple{SVector{3,T},SVector{3,T}} where {T<:Real,P,Q}
     pu,pv = partials(z.asp, ρ, ϕ)
     # sum zernike partials
+    rad=z.asp.semidiameter
     n = rad / z.asp.normradius
     u = ρ * n
+    dpu = zero(T)
+    dpv = zero(T)
     @inbounds @simd for m in 1:P
         (R, S, k) = z.coeffs[m]
         du, dϕ = Zernike.δζ(R, S, u, ϕ)
-        pu[3] += k * du * n # want the derivative wrt ρ, not u
-        pv[3] += k * dϕ
+        dpu += k * du * n # want the derivative wrt ρ, not u
+        dpv += k * dϕ
     end
-    return pu, pv
+    return SVector{3,T}(pu[1], pu[2], pu[3] + dpu),  SVector{3,T}(pv[1], pv[2], pv[3] + dpv)
 end
 
 function normal(z::ZernikeSurface{T,3,P,Q}, ρ::T, ϕ::T)::SVector{3,T} where {T<:Real,P,Q}

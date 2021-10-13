@@ -9,15 +9,29 @@ function zernikelens()
     return (barrel ∩ topsurface ∩ botsurface)(Transform{Float64}(0.0, Float64(π), 0.0, 0.0, 0.0, -5.0))
 end
 
-function asphericlens()
-    topsurface = leaf(AcceleratedParametricSurface(ZernikeSurface(9.5, aspherics = [(2, 0.0), (4, -0.001)]), interface = FresnelInterface{Float64}(OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air)), translation(0.0, 0.0, 5.0))
+function evensphericlens()
+    topsurface = leaf(AcceleratedParametricSurface(AsphericSurface(9.5, radius = -50.0,aspherics = [(2, 0.0), (4, -0.001)]), interface = FresnelInterface{Float64}(OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air)), Geometry.translation(0.0, 0.0, 5.0))
     botsurface = leaf(Plane(0.0, 0.0, -1.0, 0.0, 0.0, -5.0, vishalfsizeu = 9.5, vishalfsizev = 9.5, interface = FresnelInterface{Float64}(OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air)))
     barrel = leaf(Cylinder(9.0, 20.0, interface = FresnelInterface{Float64}(OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air, reflectance = zero(Float64), transmission = zero(Float64))))
     return (barrel ∩ topsurface ∩ botsurface)(Transform{Float64}(0.0, Float64(π), 0.0, 0.0, 0.0, -5.0))
 end
 
-function coniclensZ()
-    topsurface = leaf(AcceleratedParametricSurface(ZernikeSurface(9.5, radius = -15.0, conic = -5.0), interface = FresnelInterface{Float64}(OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air)), translation(0.0, 0.0, 5.0))
+function oddasphericlens()
+    topsurface = leaf(AcceleratedParametricSurface(AsphericSurface(9.5, radius = -50.0,aspherics = [(3, 0.001), (5, -0.0001)]), interface = FresnelInterface{Float64}(OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air)), Geometry.translation(0.0, 0.0, 5.0))
+    botsurface = leaf(Plane(0.0, 0.0, -1.0, 0.0, 0.0, -5.0, vishalfsizeu = 9.5, vishalfsizev = 9.5, interface = FresnelInterface{Float64}(OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air)))
+    barrel = leaf(Cylinder(9.0, 20.0, interface = FresnelInterface{Float64}(OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air, reflectance = zero(Float64), transmission = zero(Float64))))
+    return (barrel ∩ topsurface ∩ botsurface)(Transform{Float64}(0.0, Float64(π), 0.0, 0.0, 0.0, -5.0))
+end
+
+function asphericlens()
+    topsurface = leaf(AcceleratedParametricSurface(AsphericSurface(9.5, aspherics = [(3, 0.0), (4, -0.001)]), interface = FresnelInterface{Float64}(OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air)), translation(0.0, 0.0, 5.0))
+    botsurface = leaf(Plane(0.0, 0.0, -1.0, 0.0, 0.0, -5.0, vishalfsizeu = 9.5, vishalfsizev = 9.5, interface = FresnelInterface{Float64}(OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air)))
+    barrel = leaf(Cylinder(9.0, 20.0, interface = FresnelInterface{Float64}(OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air, reflectance = zero(Float64), transmission = zero(Float64))))
+    return (barrel ∩ topsurface ∩ botsurface)(Transform{Float64}(0.0, Float64(π), 0.0, 0.0, 0.0, -5.0))
+end
+
+function coniclensA()
+    topsurface = leaf(AcceleratedParametricSurface(AsphericSurface(9.5, radius = -15.0, conic = -5.0), interface = FresnelInterface{Float64}(OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air)), translation(0.0, 0.0, 5.0))
     botsurface = leaf(Plane(0.0, 0.0, -1.0, 0.0, 0.0, -5.0, vishalfsizeu = 9.5, vishalfsizev = 9.5, interface = FresnelInterface{Float64}(OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air)))
     barrel = leaf(Cylinder(9.0, 20.0, interface = FresnelInterface{Float64}(OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air, reflectance = zero(Float64), transmission = zero(Float64))))
     return (barrel ∩ topsurface ∩ botsurface)(Transform{Float64}(0.0, Float64(π), 0.0, 0.0, 0.0, -5.0))
