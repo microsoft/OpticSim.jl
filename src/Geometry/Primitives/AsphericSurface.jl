@@ -22,7 +22,7 @@ Outside of `0 <= ρ <= 1` the height of the surface is not necessarily well defi
 AsphericSurface(semidiameter; radius, conic, aspherics=nothing, normradius = semidiameter)
 ```
 
-`aspherics` should be a vector containing the aspheric polynomial coefficients starting at A1
+`aspherics`  aspherics should be vectors containing tuples of the form (i, v) where i is the polynomial power of the aspheric term
 
 The sag is defined by the equation
 
@@ -30,7 +30,7 @@ The sag is defined by the equation
 z(r,\\phi) = \\frac{cr^2}{1 + \\sqrt{1 - (1+k)c^2r^2}} + \\sum_{i}^{Q}\\alpha_ir^{i}
 ```
 
-where ``\\rho = \\frac{r}{\\texttt{normradius}}``, ``c = \\frac{1}{\\texttt{radius}}``, ``k = \\texttt{conic}`` .
+where ``\\rho = \\frac{r}{\\texttt{normradius}}``, ``c = \\frac{1}{\\texttt{radius}}``, and ``k = \\texttt{conic}`` .
 """
 struct AsphericSurface{T,N,Q} <: ParametricSurface{T,N}
     semidiameter::T
