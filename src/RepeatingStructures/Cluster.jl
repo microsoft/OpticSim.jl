@@ -37,6 +37,8 @@ clusterelements(a::LatticeCluster) = a.clusterelements
 export clusterelements
 elementbasis(a::LatticeCluster) = a.elementbasis
 clustersize(a::LatticeCluster) = length(a.clusterelements)
+clusterbasis(a::LatticeCluster) = a.clusterbasis
+export clusterbasis
 
 """returns the positions of every element in a cluster given the cluster indices"""
 function Base.getindex(A::LatticeCluster{N1,N,T,B1,B2}, indices::Vararg{Int, N}) where{N1,N,T,B1<:Basis{N,Int},B2<:Basis{N,T}} 
@@ -92,3 +94,5 @@ elementbasis(a::ClusterWithProperties) = elementbasis(cluster(a))
 export elementbasis
 clustersize(a::ClusterWithProperties) = clustersize(a.cluster)
 export clustersize
+clusterbasis(a::ClusterWithProperties) = clusterbasis(a.cluster)
+export clusterbasis
