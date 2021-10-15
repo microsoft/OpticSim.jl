@@ -8,7 +8,7 @@ struct RectangularBasis{N,T} <: Basis{N,T}
 end
 export RectangularBasis
 
-basis(::RectangularBasis{2,T}) where{T} = SMatrix{2,2,T}(T(1),T(0),T(0),T(1))
+basismatrix(::RectangularBasis{2,T}) where{T} = SMatrix{2,2,T}(T(1),T(0),T(0),T(1))
 
 # SVector{2,SVector{2,T}}(hexe₁(T),hexe₂(T))
 
