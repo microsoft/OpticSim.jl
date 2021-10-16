@@ -148,8 +148,8 @@ end
 
 zernikesystem() = CSGOpticalSystem(LensAssembly(zernikelens()), Rectangle(40.0, 40.0, [0.0, 0.0, 1.0], [0.0, 0.0, -67.8], interface = opaqueinterface()))
 asphericsystem() = CSGOpticalSystem(LensAssembly(asphericlens()), Rectangle(25.0, 25.0, [0.0, 0.0, 1.0], [0.0, 0.0, -67.8], interface = opaqueinterface()))
-evenapshericsystem()=CSGOpticalSystem(LensAssembly(evensphericlens()), Rectangle(25.0, 25.0, [0.0, 0.0, 1.0], [0.0, 0.0, -67.8], interface = opaqueinterface()))
-oddapshericsystem()=CSGOpticalSystem(LensAssembly(oddsphericlens()), Rectangle(25.0, 25.0, [0.0, 0.0, 1.0], [0.0, 0.0, -67.8], interface = opaqueinterface()))
+evenasphericsystem()=CSGOpticalSystem(LensAssembly(evenasphericlens()), Rectangle(25.0, 25.0, [0.0, 0.0, 1.0], [0.0, 0.0, -67.8], interface = opaqueinterface()))
+oddasphericsystem()=CSGOpticalSystem(LensAssembly(oddasphericlens()), Rectangle(25.0, 25.0, [0.0, 0.0, 1.0], [0.0, 0.0, -67.8], interface = opaqueinterface()))
 conicsystemA() = CSGOpticalSystem(LensAssembly(coniclensA()), Rectangle(25.0, 25.0, [0.0, 0.0, 1.0], [0.0, 0.0, -67.8], interface = opaqueinterface()))
 conicsystemQ() = CSGOpticalSystem(LensAssembly(coniclensQ()), Rectangle(25.0, 25.0, [0.0, 0.0, 1.0], [0.0, 0.0, -67.8], interface = opaqueinterface()))
 qtypesystem() = CSGOpticalSystem(LensAssembly(qtypelens()), Rectangle(25.0, 25.0, [0.0, 0.0, 1.0], [0.0, 0.0, -67.8], interface = opaqueinterface()))

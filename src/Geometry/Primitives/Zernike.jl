@@ -141,7 +141,7 @@ z(r,\\phi) = \\frac{cr^2}{1 + \\sqrt{1 - (1+k)c^2r^2}} + \\sum_{i}^{Q}\\alpha_ir
 where ``\\rho = \\frac{r}{\\texttt{normradius}}``, ``c = \\frac{1}{\\texttt{radius}}``, ``k = \\texttt{conic}`` and ``Z_n`` is the nᵗʰ Zernike polynomial.
 """
 struct ZernikeSurface{T,N,P, Q} <: ParametricSurface{T,N}
-    asp::AsphericSurface{T,N,Q}
+    asp::AsphericSurface{T,N}
     #semidiameter::T
     coeffs::SVector{P,Tuple{Int,Int,T}}
     #aspherics::SVector{Q,Tuple{Int,T}}
@@ -195,7 +195,7 @@ function point(z::ZernikeSurface{T,3,P,Q}, ρ::T, ϕ::T)::SVector{3,T} where {T<
         (R, S, k) = z.coeffs[m]
         h += k * Zernike.ζ(R, S, u, ϕ)
     end
-    return SVector{3,T}(pnt[1], pnt[2], pnt[3] + h)  
+    return SVector{3,T}(pnt[1], pnt[2], pnt[3] + h) 
 end
 
 function partials(z::ZernikeSurface{T,3,P,Q}, ρ::T, ϕ::T)::Tuple{SVector{3,T},SVector{3,T}} where {T<:Real,P,Q}

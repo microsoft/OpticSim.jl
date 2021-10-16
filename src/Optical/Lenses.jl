@@ -69,7 +69,7 @@ function AsphericLens(insidematerial::T, frontvertex::S, frontradius::S, frontco
         if frontaspherics !== nothing
             frontaspherics = [(i, -k) for (i, k) in frontaspherics]
         end
-        surf = AcceleratedParametricSurface(ZernikeSurface(semidiameter + frontdecenter_l + S(0.01), radius = -frontradius, conic = frontconic, aspherics = frontaspherics), nsamples, interface = opticinterface(S, insidematerial, lastmaterial, frontsurfacereflectance, interfacemode))
+        surf = AcceleratedParametricSurface(AsphericSurface(semidiameter + frontdecenter_l + S(0.01), radius = -frontradius, conic = frontconic, aspherics = frontaspherics), nsamples, interface = opticinterface(S, insidematerial, lastmaterial, frontsurfacereflectance, interfacemode))
         lens_front = leaf(surf, translation(S, frontdecenter[1], frontdecenter[2], frontvertex))
     end
     if isinf(backradius) && (backaspherics === nothing)

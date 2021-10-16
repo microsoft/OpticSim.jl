@@ -195,7 +195,7 @@
         @test isapprox(point(track[end]), [5.49905367197174, 5.66882664623822, 0.0], rtol = COMP_TOLERANCE)
         @test isapprox(pathlength(track[end]), 47.6825931025333, rtol = COMP_TOLERANCE)
 
-        a = evenasphericsystem()
+        a = TestData.evenasphericsystem()
         res = trace(a, r1, test = true)
         @test isapprox(point(res), [0.0, 0.0, -67.8], rtol = COMP_TOLERANCE)
         @test isapprox(pathlength(res), 73.9852238762079, rtol = COMP_TOLERANCE)
@@ -217,7 +217,7 @@
         @test isapprox(point(track[end]), [5.095756154983988, 5.24166010736873, 0.0], rtol = COMP_TOLERANCE)
         @test isapprox(pathlength(track[end]), 45.618062468023375, rtol = COMP_TOLERANCE)
 
-        a = oddasphericsystem()
+        a = TestData.oddasphericsystem()
         res = trace(a, r1, test = true)
         @test isapprox(point(res), [0.0, 0.0, -67.8], rtol = COMP_TOLERANCE)
         @test isapprox(pathlength(res), 73.9852238762079, rtol = COMP_TOLERANCE)
