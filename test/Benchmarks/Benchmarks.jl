@@ -28,7 +28,6 @@ perturboptray() = OpticalRay(origin(perturbrayz()), direction(perturbrayz()), 1.
 # benchmarks are listed in the form: benchmark() = function, (args...)
 # e.g. surfaceintersection, (surface, ray)
 
-
 double_convex() = trace, (TestData.doubleconvex(), optray())
 double_concave() = trace, (TestData.doubleconcave(), optray())
 zernike_lens() = trace, (TestData.zernikesystem(), perturboptray())
@@ -37,8 +36,9 @@ cooke_triplet() = trace, (TestData.cooketriplet(), optray())
 chebyshev_lens() = trace, (TestData.chebyshevsystem(), perturboptray())
 gridsag_lens() = trace, (TestData.gridsagsystem(), perturboptray())
 multi_hoe() = trace, (TestData.multiHOE(), OpticalRay(SVector(0.0, 3.0, 3.0), SVector(0.0, -1.0, -1.0), 1.0, 0.55))
+planar_shapes() = trace, (TestData.planarshapes(), optray())
 
-system_benchmarks() = double_concave, double_convex, aspheric_lens, zernike_lens, chebyshev_lens, gridsag_lens, cooke_triplet, multi_hoe 
+system_benchmarks() = double_concave, double_convex, aspheric_lens, zernike_lens, chebyshev_lens, gridsag_lens, cooke_triplet, multi_hoe, planar_shapes
 
 triangle() = surfaceintersection, (Triangle(SVector(-1.0, -1.0, 0.0), SVector(1.0, 0.0, 0.0), SVector(0.0, 1.0, 0.0)), rayz())
 sphericalcap() = surfaceintersection, (SphericalCap(1.0, π / 3), rayz())
@@ -68,8 +68,6 @@ all_benchmarks() = (simple_surface_benchmarks()..., accel_surface_benchmarks()..
 
 #############################
 
-
-
 function runbenchmark(b; kwargs...)
     f, args = b()
     qkwargs = [:($(keys(kwargs)[i]) = $(values(kwargs)[i])) for i in 1:length(kwargs)]
@@ -94,7 +92,14 @@ function runforpipeline(ismaster::Bool)
     write(io, "Function, Memory, Allocs, Min Time, Mean Time, Max Time\n")
     for f in all_benchmarks()
         b = runbenchmark(f)
-        write(io, "$f, $(BenchmarkTools.prettymemory(b.memory)), $(b.allocs), $(BenchmarkTools.prettytime(minimum(b.times))), $(BenchmarkTools.prettytime(BenchmarkTools.mean(b.times))), $(BenchmarkTools.prettytime(maximum(b.times)))\n")
+        join(io, [
+            "$f",
+            "$(BenchmarkTools.prettymemory(b.memory))",
+            "$(b.allocs)",
+            "$(BenchmarkTools.prettytime(minimum(b.times)))",
+            "$(BenchmarkTools.prettytime(BenchmarkTools.mean(b.times)))",
+            "$(BenchmarkTools.prettytime(maximum(b.times)))\n"
+        ], ", ")
     end
     close(io)
 end

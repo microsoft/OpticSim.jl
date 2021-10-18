@@ -19,7 +19,7 @@ struct HexBasis1{N,T} <: Basis{N,T}
 end
 export HexBasis1
 
-basis(::HexBasis1{2,T}) where{T} = SMatrix{2,2,T}(T(1.5),T(.5)*sqrt(T(3)),T(1.5),T(-.5)*(sqrt(T(3))))
+basismatrix(::HexBasis1{2,T}) where{T} = SMatrix{2,2,T}(T(1.5),T(.5)*sqrt(T(3)),T(1.5),T(-.5)*(sqrt(T(3))))
 
 # SVector{2,SVector{2,T}}(hexe₁(T),hexe₂(T))
 
@@ -180,5 +180,5 @@ function tilevertices(::HexBasis3{2,T}) where{T}
         sin60, cos60)
 end
 
-basis(::HexBasis3{2,T}) where{T} = SMatrix{2,2,T}(T(2*sin60),T(0),T(sin60),T(1.5))
+basismatrix(::HexBasis3{2,T}) where{T} = SMatrix{2,2,T}(T(2*sin60),T(0),T(sin60),T(1.5))
 

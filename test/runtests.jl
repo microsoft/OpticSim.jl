@@ -10,6 +10,7 @@ using Suppressor
 using Random
 using Unitful
 using Plots
+using DataFrames
 
 using OpticSim
 # Geometry Module
@@ -94,6 +95,7 @@ end
 include("Benchmarks/Benchmarks.jl")
 
 alltestsets = [
+    "Repeat",
     "ParaxialAnalysis",
     "Paraxial",
     "JuliaLang",
@@ -109,7 +111,7 @@ alltestsets = [
     "Visualization",
     "Allocations",
     "GlassCat",
-    "Transform",
+    "Transform"
 ]
 
 runtestsets = ALL_TESTS ? alltestsets : intersect(alltestsets, ARGS)

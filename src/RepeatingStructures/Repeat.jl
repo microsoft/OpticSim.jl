@@ -4,7 +4,7 @@
 
 module Repeat
 
-export basis
+export basismatrix
 
 using Base: offset_if_vec
 using StaticArrays:SVector,MVector,SMatrix,MMatrix

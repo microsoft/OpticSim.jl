@@ -21,7 +21,7 @@ rounded_cube = cube ∩ sph
 result = rounded_cube - cyl_cross
 Vis.draw(result, numdivisions=100)
 
-Vis.save("assets/csg_ex.png") # hide
+Vis.save("assets/csg_ex.png"); nothing # hide
 ```
 
 ![CSG code example image](assets/csg_ex.png)

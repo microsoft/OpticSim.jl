@@ -17,7 +17,7 @@ The system will automatically download glass catalog (.agf) files from some manu
 
 Here are links to several publicly available glass files:
 
-* [NIKON](https://www.nikon.com/products/optical-glass/assets/pdf/nikon_zemax_data.zip) (automatically downloaded)
+* [NIKON](https://www.nikon.com/products/components/assets/pdf/nikon_zemax_data.zip) (automatically downloaded)
 * [NHG](http://hbnhg.com/down/data/nhgagp.zip) (you have to manually download)
 * [OHARA](https://www.oharacorp.com/xls/OHARA_201130_CATALOG.zip) (automatically downloaded)
 * [HOYA](https://hoyaoptics.com/wp-content/uploads/2019/10/HOYA20170401.zip) (automatically downloaded)
