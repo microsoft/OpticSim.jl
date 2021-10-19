@@ -2,8 +2,17 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # See LICENSE in the project root for full license information.
 
+"""A Cluster is a repeating pattern of indices defined in a lattice called the element lattice. The cluster of elements has its own lattice, which by definition is different from the element lattice unless each cluster consists of a single element. A LatticeCluster subtype must implement these methods:
 
-"""A Cluster is a repeating pattern of indices defined in a lattice called the element lattice. The cluster of elements has its own lattice, which by definition is different from the element lattice unless each cluster consists of a single element. For example this defines a Cluster of three hexagonal elements:
+clusterbasis(a::AbstractLatticeCluster) returns the Basis object for the cluster. This is not generally the same as the basis for the underlying lattice.
+
+elementbasis(a::AbstractLatticeCluster) returns the Basis object the underlying lattice of the cluster.
+
+clusterelements(a::AbstractLatticeCluster) returns the lattice indices, represented in the underlying lattice basis, for each of the elements in a unit cluster cell.
+
+clustersize(a::AbstractLatticeCluster) returns the number of elements in a unit cluster cell.
+
+For example this defines a Cluster of three hexagonal elements:
 
 ```
 julia> function hex3cluster()
@@ -23,7 +32,10 @@ julia> lattice[1,1]  #returns the locations of the 3 elements in the cluster at 
 
 ```
 """
-struct LatticeCluster{N1, N, T<:Real, B1<:Basis{N,Int},B2<:Basis{N,T}}
+abstract type AbstractLatticeCluster end
+
+"""Basic lattic cluster type"""
+struct LatticeCluster{N1, N, T<:Real, B1<:Basis{N,Int},B2<:Basis{N,T}} <: AbstractLatticeCluster
     clusterbasis::B1 #this basis defines the offsets of the clusters
     elementbasis::B2 #this basis defines the underlying lattice
 
@@ -73,10 +85,22 @@ export clustercoordinates
 """
 May want to have many properties associated with the elements in a cluster, which is why properties is represented as a DataFrame. The DataFrame in the properties field should have as many rows as there are elements in a cluster. At a minimum it must have a :Color and a :Name column.
 
-Example:
-lenslets = DataFrame()
+Example: a lattice cluster of three hexagonal elements, labeled R,G,B with colors red,green,blue.
+
+```
+function hex3RGB()
+    clusterelements = SVector((0,0),(-1,0),(-1,1)) #lattice indices of cluster elements represent in the element lattice basis
+    colors = [colorant"red",colorant"green",colorant"blue"]
+    names = ["R","G","B"]
+    eltlattice = HexBasis1()
+    clusterbasis = LatticeBasis(( -1,2),(2,-1)) #lattice indices, in the element lattice basis, representing the repeating pattern of the cluster
+    lattice = LatticeCluster(clusterbasis,eltlattice,clusterelements)
+    properties =  DataFrame(Color = colors, Name = names)
+    return ClusterWithProperties(lattice,properties)
+end
+```
 """
-struct ClusterWithProperties{N1,N,T}
+struct ClusterWithProperties{N1,N,T} <: AbstractLatticeCluster
     cluster::LatticeCluster{N1,N,T}
     properties::DataFrame
 end
