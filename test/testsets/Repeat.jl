@@ -14,5 +14,19 @@
         return Repeat.ClusterWithProperties(lattice,properties)
     end
 
+    """ Create a LatticeCluser with three elements at (0,0),(-1,0),(-1,1) coordinates in the HexBasis1 lattice"""
+    function hex3cluster()
+        clusterelts = SVector((0,0),(-1,0),(-1,1))
+        eltlattice = Repeat.HexBasis1()
+        clusterbasis = Repeat.LatticeBasis(( -1,2),(2,-1))
+        return Repeat.LatticeCluster(clusterbasis,eltlattice,clusterelts)
+    end
+
     @test [-1 2;2 -1] == Repeat.basismatrix(Repeat.clusterbasis(hex3RGB()))
+
+    function basistest(a::Repeat.AbstractLatticeCluster)
+        return Repeat.clusterbasis(a)
+    end
+
+    @test basistest(hex3cluster()) == basistest(hex3RGB()) 
 end
