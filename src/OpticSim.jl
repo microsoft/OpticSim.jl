@@ -6,6 +6,8 @@ module OpticSim
 
 import Unitful
 using LinearAlgebra: eigen, svd, I, qr, dot, cross, norm, det, normalize, inv
+import LinearAlgebra
+
 using StaticArrays
 using DataFrames: DataFrame
 using Images
