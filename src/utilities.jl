@@ -10,7 +10,7 @@ Estimate the best fitting plane for a set of points in 3D.
 A more efficient version of plane_from_points.
 """
 function plane_from_points(points::SMatrix{3, N, Float64} where {N}) 
-    center = mean(points,dims=2)
+    center = Statistics.mean(points,dims=2)
 
     u, _, _ = svd(points .- center)
     normal = u[:,3]             # singular vectors in decending order
