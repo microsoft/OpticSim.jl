@@ -101,7 +101,7 @@ function build_paraxial_lens(shape::Shape{3, T}; local_center_point = SVector(0.
     # estimate a best fitting plane (least-squares wise)
     # switching to SMatrix format - should consider using SMatrix in the basic shapes instead of a vector of points
     pts_mat = reshape(SVector(reduce(vcat, pts)...), StaticArrays.Size(length(pts[1]),length(pts)))
-    fitted_center, fitted_normal = HeadEye.plane_from_points2(pts_mat)    
+    fitted_center, fitted_normal = OpticSim.plane_from_points(pts_mat)    
 
     # create a local frame for the fitted plane
     local_frame = Transform(fitted_center, fitted_normal)
