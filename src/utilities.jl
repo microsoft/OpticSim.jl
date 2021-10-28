@@ -2,7 +2,28 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # See LICENSE in the project root for full license information.
 
-# only returns real roots
+
+"""
+    plane_from_points(points::SMatrix{3, N, Float64}}) ->  centroid, normal
+
+Estimate the best fitting plane for a set of points in 3D.
+A more efficient version of plane_from_points.
+"""
+function plane_from_points(points::SMatrix{3, N, Float64} where {N}) 
+    center = mean(points,dims=2)
+
+    u, _, _ = svd(points .- center)
+    normal = u[:,3]             # singular vectors in decending order
+
+    # make sure the normal is pointing consistently to positive Z direction 
+    if (dot(normal, unitZ3()) < 0.0)
+        normal = normal * -1.0
+    end
+
+    return SVector(center), SVector(normal)     # convert from SMatrix to SVector
+end
+
+"""only returns real roots"""
 function quadraticroots(a::T, b::T, c::T) where {T<:Real}
     temp = b^2 - 4 * a * c
 
