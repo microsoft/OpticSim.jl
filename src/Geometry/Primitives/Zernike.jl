@@ -182,7 +182,7 @@ function point(z::ZernikeSurface{T,3,P,Q}, ρ::T, ϕ::T)::SVector{3,T} where {T<
     pnt = point(z.asp, ρ, ϕ)
 
     # sum zernike
-    rad=semidiameter(z.asp)
+    rad = semidiameter(z.asp)
     r=ρ * rad
     u = r / z.asp.normradius
     h = zero(T)
