@@ -140,8 +140,8 @@ z(r,\\phi) = \\frac{cr^2}{1 + \\sqrt{1 - (1+k)c^2r^2}} + \\sum_{i}^{Q}\\alpha_ir
 
 where ``\\rho = \\frac{r}{\\texttt{normradius}}``, ``c = \\frac{1}{\\texttt{radius}}``, ``k = \\texttt{conic}`` and ``Z_n`` is the nᵗʰ Zernike polynomial.
 """
-struct ZernikeSurface{T,N,P, Q} <: ParametricSurface{T,N}
-    asp::AsphericSurface{T,N,Q, R}
+struct ZernikeSurface{T,N,P,Q,M} <: ParametricSurface{T,N}
+    asp::AsphericSurface{T,N,Q,M}
     coeffs::SVector{P,Tuple{Int,Int,T}}
     boundingcylinder::Cylinder{T,N}
 
@@ -163,8 +163,8 @@ struct ZernikeSurface{T,N,P, Q} <: ParametricSurface{T,N}
             end
         end
         P = length(zcs)
-        
-        new{T,3,P, Q}(asp, SVector{P,Tuple{Int,Int,T}}(zcs), Cylinder(semidiameter, interface = opaqueinterface(T))) # TODO!! incorrect interface on cylinder
+        M=asphericType(asp)
+        new{T,3,P,Q,M}(asp, SVector{P,Tuple{Int,Int,T}}(zcs), Cylinder(semidiameter, interface = opaqueinterface(T))) # TODO!! incorrect interface on cylinder
     end
 
 end
@@ -182,7 +182,7 @@ function point(z::ZernikeSurface{T,3,P,Q}, ρ::T, ϕ::T)::SVector{3,T} where {T<
     pnt = point(z.asp, ρ, ϕ)
 
     # sum zernike
-    rad=z.asp.semidiameter
+    rad=semidiameter(z.asp)
     r=ρ * rad
     u = r / z.asp.normradius
     h = zero(T)
@@ -197,7 +197,7 @@ function partials(z::ZernikeSurface{T,3,P,Q}, ρ::T, ϕ::T)::Tuple{SVector{3,T},
     pρ,pϕ = partials(z.asp, ρ, ϕ)
     # sum zernike partials
     rad=z.asp.semidiameter
-    n = rad / z.asp.normradius
+    n = rad / semidiameter(z.asp)
     u = ρ * n
     dhdρ = zero(T)
     dhdϕ = zero(T)

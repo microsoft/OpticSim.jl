@@ -33,46 +33,77 @@ The function checks if the aspheric terms are even, odd or both and uses `EvenAs
 `OddAsphericSurface()`, or `OddEvenAsphericSurface()` as appropriate.
 
 """
-abstract type AsphericSurface{T,N} <: ParametricSurface{T,N} end 
+#"pseudo-types" of aspheres
+const CONIC = 0
+const ODD = 1
+const EVEN = 2
+const ODDEVEN = 3
 
-function AsphericSurface(semidiameter::T; radius::T = typemax(T), conic::T= zero(T), aspherics::Union{Nothing,Vector{Tuple{Int,T}}} = nothing, normradius::T = semidiameter) where {T<:Real}
-    @assert semidiameter > 0
-    @assert !isnan(semidiameter) && !isnan(radius) && !isnan(conic)
-    @assert one(T) - (1 / radius)^2 * (conic + one(T)) * semidiameter^2 > 0 "Invalid surface (conic/radius combination: $radius, $conic)"
+struct AsphericSurface{T,N, Q, M} <: ParametricSurface{T,N} 
+    semidiameter::T
+    curvature::T
+    conic::T 
+    aspherics::SVector{Q,T}   
+    normradius::T
+    boundingcylinder::Cylinder{T,N}
 
-    acs = []
-    if isnothing(aspherics)
-        surf = EvenAsphericSurface(semidiameter, 1 / radius, conic, Vector{T}(acs); normradius)
-    else
-        asphericTerms = [i for (i, ) in aspherics]
-        minAsphericTerm = minimum(asphericTerms)
-        maxAsphericTerm = maximum(asphericTerms)
-        @assert minAsphericTerm > 0 "Aspheric Terms must be Order 1 or higher ($minAsphericTerm)"
-        acs = zeros(T, maxAsphericTerm )
-        for (i, k) in aspherics
-            acs[i] = k
+    function AsphericSurface(semidiameter::T; radius::T = typemax(T), conic::T= zero(T), aspherics::Union{Nothing,Vector{Tuple{Int,T}}} = nothing, normradius::T = semidiameter) where {T<:Real}
+        @assert semidiameter > 0
+        @assert !isnan(semidiameter) && !isnan(radius) && !isnan(conic)
+        @assert one(T) - (1 / radius)^2 * (conic + one(T)) * semidiameter^2 > 0 "Invalid surface (conic/radius combination: $radius, $conic)"
+
+        acs = []
+        if aspherics===nothing
+            surf = new{T,3, 0, CONIC}(semidiameter, 1/radius, conic, Vector{T}(acs), normradius, Cylinder{T,3}(semidiameter, interface = opaqueinterface(T)))
+        else
+            asphericTerms = [i for (i, ) in aspherics]
+            minAsphericTerm = minimum(asphericTerms)
+            maxAsphericTerm = maximum(asphericTerms)
+            @assert minAsphericTerm > 0 "Aspheric Terms must be Order 1 or higher ($minAsphericTerm)"
+            acs = zeros(T, maxAsphericTerm )
+            for (i, k) in aspherics
+                acs[i] = k
+            end
+            odd = any([isodd(i) && a != zero(T) for (i, a) in enumerate(acs)])
+            even = any([iseven(i) && a != zero(T) for (i, a) in enumerate(acs)])
+            if odd && even
+                Q = maxAsphericTerm
+                surf = new{T, 3, Q, ODDEVEN}(semidiameter, 1 / radius, conic, Vector{T}(acs), normradius, Cylinder(semidiameter, interface = opaqueinterface(T))) 
+            elseif even
+                eacs = [acs[2i] for i in 1:(maxAsphericTerm ÷ 2)] 
+                Q = length(eacs)
+                surf = new{T, 3, Q, EVEN}(semidiameter, 1 / radius, conic, Vector{T}(eacs), normradius, Cylinder(semidiameter, interface = opaqueinterface(T))) 
+            else #odd
+                oacs = [acs[2i-1] for i in 1:((maxAsphericTerm+1) ÷ 2)]
+                Q = length(oacs)
+                surf = new{T, 3, Q, ODD}(semidiameter, 1 / radius, conic, Vector{T}(oacs), normradius, Cylinder(semidiameter, interface = opaqueinterface(T))) 
+            end
         end
-        odd = any([isodd(i) && a != zero(T) for (i, a) in enumerate(acs)])
-        even = any([iseven(i) && a != zero(T) for (i, a) in enumerate(acs)])
-        if odd && even
-            Q = maxAsphericTerm
-            surf = OddEvenAsphericSurface(semidiameter, 1 / radius, conic, Vector{T}(acs); normradius) 
-        elseif even
-            eacs = [acs[2i] for i in 1:(maxAsphericTerm ÷ 2)] 
-            #Q = length(eacs)
-            surf = EvenAsphericSurface(semidiameter, 1 / radius, conic, Vector{T}(eacs); normradius) 
-        else #odd
-            oacs = [acs[2i-1] for i in 1:((maxAsphericTerm+1) ÷ 2)]
-            Q = length(oacs)
-            surf = OddAsphericSurface(semidiameter, 1 / radius, conic, Vector{T}(oacs); normradius) 
-        end
+        return surf
+    end
+    function EvenAsphericSurface(semidiameter::T, curvature::T, conic::T, aspherics::Vector{T}; normradius::T=semidiameter) where T<:Real
+        Q=length(aspherics)
+        new{T,3, Q, EVEN}(semidiameter, curvature, conic, SVector{Q,T}(aspherics), normradius, Cylinder(semidiameter, interface = opaqueinterface(T)))
+    end
+    function OddAsphericSurface(semidiameter::T, curvature::T, conic::T, aspherics::Vector{T}; normradius::T=semidiameter) where T<:Real
+        Q=length(aspherics)
+        new{T,3,Q, ODD}(semidiameter, curvature, conic, SVector{Q,T}(aspherics), normradius, Cylinder(semidiameter, interface = opaqueinterface(T)))
+    end
+    function OddEvenAsphericSurface(semidiameter::T, curvature::T, conic::T, aspherics::Vector{T}; normradius::T=semidiameter) where T<:Real
+        Q=length(aspherics)
+        new{T,3,Q,CONIC}(semidiameter, curvature, conic, SVector{Q,T}(aspherics), normradius, Cylinder(semidiameter, interface = opaqueinterface(T)))
     end
 
-
-    return surf #the returned value is an AspericSurface but is also either EvenAphericSurface, OddAphericSurface or OddEvenAsphericSurface
 end
 
-# These methods might be more nicely done with macros to avoid code duplication
+
+asphericType(z::AsphericSurface{T,3,Q,EVEN}) where {T<:Real,Q} = EVEN
+
+asphericType(z::AsphericSurface{T,3,Q,CONIC}) where {T<:Real,Q} = CONIC
+
+asphericType(z::AsphericSurface{T,3,Q,ODD}) where {T<:Real,Q} = ODD
+
+asphericType(z::AsphericSurface{T,3,Q,ODDEVEN}) where {T<:Real,Q} = ODDEVEN
 
 """
 
@@ -86,18 +117,6 @@ Surface incorporating an aspheric polynomial - radius, conic and aspherics are d
 
 
 """
-struct EvenAsphericSurface{T,N, Q} <: AsphericSurface{T,N} 
-    semidiameter::T
-    curvature::T
-    conic::T 
-    aspherics::SVector{Q,T}   #not static so can be optimized
-    normradius::T
-    boundingcylinder::Cylinder{T,N}
-    function EvenAsphericSurface(semidiameter::T, curvature::T, conic::T, aspherics::Vector{T}; normradius::T=semidiameter) where T<:Real
-        Q=length(aspherics)
-        new{T,3, Q}(semidiameter, curvature, conic, SVector{Q,T}(aspherics), normradius, Cylinder(semidiameter, interface = opaqueinterface(T)))
-    end
-end
 
 """
 
@@ -111,19 +130,6 @@ Surface incorporating an aspheric polynomial - radius, conic and aspherics are d
 
 """
 
-struct OddAsphericSurface{T,N, Q} <: AsphericSurface{T,N} 
-    semidiameter::T
-    curvature::T
-    conic::T
-    aspherics::SVector{Q,T}
-    normradius::T
-    boundingcylinder::Cylinder{T,N}
-    function OddAsphericSurface(semidiameter::T, curvature::T, conic::T, aspherics::Vector{T}; normradius::T=semidiameter) where T<:Real
-        Q=length(aspherics)
-        new{T,3,Q}(semidiameter, curvature, conic, SVector{Q,T}(aspherics), normradius, Cylinder(semidiameter, interface = opaqueinterface(T)))
-    end
-end
-
 """
 
 ```julia
@@ -135,18 +141,6 @@ Surface incorporating an aspheric polynomial - radius, conic and aspherics are d
 `aspherics` should be an array of the both odd and even coefficients of the aspheric polynomial starting with A1
 
 """
-struct OddEvenAsphericSurface{T,N, Q} <: AsphericSurface{T,N} 
-    semidiameter::T
-    curvature::T
-    conic::T
-    aspherics::SVector{Q,T}
-    normradius::T
-    boundingcylinder::Cylinder{T,N}
-    function OddEvenAsphericSurface(semidiameter::T, curvature::T, conic::T, aspherics::Vector{T}; normradius::T=semidiameter) where T<:Real
-        Q=length(aspherics)
-        new{T,3, Q}(semidiameter, curvature, conic, SVector{Q,T}(aspherics), normradius, Cylinder(semidiameter, interface = opaqueinterface(T)))
-    end
-end
 
 
 export AsphericSurface, EvenAsphericSurface, OddAsphericSurface, OddEvenAsphericSurface
@@ -160,7 +154,11 @@ halfsizev(z::AsphericSurface{T}) where {T<:Real} = semidiameter(z)
 
 boundingobj(z::AsphericSurface{T}) where {T<:Real} = z.boundingcylinder
 
-function point(z::OddEvenAsphericSurface{T,3,Q}, ρ::T, ϕ::T)::SVector{3,T} where {T<:Real,Q}
+prod_step(z::AsphericSurface{T,N,Q,ODDEVEN}, r, r2) where {T<:Real,N,Q} = r, r
+prod_step(z::AsphericSurface{T,N,Q,ODD}, r, r2) where {T<:Real,N,Q} = r, r2
+prod_step(z::AsphericSurface{T,N,Q,EVEN}, r, r2) where {T<:Real,N,Q} = r2, r2
+
+function point(z::AsphericSurface{T,3,Q,M}, ρ::T, ϕ::T)::SVector{3,T} where {T<:Real,Q,M}
     rad = z.semidiameter
     r = ρ * rad
     r2 = r^2
@@ -169,141 +167,47 @@ function point(z::OddEvenAsphericSurface{T,3,Q}, ρ::T, ϕ::T)::SVector{3,T} whe
         return SVector{3,T}(NaN, NaN, NaN)
     end
     h = z.curvature * r2 / (one(T) + sqrt(t))
-    # sum aspheric
-    if Q != 0
+   # sum aspheric
+    if M != CONIC
+        prod, step = prod_step(z, r, r2)  #multiple dispatch on R
         asp,rest = Iterators.peel(z.aspherics)
-        prod = r
         h += asp * prod
         for asp in rest
-            prod *= r
+            prod *= step
             h += asp * prod
         end
     end
     return SVector{3,T}(r * cos(ϕ), r * sin(ϕ), h)
 end
 
-function point(z::EvenAsphericSurface{T,3,Q}, ρ::T, ϕ::T)::SVector{3,T} where {T<:Real, Q}
-    rad = z.semidiameter
-    r = ρ * rad
-    r2 = r^2
-    t = one(T) - z.curvature^2 * (z.conic + one(T)) * r^2
-    if t < zero(T)
-        return SVector{3,T}(NaN, NaN, NaN)
-    end
-    h = z.curvature * r2 / (one(T) + sqrt(t))
-    # sum aspheric
-    if Q != 0
-        asp,rest = Iterators.peel(z.aspherics)
-        prod = r2
-        h += asp * prod
-        for asp in rest
-            prod *= r2
-            h += asp * prod
-        end
-    end
-    return SVector{3,T}(r * cos(ϕ), r * sin(ϕ), h)
-end
+partial_prod_step(z::AsphericSurface{T, 3, Q, EVEN}) where {T<:Real,Q} = r, r2, 2:2:2Q
+partial_prod_step(z::AsphericSurface{T, 3, Q, ODD}) where {T<:Real,Q} = one(T), r2, 1:2:(2Q-1)
+partial_prod_step(z::AsphericSurface{T, 3, Q, ODDEVEN}) where {T<:Real,Q} = one(T), r, 1:1:Q
 
-function point(z::OddAsphericSurface{T,3,Q}, ρ::T, ϕ::T)::SVector{3,T} where {T<:Real,Q}
+function partials(z::AsphericSurface{T,3,Q,M}, ρ::T, ϕ::T)::Tuple{SVector{3,T},SVector{3,T}} where {T<:Real,Q,M}
     rad = z.semidiameter
     r = ρ * rad
-    r2 = r^2
-    t = one(T) - z.curvature^2 * (z.conic + one(T)) * r^2
-    if t < zero(T)
-        return SVector{3,T}(NaN, NaN, NaN)
-    end
-    h = z.curvature * r2 / (one(T) + sqrt(t))
-    # sum aspheric
-    if Q != 0
-        asp,rest = Iterators.peel(z.aspherics)
-        prod = r
-        h += asp * prod
-        for asp in rest
-            prod *= r2       #one extra mulitply on last iteration
-            h += asp * prod
-        end
-    end
-    return SVector{3,T}(r * cos(ϕ), r * sin(ϕ), h)
-end
-
-function partials(z::OddEvenAsphericSurface{T,3,Q}, ρ::T, ϕ::T)::Tuple{SVector{3,T},SVector{3,T}} where {T<:Real,Q}
-    rad = z.semidiameter
-    r = ρ * rad
+    r2 = r*r
     t = one(T) - z.curvature^2 * (z.conic + one(T)) * r^2
     if t < zero(T)
         return SVector{3,T}(NaN, NaN, NaN), SVector{3,T}(NaN, NaN, NaN)
     end
     dhdρ = rad * z.curvature * r * sqrt(t) / t
     # sum aspherics partial
-    if Q != 0
-        ((m, asp), rest) = Iterators.peel(enumerate(z.aspherics))
-        dhdρ += rad * asp  #first term m=1 and prod = one(T)
-        prod = one(T)
+    if M != CONIC
+        prod, step, mIter = partial_prod_step(z, r, r2)
+    
+        ((m, asp), rest) = Iterators.peel(zip(mIter,z.aspherics))
+        dhdρ += rad * asp * 2 * prod #first term m=1*2 and prod = r
         for (m,asp) in rest
-            prod *= r 
+            prod *= step 
             dhdρ += rad * m * asp * prod 
         end
     end
     dhdϕ = zero(T)
     cosϕ = cos(ϕ)
     sinϕ = sin(ϕ)
-    pu = SVector{3,T}(rad * cosϕ, rad * sinϕ, dhdρ)
-    pv = SVector{3,T}(r * -sinϕ, r * cosϕ, dhdϕ)
-    return pu, pv
-end
-
-function partials(z::EvenAsphericSurface{T,3,Q}, ρ::T, ϕ::T)::Tuple{SVector{3,T},SVector{3,T}} where {T<:Real,Q}
-    rad = z.semidiameter
-    r = ρ * rad
-    r2 = r*r
-    t = one(T) - z.curvature^2 * (z.conic + one(T)) * r^2
-    if t < zero(T)
-        return SVector{3,T}(NaN, NaN, NaN), SVector{3,T}(NaN, NaN, NaN)
-    end
-    dhdρ = rad * z.curvature * r * sqrt(t) / t
-    # sum aspherics partial
-    if Q != 0
-        ((m, asp), rest) = Iterators.peel(enumerate(z.aspherics))
-        prod = r
-        dhdρ += rad * asp * 2 * prod #first term m=1*2 and prod = r
-        for (m,asp) in rest
-            prod *= r2 
-            dhdρ += rad * 2m * asp * prod 
-        end
-    end
-    dhdϕ = zero(T)
-    cosϕ = cos(ϕ)
-    sinϕ = sin(ϕ)
-    pu = SVector{3,T}(rad * cosϕ, rad * sinϕ, dhdρ)
-    pv = SVector{3,T}(r * -sinϕ, r * cosϕ, dhdϕ)
-    return pu, pv
-end
-
-function partials(z::OddAsphericSurface{T,3,Q}, ρ::T, ϕ::T)::Tuple{SVector{3,T},SVector{3,T}} where {T<:Real,Q}
-    rad = z.semidiameter
-    r = ρ * rad
-    r2 = r*r
-    t = one(T) - z.curvature^2 * (z.conic + one(T)) * r^2
-    if t < zero(T)
-        return SVector{3,T}(NaN, NaN, NaN), SVector{3,T}(NaN, NaN, NaN)
-    end
-    dhdρ = rad * z.curvature * r * sqrt(t) / t
-    # sum aspherics partial
-    if Q != 0
-        ((m, asp), rest) = Iterators.peel(enumerate(z.aspherics))
-        dhdρ += rad * asp  #first term m=1 and prod = one(T)
-        prod = one(T)
-        for (m,asp) in rest
-            prod *= r2 
-            dhdρ += rad * (2m-1) * asp * prod 
-        end
-    end
-    dhdϕ = zero(T)
-    cosϕ = cos(ϕ)
-    sinϕ = sin(ϕ)
-    pu = SVector{3,T}(rad * cosϕ, rad * sinϕ, dhdρ)
-    pv = SVector{3,T}(r * -sinϕ, r * cosϕ, dhdϕ)
-    return pu, pv
+    return SVector{3,T}(rad * cosϕ, rad * sinϕ, dhdρ), SVector{3,T}(r * -sinϕ, r * cosϕ, dhdϕ)
 end
 
 function normal(z::AsphericSurface{T,3}, ρ::T, ϕ::T)::SVector{3,T} where {T<:Real}
@@ -389,21 +293,27 @@ function AcceleratedParametricSurface(surf::T, numsamples::Int = 17; interface::
     return a
 end
 
-function asphericSag(surf::EvenAsphericSurface{T,3,Q}) where {T<:Real,Q}
-    amin = Q > 0 ? sum(k < zero(T) ? k * surf.semidiameter^(2m) : zero(T) for (m, k) in enumerate(surf.aspherics)) : zero(T)
-    amax = Q > 0 ? sum(k > zero(T) ? k * surf.semidiameter^(2m) : zero(T) for (m, k) in enumerate(surf.aspherics)) : zero(T)
+function asphericSag(surf::AsphericSurface{T,3,Q, EVEN}) where {T<:Real,Q}
+    amin = sum(k < zero(T) ? k * surf.semidiameter^(2m) : zero(T) for (m, k) in enumerate(surf.aspherics)) 
+    amax = sum(k > zero(T) ? k * surf.semidiameter^(2m) : zero(T) for (m, k) in enumerate(surf.aspherics)) 
     return amin, amax
 end
 
-function asphericSag(surf::OddAsphericSurface{T,3,Q}) where {T<:Real,Q}
-    amin = Q > 0 ? sum(k < zero(T) ? k * surf.semidiameter^(2m-1) : zero(T) for (m, k) in enumerate(surf.aspherics)) : zero(T)
-    amax = Q > 0 ? sum(k > zero(T) ? k * surf.semidiameter^(2m-1) : zero(T) for (m, k) in enumerate(surf.aspherics)) : zero(T)
+function asphericSag(surf::AsphericSurface{T,3,Q, ODD}) where {T<:Real,Q}
+    amin = sum(k < zero(T) ? k * surf.semidiameter^(2m-1) : zero(T) for (m, k) in enumerate(surf.aspherics)) 
+    amax = sum(k > zero(T) ? k * surf.semidiameter^(2m-1) : zero(T) for (m, k) in enumerate(surf.aspherics)) 
     return amin, amax
 end
 
-function asphericSag(surf::OddEvenAsphericSurface{T,3,Q}) where {T<:Real,Q}
-    amin = Q > 0 ? sum(k < zero(T) ? k * surf.semidiameter^(m) : zero(T) for (m, k) in enumerate(surf.aspherics)) : zero(T)
-    amax = Q > 0 ? sum(k > zero(T) ? k * surf.semidiameter^(m) : zero(T) for (m, k) in enumerate(surf.aspherics)) : zero(T)
+function asphericSag(surf::AsphericSurface{T,3,Q, ODDEVEN}) where {T<:Real,Q}
+    amin = sum(k < zero(T) ? k * surf.semidiameter^(m) : zero(T) for (m, k) in enumerate(surf.aspherics)) 
+    amax = sum(k > zero(T) ? k * surf.semidiameter^(m) : zero(T) for (m, k) in enumerate(surf.aspherics)) 
+    return amin, amax    
+end
+
+function asphericSag(surf::AsphericSurface{T,3,Q, CONIC}) where {T<:Real,Q}
+    amin = zero(T)
+    amax = zero(T)
     return amin, amax    
 end
 
