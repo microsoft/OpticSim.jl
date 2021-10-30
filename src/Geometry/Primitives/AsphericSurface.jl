@@ -54,8 +54,8 @@ struct AsphericSurface{T,N, Q, M} <: ParametricSurface{T,N}
 
         acs = []
         if aspherics===nothing
-            surf = new{T,3, 0, CONIC}(semidiameter, 1/radius, conic, Vector{T}(acs), normradius, Cylinder(semidiameter, interface = opaqueinterface(T)))
-        else
+            surf = new{T,3,0,CONIC}(semidiameter, 1/radius, conic, Vector{T}(acs), normradius, Cylinder(semidiameter, interface = opaqueinterface(T)))
+         else
             asphericTerms = [i for (i, ) in aspherics]
             minAsphericTerm = minimum(asphericTerms)
             maxAsphericTerm = maximum(asphericTerms)
@@ -85,7 +85,7 @@ struct AsphericSurface{T,N, Q, M} <: ParametricSurface{T,N}
     end
     function EvenAsphericSurface(semidiameter::T, curvature::T, conic::T, aspherics::Vector{T}; normradius::T=semidiameter) where T<:Real
         Q=length(aspherics)
-        new{T,3, Q, EVEN}(semidiameter, curvature, conic, SVector{Q,T}(aspherics), normradius, Cylinder(semidiameter, interface = opaqueinterface(T)))
+        new{T,3,Q,EVEN}(semidiameter, curvature, conic, SVector{Q,T}(aspherics), normradius, Cylinder(semidiameter, interface = opaqueinterface(T)))
     end
     function OddAsphericSurface(semidiameter::T, curvature::T, conic::T, aspherics::Vector{T}; normradius::T=semidiameter) where T<:Real
         Q=length(aspherics)
@@ -182,9 +182,9 @@ function point(z::AsphericSurface{T,3,Q,M}, ρ::T, ϕ::T)::SVector{3,T} where {T
     return SVector{3,T}(r * cos(ϕ), r * sin(ϕ), h)
 end
 
-partial_prod_step(z::AsphericSurface{T, 3, Q, EVEN}, r, r2) where {T<:Real,Q} = r, r2, 2:2:2Q
-partial_prod_step(z::AsphericSurface{T, 3, Q, ODD}, r, r2) where {T<:Real,Q} = one(T), r2, 1:2:(2Q-1)
-partial_prod_step(z::AsphericSurface{T, 3, Q, ODDEVEN}, r, r2) where {T<:Real,Q} = one(T), r, 1:1:Q
+partial_prod_step(z::AsphericSurface{T,3,Q,EVEN}, r: T, r2: T) where {T<:Real,Q} = r, r2, 2:2:2Q
+partial_prod_step(z::AsphericSurface{T,3,Q,ODD}) where {T<:Real,Q} = one(T), r2, 1:2:(2Q-1)
+partial_prod_step(z::AsphericSurface{T,3,Q,ODDEVEN}) where {T<:Real,Q} = one(T), r, 1:1:Q
 
 function partials(z::AsphericSurface{T,3,Q,M}, ρ::T, ϕ::T)::Tuple{SVector{3,T},SVector{3,T}} where {T<:Real,Q,M}
     rad = z.semidiameter

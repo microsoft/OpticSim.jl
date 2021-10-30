@@ -163,7 +163,7 @@ struct ZernikeSurface{T,N,P,Q,M} <: ParametricSurface{T,N}
             end
         end
         P = length(zcs)
-        M=asphericType(asp)
+        M = asphericType(asp)
         new{T,3,P,Q,M}(asp, SVector{P,Tuple{Int,Int,T}}(zcs), Cylinder(semidiameter, interface = opaqueinterface(T))) # TODO!! incorrect interface on cylinder
     end
 
@@ -182,7 +182,7 @@ function point(z::ZernikeSurface{T,3,P,Q}, ρ::T, ϕ::T)::SVector{3,T} where {T<
     pnt = point(z.asp, ρ, ϕ)
 
     # sum zernike
-    rad=semidiameter(z.asp)
+    rad = semidiameter(z.asp)
     r=ρ * rad
     u = r / z.asp.normradius
     h = zero(T)
