@@ -180,7 +180,7 @@ function point(z::AsphericSurface{T,3,Q,M}, ρ::T, ϕ::T)::SVector{3,T} where {T
     return SVector{3,T}(r * cos(ϕ), r * sin(ϕ), h)
 end
 
-partial_prod_step(z::AsphericSurface{T, 3, Q, EVEN}) where {T<:Real,Q} = r, r2, 2:2:2Q
+partial_prod_step(z::AsphericSurface{T,3,Q,EVEN}, r: T, r2: T) where {T<:Real,Q} = r, r2, 2:2:2Q
 partial_prod_step(z::AsphericSurface{T, 3, Q, ODD}) where {T<:Real,Q} = one(T), r2, 1:2:(2Q-1)
 partial_prod_step(z::AsphericSurface{T, 3, Q, ODDEVEN}) where {T<:Real,Q} = one(T), r, 1:1:Q
 
