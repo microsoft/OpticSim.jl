@@ -54,7 +54,7 @@ struct AsphericSurface{T,N, Q, M} <: ParametricSurface{T,N}
 
         acs = []
         if aspherics===nothing
-            surf = new{T,3, 0, CONIC}(semidiameter, 1/radius, conic, Vector{T}(acs), normradius, Cylinder{T,3}(semidiameter, interface = opaqueinterface(T)))
+            surf = new{T,3, 0, CONIC}(semidiameter, 1/radius, conic, Vector{T}(acs), normradius, Cylinder(semidiameter, interface = opaqueinterface(T)))
         else
             asphericTerms = [i for (i, ) in aspherics]
             minAsphericTerm = minimum(asphericTerms)
@@ -73,10 +73,12 @@ struct AsphericSurface{T,N, Q, M} <: ParametricSurface{T,N}
                 eacs = [acs[2i] for i in 1:(maxAsphericTerm ÷ 2)] 
                 Q = length(eacs)
                 surf = new{T, 3, Q, EVEN}(semidiameter, 1 / radius, conic, Vector{T}(eacs), normradius, Cylinder(semidiameter, interface = opaqueinterface(T))) 
-            else #odd
+            elseif odd
                 oacs = [acs[2i-1] for i in 1:((maxAsphericTerm+1) ÷ 2)]
                 Q = length(oacs)
                 surf = new{T, 3, Q, ODD}(semidiameter, 1 / radius, conic, Vector{T}(oacs), normradius, Cylinder(semidiameter, interface = opaqueinterface(T))) 
+            else #CONIC
+                surf = new{T,3, 0, CONIC}(semidiameter, 1/radius, conic, Vector{T}(acs), normradius, Cylinder(semidiameter, interface = opaqueinterface(T)))
             end
         end
         return surf
@@ -143,7 +145,7 @@ Surface incorporating an aspheric polynomial - radius, conic and aspherics are d
 """
 
 
-export AsphericSurface, EvenAsphericSurface, OddAsphericSurface, OddEvenAsphericSurface
+export AsphericSurface, EvenAsphericSurface, OddAsphericSurface, OddEvenAsphericSurface, asphericType
 
 
 uvrange(::AsphericSurface{T,N}) where {T<:Real,N} = ((zero(T), one(T)), (-T(π), T(π))) # ρ and ϕ
@@ -180,9 +182,9 @@ function point(z::AsphericSurface{T,3,Q,M}, ρ::T, ϕ::T)::SVector{3,T} where {T
     return SVector{3,T}(r * cos(ϕ), r * sin(ϕ), h)
 end
 
-partial_prod_step(z::AsphericSurface{T, 3, Q, EVEN}) where {T<:Real,Q} = r, r2, 2:2:2Q
-partial_prod_step(z::AsphericSurface{T, 3, Q, ODD}) where {T<:Real,Q} = one(T), r2, 1:2:(2Q-1)
-partial_prod_step(z::AsphericSurface{T, 3, Q, ODDEVEN}) where {T<:Real,Q} = one(T), r, 1:1:Q
+partial_prod_step(z::AsphericSurface{T, 3, Q, EVEN}, r, r2) where {T<:Real,Q} = r, r2, 2:2:2Q
+partial_prod_step(z::AsphericSurface{T, 3, Q, ODD}, r, r2) where {T<:Real,Q} = one(T), r2, 1:2:(2Q-1)
+partial_prod_step(z::AsphericSurface{T, 3, Q, ODDEVEN}, r, r2) where {T<:Real,Q} = one(T), r, 1:1:Q
 
 function partials(z::AsphericSurface{T,3,Q,M}, ρ::T, ϕ::T)::Tuple{SVector{3,T},SVector{3,T}} where {T<:Real,Q,M}
     rad = z.semidiameter

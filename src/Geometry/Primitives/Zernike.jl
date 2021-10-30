@@ -170,7 +170,7 @@ struct ZernikeSurface{T,N,P,Q,M} <: ParametricSurface{T,N}
 end
 export ZernikeSurface
 
-uvrange(::Type{ZernikeSurface{T,N,P,Q}}) where {T<:Real,N,P,Q} = ((zero(T), one(T)), (-T(π), T(π))) # ρ and ϕ
+uvrange(::Type{ZernikeSurface{T,N}}) where {T<:Real,N} = ((zero(T), one(T)), (-T(π), T(π))) # ρ and ϕ
 
 semidiameter(z::ZernikeSurface{T}) where {T<:Real} = z.asp.semidiameter
 halfsizeu(z::ZernikeSurface{T}) where {T<:Real} = semidiameter(z)
