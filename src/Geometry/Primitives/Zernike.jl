@@ -163,7 +163,7 @@ struct ZernikeSurface{T,N,P,Q,M} <: ParametricSurface{T,N}
             end
         end
         P = length(zcs)
-        M=asphericType(asp)
+        M = asphericType(asp)
         new{T,3,P,Q,M}(asp, SVector{P,Tuple{Int,Int,T}}(zcs), Cylinder(semidiameter, interface = opaqueinterface(T))) # TODO!! incorrect interface on cylinder
     end
 
