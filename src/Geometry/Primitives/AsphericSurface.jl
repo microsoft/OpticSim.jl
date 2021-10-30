@@ -54,7 +54,7 @@ struct AsphericSurface{T,N, Q, M} <: ParametricSurface{T,N}
 
         acs = []
         if aspherics===nothing
-            surf = new{T,3, 0, CONIC}(semidiameter, 1/radius, conic, Vector{T}(acs), normradius, Cylinder{T,3}(semidiameter, interface = opaqueinterface(T)))
+            surf = new{T,3,0,CONIC}(semidiameter, 1/radius, conic, Vector{T}(acs), normradius, Cylinder{T,3}(semidiameter, interface = opaqueinterface(T)))
         else
             asphericTerms = [i for (i, ) in aspherics]
             minAsphericTerm = minimum(asphericTerms)
