@@ -22,25 +22,25 @@ julia> a[1,2]
  10
 ```
 
-Subtypes supporting the Basis interface should implement these functions:
+Subtypes supporting the AbstractBasis interface should implement these functions:
 
 Returns the neighbors in ring n surrounding centerpoint, excluding centerpoint
 ```
-neighbors(::Type{B},centerpoint::Tuple{T,T},neighborhoodsize::Int) where{T<:Real,B<:Basis}
+neighbors(::Type{B},centerpoint::Tuple{T,T},neighborhoodsize::Int) where{T<:Real,B<:AbstractBasis}
 ```
 Returns the lattice basis vectors that define the lattice
 ```
-basis(a::S) where{S<:Basis}
+basis(a::S) where{S<:AbstractBasis}
 ```
 Returns the vertices of the unit polygon that tiles the plane for the basis
 ```
-tilevertices(a::S) where{S<:Basis}
+tilevertices(a::S) where{S<:AbstractBasis}
 ```
 """
-abstract type Basis{N,T<:Real} end
-export Basis
+abstract type AbstractBasis{N,T<:Real} end
+export AbstractBasis
 
-function Base.getindex(A::B1, indices::Vararg{Int, N}) where{N,T,B1<:Basis{N,T}}
+function Base.getindex(A::B1, indices::Vararg{Int, N}) where{N,T,B1<:AbstractBasis{N,T}}
     return basismatrix(A)*SVector{N,Int}(indices)
 end
 
@@ -48,9 +48,9 @@ end
 #     return temp
 # end
 
-Base.setindex!(A::Basis{N,T}, v, I::Vararg{Int, N}) where{T,N} = nothing #can't set lattice points. Might want to throw an exception instead.
+Base.setindex!(A::AbstractBasis{N,T}, v, I::Vararg{Int, N}) where{T,N} = nothing #can't set lattice points. Might want to throw an exception instead.
 
-struct LatticeBasis{N,T<:Real} <: Basis{N,T}
+struct LatticeBasis{N,T<:Real} <: AbstractBasis{N,T}
     basisvectors::SMatrix{N,N,T}
 
     """ Convenience constructor that lets you use tuple arguments to describe the basis instead of SVector 

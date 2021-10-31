@@ -14,7 +14,7 @@ const hexcoords = [
 		cos60 sin60
 		]
 
-struct HexBasis1{N,T} <: Basis{N,T}
+struct HexBasis1{N,T} <: AbstractBasis{N,T}
     HexBasis1(::Type{T} = Float64) where{T<:Real} = new{2,T}()
 end
 export HexBasis1
@@ -163,7 +163,7 @@ function hexcellsinbox(numi,numj)
 end
 export Repeat
 
-struct HexBasis3{N,T}<:Basis{N,T}
+struct HexBasis3{N,T}<:AbstractBasis{N,T}
     HexBasis3(::Type{T} = Float64) where{T} = new{2,T}()
 end
 export HexBasis3

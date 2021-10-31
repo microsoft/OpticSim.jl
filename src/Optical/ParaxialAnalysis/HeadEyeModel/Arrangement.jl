@@ -24,7 +24,7 @@ center(h::Shape) = h._center
 points(h::Shape) = h._points
 coordinates(h::Shape) = h._coordinates
 
-function get_shapes(basis::Basis{2,T},cells::AbstractMatrix{Int}, radius::T) where{T}
+function get_shapes(basis::AbstractBasis{2,T},cells::AbstractMatrix{Int}, radius::T) where{T}
     basic_tile = Repeat.tilevertices(basis) * radius
     cols = Base.size(cells)[2]
     res = Vector{Shape{2, T}}(undef, 0)

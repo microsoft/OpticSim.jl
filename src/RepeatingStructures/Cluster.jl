@@ -4,9 +4,9 @@
 
 """A Cluster is a repeating pattern of indices defined in a lattice called the element lattice. The cluster of elements has its own lattice, which by definition is different from the element lattice unless each cluster consists of a single element. A LatticeCluster subtype must implement these methods:
 
-clusterbasis(a::AbstractLatticeCluster) returns the Basis object for the cluster. This is not generally the same as the basis for the underlying lattice.
+clusterbasis(a::AbstractLatticeCluster) returns the AbstractBasis object for the cluster. This is not generally the same as the basis for the underlying lattice.
 
-elementbasis(a::AbstractLatticeCluster) returns the Basis object the underlying lattice of the cluster.
+elementbasis(a::AbstractLatticeCluster) returns the AbstractBasis object the underlying lattice of the cluster.
 
 clusterelements(a::AbstractLatticeCluster) returns the lattice indices, represented in the underlying lattice basis, for each of the elements in a unit cluster cell.
 
@@ -35,13 +35,13 @@ julia> lattice[1,1]  #returns the locations of the 3 elements in the cluster at 
 abstract type AbstractLatticeCluster end
 
 """Basic lattic cluster type"""
-struct LatticeCluster{N1, N, T<:Real, B1<:Basis{N,Int},B2<:Basis{N,T}} <: AbstractLatticeCluster
+struct LatticeCluster{N1, N, T<:Real, B1<:AbstractBasis{N,Int},B2<:AbstractBasis{N,T}} <: AbstractLatticeCluster
     clusterbasis::B1 #this basis defines the offsets of the clusters
     elementbasis::B2 #this basis defines the underlying lattice
 
     clusterelements::SVector{N1,NTuple{N,Int}} #vector containing the lattice indices of the elements in the cluster. Each column is one lattice coordinate. These indices are assumed to be offsets from the origin of the lattice.
 
-    LatticeCluster(clusterbasis::B1,eltlattice::B2,clusterelements::SVector{N1,NTuple{N,Int}}) where{N1,N,T<:Real,B1<:Basis{N,Int},B2<:Basis{N,T}} = new{N1,N,T,B1,B2}(clusterbasis,eltlattice,clusterelements)
+    LatticeCluster(clusterbasis::B1,eltlattice::B2,clusterelements::SVector{N1,NTuple{N,Int}}) where{N1,N,T<:Real,B1<:AbstractBasis{N,Int},B2<:AbstractBasis{N,T}} = new{N1,N,T,B1,B2}(clusterbasis,eltlattice,clusterelements)
 end
 export LatticeCluster
 
@@ -53,7 +53,7 @@ clusterbasis(a::LatticeCluster) = a.clusterbasis
 export clusterbasis
 
 """returns the positions of every element in a cluster given the cluster indices"""
-function Base.getindex(A::LatticeCluster{N1,N,T,B1,B2}, indices::Vararg{Int, N}) where{N1,N,T,B1<:Basis{N,Int},B2<:Basis{N,T}} 
+function Base.getindex(A::LatticeCluster{N1,N,T,B1,B2}, indices::Vararg{Int, N}) where{N1,N,T,B1<:AbstractBasis{N,Int},B2<:AbstractBasis{N,T}} 
     clusteroffset = A.clusterbasis[indices...]
     temp = MMatrix{N,N1,T}(undef)
     for i in 1:N1
@@ -68,7 +68,7 @@ function Base.size(::LatticeCluster{N1,N}) where{N1,N}
     return ntuple((i)->Base.IsInfinite(),N)
 end
 
-Base.setindex!(A::Basis{N}, v, I::Vararg{Int, N}) where{N} = nothing #can't set lattice points. Might want to throw an exception instead.
+Base.setindex!(A::AbstractBasis{N}, v, I::Vararg{Int, N}) where{N} = nothing #can't set lattice points. Might want to throw an exception instead.
 
 """ returns the lattice indices of the elements in the cluster. These are generally not the positions of the elements"""
 function clustercoordinates(a::LatticeCluster{N1,N},indices::Vararg{Int,N}) where{N1,N}
