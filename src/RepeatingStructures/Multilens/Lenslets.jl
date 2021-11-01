@@ -6,7 +6,7 @@ using Colors
 import Luxor
 using StaticArrays
 import DataFrames
-import OpticSim.Repeat
+import ..Repeat
 import SpecialFunctions
 
 include("HexTilings.jl")
