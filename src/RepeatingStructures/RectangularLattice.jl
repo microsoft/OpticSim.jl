@@ -3,7 +3,7 @@
 # See LICENSE in the project root for full license information.
 
 
-struct RectangularBasis{N,T} <: Basis{N,T}
+struct RectangularBasis{N,T} <: AbstractBasis{N,T}
     RectangularBasis(::Type{T} = Float64) where{T<:Real} = new{2,T}()
 end
 export RectangularBasis
