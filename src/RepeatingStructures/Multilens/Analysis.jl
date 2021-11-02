@@ -209,7 +209,7 @@ export lensletdisplaysize
 testlensletdisplaysize() = lensletdisplaysize((55,35),18mm,(10mm,6mm),4mm,30,RGB = true)
 export testlensletdisplaysize
 
-"""generates a contour plot of lenslet display size as a function of ppd and pupil diameter"
+"""generates a contour plot of lenslet display size as a function of ppd and pupil diameter"""
 function displaysize_ppdvspupildiameter()
     x = 20:2:45
     y = 3.0:.05:4
