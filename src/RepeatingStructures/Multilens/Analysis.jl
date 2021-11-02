@@ -38,6 +38,7 @@ export focallength
 cyclesperdegree(diameter,λ) = uconvert(Unitful.NoUnits,diameter/(rad2deg(1)*λ))
 export cyclesperdegree
 
+"""diffraction limited response for a circular aperture, normalized by maximum cutoff frequency"""
 function mtfcircular(freq,freqcutoff) 
     s =  freq/freqcutoff
     return 2/π * (acos(s) - s*((1-s^2)^.5))
@@ -48,6 +49,7 @@ export mtfcircular
 diffractionlimit(λ,diameter) = uconvert(Unitful.NoUnits,diameter/λ)/rad2deg(1)
 export diffractionlimit
 
+"""computes the diameter of a diffraction limited lens that has respone mtf at frequency cyclesperdeg"""
 function diameter_for_cycles_deg(mtf,cyclesperdeg,λ)
     cyclesperrad = rad2deg(1)*cyclesperdeg
     f(x) = mtfcircular(x,1.0) - mtf
@@ -128,9 +130,11 @@ lensletpixels(angles,ppd) = angles .* ppd
 """given the angles each lenslet has to cover compute the corresponding display size"""
 sizeoflensletdisplay(angles,ppd,pixelpitch) = @. angles*ppd*pixelpitch
 
+"""angular size of the eyebox when viewed from distance eyerelief"""
 eyeboxangles(eyebox,eyerelief) = @. atand(uconvert(Unitful.NoUnits,eyebox / eyerelief))
 export eyeboxangles
 
+"""computes how the fov can be subdivided among lenslets based on cluster size"""
 function anglesubdivisions(pupildiameter,λ,mtf,cyclesperdegree;RGB = true)
     cluster,_ = choosecluster(pupildiameter,λ,mtf,cyclesperdegree)
     numelements = Repeat.clustersize(cluster)
@@ -162,6 +166,7 @@ export testangles
 
 lensletresolution(angles,ppd) = angles .* ppd
 
+"""computes how many more pixels the multilens display will use than a conventional display of the same nominal resolution"""
 function pixelredundancy(fov,eyerelief,eyebox,pupildiameter,ppd; RGB = true)
     lensprops = defaultclusterproperties()
     clusterdata = choosecluster(pupildiameter,lensprops.λ,lensprops.mtf,lensprops.cyclesperdegree)
@@ -179,6 +184,7 @@ export testpixelredundancy
 
 label(color) = color ? "RGB" : "B&W"
 
+"""generates a contour plot showing pixel redundancy as a function of ppd and pupil diameter"""
 function redundancy_ppdvspupildiameter()
     x = 20:2:45
     y = 3.5:.05:4
@@ -187,6 +193,7 @@ function redundancy_ppdvspupildiameter()
 end
 export redundancy_ppdvspupildiameter
 
+"""computes lenslet display size to match the design constraints"""
 function lensletdisplaysize(fov,eyerelief,eyebox,pupildiameter,ppd; RGB = true)
     cyclesperdegree = ppd/2.0
     lensprops = defaultclusterproperties()
@@ -202,9 +209,10 @@ export lensletdisplaysize
 testlensletdisplaysize() = lensletdisplaysize((55,35),18mm,(10mm,6mm),4mm,30,RGB = true)
 export testlensletdisplaysize
 
+"""generates a contour plot of lenslet display size as a function of ppd and pupil diameter"
 function displaysize_ppdvspupildiameter()
     x = 20:2:45
-    y = 3.5:.05:4
+    y = 3.0:.05:4
     RGB = false
 
     plot(Plots.contour(x,y,(x,y) -> maximum(ustrip.(μm, lensletdisplaysize((50,35),18mm,(10mm,6mm),y*mm,x,RGB = RGB))),fill = true,xlabel = "pixels per degree", ylabel = "pupil diameter", legendtitle = "display size μm", title = "$(label(RGB)) lenslets"))
