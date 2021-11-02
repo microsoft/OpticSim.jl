@@ -1,3 +1,6 @@
+
+using Roots
+
 """This function returns the radius of the longest basis vector of the lattice cluster. Most lattices defined in this project have symmetric basis vectors so the radii of all basis vectors will be identical."""
 function latticediameter(basismatrix::SMatrix)
     maximum(norm.([basismatrix[:,i] for i in 1:size(basismatrix)[2]]))
@@ -40,6 +43,19 @@ function mtfcircular(freq,freqcutoff)
 end
 export mtfcircular
 
+"""returns the diffraction limit frequency in cycles/deg"""
+diffractionlimit(λ,diameter) = uconvert(Unitful.NoUnits,diameter/λ)/rad2deg(1)
+export diffractionlimit
+
+function diameter_for_cycles_deg(mtf,cyclesperdeg,λ)
+    cyclesperrad = rad2deg(1)*cyclesperdeg
+    f(x) = mtfcircular(x,1.0) - mtf
+    normalizedfrequency = find_zero(f,(0.0,1.0))
+    fc = cyclesperrad/normalizedfrequency
+    return uconvert(mm,λ*fc)
+end
+export diameter_for_cycles_deg
+
 airydisk(ρ) = (2*SpecialFunctions.besselj1(ρ)/ρ)^2
 
 """The f# required for the first zero of the airy diffraction disk to be at the next sample point"""
@@ -60,23 +76,6 @@ export ρatairyvalue
 closestpackingdistance(pupildiameter) = pupildiameter*cosd(30)
 export closestpackingdistance
 
-"""Computes the smallest lenslet diameter that gives a response of 
-`value`
- at the halfway point between two point sources imaged by the lens. Example: want 45ppd  at 550nm with response of .5 midway between two point sources separated by 2/45 degrees. 
- `diameter_at_value(550nm,2/45,.5)`
- """
-function minimumlensletdiameter(λ,θ,indexofrefraction,pixelpitch,psfvalue,minfnumber)
-    λ′=λ/indexofrefraction
-    ρ = ρatairyvalue(psfvalue/2)
-    R = focallength(pixelpitch,θ)
-    diameter = uconvert(mm,ρ*λ′*R/(π*pixelpitch))
-    if R/diameter < minfnumber
-        return nothing #lenslet requires lower than the minimum allowable f#
-    else
-        return uconvert(mm,diameter)
-    end
-end
-export minimumlensletdiameter
 
 """computes the maximum lenslet diameter given the smallest allowed f#. Larger lenslets would require lower f#"""
 function maxlensletdiameter(ppd,pixelpitch,minfnumber)
@@ -86,9 +85,9 @@ function maxlensletdiameter(ppd,pixelpitch,minfnumber)
 end
 export maxlensletdiameter
 
-"""Computes the range of lenslet diameters that satisfy two constraints: psf response is at least psfvalue, and f# is no lower than minfnumber. Returns nothing if constraints can't be satisfied"""
-function diameterrange(ppd,pixelpitch,minfnumber,λ,indexofrefraction,psfvalue) 
-    low = minimumlensletdiameter(λ,1/ppd,indexofrefraction,pixelpitch,psfvalue,minfnumber)
+"""Computes the range of lenslet diameters that satisfy two constraints: mtf response at a given frequency, assuming diffraction limited response, and f# is no lower than minfnumber. Returns nothing if constraints can't be satisfied"""
+function diameterrange(ppd,pixelpitch,minfnumber,λ,mtf,cyclesperdeg) 
+    low = diameter_for_cycles_deg(mtf,cyclesperdeg,λ)
     high = maxlensletdiameter(ppd,pixelpitch,minfnumber)
     if low <= high 
         return (low,high)
@@ -120,8 +119,8 @@ function choosecluster(pupildiameter,lensletdiameter)
 end
 export choosecluster
 
-function choosecluster(pupildiameter,ppd,pixelpitch,minfnumber,λ,indexofrefraction,psfvalue) 
-    diams = diameterrange(ppd,pixelpitch,minfnumber,λ,indexofrefraction,psfvalue)
+function choosecluster(pupildiameter,ppd,pixelpitch,minfnumber,λ,mtf,cyclesperdeg) 
+    diams = diameterrange(ppd,pixelpitch,minfnumber,λ,mtf,cyclesperdeg)
     if diams === nothing
         return nothing
     else
@@ -226,10 +225,10 @@ export lensletdisplaysize
 testlensletdisplaysize() = lensletdisplaysize((55,35),18mm,(10mm,6mm),4mm,30,RGB = true)
 export testlensletdisplaysize
 
-function occludersize_ppdvspupildiameter()
+function displaysize_ppdvspupildiameter()
     x = 20:2:45
     y = 3.5:.05:4
    
     plot(Plots.contour(x,y,(x,y) -> maximum(ustrip.(μm, lensletdisplaysize((50,35),18mm,(10mm,6mm),y*mm,x,RGB = true))),fill = true))
 end
-export occludersize_ppdvspupildiameter
+export displaysize_ppdvspupildiameter
