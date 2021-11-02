@@ -10,15 +10,16 @@ export latticediameter
 latticediameter(a::Repeat.AbstractLatticeCluster) =   latticediameter(Repeat.basismatrix(Repeat.clusterbasis(a)))
 latticediameter(a::Repeat.AbstractBasis) =  latticediameter(Repeat.basismatrix(a))
 
+""" mtf is the desired response at cycles per degree"""
 struct LensletClusterProperties
-    indexofrefraction
+    mtf
     minfnumber
-    psfvalue
+    cyclesperdegree
     λ
     pixelpitch
 end
 
-defaultclusterproperties() = LensletClusterProperties(1.5,2.0,.3,530nm,.9μm)
+defaultclusterproperties() = LensletClusterProperties(.2,2.0,11,530nm,.9μm)
 export defaultclusterproperties
 
 """maximum allowable display for visibility reasons"""
@@ -76,27 +77,6 @@ export ρatairyvalue
 closestpackingdistance(pupildiameter) = pupildiameter*cosd(30)
 export closestpackingdistance
 
-
-"""computes the maximum lenslet diameter given the smallest allowed f#. Larger lenslets would require lower f#"""
-function maxlensletdiameter(ppd,pixelpitch,minfnumber)
-    focallength = pixelpitch/(2*tand(.5/ppd))
-    maxdiameter = focallength/minfnumber
-    return uconvert(mm,maxdiameter)
-end
-export maxlensletdiameter
-
-"""Computes the range of lenslet diameters that satisfy two constraints: mtf response at a given frequency, assuming diffraction limited response, and f# is no lower than minfnumber. Returns nothing if constraints can't be satisfied"""
-function diameterrange(ppd,pixelpitch,minfnumber,λ,mtf,cyclesperdeg) 
-    low = diameter_for_cycles_deg(mtf,cyclesperdeg,λ)
-    high = maxlensletdiameter(ppd,pixelpitch,minfnumber)
-    if low <= high 
-        return (low,high)
-    else
-        return nothing
-    end
-end
-export diameterrange
-
 function choosecluster(pupildiameter,lensletdiameter)
     clusters = (hex3RGB(),hex4RGB(),hex7RGB(),hex9RGB(),hex12RGB(),hex19RGB())
     cdist = closestpackingdistance(pupildiameter)
@@ -119,14 +99,9 @@ function choosecluster(pupildiameter,lensletdiameter)
 end
 export choosecluster
 
-function choosecluster(pupildiameter,ppd,pixelpitch,minfnumber,λ,mtf,cyclesperdeg) 
-    diams = diameterrange(ppd,pixelpitch,minfnumber,λ,mtf,cyclesperdeg)
-    if diams === nothing
-        return nothing
-    else
-        clusterdata = choosecluster(pupildiameter,diams[1]) #use minimum diameter for now.
-    end
-    return clusterdata
+function choosecluster(pupildiameter,λ,mtf,cyclesperdeg::T) where{T<:Real} 
+    diam = diameter_for_cycles_deg(mtf,cyclesperdeg,λ)
+    return choosecluster(pupildiameter,diam) #use minimum diameter for now.
 end
 
 """Computes display size assuming lenslet normal to eyebox plane passes through lenslet. This is an approximation but for the narrow fov we are considering it is accurate enough to estimate pixel redundandcy, etc."""
@@ -156,8 +131,8 @@ sizeoflensletdisplay(angles,ppd,pixelpitch) = @. angles*ppd*pixelpitch
 eyeboxangles(eyebox,eyerelief) = @. atand(uconvert(Unitful.NoUnits,eyebox / eyerelief))
 export eyeboxangles
 
-function anglesubdivisions(pupildiameter,ppd,pixelpitch,minfnumber,λ,indexofrefraction,psfvalue;RGB = true)
-    cluster,_ = choosecluster(pupildiameter,ppd,pixelpitch,minfnumber,λ,indexofrefraction,psfvalue)
+function anglesubdivisions(pupildiameter,λ,mtf,cyclesperdegree;RGB = true)
+    cluster,_ = choosecluster(pupildiameter,λ,mtf,cyclesperdegree)
     numelements = Repeat.clustersize(cluster)
     if numelements == 19
         return RGB ? (3,2) : (5,3)
@@ -177,8 +152,8 @@ export anglesubdivisions
 
 """computes the approximate fov required of each lenslet for the given constraints. This is strictly correct only for a lenslet centered in front of the eyebox, but the approximation is good enough for high level analysis"""
 function lensletangles(eyerelief,eyebox,pupildiameter,ppd; clusterproperties = defaultclusterproperties(), RGB = true)
-
-    return eyeboxangles(eyebox,eyerelief) ./ anglesubdivisions(pupildiameter,ppd,clusterproperties.pixelpitch,clusterproperties.minfnumber,clusterproperties.λ,clusterproperties.indexofrefraction,clusterproperties.psfvalue,RGB = RGB)
+    cyclesperdegree = ppd/2.0
+    return eyeboxangles(eyebox,eyerelief) ./ anglesubdivisions(pupildiameter,clusterproperties.λ,clusterproperties.mtf,cyclesperdegree,RGB = RGB)
 end
 export lensletangles
 
@@ -189,7 +164,7 @@ lensletresolution(angles,ppd) = angles .* ppd
 
 function pixelredundancy(fov,eyerelief,eyebox,pupildiameter,ppd; RGB = true)
     lensprops = defaultclusterproperties()
-    clusterdata = choosecluster(pupildiameter,ppd,lensprops.pixelpitch,lensprops.minfnumber,lensprops.λ,lensprops.indexofrefraction,lensprops.psfvalue)
+    clusterdata = choosecluster(pupildiameter,lensprops.λ,lensprops.mtf,lensprops.cyclesperdegree)
     nominalresolution = fov .* ppd
     angles = lensletangles(eyerelief,eyebox,pupildiameter,ppd,RGB = RGB)
     pixelsperlenslet = lensletpixels(angles,ppd)
@@ -202,18 +177,20 @@ export pixelredundancy
 testpixelredundancy() = pixelredundancy((55,35),18mm,(10mm,6mm),4mm,45,RGB = false)
 export testpixelredundancy
 
-using Plots
+label(color) = color ? "RGB" : "B&W"
+
 function redundancy_ppdvspupildiameter()
     x = 20:2:45
     y = 3.5:.05:4
-   
-    plot(Plots.contour(x,y,(x,y) -> pixelredundancy((50,35),18mm,(10mm,6mm),y*mm,x,RGB = false),fill = true))
+    RGB = false
+    plot(Plots.contour(x,y,(x,y) -> pixelredundancy((50,35),18mm,(10mm,6mm),y*mm,x,RGB = RGB),fill = true,xlabel = "pixels per degree", ylabel = "pupil diameter", legendtitle = "pixel redundancy",title = "$(label(RGB)) lenslets"))
 end
-export ppdvspupildiameter
+export redundancy_ppdvspupildiameter
 
 function lensletdisplaysize(fov,eyerelief,eyebox,pupildiameter,ppd; RGB = true)
+    cyclesperdegree = ppd/2.0
     lensprops = defaultclusterproperties()
-    clusterdata = choosecluster(pupildiameter,ppd,lensprops.pixelpitch,lensprops.minfnumber,lensprops.λ,lensprops.indexofrefraction,lensprops.psfvalue)
+    clusterdata = choosecluster(pupildiameter,lensprops.λ,lensprops.mtf,cyclesperdegree)
     # println("cluster size $(Repeat.clustersize(clusterdata.cluster))")
     nominalresolution = fov .* ppd
     angles = lensletangles(eyerelief,eyebox,pupildiameter,ppd,RGB = RGB)
@@ -228,7 +205,8 @@ export testlensletdisplaysize
 function displaysize_ppdvspupildiameter()
     x = 20:2:45
     y = 3.5:.05:4
-   
-    plot(Plots.contour(x,y,(x,y) -> maximum(ustrip.(μm, lensletdisplaysize((50,35),18mm,(10mm,6mm),y*mm,x,RGB = true))),fill = true))
+    RGB = false
+
+    plot(Plots.contour(x,y,(x,y) -> maximum(ustrip.(μm, lensletdisplaysize((50,35),18mm,(10mm,6mm),y*mm,x,RGB = RGB))),fill = true,xlabel = "pixels per degree", ylabel = "pupil diameter", legendtitle = "display size μm", title = "$(label(RGB)) lenslets"))
 end
 export displaysize_ppdvspupildiameter
