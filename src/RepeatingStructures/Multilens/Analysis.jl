@@ -1,6 +1,18 @@
 
 using Roots
 
+"""
+# Pupil diameter as a function of scene luminance
+https://jov.arvojournals.org/article.aspx?articleid=2279420
+https://en.wikipedia.org/wiki/Orders_of_magnitude_(luminance)
+
+Pupil diameter is approximately 2.8mm at 100cd/m^2. A typical overcast day is 700cd/m^2 
+"""
+
+"""computes pupil diameter as a function of scene luminance, in cd/m², and the angular area, a, over which this luminance is presented to the eye."""
+𝐃sd(L,a) = 7.75 - 5.75*((L*a/846)^.41)/((L*a/846)^.41 + 2)
+
+
 """This function returns the radius of the longest basis vector of the lattice cluster. Most lattices defined in this project have symmetric basis vectors so the radii of all basis vectors will be identical."""
 function latticediameter(basismatrix::SMatrix)
     maximum(norm.([basismatrix[:,i] for i in 1:size(basismatrix)[2]]))
