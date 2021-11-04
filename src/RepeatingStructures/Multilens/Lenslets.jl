@@ -7,6 +7,7 @@ using StaticArrays
 import DataFrames
 import ..Repeat
 import SpecialFunctions
+import Plots
 
 include("HexTilings.jl")
 include("Analysis.jl")

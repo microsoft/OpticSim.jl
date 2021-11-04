@@ -133,7 +133,7 @@ export sizeofdisplay
 function numberoflenslets(fov,eyerelief,lensletdiameter)
     lensletarea = π*(lensletdiameter/2)^2
     dispsize = sizeofdisplay(fov,eyerelief)
-    return dispsize[1]*dispsize[2]/lensletarea
+     return dispsize[1]*dispsize[2]/lensletarea
 end
 export numberoflenslets
 
@@ -186,7 +186,6 @@ function pixelredundancy(fov,eyerelief,eyebox,pupildiameter,ppd; RGB = true)
     angles = lensletangles(eyerelief,eyebox,pupildiameter,ppd,RGB = RGB)
     pixelsperlenslet = lensletpixels(angles,ppd)
     numlenses = numberoflenslets(fov,eyerelief,clusterdata.lensletdiameter*clusterdata.scalefactor)
-
     return (numlenses*pixelsperlenslet[1]*pixelsperlenslet[2]) /( nominalresolution[1]*nominalresolution[2])
 end
 export pixelredundancy
@@ -194,14 +193,15 @@ export pixelredundancy
 testpixelredundancy() = pixelredundancy((55,35),18mm,(10mm,6mm),4mm,45,RGB = false)
 export testpixelredundancy
 
-label(color) = color ? "RGB" : "B&W"
+label(color) = color ? "RGB" : "Monochrome"
 
 """generates a contour plot showing pixel redundancy as a function of ppd and pupil diameter"""
 function redundancy_ppdvspupildiameter()
     x = 20:2:45
-    y = 3.5:.05:4
-    RGB = false
-    plot(Plots.contour(x,y,(x,y) -> pixelredundancy((50,35),18mm,(10mm,6mm),y*mm,x,RGB = RGB),fill = true,xlabel = "pixels per degree", ylabel = "pupil diameter", legendtitle = "pixel redundancy",title = "$(label(RGB)) lenslets"))
+    y = 3.0:.05:4
+
+    RGB = true
+    Plots.plot(Plots.contour(x,y,(x,y) -> pixelredundancy((50,35),18mm,(10mm,6mm),y*mm,x,RGB = RGB),fill = true,xlabel = "pixels per degree", ylabel = "pupil diameter", legendtitle = "pixel redundancy",title = "$(label(RGB)) lenslets"))
 end
 export redundancy_ppdvspupildiameter
 
@@ -210,7 +210,6 @@ function lensletdisplaysize(fov,eyerelief,eyebox,pupildiameter,ppd; RGB = true)
     cyclesperdegree = ppd/2.0
     lensprops = defaultclusterproperties()
     clusterdata = choosecluster(pupildiameter,lensprops.λ,lensprops.mtf,cyclesperdegree)
-    # println("cluster size $(Repeat.clustersize(clusterdata.cluster))")
     nominalresolution = fov .* ppd
     angles = lensletangles(eyerelief,eyebox,pupildiameter,ppd,RGB = RGB)
     pixelsperlenslet = lensletpixels(angles,ppd)
@@ -225,8 +224,8 @@ export testlensletdisplaysize
 function displaysize_ppdvspupildiameter()
     x = 20:2:45
     y = 3.0:.05:4
-    RGB = false
+    RGB = true
 
-    plot(Plots.contour(x,y,(x,y) -> maximum(ustrip.(μm, lensletdisplaysize((50,35),18mm,(10mm,6mm),y*mm,x,RGB = RGB))),fill = true,xlabel = "pixels per degree", ylabel = "pupil diameter", legendtitle = "display size μm", title = "$(label(RGB)) lenslets"))
+    Plots.plot(Plots.contour(x,y,(x,y) -> maximum(ustrip.(μm, lensletdisplaysize((50,35),18mm,(10mm,6mm),y*mm,x,RGB = RGB))),fill = true,xlabel = "pixels per degree", ylabel = "pupil diameter", legendtitle = "display size μm", title = "$(label(RGB)) lenslets"))
 end
 export displaysize_ppdvspupildiameter
