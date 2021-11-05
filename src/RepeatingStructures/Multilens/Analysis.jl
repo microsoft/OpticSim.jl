@@ -3,7 +3,29 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # See LICENSE in the project root for full license information.
 
+
+
+# luminance (cd/m2)	Multiple	Value	Item
+# 10−6	µcd/m2	1 µcd/m2	Absolute threshold of vision[1]
+# 10−5			
+# 10−4		400 µcd/m2	Darkest sky[2]
+# 10−3	mcd/m2	1 mcd/m2	Night sky[3]
+# 1.4   mcd/m2	Typical photographic scene lit by full moon[4]
+# 5     mcd/m2	Approximate scotopic/mesopic threshold[5]
+# 10−2		40 mcd/m2	Phosphorescent markings on a watch dial after 1 h in the dark[6][7]
+# 10−1			
+# 100	cd/m2	2 cd/m2	Floodlit buildings, monuments, and fountains[8]
+# 5     cd/m2	Approximate mesopic/photopic threshold[5]
+# 101		25 cd/m2	Typical photographic scene at sunrise or sunset[4]
+# 30    cd/m2	Green electroluminescent source[2]
+# 102		250 cd/m2	Peak luminance of a typical LCD monitor[10][11]
+# 700   cd/m2	Typical photographic scene on overcast day[4][8][11]
+# 103	kcd/m2	2 kcd/m2	Average cloudy sky[2]
+# 5     kcd/m2	Typical photographic scene in full sunlight[4][8]
+
+
 using Roots
+import DataFrames
 
 """
 # Pupil diameter as a function of scene luminance
@@ -26,6 +48,23 @@ export latticediameter
 latticediameter(a::Repeat.AbstractLatticeCluster) =   latticediameter(Repeat.basismatrix(Repeat.clusterbasis(a)))
 latticediameter(a::Repeat.AbstractBasis) =  latticediameter(Repeat.basismatrix(a))
 
+const hex3latticeclusterbasis = [2//1 -1//1;-1//1 2//1]
+export hex3latticeclusterbasis
+
+"""returns the integer lattice coords of point in the given basis if the point is in the span of latticebasis. Otherwise returns nothing"""
+function latticepoint(latticebasis::Matrix{Union{R,I}},origin,point) where{R<:Rational,I<:Integer}
+    Ainv = inv(Rational.(latticebasis))
+    b =[(point .- origin)...]
+    x = Ainv*b
+    if reduce(&,(1,1) .== denominator.(x))
+        return Integer.(x)
+    else
+        return nothing
+    end
+end
+export latticepoint
+
+export latticepoint
 """ mtf is the desired response at cycles per degree"""
 struct LensletClusterProperties
     mtf
