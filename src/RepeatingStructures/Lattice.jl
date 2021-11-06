@@ -85,3 +85,43 @@ end
 function Base.size(a::LatticeBasis{N,T}) where{N,T}
     return ntuple((i)->Base.IsInfinite(),N)
 end
+
+# These functions are used to find the lattice tiles that lie inside a polygonal shape
+
+"""computes the matrix that transforms the basis set into the canonical basic vectors, eᵢ"""
+basisnormalization(a::Repeat.AbstractBasis) = Matrix(inv(Repeat.basismatrix(a))) #unfortunately LazySets doesn't work with StaticArrays. If you return a static Array is messes with their functions.
+
+"""warp the matrix into a coordinate frame where the basis vectors are canonical, eᵢ"""
+function normalizedshape(a::Repeat.AbstractBasis,shape::LazySets.VPolygon) 
+    normalizer = basisnormalization(a)
+    return normalizer*shape
+end
+export normalizedshape
+
+""" compute a conservative range of lattice indices that might intersect containingshape"""
+function latticebox(containingshape::LazySets.VPolygon,lattice::Repeat.AbstractBasis)
+    warpedshape = normalizedshape(lattice,containingshape)
+    box = LazySets.interval_hull(warpedshape)
+    return LazySets.Hyperrectangle(box.center,ceil.(box.radius))
+end
+export latticebox
+
+"""compute the lattice tiles that actually intersect containingshape"""
+function overlappingtiles(containingshape::LazySets.VPolygon,lattice::Repeat.AbstractBasis)
+    box = latticebox(containingshape,lattice)
+    coords = Int64.(box.radius)
+    hexverts = LazySets.VPolygon(Matrix(Repeat.tilevertices(lattice))) #VPolygon will accept StaticArrays but other LazySets function will barf.
+    result = Vector{LazySets.VPolygon}(undef,0)
+    
+    for i in -coords[1]:coords[1]
+        for j in -coords[2]:coords[2]       
+            center = Vector(lattice[i,j])
+            offsethex = LazySets.translate(hexverts,center)
+           if !isempty(offsethex ∩ containingshape)
+            push!(result,offsethex)
+           end
+        end
+    end
+    return result
+end
+export overlappingtiles

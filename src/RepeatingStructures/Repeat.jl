@@ -10,6 +10,7 @@ using Base: offset_if_vec
 using StaticArrays:SVector,MVector,SMatrix,MMatrix
 using DataFrames:DataFrame
 using Colors
+import LazySets
 
 include("Lattice.jl")
 include("HexagonalLattice.jl")
@@ -17,6 +18,7 @@ include("RectangularLattice.jl")
 include("Array.jl")
 include("Cluster.jl")
 include("Multilens/Lenslets.jl")
+
 
 end #module
 export Repeat
