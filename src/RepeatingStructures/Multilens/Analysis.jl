@@ -89,7 +89,25 @@ const ρ_zerovalue = 3.832 #value of ρ at which the airy disk function has magn
 focallength(pixelpitch,θ) = uconvert(mm,.5*pixelpitch/tand(θ/2))
 export focallength
 
-"""cutoff frequency for diffraction limited lens is 1/(λ*fnumber) = diameter/(λ*focallength). This has units cycles/distance. For small angles tan(θ) ≈ θ and θ ≈ distance/focallength. distance/rad = focallength. Combine with the first equation to get cutoff frequency in cycles/radian: diameter/(λ*focallength) * focallength = cycles/radian."""
+"""returns the diffraction limit frequency in cycles/deg
+
+focal length = 𝒇𝒍
+diffraction cutoff frequency,fc, in cycles/mm = 1/λF# = diameter/λ*𝒇𝒍
+cutoff wavelength, Wc, = 1/cutoff frequency = λ*𝒇𝒍/diameter
+
+angular wavelength, θc, radians/cycle, corresponding to cutoff wavelength:
+
+θ ≈ tanθ for small θ
+θc corresponding to Wc:  θc ≈ tanθ = Wc/𝒇𝒍
+Wc = θc*𝒇𝒍
+
+from equation for Wc:
+
+λ*𝒇𝒍/diameter = Wc = θc*𝒇𝒍
+θc = λ/diameter
+cycles/rad = 1/θc = diameter/λ
+
+"""
 cyclesperdegree(diameter,λ) = uconvert(Unitful.NoUnits,diameter/(rad2deg(1)*λ))
 export cyclesperdegree
 
@@ -100,7 +118,7 @@ function mtfcircular(freq,freqcutoff)
 end
 export mtfcircular
 
-"""returns the diffraction limit frequency in cycles/deg"""
+
 diffractionlimit(λ,diameter) = uconvert(Unitful.NoUnits,diameter/λ)/rad2deg(1)
 export diffractionlimit
 
