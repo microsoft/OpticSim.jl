@@ -112,13 +112,13 @@ function tilesinside(containingshape::LazySets.VPolygon,lattice::Repeat.Abstract
     box = latticebox(containingshape,lattice)
     
     coords = Int64.(box.radius)
-    hexverts = LazySets.VPolygon(Matrix(Repeat.tilevertices(lattice))) #VPolygon will accept StaticArrays but other LazySets function will barf.
+    tilevertices = LazySets.VPolygon(Matrix(Repeat.tilevertices(lattice))) #VPolygon will accept StaticArrays but other LazySets function will barf.
     result = Vector{LazySets.VPolygon}(undef,0)
     
     for i in -coords[1]:coords[1]
         for j in -coords[2]:coords[2]       
             center = Vector(lattice[i,j])
-            offsethex = LazySets.translate(hexverts,center)
+            offsethex = LazySets.translate(tilevertices,center)
            if !isempty(offsethex ∩ containingshape)
             push!(result,offsethex)
            end
@@ -128,6 +128,9 @@ function tilesinside(containingshape::LazySets.VPolygon,lattice::Repeat.Abstract
 end
 export tilesinside
 
+"""The vertices of the containing shape are the columns of the matrix containingshape"""
+tilesinside(containingshape::AbstractMatrix,lattice::Repeat.AbstractBasis) = tilesinside(LazySets.VPolygon(containingshape),lattice)
+
 using Plots
 
 """ to see what the objects look like in the warped coordinate frame use inv(basismatrix(lattice)) as the transform"""
@@ -136,15 +139,16 @@ function plotall(containingshape,lattice, transform = [1.0 0.0;0.0 1.0])
     for tile in tiles
         plot!(transform*tile)
     end
-    plot!(transform*containingshape)
+    plot!(containingshape)
 end
 export plotall
 
 
 function testtilesinside()
-    tri = LazySets.VPolygon([-3.0 3.0 3.0; -3.0 3.0 -3.0])
+    poly = LazySets.VPolygon([-3.0 3.0 3.0; -3.0 3.0 -3.0])
     hex = HexBasis1()
-    tilesinside(tri,hex)
-    plotall(tri,hex)
+    poly = LazySets.VPolygon(2 * tilevertices(hex))
+    tilesinside(poly,hex)
+    plotall(poly,hex)
 end
 export testtilesinside
