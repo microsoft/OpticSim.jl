@@ -102,13 +102,15 @@ export normalizedshape
 function latticebox(containingshape::LazySets.VPolygon,lattice::Repeat.AbstractBasis)
     warpedshape = normalizedshape(lattice,containingshape)
     box = LazySets.interval_hull(warpedshape)
-    return LazySets.Hyperrectangle(box.center,ceil.(box.radius))
+    return LazySets.Hyperrectangle(round.(box.center),(1,1) .+ ceil.(box.radius)) #center the hyperrectangle on an integer point
 end
 export latticebox
 
-"""compute the lattice tiles that actually intersect containingshape"""
+
+"""Compute the lattice tiles that actually intersect containingshape. First compute a transformation that maps the lattice basis vectors to canonical unit basis vectors eᵢ (this is the inverse of the lattice basis matrix). Then transform containingshape into this coordinate frame and compute a bounding box. Unit steps along the coordinate axes in this space represent unit *lattice* steps in the original space."""
 function overlappingtiles(containingshape::LazySets.VPolygon,lattice::Repeat.AbstractBasis)
     box = latticebox(containingshape,lattice)
+    
     coords = Int64.(box.radius)
     hexverts = LazySets.VPolygon(Matrix(Repeat.tilevertices(lattice))) #VPolygon will accept StaticArrays but other LazySets function will barf.
     result = Vector{LazySets.VPolygon}(undef,0)
@@ -125,3 +127,15 @@ function overlappingtiles(containingshape::LazySets.VPolygon,lattice::Repeat.Abs
     return result
 end
 export overlappingtiles
+
+using Plots
+import LinearAlgebra
+
+function plotall(containingshape,lattice, transform = LinearAlgebra.I)
+    tiles = overlappingtiles(containingshape,lattice)
+    for tile in tiles
+        plot!(transform*tile)
+    end
+    plot!(transform*containingshape)
+end
+export plotall
