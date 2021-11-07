@@ -137,9 +137,9 @@ using Plots
 function plotall(containingshape,lattice, transform = [1.0 0.0;0.0 1.0])
     tiles = tilesinside(containingshape,lattice)
     for tile in tiles
-        plot!(transform*tile)
+        plot!(transform*tile,aspectratio = 1)
     end
-    plot!(containingshape)
+    plot!(containingshape, aspectratio = 1)
 end
 export plotall
 
@@ -147,7 +147,7 @@ export plotall
 function testtilesinside()
     poly = LazySets.VPolygon([-3.0 3.0 3.0; -3.0 3.0 -3.0])
     hex = HexBasis1()
-    poly = LazySets.VPolygon(2 * tilevertices(hex))
+    poly = LazySets.VPolygon(3 * tilevertices(hex))
     tilesinside(poly,hex)
     plotall(poly,hex)
 end
