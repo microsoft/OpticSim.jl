@@ -102,7 +102,7 @@ export normalizedshape
 function latticebox(containingshape::LazySets.VPolygon,lattice::Repeat.AbstractBasis)
     warpedshape = normalizedshape(lattice,containingshape)
     box = LazySets.interval_hull(warpedshape)
-    return LazySets.Hyperrectangle(round.(box.center),(1,1) .+ ceil.(box.radius)) #center the hyperrectangle on an integer point
+    return LazySets.Hyperrectangle(round.(box.center),(1,1) .+ ceil.(box.radius)) #center the hyperrectangle on an integer point and enlarge the radius to take this into account
 end
 export latticebox
 
