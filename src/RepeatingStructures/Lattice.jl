@@ -129,10 +129,9 @@ end
 export tilesinside
 
 using Plots
-import LinearAlgebra
 
 """ to see what the objects look like in the warped coordinate frame use inv(basismatrix(lattice)) as the transform"""
-function plotall(containingshape,lattice, transform = LinearAlgebra.I)
+function plotall(containingshape,lattice, transform = [1.0 0.0;0.0 1.0])
     tiles = tilesinside(containingshape,lattice)
     for tile in tiles
         plot!(transform*tile)
@@ -140,3 +139,12 @@ function plotall(containingshape,lattice, transform = LinearAlgebra.I)
     plot!(transform*containingshape)
 end
 export plotall
+
+
+function testtilesinside()
+    tri = LazySets.VPolygon([-3.0 3.0 3.0; -3.0 3.0 -3.0])
+    hex = HexBasis1()
+    tilesinside(tri,hex)
+    plotall(tri,hex)
+end
+export testtilesinside
