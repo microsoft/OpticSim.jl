@@ -107,8 +107,8 @@ end
 export latticebox
 
 
-"""Compute the lattice tiles that actually intersect containingshape. First compute a transformation that maps the lattice basis vectors to canonical unit basis vectors eᵢ (this is the inverse of the lattice basis matrix). Then transform containingshape into this coordinate frame and compute a bounding box. Unit steps along the coordinate axes in this space represent unit *lattice* steps in the original space."""
-function overlappingtiles(containingshape::LazySets.VPolygon,lattice::Repeat.AbstractBasis)
+"""Compute the lattice tiles which non-zero intersection with containingshape. First compute a transformation that maps the lattice basis vectors to canonical unit basis vectors eᵢ (this is the inverse of the lattice basis matrix). Then transform containingshape into this coordinate frame and compute a bounding box. Unit steps along the coordinate axes in this space represent unit *lattice* steps in the original space. This makes it simple to determine coordinate bounds in the original space. Then test for intersection in the original space."""
+function tilesinside(containingshape::LazySets.VPolygon,lattice::Repeat.AbstractBasis)
     box = latticebox(containingshape,lattice)
     
     coords = Int64.(box.radius)
@@ -126,13 +126,14 @@ function overlappingtiles(containingshape::LazySets.VPolygon,lattice::Repeat.Abs
     end
     return result
 end
-export overlappingtiles
+export tilesinside
 
 using Plots
 import LinearAlgebra
 
+""" to see what the objects look like in the warped coordinate frame use inv(basismatrix(lattice)) as the transform"""
 function plotall(containingshape,lattice, transform = LinearAlgebra.I)
-    tiles = overlappingtiles(containingshape,lattice)
+    tiles = tilesinside(containingshape,lattice)
     for tile in tiles
         plot!(transform*tile)
     end
