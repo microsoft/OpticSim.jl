@@ -52,10 +52,11 @@ const hex3latticeclusterbasis = [2//1 -1//1;-1//1 2//1]
 export hex3latticeclusterbasis
 
 """returns the integer lattice coords of point in the given basis if the point is in the span of latticebasis. Otherwise returns nothing"""
-function latticepoint(latticebasis::Matrix{Union{R,I}},origin,point) where{R<:Rational,I<:Integer}
+function latticepoint(latticebasis::AbstractMatrix,origin,point) where{R<:Rational,I<:Integer}
     Ainv = inv(Rational.(latticebasis))
     b =[(point .- origin)...]
     x = Ainv*b
+    println(" X $x b $b Ainv $Ainv")
     if reduce(&,(1,1) .== denominator.(x))
         return Integer.(x)
     else
@@ -64,7 +65,24 @@ function latticepoint(latticebasis::Matrix{Union{R,I}},origin,point) where{R<:Ra
 end
 export latticepoint
 
-export latticepoint
+colorbasis(::Repeat.HexBasis1) = SMatrix{2,2}(2,0,0,2)
+colorbasis(::Repeat.HexBasis3) = SMatrix{2,2}(2,-1,1,1)
+colororigins(::Repeat.HexBasis1) = ((0,0),(-1,0),(-1,1))
+colororigins(::Repeat.HexBasis3) = ((0,0),(0,-1),(1,-1))
+
+"""computes the color associated with a lattice point in the HexBasis1 lattice"""
+function pointcolor(point,cluster::Repeat.AbstractLatticeCluster) where{T<:Integer}
+    latticematrix = colorbasis(Repeat.elementbasis(cluster))
+    origins = colororigins(Repeat.elementbasis(cluster))
+    colors = zip(origins,("red","green","blue"))
+    for (origin,color) in colors
+        if nothing !== latticepoint(latticematrix,origin,point)
+            return color
+        end
+    end
+end
+export pointcolor
+
 """ mtf is the desired response at cycles per degree"""
 struct LensletClusterProperties
     mtf
