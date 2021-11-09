@@ -10,7 +10,7 @@
 
 # lattice visualizations are drawn with Luxor because it is easier to do 2D drawings with Luxor than with Makie.
 
-function draw(tilebasis::Basis,tilesize,i,j,color,name)
+function draw(tilebasis::AbstractBasis,tilesize,i,j,color,name)
     vertices = Repeat.tilevertices(tilebasis)
     tile = tilesize*[Luxor.Point(vertices[:,i]...) for i in 1:size(vertices)[2]]
     pt = tilesize*tilebasis[i,j]
@@ -36,7 +36,7 @@ function draw(tilebasis::Basis,tilesize,i,j,color,name)
 end
 
 """Draws a list of hexagonal cells, represented by their lattice coordinates"""
-function drawcells(tilebasis::Basis, tilesize,cells; color::Union{AbstractArray,Nothing} = nothing, name::Union{AbstractArray{String},Nothing} = nothing, format=:png, resolution=(500,500))
+function drawcells(tilebasis::AbstractBasis, tilesize,cells; color::Union{AbstractArray,Nothing} = nothing, name::Union{AbstractArray{String},Nothing} = nothing, format=:png, resolution=(500,500))
 
     numcells = size(cells)[2]
     Luxor.Drawing(resolution[1], resolution[2], format)
