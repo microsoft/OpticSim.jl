@@ -87,8 +87,8 @@ function beamenergy(assy::LensletAssembly{T},displaypoint::AbstractVector{T},pup
     llens::ParaxialLens{T} = lens(assy)
     virtpoint = point(virtualpoint(llens,displaypoint))
     projectedpoints = project(assy,displaypoint,pupilpoints)
-    lensverts = vertices(llens)
-    lensverts = vcat(lensverts,fill(0,length(lensverts))')
+    lensverts::SMatrix{2,N2,T} where{N2}= vertices(llens)
+    lensverts = vcat(lensverts,fill(0,N2)')
     println(lensverts)
     beamlens = SphericalPolygon(lensverts,virtpoint,T(1))
 
