@@ -84,6 +84,9 @@ zernikesurface2() = ZernikeSurface(1.5, radius = 5.0, conic = 1.0, zcoeff = [(7,
 zernikesurface3() = ZernikeSurface(9.5, zcoeff = [(1, 0.0), (4, -1.0), (7, 0.5)])
 
 conicsurface() = AcceleratedParametricSurface(ZernikeSurface(9.5, radius = -15.0, conic = -5.0))
+#
+# TODO need to add surfaces to test all types of Aspheric Surfaces
+#conicsurface() = AcceleratedParametricSurface(AsphericSurface(9.5, radius = -15.0, conic = -5.0))
 
 function simplesaggrid()
     points = map(

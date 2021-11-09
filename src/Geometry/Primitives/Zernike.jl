@@ -164,13 +164,13 @@ struct ZernikeSurface{T,N,P,Q,M} <: ParametricSurface{T,N}
         end
         P = length(zcs)
         M = asphericType(asp)
-        new{T,3,P,Q,M}(asp, SVector{P,Tuple{Int,Int,T}}(zcs), Cylinder(semidiameter, interface = opaqueinterface(T))) # TODO!! incorrect interface on cylinder
+        new{T,3,P,Q,M}(asp::AsphericSurface{T,3,Q,M}, SVector{P,Tuple{Int,Int,T}}(zcs), Cylinder(semidiameter, interface = opaqueinterface(T))) # TODO!! incorrect interface on cylinder
     end
 
 end
 export ZernikeSurface
 
-uvrange(::Type{ZernikeSurface{T,N}}) where {T<:Real,N} = ((zero(T), one(T)), (-T(π), T(π))) # ρ and ϕ
+uvrange(::Type{ZernikeSurface{T,N,P,Q,M}}) where {T<:Real,N,P,Q,M} = ((zero(T), one(T)), (-T(π), T(π))) # ρ and ϕ
 
 semidiameter(z::ZernikeSurface{T}) where {T<:Real} = z.asp.semidiameter
 halfsizeu(z::ZernikeSurface{T}) where {T<:Real} = semidiameter(z)
@@ -178,12 +178,12 @@ halfsizev(z::ZernikeSurface{T}) where {T<:Real} = semidiameter(z)
 
 boundingobj(z::ZernikeSurface{T}) where {T<:Real} = z.boundingcylinder
 
-function point(z::ZernikeSurface{T,3,P,Q}, ρ::T, ϕ::T)::SVector{3,T} where {T<:Real,P,Q}
+function point(z::ZernikeSurface{T,3,P,Q,M}, ρ::T, ϕ::T)::SVector{3,T} where {T<:Real,P,Q,M}
     pnt = point(z.asp, ρ, ϕ)
 
     # sum zernike
     rad = semidiameter(z.asp)
-    r=ρ * rad
+    r = ρ * rad
     u = r / z.asp.normradius
     h = zero(T)
     @inbounds @simd for m in 1:P
@@ -193,11 +193,11 @@ function point(z::ZernikeSurface{T,3,P,Q}, ρ::T, ϕ::T)::SVector{3,T} where {T<
     return SVector{3,T}(pnt[1], pnt[2], pnt[3] + h) 
 end
 
-function partials(z::ZernikeSurface{T,3,P,Q}, ρ::T, ϕ::T)::Tuple{SVector{3,T},SVector{3,T}} where {T<:Real,P,Q}
+function partials(z::ZernikeSurface{T,3,P,Q,M}, ρ::T, ϕ::T)::Tuple{SVector{3,T},SVector{3,T}} where {T<:Real,P,Q,M}
     pρ,pϕ = partials(z.asp, ρ, ϕ)
     # sum zernike partials
     rad=z.asp.semidiameter
-    n = rad / semidiameter(z.asp)
+    n = rad / z.asp.normradius
     u = ρ * n
     dhdρ = zero(T)
     dhdϕ = zero(T)
@@ -210,7 +210,7 @@ function partials(z::ZernikeSurface{T,3,P,Q}, ρ::T, ϕ::T)::Tuple{SVector{3,T},
     return SVector{3,T}(pρ[1], pρ[2], pρ[3] + dhdρ),  SVector{3,T}(pϕ[1], pϕ[2], pϕ[3] + dhdϕ)
 end
 
-function normal(z::ZernikeSurface{T,3,P,Q}, ρ::T, ϕ::T)::SVector{3,T} where {T<:Real,P,Q}
+function normal(z::ZernikeSurface{T,3,P,Q,M}, ρ::T, ϕ::T)::SVector{3,T} where {T<:Real,P,Q,M}
     du, dv = partials(z, ρ, ϕ)
     if ρ == zero(T) && norm(dv) == zero(T)
         # in cases where there is no δϕ at ρ = 0 (i.e. anything which is rotationally symetric)
@@ -220,7 +220,7 @@ function normal(z::ZernikeSurface{T,3,P,Q}, ρ::T, ϕ::T)::SVector{3,T} where {T
     return normalize(cross(du, dv))
 end
 
-function uv(z::ZernikeSurface{T,3,P,Q}, p::SVector{3,T}) where {T<:Real,P,Q}
+function uv(z::ZernikeSurface{T,3,P,Q,M}, p::SVector{3,T}) where {T<:Real,P,Q,M}
     # avoid divide by zero for ForwardDiff
     ϕ = NaNsafeatan(p[2], p[1])
     if p[1] == zero(T) && p[2] == zero(T)
@@ -231,7 +231,7 @@ function uv(z::ZernikeSurface{T,3,P,Q}, p::SVector{3,T}) where {T<:Real,P,Q}
     return SVector{2,T}(ρ, ϕ)
 end
 
-function onsurface(surf::ZernikeSurface{T,3,P,Q}, p::SVector{3,T}) where {T<:Real,P,Q}
+function onsurface(surf::ZernikeSurface{T,3,P,Q,M}, p::SVector{3,T}) where {T<:Real,P,Q,M}
     ρ, ϕ = uv(surf, p)
     if ρ > one(T)
         return false
@@ -241,7 +241,7 @@ function onsurface(surf::ZernikeSurface{T,3,P,Q}, p::SVector{3,T}) where {T<:Rea
     end
 end
 
-function inside(surf::ZernikeSurface{T,3,P,Q}, p::SVector{3,T}) where {T<:Real,P,Q}
+function inside(surf::ZernikeSurface{T,3,P,Q,M}, p::SVector{3,T}) where {T<:Real,P,Q,M}
     ρ, ϕ = uv(surf, p)
     if ρ > one(T)
         return false
@@ -254,7 +254,7 @@ end
 #########################################################################################################
 
 # Assumes the ray has been transformed into the canonical coordinate frame which has the vertical axis passing through (0,0,0) and aligned with the z axis.
-function surfaceintersection(surf::AcceleratedParametricSurface{T,3,ZernikeSurface{T,3,P,Q}}, r::AbstractRay{T,3}) where {T<:Real,P,Q}
+function surfaceintersection(surf::AcceleratedParametricSurface{T,3,ZernikeSurface{T,3,P,Q,M}}, r::AbstractRay{T,3}) where {T<:Real,P,Q,M}
     cylint = surfaceintersection(surf.surface.boundingcylinder, r)
     if cylint isa EmptyInterval{T}
         return EmptyInterval(T)
@@ -293,11 +293,11 @@ function AcceleratedParametricSurface(surf::T, numsamples::Int = 17; interface::
     return a
 end
 
-function BoundingBox(surf::ZernikeSurface{T,3,P,Q}) where {T<:Real,P,Q}
+function BoundingBox(surf::ZernikeSurface{T,3,P,Q,M}) where {T<:Real,P,Q,M}
     bb = BoundingBox(z.asp)
     # zernike terms have condition than |Zᵢ| <= 1
     # so this gives us a (loose) bounding box
-    ak = P > 0 ? sum(abs.(Zernike.normalisation(T, N, M) * k for (N, M, k) in surf.coeffs)) : zero(T)
+    ak = P > 0 ? sum(abs.(Zernike.normalisation(T, n, m) * k for (n, m, k) in surf.coeffs)) : zero(T)
     bb.zmin -= ak
     bb.zmax += ak
     return BoundingBox(bb.xmin, bb.xmax, bb.ymin, bb.ymax, bb.zmin, bb.zmax) #could just return bb, but this way is safer

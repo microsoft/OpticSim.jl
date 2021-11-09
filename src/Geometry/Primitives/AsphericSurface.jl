@@ -34,12 +34,9 @@ The function checks if the aspheric terms are even, odd or both and uses `EvenAs
 
 """
 #"pseudo-types" of aspheres
-const CONIC = 0
-const ODD = 1
-const EVEN = 2
-const ODDEVEN = 3
+@enum AsphSurfaceType CONIC ODD EVEN ODDEVEN
 
-struct AsphericSurface{T,N, Q, M} <: ParametricSurface{T,N} 
+struct AsphericSurface{T,N,Q,M} <: ParametricSurface{T,N} 
     semidiameter::T
     curvature::T
     conic::T 
@@ -171,7 +168,7 @@ function point(z::AsphericSurface{T,3,Q,M}, ρ::T, ϕ::T)::SVector{3,T} where {T
     h = z.curvature * r2 / (one(T) + sqrt(t))
    # sum aspheric
     if M != CONIC
-        prod, step = prod_step(z, r, r2)  #multiple dispatch on R
+        prod, step = prod_step(z, r, r2)  #multiple dispatch on M
         asp,rest = Iterators.peel(z.aspherics)
         h += asp * prod
         for asp in rest
@@ -182,9 +179,9 @@ function point(z::AsphericSurface{T,3,Q,M}, ρ::T, ϕ::T)::SVector{3,T} where {T
     return SVector{3,T}(r * cos(ϕ), r * sin(ϕ), h)
 end
 
-partial_prod_step(z::AsphericSurface{T,3,Q,EVEN}, r: T, r2: T) where {T<:Real,Q} = r, r2, 2:2:2Q
-partial_prod_step(z::AsphericSurface{T,3,Q,ODD}) where {T<:Real,Q} = one(T), r2, 1:2:(2Q-1)
-partial_prod_step(z::AsphericSurface{T,3,Q,ODDEVEN}) where {T<:Real,Q} = one(T), r, 1:1:Q
+partial_prod_step(z::AsphericSurface{T,3,Q,EVEN}, r::T, r2::T) where {T<:Real,Q} = r, r2, 2:2:2Q
+partial_prod_step(z::AsphericSurface{T,3,Q,ODD}, r::T, r2::T) where {T<:Real,Q} = one(T), r2, 1:2:(2Q-1)
+partial_prod_step(z::AsphericSurface{T,3,Q,ODDEVEN}, r::T, r2::T) where {T<:Real,Q} = one(T), r, 1:1:Q
 
 function partials(z::AsphericSurface{T,3,Q,M}, ρ::T, ϕ::T)::Tuple{SVector{3,T},SVector{3,T}} where {T<:Real,Q,M}
     rad = z.semidiameter
