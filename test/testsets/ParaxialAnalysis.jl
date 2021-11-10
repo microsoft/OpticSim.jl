@@ -40,7 +40,7 @@ using Unitful.DefaultSymbols
         pupil = Rectangle(1.0,1.0,SVector(0.0,0.0,-1.0),SVector(2.0,2.0,40.0))
     
         @test isapprox(
-            0.250234, 
+            1/16, 
             ParaxialAnalysis.beamenergy(lenslet,displaypoint,Geometry.vertices3d(pupil)),
             atol = 1e-4)
     end
