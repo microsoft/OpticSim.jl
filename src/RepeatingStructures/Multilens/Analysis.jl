@@ -315,8 +315,9 @@ function systemproperties(eyerelief, eyebox, fov, pupildiameter, mtf, cyclesperd
     numlenses = numberoflenslets(fov, eyerelief, diameter)
     redundancy = pixelredundancy(fov, eyerelief, eyebox, pupildiameter, difflimit, RGB=RGB)
     subdivisions = anglesubdivisions(pupildiameter, λ, mtf, cyclesperdegree, RGB=RGB)
+    eyebox_angles = eyeboxangles(eyebox,eyerelief)
     angles = lensletangles(eyerelief, eyebox, pupildiameter, difflimit, clusterproperties=LensletClusterProperties(mtf, minfnumber, cyclesperdegree, λ, pixelpitch))
-    return (lenslet_diameter = clusterdata.lensletdiameter, diffraction_limit = difflimit, lenslet_display_size = dispsize, number_lenslets = numlenses, pixel_redundancy = redundancy, lenslet_fov = angles, subdivisions = subdivisions)
+    return (lenslet_diameter = clusterdata.lensletdiameter, diffraction_limit = difflimit, lenslet_display_size = dispsize, number_lenslets = numlenses, pixel_redundancy = redundancy, eyebox_angles = eyebox_angles, lenslet_fov = angles, subdivisions = subdivisions, )
 end
 export systemproperties
 
