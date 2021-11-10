@@ -49,12 +49,11 @@ latticediameter(a::Repeat.AbstractBasis) =  latticediameter(Repeat.basismatrix(a
 const hex3latticeclusterbasis = [2 // 1 -1 // 1;-1 // 1 2 // 1]
 export hex3latticeclusterbasis
 
-"""returns the integer lattice coords of point in the given basis if the point is in the span of latticebasis. Otherwise returns nothing"""
-function latticepoint(latticebasis::AbstractMatrix, origin, point) where {R <: Rational,I <: Integer}
+"""Only will work properly if lattice basis matrix contains only integer or rational terms. Returns the integer lattice coords of point in the given basis if the point is in the span of latticebasis. Otherwise returns nothing"""
+function latticepoint(latticebasis::AbstractMatrix, origin, point) 
     Ainv = inv(Rational.(latticebasis))
     b = [(point .- origin)...]
     x = Ainv * b
-    println(" X $x b $b Ainv $Ainv")
     if reduce(&, (1, 1) .== denominator.(x))
         return Integer.(x)
     else
@@ -69,7 +68,7 @@ colororigins(::Repeat.HexBasis1) = ((0, 0), (-1, 0), (-1, 1))
 colororigins(::Repeat.HexBasis3) = ((0, 0), (0, -1), (1, -1))
 
 """computes the color associated with a lattice point in the lattice"""
-function pointcolor(point, cluster::Repeat.AbstractLatticeCluster) where {T <: Integer}
+function pointcolor(point, cluster::Repeat.AbstractLatticeCluster)
     latticematrix = colorbasis(Repeat.elementbasis(cluster))
     origins = colororigins(Repeat.elementbasis(cluster))
     colors = zip(origins, ("red", "green", "blue"))

@@ -2,40 +2,42 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # See LICENSE in the project root for full license information.
 
-function hex3RGB()
+function hex3()
     clusterelements = SVector((0, 0), (-1, 0), (-1, 1))
     eltlattice = Repeat.HexBasis1()
     clusterbasis = Repeat.LatticeBasis((-1, 2), (2, -1))
     return Repeat.LatticeCluster(clusterbasis, eltlattice, clusterelements)
 
 end
-export hex3RGB
+export hex3
 
-function hex4RGB()
+function hex4()
     clusterelements = SVector((-1, 0), (-1, 1), (0, 0), (0, 1))
     eltlattice = Repeat.HexBasis1()
     clusterbasis = Repeat.LatticeBasis((1, 1), (2, -1))
     return Repeat.LatticeCluster(clusterbasis, eltlattice, clusterelements)
 end
-export hex4RGB
+export hex4
 
-function hex7RGB()
+function hex7()
     clusterelements = SVector((1, -1), (0, -1), (-1, 0), (0, 0), (-1, 1), (0, 1), (1, 0), )
     eltlattice = Repeat.HexBasis1()
     clusterbasis = Repeat.LatticeBasis((3, 0), (0, 3))
+    clusterbasis = Repeat.LatticeBasis((2, 2), (-3, 2))
     return Repeat.LatticeCluster(clusterbasis, eltlattice, clusterelements)
 end
-export hex7RGB
+export hex7
 
-function hex9RGB()
+
+function hex9()
     clusterelements = SVector((-1, -1), (-1, 0), (-2, 1), (0, -1), (0, 0), (-1, 1), (1, -1), (1, 0), (0, 1))
     eltlattice = Repeat.HexBasis1()
     clusterbasis = Repeat.LatticeBasis((3, 0), (0, 3))
     return Repeat.LatticeCluster(clusterbasis, eltlattice, clusterelements)
 end
-export hex9RGB
+export hex9
 
-function hex12RGB()
+function hex12()
     clusterelements = SVector(
         (-1, 1),(0, 1),
         (-1, 0),(0, 0),(1, 0),
@@ -47,16 +49,17 @@ function hex12RGB()
     clusterbasis = Repeat.LatticeBasis((2, 2), (-3, 2))
     return Repeat.LatticeCluster(clusterbasis, eltlattice, clusterelements)
 end
-export hex12RGB
+export hex12
 
-function hex19RGB()
+function hex19()
     clusterelements = SVector(
         (0, 0), # ring 0
         (-1, 0),(0, -1),(1, -1),(1, 0),(0, 1),(-1, 1), # ring1
         (-2, 0),(-1, -1),(0, -2),(1, -2),(2, -2),(2, -1),(2, 0),(1, 1),(0, 2),(-1, 2),(-2, 2),(-2, 1) # ring2
         )
+    
     eltlattice = Repeat.HexBasis3()
     clusterbasis = Repeat.LatticeBasis((5, 0), (-2, 4))
     return Repeat.LatticeCluster(clusterbasis, eltlattice, clusterelements)
 end
-export hex19RGB
+export hex19

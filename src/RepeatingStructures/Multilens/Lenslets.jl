@@ -12,8 +12,9 @@ import ..Repeat
 import SpecialFunctions
 import Plots
 
+include("HexClusters.jl")
 include("HexTilings.jl")
 include("Analysis.jl")
 
-end #module
+end # module
 export Lenslets
