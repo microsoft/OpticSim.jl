@@ -50,8 +50,8 @@ end
 
 Base.setindex!(A::AbstractBasis{N,T}, v, I::Vararg{Int,N}) where {T,N} = nothing # can't set lattice points. Might want to throw an exception instead.
 
-"""computes the tile vertices at the offset lattice coordinate"""
-tilevertices(lattice::AbstractBasis, latticecoords::Union{AbstractVector,NTuple}) = lattice[latticecoords...] .+ tilevertices(lattice)
+"""computes the tile vertices at the offset lattice coordinate."""
+tilevertices(latticecoords::Union{AbstractVector,NTuple},lattice::AbstractBasis) = lattice[latticecoords...] .+ tilevertices(lattice)
 
 struct LatticeBasis{N,T <: Real} <: AbstractBasis{N,T}
     basisvectors::SMatrix{N,N,T}
@@ -114,11 +114,13 @@ export latticebox
 
 Compute the lattice tiles with non-zero intersection with containingshape. First compute a transformation that maps the lattice basis vectors to canonical unit basis vectors eᵢ (this is the inverse of the lattice basis matrix). Then transform containingshape into this coordinate frame and compute a bounding box. Unit steps along the coordinate axes in this space represent unit *lattice* steps in the original space. This makes it simple to determine coordinate bounds in the original space. Then test for intersection in the original space."""
 function tilesinside(containingshape::LazySets.VPolygon, lattice::Repeat.AbstractBasis{2,T}) where {T}
+    coordtype = Int64
+
     box = latticebox(containingshape, lattice)
     
-    coords = Int64.(box.radius)
+    coords = coordtype.(box.radius)
     tilevertices = LazySets.VPolygon(Matrix(Repeat.tilevertices(lattice))) # VPolygon will accept StaticArrays but other LazySets function will barf.
-    result = Vector{NTuple{2,Int64}}(undef, 0)
+    result = Matrix{coordtype}(undef, 2, 0)
     
     for i in -coords[1]:coords[1]
         for j in -coords[2]:coords[2]       
@@ -126,11 +128,11 @@ function tilesinside(containingshape::LazySets.VPolygon, lattice::Repeat.Abstrac
             offsethex = LazySets.translate(tilevertices, center)
 
             if !isempty(offsethex ∩ containingshape)
-                push!(result, (i, j))
+                 result = hcat(result, [i j]')
             end
         end
     end
-    return result
+    return SMatrix{2,size(result)[2],coordtype}(result)
 end
 export tilesinside
 
@@ -143,13 +145,14 @@ using Plots
 
 """ to see what the objects look like in the warped coordinate frame use inv(basismatrix(lattice)) as the transform"""
 function plotall(containingshape, lattice, transform=[1.0 0.0;0.0 1.0])
+    temp = Vector{SMatrix}(undef, 0)
 
-     garb = tilevertices.(lattice, tilesinside(containingshape, lattice))
-    #  garb = tilesinside(containingshape, lattice)
-    for g in garb println(g)
+    for coordinate in eachcol(tilesinside(containingshape, lattice))
+        println(typeof(coordinate))
+        push!(temp, tilevertices(coordinate, lattice))
     end
 
-    tiles = LazySets.VPolygon.([x -> tilevertices(lattice, x) for x in tilesinside(containingshape, lattice)])
+    tiles = LazySets.VPolygon.(temp)
     for tile in tiles
         plot!(transform * tile, aspectratio=1)
     end

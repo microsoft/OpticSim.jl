@@ -16,6 +16,7 @@ export clustercolors
 function hex3RGB()
     lattice = hex3()
     colors = clustercolors(lattice)
+    names = ["R","G","B"]
     properties =  DataFrames.DataFrame(Color=colors, Name=names)
     return Repeat.ClusterWithProperties(hex3(), properties)
 end

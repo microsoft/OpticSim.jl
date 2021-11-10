@@ -62,7 +62,7 @@ function latticepoint(latticebasis::AbstractMatrix, origin, point)
 end
 export latticepoint
 
-colorbasis(::Repeat.HexBasis1) = SMatrix{2,2}(2, 0, 0, 2)
+colorbasis(::Repeat.HexBasis1) = SMatrix{2,2}(2, -1, 1, 1)
 colorbasis(::Repeat.HexBasis3) = SMatrix{2,2}(2, -1, 1, 1)
 colororigins(::Repeat.HexBasis1) = ((0, 0), (-1, 0), (-1, 1))
 colororigins(::Repeat.HexBasis3) = ((0, 0), (0, -1), (1, -1))

@@ -14,7 +14,7 @@ export hex3
 function hex4()
     clusterelements = SVector((-1, 0), (-1, 1), (0, 0), (0, 1))
     eltlattice = Repeat.HexBasis1()
-    clusterbasis = Repeat.LatticeBasis((1, 1), (2, -1))
+    clusterbasis = Repeat.LatticeBasis((2, 0), (0, 2))
     return Repeat.LatticeCluster(clusterbasis, eltlattice, clusterelements)
 end
 export hex4
