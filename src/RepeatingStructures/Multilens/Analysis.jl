@@ -101,7 +101,7 @@ const ρ_quartervalue = 2.21509 # value of ρ at which the airy disk function ha
 export ρ_quartervalue
 const ρ_zerovalue = 3.832 # value of ρ at which the airy disk function has magnitude 0
 
-"""given pixelpitch and angular subtense of pixel returns focal length"""
+"""given pixelpitch and angular subtense (in degrees) of pixel returns focal length"""
 focallength(pixelpitch,θ) = uconvert(mm, .5 * pixelpitch / tand(θ / 2))
 export focallength
 
@@ -317,8 +317,10 @@ function systemproperties(eyerelief, eyebox, fov, pupildiameter, mtf, cyclesperd
     eyebox_angles = eyeboxangles(eyebox,eyerelief)
     angles = lensletangles(eyerelief, eyebox, pupildiameter, difflimit, clusterproperties=LensletClusterProperties(mtf, minfnumber, cyclesperdegree, λ, pixelpitch))
     dispsize = lensletdisplaysize(angles, eyerelief, eyebox, pupildiameter, pixelsperdegree, RGB=RGB)
+    focal_length = focallength(pixelpitch,1/pixelsperdegree)
+    fnumber = focal_length/clusterdata.lensletdiameter
 
-    return (lenslet_diameter = clusterdata.lensletdiameter, diffraction_limit = difflimit, lenslet_display_size = dispsize, number_lenslets = numlenses, pixel_redundancy = redundancy, eyebox_angles = eyebox_angles, lenslet_fov = angles, subdivisions = subdivisions)
+    return (lenslet_diameter = clusterdata.lensletdiameter, diffraction_limit = difflimit, fnumber = fnumber, focal_length = focal_length, lenslet_display_size = dispsize, number_lenslets = numlenses, pixel_redundancy = redundancy, eyebox_angles = eyebox_angles, lenslet_fov = angles, subdivisions = subdivisions)
 end
 export systemproperties
 
