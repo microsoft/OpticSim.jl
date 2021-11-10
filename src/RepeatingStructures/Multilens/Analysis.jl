@@ -307,17 +307,18 @@ function displaysize_ppdvspupildiameter()
 end
 export displaysize_ppdvspupildiameter
 
-function systemproperties(eyerelief, eyebox, fov, pupildiameter, mtf, cyclesperdegree; minfnumber=2.0,RGB=true,λ=530nm,pixelpitch=.9μm)
+function systemproperties(eyerelief, eyebox, fov, pupildiameter, mtf, cyclesperdegree,pixelsperdegree; minfnumber=2.0,RGB=true,λ=530nm,pixelpitch=.9μm)
     diameter = diameter_for_cycles_deg(mtf, cyclesperdegree, λ)
     clusterdata = choosecluster(pupildiameter, diameter)
     difflimit = diffractionlimit(λ, clusterdata.lensletdiameter)
-    dispsize = lensletdisplaysize(fov, eyerelief, eyebox, pupildiameter, difflimit, RGB=RGB)
     numlenses = numberoflenslets(fov, eyerelief, diameter)
     redundancy = pixelredundancy(fov, eyerelief, eyebox, pupildiameter, difflimit, RGB=RGB)
     subdivisions = anglesubdivisions(pupildiameter, λ, mtf, cyclesperdegree, RGB=RGB)
     eyebox_angles = eyeboxangles(eyebox,eyerelief)
     angles = lensletangles(eyerelief, eyebox, pupildiameter, difflimit, clusterproperties=LensletClusterProperties(mtf, minfnumber, cyclesperdegree, λ, pixelpitch))
-    return (lenslet_diameter = clusterdata.lensletdiameter, diffraction_limit = difflimit, lenslet_display_size = dispsize, number_lenslets = numlenses, pixel_redundancy = redundancy, eyebox_angles = eyebox_angles, lenslet_fov = angles, subdivisions = subdivisions, )
+    dispsize = lensletdisplaysize(angles, eyerelief, eyebox, pupildiameter, pixelsperdegree, RGB=RGB)
+
+    return (lenslet_diameter = clusterdata.lensletdiameter, diffraction_limit = difflimit, lenslet_display_size = dispsize, number_lenslets = numlenses, pixel_redundancy = redundancy, eyebox_angles = eyebox_angles, lenslet_fov = angles, subdivisions = subdivisions)
 end
 export systemproperties
 
