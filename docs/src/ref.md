@@ -19,6 +19,12 @@ Modules = [OpticSim]
 Modules = [OpticSim.Geometry]
 ```
 
+## Aspheric
+
+```@autodocs
+Modules = [OpticSim.AsphericSurface]
+```
+
 ## Zernike
 
 ```@autodocs

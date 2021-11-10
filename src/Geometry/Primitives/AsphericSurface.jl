@@ -9,12 +9,15 @@
 
 """
 
+AsphericSurface{T,N,Q,M} <: ParametricSurface{T,N}
+
+Surface incorporating an aspheric polynomial - radius, conic and aspherics are defined relative to absolute semi-diameter,.
+`T` is the datatype, `N` is the dimensionality, `Q` is the number of aspheric terms, and `M` is the type of aspheric polynomial. 
+
+
 ```julia
 AsphericSurface(semidiameter; radius, conic, aspherics=nothing, normradius = semidiameter)
 ```
-
-Surface incorporating an aspheric polynomial - radius, conic and aspherics are defined relative to absolute semi-diameter,.
-`T` is the datatype, `N` is the dimensionality,  and `Q` is the number of aspheric terms. 
 
 The surface is centered at the origin and treated as being the cap of an infinite cylinder, thus creating a true half-space.
 Outside of `0 <= ρ <= 1` the height of the surface is not necessarily well defined, so NaN may be returned.
@@ -29,8 +32,7 @@ z(r,\\phi) = \\frac{cr^2}{1 + \\sqrt{1 - (1+k)c^2r^2}} + \\sum_{i}^{Q}\\alpha_ir
 
 where ``\\rho = \\frac{r}{\\texttt{normradius}}``, ``c = \\frac{1}{\\texttt{radius}}``, and ``k = \\texttt{conic}`` .
 
-The function checks if the aspheric terms are even, odd or both and uses `EvenAsphericSurface()`,
-`OddAsphericSurface()`, or `OddEvenAsphericSurface()` as appropriate.
+The function checks if the aspheric terms are missing, even, odd or both and uses the appropriate polynomial evaluation strategy.
 
 """
 #"pseudo-types" of aspheres
@@ -44,14 +46,18 @@ struct AsphericSurface{T,N,Q,M} <: ParametricSurface{T,N}
     normradius::T
     boundingcylinder::Cylinder{T,N}
 
-    function AsphericSurface(semidiameter::T; radius::T = typemax(T), conic::T= zero(T), aspherics::Union{Nothing,Vector{Tuple{Int,T}}} = nothing, normradius::T = semidiameter) where {T<:Real}
+    function AsphericSurface(M::AsphSurfaceType, semidiameter::T, curvature::T, conic::T, aspherics::SVector{Q,T}, normradius::T, boundingcylinder) where {T<:Real,Q}
+        new{T,3,Q,M}(semidiameter, curvature, conic, aspherics, normradius, boundingcylinder)
+    end
+
+    function AsphericSurface(semidiameter::T; radius::T = typemax(T), conic::T = zero(T), aspherics::Union{Nothing,Vector{Tuple{Int,T}}} = nothing, normradius::T = semidiameter) where {T<:Real}
         @assert semidiameter > 0
         @assert !isnan(semidiameter) && !isnan(radius) && !isnan(conic)
         @assert one(T) - (1 / radius)^2 * (conic + one(T)) * semidiameter^2 > 0 "Invalid surface (conic/radius combination: $radius, $conic)"
 
         acs = []
         if aspherics===nothing
-            surf = new{T,3,0,CONIC}(semidiameter, 1/radius, conic, Vector{T}(acs), normradius, Cylinder(semidiameter, interface = opaqueinterface(T)))
+            M = CONIC
          else
             asphericTerms = [i for (i, ) in aspherics]
             minAsphericTerm = minimum(asphericTerms)
@@ -64,45 +70,24 @@ struct AsphericSurface{T,N,Q,M} <: ParametricSurface{T,N}
             odd = any([isodd(i) && a != zero(T) for (i, a) in enumerate(acs)])
             even = any([iseven(i) && a != zero(T) for (i, a) in enumerate(acs)])
             if odd && even
-                Q = maxAsphericTerm
-                surf = new{T, 3, Q, ODDEVEN}(semidiameter, 1 / radius, conic, Vector{T}(acs), normradius, Cylinder(semidiameter, interface = opaqueinterface(T))) 
+                M = ODDEVEN
             elseif even
-                eacs = [acs[2i] for i in 1:(maxAsphericTerm ÷ 2)] 
-                Q = length(eacs)
-                surf = new{T, 3, Q, EVEN}(semidiameter, 1 / radius, conic, Vector{T}(eacs), normradius, Cylinder(semidiameter, interface = opaqueinterface(T))) 
+                M = EVEN
+                acs = [acs[2i] for i in 1:(maxAsphericTerm ÷ 2)] 
             elseif odd
-                oacs = [acs[2i-1] for i in 1:((maxAsphericTerm+1) ÷ 2)]
-                Q = length(oacs)
-                surf = new{T, 3, Q, ODD}(semidiameter, 1 / radius, conic, Vector{T}(oacs), normradius, Cylinder(semidiameter, interface = opaqueinterface(T))) 
-            else #CONIC
-                surf = new{T,3, 0, CONIC}(semidiameter, 1/radius, conic, Vector{T}(acs), normradius, Cylinder(semidiameter, interface = opaqueinterface(T)))
+                M = ODD
+                acs = [acs[2i-1] for i in 1:((maxAsphericTerm+1) ÷ 2)]
+            else #there are no nonzero aspherics terms in the list
+                M = CONIC
+                acs = []
             end
         end
+        Q = length(acs)
+        surf = new{T,3, Q, M}(semidiameter, 1/radius, conic, acs, normradius, Cylinder(semidiameter, interface = opaqueinterface(T)))
         return surf
-    end
-    function EvenAsphericSurface(semidiameter::T, curvature::T, conic::T, aspherics::Vector{T}; normradius::T=semidiameter) where T<:Real
-        Q=length(aspherics)
-        new{T,3,Q,EVEN}(semidiameter, curvature, conic, SVector{Q,T}(aspherics), normradius, Cylinder(semidiameter, interface = opaqueinterface(T)))
-    end
-    function OddAsphericSurface(semidiameter::T, curvature::T, conic::T, aspherics::Vector{T}; normradius::T=semidiameter) where T<:Real
-        Q=length(aspherics)
-        new{T,3,Q, ODD}(semidiameter, curvature, conic, SVector{Q,T}(aspherics), normradius, Cylinder(semidiameter, interface = opaqueinterface(T)))
-    end
-    function OddEvenAsphericSurface(semidiameter::T, curvature::T, conic::T, aspherics::Vector{T}; normradius::T=semidiameter) where T<:Real
-        Q=length(aspherics)
-        new{T,3,Q,CONIC}(semidiameter, curvature, conic, SVector{Q,T}(aspherics), normradius, Cylinder(semidiameter, interface = opaqueinterface(T)))
     end
 
 end
-
-
-asphericType(z::AsphericSurface{T,3,Q,EVEN}) where {T<:Real,Q} = EVEN
-
-asphericType(z::AsphericSurface{T,3,Q,CONIC}) where {T<:Real,Q} = CONIC
-
-asphericType(z::AsphericSurface{T,3,Q,ODD}) where {T<:Real,Q} = ODD
-
-asphericType(z::AsphericSurface{T,3,Q,ODDEVEN}) where {T<:Real,Q} = ODDEVEN
 
 """
 
@@ -112,10 +97,14 @@ EvenAsphericSurface(semidiameter, curvature::T, conic::T, aspherics::Vector{T}; 
 
 Surface incorporating an aspheric polynomial - radius, conic and aspherics are defined relative to absolute semi-diameter.
 
-`aspherics` should be an array of the even coefficients of the aspheric polynomial
+`aspherics` should be an array of the even coefficients of the aspheric polynomial starting with A2
 
 
 """
+function EvenAsphericSurface(semidiameter::T, curvature::T, conic::T, aspherics::Vector{T}; normradius::T=semidiameter) where T<:Real
+    Q=length(aspherics)
+    AsphericSurface(EVEN, semidiameter, curvature, conic, SVector{Q,T}(aspherics), normradius, Cylinder(semidiameter, interface = opaqueinterface(T)))
+end
 
 """
 
@@ -128,6 +117,10 @@ Surface incorporating an aspheric polynomial - radius, conic and aspherics are d
 `aspherics`  should be an array of the odd coefficients of the aspheric polynomial starting with A1
 
 """
+function OddAsphericSurface(semidiameter::T, curvature::T, conic::T, aspherics::Vector{T}; normradius::T=semidiameter) where T<:Real
+    Q=length(aspherics)
+    AsphericSurface(ODD, semidiameter, curvature, conic, SVector{Q,T}(aspherics), normradius, Cylinder(semidiameter, interface = opaqueinterface(T)))
+end
 
 """
 
@@ -140,9 +133,20 @@ Surface incorporating an aspheric polynomial - radius, conic and aspherics are d
 `aspherics` should be an array of the both odd and even coefficients of the aspheric polynomial starting with A1
 
 """
+function OddEvenAsphericSurface(semidiameter::T, curvature::T, conic::T, aspherics::Vector{T}; normradius::T=semidiameter) where T<:Real
+    Q=length(aspherics)
+    AsphericSurface(ODDEVEN, semidiameter, curvature, conic, SVector{Q,T}(aspherics), normradius, Cylinder(semidiameter, interface = opaqueinterface(T)))
+end
 
+#don't have a function for CONIC as there are better ways to define a CONIC
 
-export AsphericSurface, EvenAsphericSurface, OddAsphericSurface, OddEvenAsphericSurface, asphericType
+asphericType(z::AsphericSurface{T,3,Q,M}) where {T<:Real,Q,M} = M # does not seem to work
+#asphericType(z::AsphericSurface{T,3,Q,EVEN}) where {T<:Real,Q} = EVEN
+#asphericType(z::AsphericSurface{T,3,Q,CONIC}) where {T<:Real,Q} = CONIC
+#asphericType(z::AsphericSurface{T,3,Q,ODD}) where {T<:Real,Q} = ODD
+#asphericType(z::AsphericSurface{T,3,Q,ODDEVEN}) where {T<:Real,Q} = ODDEVEN
+
+export AsphericSurface, EvenAsphericSurface, OddAsphericSurface, OddEvenAsphericSurface, asphericType, EVEN, CONIC, ODD, ODDEVEN
 
 
 uvrange(::AsphericSurface{T,N}) where {T<:Real,N} = ((zero(T), one(T)), (-T(π), T(π))) # ρ and ϕ
