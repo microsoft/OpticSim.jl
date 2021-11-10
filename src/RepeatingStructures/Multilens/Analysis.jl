@@ -88,6 +88,7 @@ struct LensletClusterProperties
     λ
     pixelpitch
 end
+export LensletClusterProperties
 
 defaultclusterproperties() = LensletClusterProperties(.2, 2.0, 11, 530nm, .9μm)
 export defaultclusterproperties
@@ -133,7 +134,7 @@ function mtfcircular(freq, freqcutoff)
 end
 export mtfcircular
 
-
+"""returns the diffraction limit frequency in cycles/degree. At this frequeny the response of the system is zero"""
 diffractionlimit(λ,diameter) = uconvert(Unitful.NoUnits, diameter / λ) / rad2deg(1)
 export diffractionlimit
 
@@ -185,7 +186,7 @@ function choosecluster(pupildiameter, lensletdiameter)
 
     @assert ratio ≥ 1.0 "ratio $ratio cdist $cdist lensletdiameter $lensletdiameter latticediameter $(latticediameter(maxcluster)) scaled=$(lensletdiameter * latticediameter(maxcluster))"
 
-    return (cluster = maxcluster, lensletdiameter = lensletdiameter, diameteroflattice = latticediameter(maxcluster) / ratio, packingdistance = cdist * ustrip(mm, lensletdiameter), scalefactor = ratio)
+    return (cluster = maxcluster, lensletdiameter = lensletdiameter * ratio, diameteroflattice = latticediameter(maxcluster) / ratio, packingdistance = cdist * ustrip(mm, lensletdiameter))
 end
 export choosecluster
 
@@ -261,7 +262,7 @@ function pixelredundancy(fov, eyerelief, eyebox, pupildiameter, ppd; RGB=true)
     nominalresolution = fov .* ppd
     angles = lensletangles(eyerelief, eyebox, pupildiameter, ppd, RGB=RGB)
     pixelsperlenslet = lensletpixels(angles, ppd)
-    numlenses = numberoflenslets(fov, eyerelief, clusterdata.lensletdiameter * clusterdata.scalefactor)
+    numlenses = numberoflenslets(fov, eyerelief, clusterdata.lensletdiameter)
     return (numlenses * pixelsperlenslet[1] * pixelsperlenslet[2]) / ( nominalresolution[1] * nominalresolution[2])
 end
 export pixelredundancy
@@ -305,3 +306,18 @@ function displaysize_ppdvspupildiameter()
     Plots.plot(Plots.contour(x, y, (x, y) -> maximum(ustrip.(μm, lensletdisplaysize((50, 35), 18mm, (10mm, 6mm), y * mm, x, RGB=RGB))), fill=true, xlabel="pixels per degree", ylabel="pupil diameter", legendtitle="display size μm", title="$(label(RGB)) lenslets"))
 end
 export displaysize_ppdvspupildiameter
+
+function systemproperties(eyerelief, eyebox, fov, pupildiameter, mtf, cyclesperdegree; minfnumber=2.0,RGB=true,λ=530nm,pixelpitch=.9μm)
+    diameter = diameter_for_cycles_deg(mtf, cyclesperdegree, λ)
+    clusterdata = choosecluster(pupildiameter, diameter)
+    difflimit = diffractionlimit(λ, clusterdata.lensletdiameter)
+    dispsize = lensletdisplaysize(fov, eyerelief, eyebox, pupildiameter, difflimit, RGB=RGB)
+    numlenses = numberoflenslets(fov, eyerelief, diameter)
+    redundancy = pixelredundancy(fov, eyerelief, eyebox, pupildiameter, difflimit, RGB=RGB)
+    subdivisions = anglesubdivisions(pupildiameter, λ, mtf, cyclesperdegree, RGB=RGB)
+    angles = lensletangles(eyerelief, eyebox, pupildiameter, difflimit, clusterproperties=LensletClusterProperties(mtf, minfnumber, cyclesperdegree, λ, pixelpitch))
+    return (lenslet_diameter = clusterdata.lensletdiameter, diffraction_limit = difflimit, lenslet_display_size = dispsize, number_lenslets = numlenses, pixel_redundancy = redundancy, lenslet_fov = angles, subdivisions = subdivisions)
+end
+export systemproperties
+
+
