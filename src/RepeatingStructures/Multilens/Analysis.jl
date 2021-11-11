@@ -170,7 +170,8 @@ export closestpackingdistance
 
 function choosecluster(pupildiameter, lensletdiameter)
     clusters = (hex3RGB(), hex4RGB(), hex7RGB(), hex9RGB(), hex12RGB(), hex19RGB())
-    cdist = closestpackingdistance(pupildiameter)
+    # cdist = closestpackingdistance(pupildiameter)
+    cdist = pupildiameter
     maxcluster = clusters[1]
     ratio = 0.0
 
@@ -314,9 +315,18 @@ function systemproperties(eyerelief, eyebox, fov, pupildiameter, mtf, cyclesperd
     dispsize = lensletdisplaysize(angles, eyerelief, eyebox, pupildiameter, pixelsperdegree, RGB=RGB)
     focal_length = focallength(pixelpitch,1/pixelsperdegree)
     fnumber = focal_length/clusterdata.lensletdiameter
+    siliconarea = uconvert(mm^2,numlenses  * dispsize[1]*dispsize[2])
+    fulldisplaysize = sizeofdisplay(fov,eyerelief)
 
-    return (lenslet_diameter = clusterdata.lensletdiameter, diffraction_limit = difflimit, fnumber = fnumber, focal_length = focal_length, lenslet_display_size = dispsize, number_lenslets = numlenses, pixel_redundancy = redundancy, eyebox_angles = eyebox_angles, lenslet_fov = angles, subdivisions = subdivisions)
+    return (lenslet_diameter = clusterdata.lensletdiameter, diffraction_limit = difflimit, fnumber = fnumber, focal_length = focal_length, display_size = fulldisplaysize, lenslet_display_size = dispsize, total_silicon_area = siliconarea, number_lenslets = numlenses, pixel_redundancy = redundancy, eyebox_angles = eyebox_angles, lenslet_fov = angles, subdivisions = subdivisions)
 end
 export systemproperties
+
+function printsystemproperties(eyerelief, eyebox, fov, pupildiameter, mtf, cyclesperdegree,pixelsperdegree; minfnumber=2.0,RGB=true,λ=530nm,pixelpitch=.9μm) 
+    for (key,value) in pairs(systemproperties(eyerelief, eyebox, fov, pupildiameter, mtf, cyclesperdegree,pixelsperdegree, minfnumber = minfnumber,RGB=RGB,λ=λ,pixelpitch=pixelpitch))
+        println("$key = $value")
+    end
+end
+export printsystemproperties
 
 
