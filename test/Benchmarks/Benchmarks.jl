@@ -56,13 +56,16 @@ simple_surface_benchmarks() = plane, rectangle, ellipse, triangle, sphere_outsid
 
 zernike_surface1() = surfaceintersection, (AcceleratedParametricSurface(TestData.zernikesurface1(), 30), perturbrayz())
 zernike_surface2() = surfaceintersection, (AcceleratedParametricSurface(TestData.zernikesurface3(), 30), perturbrayz())
+evenaspheric_surface() = surfaceintersection, (AcceleratedParametricSurface(TestData.evenasphericsurface(), 30), perturbrayz())
+oddaspheric_surface() = surfaceintersection, (AcceleratedParametricSurface(TestData.oddasphericsurface(), 30), perturbrayz())
+oddevenaspheric_surface() = surfaceintersection, (AcceleratedParametricSurface(TestData.oddevenasphericsurface(), 30), perturbrayz())
 qtype_surface() = surfaceintersection, (AcceleratedParametricSurface(TestData.qtypesurface1(), 30), perturbrayz())
 bezier_surface() = surfaceintersection, (AcceleratedParametricSurface(TestData.beziersurface(), 30), bezierray())
 chebyshev_surface1() = surfaceintersection, (AcceleratedParametricSurface(TestData.chebyshevsurface1(), 30), perturbrayz())
 chebyshev_surface2() = surfaceintersection, (AcceleratedParametricSurface(TestData.chebyshevsurface2(), 30), perturbrayz())
 gridsag_surface() = surfaceintersection, (AcceleratedParametricSurface(TestData.gridsagsurfacebicubic(), 30), perturbrayz())
 
-accel_surface_benchmarks() = zernike_surface1, zernike_surface2, qtype_surface, bezier_surface, chebyshev_surface1, chebyshev_surface2, gridsag_surface
+accel_surface_benchmarks() = zernike_surface1, zernike_surface2, evenaspheric_surface, oddaspheric_surface, oddevenaspheric_surface, qtype_surface, bezier_surface, chebyshev_surface1, chebyshev_surface2, gridsag_surface
 
 all_benchmarks() = (simple_surface_benchmarks()..., accel_surface_benchmarks()..., system_benchmarks()...)
 
