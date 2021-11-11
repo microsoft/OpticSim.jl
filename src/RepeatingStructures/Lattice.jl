@@ -165,7 +165,11 @@ function testtilesinside()
     # poly = LazySets.VPolygon([-3.0 3.0 3.0; -3.0 3.0 -3.0])
     hex = HexBasis1()
     poly = LazySets.VPolygon(3 * tilevertices(hex))
-    tilesinside(poly, hex)
-    plotall(poly, hex)
+    tilecoords = tilesinside(poly, hex)
+     insidetiles = LazySets.VPolygon.([tilevertices(x,hex) for x in eachcol(tilecoords)])
+    # plotall(poly, hex)
+    for tile in insidetiles
+        plot!(tile)
+end
 end
 export testtilesinside
