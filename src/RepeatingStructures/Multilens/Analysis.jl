@@ -214,7 +214,6 @@ function numberoflenslets(fov, eyerelief, lensletdiameter)
 end
 export numberoflenslets
 
-lensletpixels(angles,ppd) = angles .* ppd
 
 """given the angles each lenslet has to cover compute the corresponding display size"""
 sizeoflensletdisplay(angles,ppd,pixelpitch) = @. angles * ppd * pixelpitch
@@ -261,7 +260,7 @@ function pixelredundancy(fov, eyerelief, eyebox, pupildiameter, ppd; RGB=true)
     clusterdata = choosecluster(pupildiameter, lensprops.λ, lensprops.mtf, lensprops.cyclesperdegree)
     nominalresolution = fov .* ppd
     angles = lensletangles(eyerelief, eyebox, pupildiameter, ppd, RGB=RGB)
-    pixelsperlenslet = lensletpixels(angles, ppd)
+    pixelsperlenslet = angles .* ppd
     numlenses = numberoflenslets(fov, eyerelief, clusterdata.lensletdiameter)
     return (numlenses * pixelsperlenslet[1] * pixelsperlenslet[2]) / ( nominalresolution[1] * nominalresolution[2])
 end
@@ -284,12 +283,8 @@ export redundancy_ppdvspupildiameter
 
 """computes lenslet display size to match the design constraints"""
 function lensletdisplaysize(fov, eyerelief, eyebox, pupildiameter, ppd; RGB=true)
-    cyclesperdegree = ppd / 2.0
     lensprops = defaultclusterproperties()
-    clusterdata = choosecluster(pupildiameter, lensprops.λ, lensprops.mtf, cyclesperdegree)
-    nominalresolution = fov .* ppd
     angles = lensletangles(eyerelief, eyebox, pupildiameter, ppd, RGB=RGB)
-    pixelsperlenslet = lensletpixels(angles, ppd)
     return @. angles * ppd * lensprops.pixelpitch
 end
 export lensletdisplaysize
