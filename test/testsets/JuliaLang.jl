@@ -24,7 +24,6 @@ and pop it from the set
             (OpticSim.MultiHologramInterface, Tuple{Vararg{HologramInterface{T},N}} where {N} where {T<:Real}),
         ] : [],
         OpticSim.Zernike => [],
-        #OpticSim.AsphericSurface => [],
         OpticSim.QType => [],
         OpticSim.Vis => [
             (OpticSim.Vis.drawcurves, Tuple{Vararg{Spline{P,S,N,M},N1} where N1} where {M} where {N} where {S} where {P}),
