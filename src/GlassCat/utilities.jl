@@ -326,14 +326,20 @@ end
 Draw a scatter plot of index vs dispersion (the derivative of index with respect to wavelength). Both index and
 dispersion are computed at wavelength λ.
 
+Choose glasses to graph using the glassfilterprediate argument. This is a function that receives a Glass object and returns true if the glass should be graphed.
+
 If showprefixglasses is true then glasses with names like `F_BAK7` will be displayed. Otherwise glasses that have a
 leading letter prefix followed by an underscore, such as `F_`, will not be displayed.
 
 The index formulas for some glasses may give incorrect results if λ is outside the valid range for that glass. This can
 give anomalous results, such as indices less than zero or greater than 6. To filter out these glasses set maximumindex
 to a reasonable value such as 3.0.
+
+example: plot only glasses that do not contain the strings "E_" and "J_"
+
+drawglassmap(NIKON,showprefixglasses = true,glassfilterpredicate = (x) -> !occursin("J_",string(x)) && !occursin("E_",string(x)))
 """
-function drawglassmap(glasscatalog::Module; λ::Length = 550nm, glassfontsize::Integer = 3, showprefixglasses::Bool = false, minindex = 1.0, maxindex = 3.0, mindispersion = -.3, maxdispersion = 0.0)
+function drawglassmap(glasscatalog::Module; λ::Length = 550nm, glassfontsize::Integer = 3, showprefixglasses::Bool = false, minindex = 1.0, maxindex = 3.0, mindispersion = -.3, maxdispersion = 0.0, glassfilterpredicate = (x)->true)
     wavelength = Float64(ustrip(uconvert(μm, λ)))
     indices = Vector{Float64}(undef,0)
     dispersions = Vector{Float64}(undef,0)
@@ -351,7 +357,7 @@ function drawglassmap(glasscatalog::Module; λ::Length = 550nm, glassfontsize::I
 
             # don't show glasses that have an _ in the name. This prevents cluttering the map with many glasses of
             # similar (index, dispersion).
-            if (mindispersion <= dispersion <= maxdispersion) && (showprefixglasses || !hasprefix)
+            if glassfilterpredicate(glass) && (mindispersion <= dispersion <= maxdispersion) && (showprefixglasses || !hasprefix)
                 push!(indices, index(glass, wavelength))
                 push!(dispersions, dispersion)
                 push!(glassnames, String(name))
