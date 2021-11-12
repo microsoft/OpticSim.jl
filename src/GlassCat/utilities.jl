@@ -367,7 +367,7 @@ function drawglassmap(glasscatalog::Module; λ::Length = 550nm, glassfontsize::I
         series_annotations,
         markeralpha = 0.0,
         legends = :none,
-        xaxis = "dispersion",
+        xaxis = "dispersion @$λ",
         yaxis = "index",
         title = "Glass Catalog: $glasscatalog",
         xflip = true) #should use markershape = :none to prevent markers from being drawn but this option doesn't work. Used markeralpha = 0 so the markers are invisible. A hack which works.
