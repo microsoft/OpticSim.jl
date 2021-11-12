@@ -38,11 +38,9 @@ using Unitful.DefaultSymbols
         displaypoint = SVector(0.0,0.0,-8.0)
         #pupil is placed so that only 1/4 of it (approximately) is illuminated by lens beam
         pupil = Rectangle(1.0,1.0,SVector(0.0,0.0,-1.0),SVector(2.0,2.0,40.0))
-    
-        @test isapprox(
-            1/16, 
-            ParaxialAnalysis.beamenergy(lenslet,displaypoint,Geometry.vertices3d(pupil)),
-            atol = 1e-4)
+        energy,centroid = ParaxialAnalysis.beamenergy(lenslet,displaypoint,Geometry.vertices3d(pupil))
+        @test isapprox(1/16, energy,atol = 1e-4)
+        @test isapprox([.75,.75,0.0],centroid)
     end
 
     @testset "SphericalPolygon" begin
