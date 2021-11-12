@@ -116,10 +116,10 @@ Either `ZernikeIndexingOSA` or `ZernikeIndexingNoll`, see [Zernike polynomials w
 export ZernikeIndexType, ZernikeIndexingOSA, ZernikeIndexingNoll
 
 """
-    ZernikeSurface{T,N,P,Q} <: ParametricSurface{T,N}
+    ZernikeSurface{T,N,P,Q,M} <: ParametricSurface{T,N}
 
 Surface incorporating the Zernike polynomials - radius, conic and aspherics are defined relative to absolute semi-diameter, Zernike terms are normalized according to the `normradius` parameter.
-`T` is the datatype, `N` is the dimensionality, `P` is the number of Zernike terms and `Q` is the number of aspheric terms. Only even aspheric terms are supported.
+`T` is the datatype, `N` is the dimensionality, `P` is the number of Zernike terms, `Q` is the number of aspheric terms and `M` is the Aspheric Type.
 
 The surface is centered at the origin and treated as being the cap of an infinite cylinder, thus creating a true half-space.
 Outside of `0 <= ρ <= 1` the height of the surface is not necessarily well defined, so NaN may be returned.
@@ -130,7 +130,10 @@ For convenience the input `zcoeff` can be indexed using either OSA or Noll conve
 ZernikeSurface(semidiameter, radius = Inf, conic = 0, zcoeff = nothing, aspherics = nothing, normradius = semidiameter, indexing = ZernikeIndexingOSA)
 ```
 
-`zcoeff` and `aspherics` should be vectors containing tuples of the form `(i, v)` where `i` is either the index of the Zernike term for the corresponding `indexing`, or the polynomial power of the aspheric term (must be even) and `v` is the corresponding coefficient ``A_i`` or ``\\alpha_i`` respectively..
+`zcoeff` and `aspherics` should be vectors containing tuples of the form `(i, v)` where `i` is either the index of the Zernike term
+for the corresponding `indexing`, or the polynomial power of the aspheric term (may be even or odd) and 
+`v` is the corresponding coefficient ``A_i`` or ``\\alpha_i`` respectively..  `M` will be determined from the terms entered to optimize
+the evaluation of the aspheric polynomial.
 
 The sag is defined by the equation
 
@@ -140,19 +143,15 @@ z(r,\\phi) = \\frac{cr^2}{1 + \\sqrt{1 - (1+k)c^2r^2}} + \\sum_{i}^{Q}\\alpha_ir
 
 where ``\\rho = \\frac{r}{\\texttt{normradius}}``, ``c = \\frac{1}{\\texttt{radius}}``, ``k = \\texttt{conic}`` and ``Z_n`` is the nᵗʰ Zernike polynomial.
 """
-struct ZernikeSurface{T,N,P,Q} <: ParametricSurface{T,N}
-    semidiameter::T
+struct ZernikeSurface{T,N,P,Q,M} <: ParametricSurface{T,N}
+    asp::AsphericSurface{T,N,Q,M}
     coeffs::SVector{P,Tuple{Int,Int,T}}
-    aspherics::SVector{Q,Tuple{Int,T}}
-    curvature::T
-    conic::T
-    normradius::T
     boundingcylinder::Cylinder{T,N}
 
     function ZernikeSurface(semidiameter::T; radius::T = typemax(T), conic::T = zero(T), zcoeff::Union{Nothing,Vector{Tuple{Int,T}}} = nothing, aspherics::Union{Nothing,Vector{Tuple{Int,T}}} = nothing, normradius::T = semidiameter, indexing::ZernikeIndexType = ZernikeIndexingOSA) where {T<:Real}
-        @assert semidiameter > 0
-        @assert !isnan(semidiameter) && !isnan(radius) && !isnan(conic)
-        @assert one(T) - (1 / radius)^2 * (conic + one(T)) * semidiameter^2 > 0 "Invalid surface (conic/radius combination: $radius, $conic)"
+        asp = AsphericSurface(semidiameter; radius, conic, aspherics, normradius)
+        Q = length(asp.aspherics) #this is not the same as the aspherics variable passed to the function!
+
         zcs = []
         if zcoeff !== nothing
             for (i, k) in zcoeff
@@ -167,84 +166,54 @@ struct ZernikeSurface{T,N,P,Q} <: ParametricSurface{T,N}
             end
         end
         P = length(zcs)
-        acs = []
-        if aspherics !== nothing
-            for (i, k) in aspherics
-                if abs(k) > zero(T)
-                    @assert i % 2 == 0 "Only even aspheric terms are supported"
-                    push!(acs, (i ÷ 2, k))
-                end
-            end
-        end
-        Q = length(acs)
-        new{T,3,P,Q}(semidiameter, SVector{P,Tuple{Int,Int,T}}(zcs), SVector{Q,Tuple{Int,T}}(acs), 1 / radius, conic, normradius, Cylinder(semidiameter, interface = opaqueinterface(T))) # TODO!! incorrect interface on cylinder
+        M = asphericType(asp)
+        new{T,3,P,Q,M}(asp::AsphericSurface{T,3,Q,M}, SVector{P,Tuple{Int,Int,T}}(zcs), Cylinder(semidiameter, interface = opaqueinterface(T))) # TODO!! incorrect interface on cylinder
     end
 
 end
 export ZernikeSurface
 
-uvrange(::Type{ZernikeSurface{T,N,P,Q}}) where {T<:Real,N,P,Q} = ((zero(T), one(T)), (-T(π), T(π))) # ρ and ϕ
+uvrange(::Type{ZernikeSurface{T,N,P,Q,M}}) where {T<:Real,N,P,Q,M} = ((zero(T), one(T)), (-T(π), T(π))) # ρ and ϕ
 
-semidiameter(z::ZernikeSurface{T}) where {T<:Real} = z.semidiameter
+semidiameter(z::ZernikeSurface{T}) where {T<:Real} = z.asp.semidiameter
 halfsizeu(z::ZernikeSurface{T}) where {T<:Real} = semidiameter(z)
 halfsizev(z::ZernikeSurface{T}) where {T<:Real} = semidiameter(z)
 
 boundingobj(z::ZernikeSurface{T}) where {T<:Real} = z.boundingcylinder
 
-function point(z::ZernikeSurface{T,3,P,Q}, ρ::T, ϕ::T)::SVector{3,T} where {T<:Real,P,Q}
-    rad = z.semidiameter
-    r = ρ * rad
-    r2 = r^2
-    t = one(T) - z.curvature^2 * (z.conic + one(T)) * r^2
-    if t < zero(T)
-        return SVector{3,T}(NaN, NaN, NaN)
-    end
-    h = z.curvature * r2 / (one(T) + sqrt(t))
-    # sum aspheric
-    @inbounds @simd for i in 1:Q
-        (m, k) = z.aspherics[i]
-        h += k * r2^m
-    end
+function point(z::ZernikeSurface{T,3,P,Q,M}, ρ::T, ϕ::T)::SVector{3,T} where {T<:Real,P,Q,M}
+    pnt = point(z.asp, ρ, ϕ)
+
     # sum zernike
-    u = r / z.normradius
+    rad = semidiameter(z.asp)
+    r = ρ * rad
+    u = r / z.asp.normradius
+    h = zero(T)
     @inbounds @simd for m in 1:P
         (R, S, k) = z.coeffs[m]
         h += k * Zernike.ζ(R, S, u, ϕ)
     end
-    return SVector{3,T}(r * cos(ϕ), r * sin(ϕ), h)
+    return SVector{3,T}(pnt[1], pnt[2], pnt[3] + h) 
 end
 
-function partials(z::ZernikeSurface{T,3,P,Q}, ρ::T, ϕ::T)::Tuple{SVector{3,T},SVector{3,T}} where {T<:Real,P,Q}
-    rad = z.semidiameter
-    r = ρ * rad
-    t = one(T) - z.curvature^2 * (z.conic + one(T)) * r^2
-    if t < zero(T)
-        return SVector{3,T}(NaN, NaN, NaN), SVector{3,T}(NaN, NaN, NaN)
-    end
-    dhdρ = rad * z.curvature * r * sqrt(t) / t
-    # sum aspherics partial
-    @inbounds @simd for i in 1:Q
-        (m, k) = z.aspherics[i]
-        dhdρ += rad * (2 * m) * k * r^(2 * m - 1)
-    end
+function partials(z::ZernikeSurface{T,3,P,Q,M}, ρ::T, ϕ::T)::Tuple{SVector{3,T},SVector{3,T}} where {T<:Real,P,Q,M}
+    pρ,pϕ = partials(z.asp, ρ, ϕ)
     # sum zernike partials
-    dhdϕ = zero(T)
-    n = rad / z.normradius
+    rad=z.asp.semidiameter
+    n = rad / z.asp.normradius
     u = ρ * n
+    dhdρ = zero(T)
+    dhdϕ = zero(T)
     @inbounds @simd for m in 1:P
         (R, S, k) = z.coeffs[m]
         du, dϕ = Zernike.δζ(R, S, u, ϕ)
         dhdρ += k * du * n # want the derivative wrt ρ, not u
         dhdϕ += k * dϕ
     end
-    cosϕ = cos(ϕ)
-    sinϕ = sin(ϕ)
-    pu = SVector{3,T}(rad * cosϕ, rad * sinϕ, dhdρ)
-    pv = SVector{3,T}(r * -sinϕ, r * cosϕ, dhdϕ)
-    return pu, pv
+    return SVector{3,T}(pρ[1], pρ[2], pρ[3] + dhdρ),  SVector{3,T}(pϕ[1], pϕ[2], pϕ[3] + dhdϕ)
 end
 
-function normal(z::ZernikeSurface{T,3,P,Q}, ρ::T, ϕ::T)::SVector{3,T} where {T<:Real,P,Q}
+function normal(z::ZernikeSurface{T,3,P,Q,M}, ρ::T, ϕ::T)::SVector{3,T} where {T<:Real,P,Q,M}
     du, dv = partials(z, ρ, ϕ)
     if ρ == zero(T) && norm(dv) == zero(T)
         # in cases where there is no δϕ at ρ = 0 (i.e. anything which is rotationally symetric)
@@ -254,7 +223,7 @@ function normal(z::ZernikeSurface{T,3,P,Q}, ρ::T, ϕ::T)::SVector{3,T} where {T
     return normalize(cross(du, dv))
 end
 
-function uv(z::ZernikeSurface{T,3,P,Q}, p::SVector{3,T}) where {T<:Real,P,Q}
+function uv(z::ZernikeSurface{T,3,P,Q,M}, p::SVector{3,T}) where {T<:Real,P,Q,M}
     # avoid divide by zero for ForwardDiff
     ϕ = NaNsafeatan(p[2], p[1])
     if p[1] == zero(T) && p[2] == zero(T)
@@ -265,7 +234,7 @@ function uv(z::ZernikeSurface{T,3,P,Q}, p::SVector{3,T}) where {T<:Real,P,Q}
     return SVector{2,T}(ρ, ϕ)
 end
 
-function onsurface(surf::ZernikeSurface{T,3,P,Q}, p::SVector{3,T}) where {T<:Real,P,Q}
+function onsurface(surf::ZernikeSurface{T,3,P,Q,M}, p::SVector{3,T}) where {T<:Real,P,Q,M}
     ρ, ϕ = uv(surf, p)
     if ρ > one(T)
         return false
@@ -275,7 +244,7 @@ function onsurface(surf::ZernikeSurface{T,3,P,Q}, p::SVector{3,T}) where {T<:Rea
     end
 end
 
-function inside(surf::ZernikeSurface{T,3,P,Q}, p::SVector{3,T}) where {T<:Real,P,Q}
+function inside(surf::ZernikeSurface{T,3,P,Q,M}, p::SVector{3,T}) where {T<:Real,P,Q,M}
     ρ, ϕ = uv(surf, p)
     if ρ > one(T)
         return false
@@ -288,7 +257,7 @@ end
 #########################################################################################################
 
 # Assumes the ray has been transformed into the canonical coordinate frame which has the vertical axis passing through (0,0,0) and aligned with the z axis.
-function surfaceintersection(surf::AcceleratedParametricSurface{T,3,ZernikeSurface{T,3,P,Q}}, r::AbstractRay{T,3}) where {T<:Real,P,Q}
+function surfaceintersection(surf::AcceleratedParametricSurface{T,3,ZernikeSurface{T,3,P,Q,M}}, r::AbstractRay{T,3}) where {T<:Real,P,Q,M}
     cylint = surfaceintersection(surf.surface.boundingcylinder, r)
     if cylint isa EmptyInterval{T}
         return EmptyInterval(T)
@@ -327,31 +296,12 @@ function AcceleratedParametricSurface(surf::T, numsamples::Int = 17; interface::
     return a
 end
 
-function BoundingBox(surf::ZernikeSurface{T,3,P,Q}) where {T<:Real,P,Q}
-    xmin = -semidiameter(surf)
-    xmax = semidiameter(surf)
-    ymin = -semidiameter(surf)
-    ymax = semidiameter(surf)
+function BoundingBox(surf::ZernikeSurface{T,3,P,Q,M}) where {T<:Real,P,Q,M}
+    bb = BoundingBox(z.asp)
     # zernike terms have condition than |Zᵢ| <= 1
     # so this gives us a (loose) bounding box
-    ak = P > 0 ? sum(abs.(Zernike.normalisation(T, N, M) * k for (N, M, k) in surf.coeffs)) : zero(T)
-    zmin = -ak
-    zmax = ak
-    # aspherics can be more comlpicated, so just take sum of all negative and all positives
-    amin = Q > 0 ? sum(k < zero(T) ? k * surf.semidiameter^(2m) : zero(T) for (m, k) in surf.aspherics) : zero(T)
-    amax = Q > 0 ? sum(k > zero(T) ? k * surf.semidiameter^(2m) : zero(T) for (m, k) in surf.aspherics) : zero(T)
-    zmin += amin
-    zmax += amax
-    # curvature only goes one way
-    q = one(T) - (one(T) + surf.conic) * surf.curvature^2 * surf.semidiameter^2
-    if q < zero(T)
-        throw(ErrorException("The surface is invalid, no bounding box can be constructed"))
-    end
-    hmax = surf.curvature * surf.semidiameter^2 / (one(T) + sqrt(q))
-    if hmax > zero(T)
-        zmax += hmax
-    else
-        zmin += hmax
-    end
-    return BoundingBox(xmin, xmax, ymin, ymax, zmin, zmax)
+    ak = P > 0 ? sum(abs.(Zernike.normalisation(T, n, m) * k for (n, m, k) in surf.coeffs)) : zero(T)
+    bb.zmin -= ak
+    bb.zmax += ak
+    return BoundingBox(bb.xmin, bb.xmax, bb.ymin, bb.ymax, bb.zmin, bb.zmax) #could just return bb, but this way is safer
 end
