@@ -80,17 +80,7 @@ function pointcolor(point, cluster::Repeat.AbstractLatticeCluster)
 end
 export pointcolor
 
-""" mtf is the desired response at cycles per degree"""
-struct LensletClusterProperties
-    mtf
-    minfnumber
-    cyclesperdegree
-    λ
-    pixelpitch
-end
-export LensletClusterProperties
-
-defaultclusterproperties() = LensletClusterProperties(.2, 2.0, 11, 530nm, .9μm)
+defaultclusterproperties() = (mtf = .2, minfnumber = 2.0, cyclesperdegree = 11, λ = 530nm, pixelpitch = .9μm)
 export defaultclusterproperties
 
 """maximum allowable display for visibility reasons"""
@@ -223,7 +213,7 @@ sizeoflensletdisplay(angles,ppd,pixelpitch) = @. angles * ppd * pixelpitch
 eyeboxangles(eyebox,eyerelief) = @. atand(uconvert(Unitful.NoUnits, eyebox / eyerelief))
 export eyeboxangles
 
-"""computes how the fov can be subdivided among lenslets based on cluster size"""
+"""computes how the fov can be subdivided among lenslets based on cluster size. Assumes the horizontal size of the eyebox is larger than the vertical so the larger number of subdivisions will always be the first number in the returns Tuple."""
 function anglesubdivisions(pupildiameter, λ, mtf, cyclesperdegree;RGB=true)
     cluster, _ = choosecluster(pupildiameter, λ, mtf, cyclesperdegree)
     numelements = Repeat.clustersize(cluster)
@@ -307,11 +297,11 @@ function systemproperties(eyerelief, eyebox, fov, pupildiameter, mtf, cyclesperd
     diameter = diameter_for_cycles_deg(mtf, cyclesperdegree, λ)
     clusterdata = choosecluster(pupildiameter, diameter)
     difflimit = diffractionlimit(λ, clusterdata.lensletdiameter)
-    numlenses = numberoflenslets(fov, eyerelief, diameter)
+    numlenses = numberoflenslets(fov, eyerelief, clusterdata.lensletdiameter)
     redundancy = pixelredundancy(fov, eyerelief, eyebox, pupildiameter, difflimit, RGB=RGB)
     subdivisions = anglesubdivisions(pupildiameter, λ, mtf, cyclesperdegree, RGB=RGB)
     eyebox_angles = eyeboxangles(eyebox,eyerelief)
-    angles = lensletangles(eyerelief, eyebox, pupildiameter, difflimit, clusterproperties=LensletClusterProperties(mtf, minfnumber, cyclesperdegree, λ, pixelpitch))
+    angles = lensletangles(eyerelief, eyebox, pupildiameter, difflimit, clusterproperties=(mtf = mtf, minfnumber = minfnumber, cyclesperdegree = cyclesperdegree, λ = λ, pixelpitch = pixelpitch))
     dispsize = lensletdisplaysize(angles, eyerelief, eyebox, pupildiameter, pixelsperdegree, RGB=RGB)
     focal_length = focallength(pixelpitch,1/pixelsperdegree)
     fnumber = focal_length/clusterdata.lensletdiameter
@@ -323,6 +313,11 @@ end
 export systemproperties
 
 function printsystemproperties(eyerelief, eyebox, fov, pupildiameter, mtf, cyclesperdegree,pixelsperdegree; minfnumber=2.0,RGB=true,λ=530nm,pixelpitch=.9μm) 
+    println("eye relief = $eyerelief")
+    println("eye box = $eyebox")
+    println("fov = $(fov)°")
+    println("pupil diameter = $pupildiameter")
+    println("mtf = $mtf @ $cyclesperdegree cycles/degree")
     for (key,value) in pairs(systemproperties(eyerelief, eyebox, fov, pupildiameter, mtf, cyclesperdegree,pixelsperdegree, minfnumber = minfnumber,RGB=RGB,λ=λ,pixelpitch=pixelpitch))
         println("$key = $value")
     end
