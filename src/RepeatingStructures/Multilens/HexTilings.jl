@@ -81,3 +81,48 @@ function hex19RGB()
     return Repeat.ClusterWithProperties(lattice, properties)
 end
 export hex19RGB
+
+function hex19fov1()
+    lattice = hex19()
+
+    offset = 1
+    colornames = ["R","G","B"]
+    colors = ["red","green","blue"]
+    fov1 = [8,19,18,17,7,2]
+    fov2 = [16,15,14,13,5,6] 
+    fov3 = [12,11,10,9,3,4]
+
+    allfov = vcat([0],fov1,fov2,fov3)
+    names = [x -> string("fov",x) for x in 1:6]
+    
+    allnames = Vector{String}(undef,19)
+    allcolors = Vector{String}(undef,19)
+
+    for (index,fov) in pairs((fov1,fov2,fov3))
+        for i in eachindex(fov)
+            println("$index $i")
+            latticeindex = (index-1)*length(fov1) + i + offset
+            allcolors[allfov[latticeindex]] = colors[index]
+            allnames[allfov[latticeindex]] = string("fov",string(index))
+        end
+    end
+    allcolors[offset] = "white"
+    allnames[offset] = "W"
+    properties =  DataFrames.DataFrame(Color=allcolors, Name=allnames)
+    # properties =  DataFrames.DataFrame(Color = colors)
+    return Repeat.ClusterWithProperties(lattice, properties)
+end
+export hex19fov1
+
+
+function hex19fov2()
+    lattice = hex19()
+
+    colors = clustercolors(lattice)
+    names = [string("fov",x÷3) for x in 1:18]
+    names = vcat("W",names)
+    properties =  DataFrames.DataFrame(Color=colors, Name=names)
+    # properties =  DataFrames.DataFrame(Color = colors)
+    return Repeat.ClusterWithProperties(lattice, properties)
+end
+export hex19fov2
