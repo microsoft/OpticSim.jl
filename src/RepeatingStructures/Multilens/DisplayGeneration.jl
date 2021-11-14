@@ -5,6 +5,9 @@ using OpticSim.Geometry:Transform,world2local
 using OpticSim:plane_from_points,surfaceintersection,closestintersection,Ray,Plane
 using OpticSim.Repeat:tilevertices,HexBasis1
 
+"""compute the mean of the columns of `a`. If `a` is an `SMatrix` this is very fast and will not allocate."""
+centroid(a::AbstractMatrix) = sum(eachcol(a))/size(a)[2] #works except for the case of zero dimensional matrix.
+export centroid
 
 """project the vertices of a polygon represented by `vertices` onto `surface` using the point as the origin and `projectionvector` as the projection direction. Return nothing if any of the pronected points do not intersect the surface. The projected vertices are not guaranteed to be coplanar."""
 function project(vertices::SMatrix{3,N,T}, projectionvector::AbstractVector{T}, surface::OpticSim.Surface{T}) where {N,T}
@@ -24,19 +27,19 @@ function project(vertices::SMatrix{3,N,T}, projectionvector::AbstractVector{T}, 
     return SMatrix{3,N,T,3*N}(result)
 end
 
-"""Finds the best fit plane to vertices then projects vertices onto this plane by transforming from the global to the local coordinate frame and taking the x,y coordinates of the result (the plane normal is the third, z, axis of the world to local transform). The local coordinate frame is established by the plane_from_points function."""
+"""Finds the best fit plane to `vertices` then projects `vertices` onto this plane by transforming from the global to the local coordinate frame."""
 function projectonplane(vertices::SMatrix{3,N,T}) where{N,T}
-    center, normal, localrotation  = plane_from_points(vertices)
-    toworld = Transform(localrotation,center)
+    center, normal, localrotation  = plane_from_points(vertices) 
+    toworld = Transform(localrotation,center) #compute local to world transformation
     tolocal = world2local(toworld)
-    localpoints = tolocal * vertices
+    return tolocal * vertices #returns the third coordinate even though this will always be zero.
 end
 export projectonplane
 
 function testproject()
     normal = SVector(0.0, 0, 1)
     hex = HexBasis1()
-    verts = SMatrix{3,6}(vcat(tilevertices((0, 0), hex), [0 0 0 0 0 0]))
+    verts = SMatrix{3,6}(vcat(tilevertices((0, 0), hex), [0.0 0 0 0 0 0]))
     surf = Plane(normal, SVector(0.0, 0, 10))
 
     project(verts, normal, surf)
