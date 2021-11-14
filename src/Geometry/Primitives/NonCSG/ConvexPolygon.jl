@@ -7,7 +7,7 @@ import Statistics
 const _abs_err_orientation_2d = 2*eps(Float64)
 
 """
-    ConvexPolygon{N, T<:Real} <: PlanarShape{T} 
+    ConvexPolygon{N, T<:Real} <: AbstractPlanarShape{T} 
 
 General Convex Polygon surface, not a valid CSG object.
 The rotation of the polygon around its normal is defined by `rotationvec`.
@@ -21,7 +21,7 @@ The local frame defines the plane (spans by the right and up vectors) with the p
 the local_polygon_points are given with respect to the local frame and are 2D points.
 NOTE: This class uses static vectors to hold the points which will lead to more efficient performance, but should not be used with polygons with more than 20-30 points.
 """
-struct ConvexPolygon{N,T<:Real}  <: PlanarShape{T} 
+struct ConvexPolygon{N,T<:Real}  <: AbstractPlanarShape{T} 
     plane::Plane{T,3}
     local_frame::Transform{T}
     # local_points::Vector{SVector{2, T}}
@@ -69,6 +69,7 @@ end
 export ConvexPolygon
 
 centroid(poly::ConvexPolygon) = poly.plane.pointonplane
+normal(poly::ConvexPolygon) = normal(poly.plane)
 
 #function barrier to make vertices allocate less and be faster.
 function to3d(pts::SMatrix{2,N,T,L}) where{N,L,T}

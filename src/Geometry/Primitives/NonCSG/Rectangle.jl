@@ -17,7 +17,7 @@ Rectangle(halfsizeu::T, halfsizev::T, [surfacenormal::SVector{3,T}, centrepoint:
 
 The minimal case returns a rectangle centered at the origin with `surfacenormal = [0, 0, 1]`.
 """
-struct Rectangle{T} <: PlanarShape{T}
+struct Rectangle{T} <: AbstractPlanarShape{T}
     plane::Plane{T,3}
     halfsizeu::T
     halfsizev::T

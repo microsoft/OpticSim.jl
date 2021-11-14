@@ -11,10 +11,12 @@ import DataFrames
 import ..Repeat
 import SpecialFunctions
 import Plots
+import ...OpticSim
 
 include("HexClusters.jl")
 include("HexTilings.jl")
 include("Analysis.jl")
+include("DisplayGeneration.jl")
 
 end # module
 export Lenslets

@@ -13,14 +13,14 @@ function plane_from_points(points::SMatrix{3, N, Float64} where {N})
     center = Statistics.mean(points,dims=2)
 
     u, _, _ = svd(points .- center)
-    normal = u[:,3]             # singular vectors in decending order
+    normal = u[:,3]             # The two largest singular vectors lie in the plane that is the best fit to the points, i.e., that accounts for the largest fraction of variance in the set of points. The smallest singular vector is perpendicular to this plane.
 
     # make sure the normal is pointing consistently to positive Z direction 
     if (dot(normal, unitZ3()) < 0.0)
         normal = normal * -1.0
     end
 
-    return SVector(center), SVector(normal)     # convert from SMatrix to SVector
+    return SVector(center), SVector(normal), u     # convert from SMatrix to SVector, return u matrix to use as local coordinate frame for the plane.
 end
 
 """only returns real roots"""

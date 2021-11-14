@@ -1,18 +1,52 @@
 #display lenslet systems: emitter, paraxial lenslet, paraxial eye lens, retina detector.
 #start with eyebox plane and hexagonal tiling. Project onto display surface, generate lenslets automatically.
 
-function project(vertices::SMatrix{3,N,T},projectionvector::AbstractVector{T},surface::OpticSim.Surface{T}) where{N,T}
-    for i in size(vertices)[2]
-        origin = vertices[:,i]
-        ray = OpticSim.Ray(origin,projectionvector)
-        intsct = OpticSim.surfaceintersection(surface,ray)
-        println(intsct)
+using OpticSim.Geometry:Transform,world2local
+using OpticSim:plane_from_points,surfaceintersection,closestintersection,Ray,Plane
+using OpticSim.Repeat:tilevertices,HexBasis1
+
+
+"""project the vertices of a polygon represented by `vertices` onto `surface` using the point as the origin and `projectionvector` as the projection direction. Return nothing if any of the pronected points do not intersect the surface. The projected vertices are not guaranteed to be coplanar."""
+function project(vertices::SMatrix{3,N,T}, projectionvector::AbstractVector{T}, surface::OpticSim.Surface{T}) where {N,T}
+    result = MMatrix{3,N,T,3*N}(undef)
+
+    for i in 1:size(vertices)[2]
+        origin = vertices[:, i]
+        ray = Ray(origin, projectionvector)
+        intsct = surfaceintersection(surface, ray)
+        pointintsct = closestintersection(intsct,false)
+        if pointintsct === nothing #one of the polygon points didn't project to a point on the surface so reject the polygon
+            return nothing
+        else
+            result[:, i] = OpticSim.point(pointintsct)
+        end
     end
+    return SMatrix{3,N,T,3*N}(result)
 end
 
-function testproject()
-    normal = [0,0,1]
-    hex = Repeat.HexBasis1()
-    verts = vertices(hex)
-    surf = OpticSim.Plane(normal,[0,0,10],)
+"""Finds the best fit plane to vertices then projects vertices onto this plane by transforming from the global to the local coordinate frame and taking the x,y coordinates of the result (the plane normal is the third, z, axis of the world to local transform). The local coordinate frame is established by the plane_from_points function."""
+function projectonplane(vertices::SMatrix{3,N,T}) where{N,T}
+    center, normal, localrotation  = plane_from_points(vertices)
+    toworld = Transform(localrotation,center)
+    tolocal = world2local(toworld)
+    localpoints = tolocal * vertices
 end
+export projectonplane
+
+function testproject()
+    normal = SVector(0.0, 0, 1)
+    hex = HexBasis1()
+    verts = SMatrix{3,6}(vcat(tilevertices((0, 0), hex), [0 0 0 0 0 0]))
+    surf = Plane(normal, SVector(0.0, 0, 10))
+
+    project(verts, normal, surf)
+end
+export testproject
+
+function testprojectonplane()
+    verts = tilevertices(HexBasis1())
+    verts = vcat(verts,[0 for _ in 1:6]')
+    projectonplane(SMatrix{size(verts)...}(verts))
+end
+export testprojectonplane
+
