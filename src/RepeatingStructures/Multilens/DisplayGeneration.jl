@@ -27,6 +27,8 @@ function project(vertices::SMatrix{3,N,T}, projectionvector::AbstractVector{T}, 
     return SMatrix{3,N,T,3*N}(result)
 end
 
+project(vertices::AbstractMatrix{T}, projectionvector::AbstractVector{T}) where{T} = project(SMatrix{size(vertices)...,T}(vertices),projectionvector)
+
 """Finds the best fit plane to `vertices` then projects `vertices` onto this plane by transforming from the global to the local coordinate frame. The projected points are represented in the local coordinate frame of the plane."""
 function projectonplane(vertices::AbstractMatrix{T}) where{T}
     @assert size(vertices)[1] == 3 "projection only works for 3D points"
