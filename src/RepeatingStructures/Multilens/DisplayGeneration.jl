@@ -28,11 +28,14 @@ function project(vertices::SMatrix{3,N,T}, projectionvector::AbstractVector{T}, 
 end
 
 """Finds the best fit plane to `vertices` then projects `vertices` onto this plane by transforming from the global to the local coordinate frame."""
-function projectonplane(vertices::SMatrix{3,N,T}) where{N,T}
+function projectonplane(vertices::AbstractMatrix{T}) where{T}
+    @assert size(vertices)[1] == 3 "projection only works for 3D points"
+
     center, normal, localrotation  = plane_from_points(vertices) 
     toworld = Transform(localrotation,center) #compute local to world transformation
     tolocal = world2local(toworld)
-    return tolocal * vertices #returns the third coordinate even though this will always be zero.
+    result = tolocal * vertices 
+    return vcat(result[1:2,:],[0 for _ in 1:size(vertices)[2]]') #returns the third coordinate even though this will always be zero.
 end
 export projectonplane
 
