@@ -2,7 +2,7 @@
 #start with eyebox plane and hexagonal tiling. Project onto display surface, generate lenslets automatically.
 
 using OpticSim.Geometry:Transform,world2local
-using OpticSim:plane_from_points,surfaceintersection,closestintersection,Ray,Plane
+using OpticSim:plane_from_points,surfaceintersection,closestintersection,Ray,Plane,ConvexPolygon
 using OpticSim.Repeat:tilevertices,HexBasis1
 
 """compute the mean of the columns of `a`. If `a` is an `SMatrix` this is very fast and will not allocate."""
@@ -57,4 +57,12 @@ function testprojectonplane()
     projectonplane(SMatrix{size(verts)...}(verts))
 end
 export testprojectonplane
+
+"""projects convex polygon, represented by `vertices`, onto `surface` along vector `normal`. Assumes original polygon is convex and that the projection will be convex. No guarantee that this will be true"""
+function planarpoly(vertices,normal,surface)
+    projectedpoints = project(vertices,normal,surface)
+    planarpoints,toworld,tolocal = projectonplane(vertices)
+    return ConvexPolygon(toworld,planarpoints[1:2,:])
+end
+
 
