@@ -332,3 +332,26 @@ function makemesh(s::FiniteStop{T,RectangularStopShape,RectangularStopShape}, ::
 end
 
 makemesh(::InfiniteStop, ::Int = 0) = nothing
+
+
+# -----------------------------------------------------
+# define the convex polygon stop shape
+# -----------------------------------------------------
+struct InfiniteStopConvexPoly{N, T<:Real} <: OpticSim.StopSurface{T}
+    poly::ConvexPolygon{N,T}
+end
+export InfiniteStopConvexPoly
+
+function surfaceintersection(stop::InfiniteStopConvexPoly{N, T}, r::AbstractRay{T,3}) where {N, T<:Real}
+    interval = surfaceintersection(stop.poly.plane, r)
+    if interval isa EmptyInterval{T}
+        return EmptyInterval(T) # no ray polygon intersection
+    else
+        return interval # forward interval from polygon
+    end
+end
+
+interface(::InfiniteStopConvexPoly) = opaqueinterface(T)
+centroid(r::InfiniteStopConvexPoly{N, T}) where {N, T<:Real} = r.plane.pointonplane
+makemesh(::InfiniteStopConvexPoly, ::Int = 0) = nothing
+
