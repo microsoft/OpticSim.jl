@@ -2,7 +2,7 @@
 #start with eyebox plane and hexagonal tiling. Project onto display surface, generate lenslets automatically.
 
 using OpticSim.Geometry:Transform,world2local
-using OpticSim:plane_from_points,surfaceintersection,closestintersection,Ray,Plane,ConvexPolygon
+using OpticSim:plane_from_points,surfaceintersection,closestintersection,Ray,Plane,ConvexPolygon,Sphere
 using OpticSim.Repeat:tilevertices,HexBasis1
 
 """compute the mean of the columns of `a`. If `a` is an `SMatrix` this is very fast and will not allocate."""
@@ -33,11 +33,11 @@ project(vertices::AbstractMatrix{T}, projectionvector::AbstractVector{T}) where{
 function projectonplane(vertices::AbstractMatrix{T}) where{T}
     @assert size(vertices)[1] == 3 "projection only works for 3D points"
 
-    center, normal, localrotation  = plane_from_points(vertices) 
+    center, _, localrotation  = plane_from_points(vertices) 
     toworld = Transform(localrotation,center) #compute local to world transformation
     tolocal = world2local(toworld)
     result = tolocal * vertices 
-    return vcat(result[1:2,:],[0 for _ in 1:size(vertices)[2]]'),toworld,tolocal #project onto plane by setting z coordinate to zero. Return local coordinate frame so other functions can convert local points to world points.
+    return vcat(result[1:2,:],[0 for _ in 1:size(vertices)[2]]'),toworld,tolocal #project onto best fit plane by setting z coordinate to zero.
 end
 export projectonplane
 
@@ -66,3 +66,12 @@ function planarpoly(vertices,normal,surface)
 end
 
 
+"""Computes points on the edges of the spherical rectangle defined by the range of θ,ϕ. This is used to determine lattice boundaries on the eyebox surface."""
+function spherepoints(radius, θmin,θmax,ϕmin,ϕmax)
+    a = Sphere(radius)
+    θedges =  [OpticSim.point(a,θ,ϕ) for θ in θmin:.05:θmax, ϕ in (ϕmin,ϕmax)]
+    ϕedges =  [OpticSim.point(a,θ,ϕ) for ϕ in ϕmin:.05:ϕmax, θ in (ϕmin,ϕmax)]
+    allpoints = vcat(reshape(θedges,reduce(*,size(θedges))),reshape(ϕedges,reduce(*,size(ϕedges))))
+    reshape(reinterpret(Float64,allpoints),3,length(allpoints)) #return points as 3xn matrix with points as columns
+end
+export spherepoints
