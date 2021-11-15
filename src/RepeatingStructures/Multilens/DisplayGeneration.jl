@@ -10,8 +10,8 @@ centroid(a::AbstractMatrix) = sum(eachcol(a))/size(a)[2] #works except for the c
 export centroid
 
 """project the vertices of a polygon represented by `vertices` onto `surface` using the point as the origin and `projectionvector` as the projection direction. Return nothing if any of the pronected points do not intersect the surface. The projected vertices are not guaranteed to be coplanar."""
-function project(vertices::SMatrix{3,N,T}, projectionvector::AbstractVector{T}, surface::OpticSim.Surface{T}) where {N,T}
-    result = MMatrix{3,N,T,3*N}(undef)
+function project(vertices::AbstractMatrix{T}, projectionvector::AbstractVector{T}, surface::OpticSim.Surface{T}) where {T}
+    result = similar(vertices)
 
     for i in 1:size(vertices)[2]
         origin = vertices[:, i]
@@ -24,7 +24,7 @@ function project(vertices::SMatrix{3,N,T}, projectionvector::AbstractVector{T}, 
             result[:, i] = OpticSim.point(pointintsct)
         end
     end
-    return SMatrix{3,N,T,3*N}(result)
+    return result
 end
 
 project(vertices::AbstractMatrix{T}, projectionvector::AbstractVector{T}) where{T} = project(SMatrix{size(vertices)...,T}(vertices),projectionvector)
@@ -44,7 +44,8 @@ export projectonplane
 function testproject()
     normal = SVector(0.0, 0, 1)
     hex = HexBasis1()
-    verts = SMatrix{3,6}(vcat(tilevertices((0, 0), hex), [0.0 0 0 0 0 0]))
+    # verts = SMatrix{3,6}(vcat(tilevertices((0, 0), hex), [0.0 0 0 0 0 0]))
+    verts =vcat(tilevertices((0, 0), hex), [0.0 0 0 0 0 0])
     surf = Plane(normal, SVector(0.0, 0, 10))
 
     project(verts, normal, surf)
@@ -75,3 +76,14 @@ function spherepoints(radius, θmin,θmax,ϕmin,ϕmax)
     reshape(reinterpret(Float64,allpoints),3,length(allpoints)) #return points as 3xn matrix with points as columns
 end
 export spherepoints
+
+function testspherepoints()
+    pts = spherepoints(1.0,-.2,-.2,1.0,1.1)
+    surf = Plane(0.0,0.0,-1.0,0.0,0.0,0.0)
+    dir = [0.0,0.0,-1.0]
+    project(pts,dir,surf)
+end
+export testspherepoints
+
+bounds(pts::AbstractMatrix{T}) where{T} = [(maximum(row), minimum(row)) for row in eachrow(pts)]
+export bounds
