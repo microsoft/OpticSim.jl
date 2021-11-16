@@ -132,7 +132,7 @@ function tilesinside(containingshape::LazySets.VPolygon, lattice::Repeat.Abstrac
             end
         end
     end
-    return SMatrix{2,size(result)[2],coordtype}(result)
+    return result
 end
 export tilesinside
 

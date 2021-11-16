@@ -3,7 +3,7 @@
 
 using OpticSim.Geometry:Transform,world2local
 using OpticSim:plane_from_points,surfaceintersection,closestintersection,Ray,Plane,ConvexPolygon,Sphere
-using OpticSim.Repeat:tilevertices,HexBasis1
+using OpticSim.Repeat:tilevertices,HexBasis1,tilesinside
 
 """compute the mean of the columns of `a`. If `a` is an `SMatrix` this is very fast and will not allocate."""
 centroid(a::AbstractMatrix) = sum(eachcol(a))/size(a)[2] #works except for the case of zero dimensional matrix.
@@ -77,6 +77,9 @@ function spherepoints(radius, θmin,θmax,ϕmin,ϕmax)
 end
 export spherepoints
 
+"""given a total fov in θ  and ϕ compute sample points on the edges of the spherical rectangle."""
+spherepoints(radius,θ,ϕ) = spherepoints(radius,-θ/2,θ/2,-ϕ/2,ϕ/2)
+
 function testspherepoints()
     pts = spherepoints(1.0,-.2,-.2,1.0,1.1)
     surf = Plane(0.0,0.0,-1.0,0.0,0.0,0.0)
@@ -85,5 +88,20 @@ function testspherepoints()
 end
 export testspherepoints
 
-bounds(pts::AbstractMatrix{T}) where{T} = [(maximum(row), minimum(row)) for row in eachrow(pts)]
+bounds(pts::AbstractMatrix{T}) where{T} = [extrema(row) for row in eachrow(pts)]
 export bounds
+
+function eyeboxbounds(eyebox::OpticSim.Plane,dir::AbstractVector, radius,fovθ,fovϕ) 
+    pts = spherepoints(radius,fovθ,fovϕ)
+    projectedpts = project(pts,dir,eyebox)
+    return bounds(projectedpts)
+end
+export eyeboxbounds
+
+function boxtiles(bbox,lattice)
+    tiles = tilesinside(bbox[1][1],bbox[2][1],bbox[1][2],bbox[2][2],lattice)
+end
+export boxtiles
+
+eyeboxtiles(eyebox,dir,display,lattice) = boxtiles(eyeboxbounds(eyebox,dir,display),lattice)
+export eyeboxtiles
