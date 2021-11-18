@@ -123,12 +123,13 @@ function tilesinside(containingshape::LazySets.VPolygon, lattice::Repeat.Abstrac
     result = Matrix{coordtype}(undef, 2, 0)
     
     for i in -coords[1]:coords[1]
-        for j in -coords[2]:coords[2]       
-            center = Vector(lattice[(Int64.(box.center) + [i,j])...]) #[] indexer for lattices returns SVector which LazySets doesn't handle. Convert to conventional Vector.
+        for j in -coords[2]:coords[2] 
+            offsetcoords =   (Int64.(box.center) + [i,j])    
+            center = Vector(lattice[offsetcoords...]) #[] indexer for lattices returns SVector which LazySets doesn't handle. Convert to conventional Vector.
             offsethex = LazySets.translate(tilevertices, center)
 
             if !isempty(offsethex ∩ containingshape)
-                 result = hcat(result, [i j]')
+                 result = hcat(result, offsetcoords)
             end
         end
     end
