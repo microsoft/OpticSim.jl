@@ -319,7 +319,11 @@ function printsystemproperties(eyerelief, eyebox, fov, pupildiameter, mtf, cycle
     println("pupil diameter = $pupildiameter")
     println("mtf = $mtf @ $cyclesperdegree cycles/degree")
     for (key,value) in pairs(systemproperties(eyerelief, eyebox, fov, pupildiameter, mtf, cyclesperdegree,pixelsperdegree, minfnumber = minfnumber,RGB=RGB,λ=λ,pixelpitch=pixelpitch))
-        println("$key = $value")
+        if key == :diffraction_limit
+            println("$key = $value cycles/°")
+        else
+            println("$key = $value")
+        end
     end
 end
 export printsystemproperties
