@@ -1,3 +1,8 @@
+# MIT license
+# Copyright (c) Microsoft Corporation. All rights reserved.
+# See LICENSE in the project root for full license information.
+
+
 #display lenslet systems: emitter, paraxial lenslet, paraxial eye lens, retina detector.
 #start with eyebox plane and hexagonal tiling. Project onto display surface, generate lenslets automatically.
 
