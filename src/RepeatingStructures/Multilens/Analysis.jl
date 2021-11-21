@@ -128,7 +128,7 @@ export mtfcircular
 diffractionlimit(λ,diameter) = uconvert(Unitful.NoUnits, diameter / λ) / rad2deg(1)
 export diffractionlimit
 
-"""computes the diameter of a diffraction limited lens that has respone mtf at frequency cyclesperdeg"""
+"""computes the diameter of a diffraction limited lens that has response mtf at frequency cyclesperdeg"""
 function diameter_for_cycles_deg(mtf, cyclesperdeg, λ)
     cyclesperrad = rad2deg(1) * cyclesperdeg
     f(x) = mtfcircular(x, 1.0) - mtf
@@ -236,7 +236,7 @@ export anglesubdivisions
 """computes the approximate fov required of each lenslet for the given constraints. This is strictly correct only for a lenslet centered in front of the eyebox, but the approximation is good enough for high level analysis"""
 function lensletangles(eyerelief, eyebox, pupildiameter, ppd; clusterproperties=defaultclusterproperties(), RGB=true)
     cyclesperdegree = ppd / 2.0
-    return eyeboxangles(eyebox, eyerelief) ./ anglesubdivisions(pupildiameter, clusterproperties.λ, clusterproperties.mtf, cyclesperdegree, RGB=RGB)
+    return eyeboxangles(eyebox, eyerelief) ./ anglesubdivisions(pupildiameter, clusterproperties.λ, clusterproperties.mtf, clusterproperties.cyclesperdegree, RGB=RGB)
 end
 export lensletangles
 
