@@ -14,7 +14,7 @@ using OpticSim.Repeat:tilevertices,HexBasis1,tilesinside
 centroid(a::AbstractMatrix) = sum(eachcol(a))/size(a)[2] #works except for the case of zero dimensional matrix.
 export centroid
 
-"""project the vertices of a polygon represented by `vertices` onto `surface` using the point as the origin and `projectionvector` as the projection direction. Return nothing if any of the pronected points do not intersect the surface. The projected vertices are not guaranteed to be coplanar."""
+"""project the vertices of a polygon represented by `vertices` onto `surface` using the point as the origin and `projectionvector` as the projection direction. Return nothing if any of the projected points do not intersect the surface. The projected vertices are not guaranteed to be coplanar."""
 function project(vertices::AbstractMatrix{T}, projectionvector::AbstractVector{T}, surface::OpticSim.Surface{T}) where {T}
     result = similar(vertices)
 
@@ -75,9 +75,11 @@ end
 """Computes points on the edges of the spherical rectangle defined by the range of θ,ϕ. This is used to determine lattice boundaries on the eyebox surface."""
 function spherepoints(radius, θmin,θmax,ϕmin,ϕmax)
     a = Sphere(radius)
-    θedges =  [OpticSim.point(a,θ,ϕ) for θ in θmin:.05:θmax, ϕ in (ϕmin,ϕmax)]
-    ϕedges =  [OpticSim.point(a,θ,ϕ) for ϕ in ϕmin:.05:ϕmax, θ in (ϕmin,ϕmax)]
+    θedges =  [OpticSim.point(a,ϕ,θ) for θ in θmin:.01:θmax, ϕ in (ϕmin,ϕmax)]
+    ϕedges =  [OpticSim.point(a,ϕ,θ) for ϕ in ϕmin:.01:ϕmax, θ in (θmin,θmax)]
     allpoints = vcat(reshape(θedges,reduce(*,size(θedges))),reshape(ϕedges,reduce(*,size(ϕedges))))
+    # allpoints = vcat(reshape(θedges,reduce(*,size(θedges))))
+    
     reshape(reinterpret(Float64,allpoints),3,length(allpoints)) #return points as 3xn matrix with points as columns
 end
 export spherepoints
