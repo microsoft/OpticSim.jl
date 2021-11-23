@@ -64,7 +64,7 @@ function testprojectonplane()
 end
 export testprojectonplane
 
-"""projects convex polygon, represented by `vertices`, onto `surface` along vector `normal`. Assumes original polygon is convex and that the projection will be convex. No guarantee that this will be true"""
+"""projects convex polygon, represented by `vertices`, onto `surface` along vector `normal`. Assumes original polygon is convex and that the projection will be convex. No guarantee that this will be true bur for smoothly curved surfaces that are not varying too quickly relative to the size of the polygon it should be true."""
 function planarpoly(vertices,normal,surface)
     projectedpoints = project(vertices,normal,surface)
     planarpoints,toworld,tolocal = projectonplane(vertices)
