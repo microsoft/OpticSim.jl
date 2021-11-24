@@ -2,7 +2,43 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # See LICENSE in the project root for full license information.
 
-using .GlassCat
+module HumanEye
+
+using OpticSim
+using OpticSim.GlassCat
+using OpticSim.Geometry
+import Unitful
+using Unitful.DefaultSymbols:mm,°
+
+# Approximate average properties of the human eye
+
+eyeradius() = 24mm
+export eyeradius
+
+"""Focal length will change depending on accomodation. This value is for focus at ∞"""
+eyefocallength() = 17mm
+export eyefocallength
+
+vc_r() = 24mm #distance from vertex of cornea to retina
+vc_epupil() = 3mm #distance from vertex of cornea to entrance pupil
+
+""" distance from vertex of cornea to center of rotation"""
+cornea_to_eyecenter() = 13.5mm
+export cornea_to_eyecenter
+
+"""distance from entrance pupil to center of rotation."""
+entrancepupil_to_eyecenter() = cornea_to_eyecenter() - vc_epupil()
+export entrancepupil_to_eyecenter
+
+"""average angle, in degrees, the eye will rotate before users will turn their head"""
+comfortable_eye_rotation_angle() = 20°
+
+"""average translation of the entrance pupil associated with comfortable eye rotation"""
+comfortable_entrance_pupil_translation() = sin(comfortable_eye_rotation_angle())*entrancepupil_to_eyecenter()
+export comfortable_entrance_pupil_translation
+
+
+#Model eyes of varying degrees of verisimilitude
 
 """
     ModelEye(assembly::LensAssembly{T}, nsamples::Int = 17; pupil_radius::T = 3.0, detpixels::Int = 1000, transform::Transform{T} = identitytransform(T))
@@ -76,4 +112,7 @@ function ArizonaEye(::Type{T} = Float64; accommodation::T = 0.0) where {T<:Real}
     )
 end
 export ArizonaEye
+
+end #module 
+export HumanEye
 #! format: on
