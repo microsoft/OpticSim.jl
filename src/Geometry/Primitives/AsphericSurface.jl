@@ -58,7 +58,7 @@ struct AsphericSurface{T,N,Q,M} <: ParametricSurface{T,N}
         @assert one(T) - (1 / radius)^2 * (conic + one(T)) * semidiameter^2 > 0 "Invalid surface (conic/radius combination: $radius, $conic)"
 
         acs = []
-        if aspherics===nothing || aspherics == []  #AxisymmetricOpticalSystem sends a null array 
+        if aspherics===nothing #|| aspherics == []  #AxisymmetricOpticalSystem sends a null array 
             M = CONIC
          else
             asphericTerms = [i for (i, ) in aspherics]
