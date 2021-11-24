@@ -60,6 +60,7 @@ Cylinder
 Plane
 Sphere
 SphericalCap
+AsphericSurface
 ZernikeSurface
 BezierSurface
 BSplineSurface

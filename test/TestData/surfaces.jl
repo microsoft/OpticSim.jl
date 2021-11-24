@@ -83,7 +83,11 @@ zernikesurface2() = ZernikeSurface(1.5, radius = 5.0, conic = 1.0, zcoeff = [(7,
 
 zernikesurface3() = ZernikeSurface(9.5, zcoeff = [(1, 0.0), (4, -1.0), (7, 0.5)])
 
-conicsurface() = AcceleratedParametricSurface(ZernikeSurface(9.5, radius = -15.0, conic = -5.0))
+conicsurface() = AcceleratedParametricSurface(ZernikeSurface(9.5, radius = -15.0, conic = -5.0))  #this also tests the CONIC parameter of AsphericSurface
+
+oddasphericsurface() = OddAsphericSurface(9.5, 1.0/-50.0, 1.0, [0.0, 0.001, -0.0001]) 
+evenasphericsurface() = EvenAsphericSurface(9.5, 1.0/-50.0, 1.0, [0.001, -0.0001]) 
+oddevenasphericsurface() = OddEvenAsphericSurface(9.5, 1.0/-50.0, 1.0,  [0.0, 0.001, -0.0001])
 
 function simplesaggrid()
     points = map(

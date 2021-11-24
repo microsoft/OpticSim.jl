@@ -69,7 +69,7 @@ function AsphericLens(insidematerial::T, frontvertex::S, frontradius::S, frontco
         if frontaspherics !== nothing
             frontaspherics = [(i, -k) for (i, k) in frontaspherics]
         end
-        surf = AcceleratedParametricSurface(ZernikeSurface(semidiameter + frontdecenter_l + S(0.01), radius = -frontradius, conic = frontconic, aspherics = frontaspherics), nsamples, interface = opticinterface(S, insidematerial, lastmaterial, frontsurfacereflectance, interfacemode))
+        surf = AcceleratedParametricSurface(AsphericSurface(semidiameter + frontdecenter_l + S(0.01), radius = -frontradius, conic = frontconic, aspherics = frontaspherics), nsamples, interface = opticinterface(S, insidematerial, lastmaterial, frontsurfacereflectance, interfacemode))
         lens_front = leaf(surf, translation(S, frontdecenter[1], frontdecenter[2], frontvertex))
     end
     if isinf(backradius) && (backaspherics === nothing)
@@ -103,7 +103,7 @@ function AsphericLens(insidematerial::T, frontvertex::S, frontradius::S, frontco
         if backaspherics !== nothing
             backaspherics = Tuple{Int,S}.(backaspherics)
         end
-        surf = AcceleratedParametricSurface(ZernikeSurface(semidiameter + backdecenter_l + S(0.01), radius = backradius, conic = backconic, aspherics = backaspherics), nsamples, interface = opticinterface(S, insidematerial, nextmaterial, backsurfacereflectance, interfacemode))
+        surf = AcceleratedParametricSurface(AsphericSurface(semidiameter + backdecenter_l + S(0.01), radius = backradius, conic = backconic, aspherics = backaspherics), nsamples, interface = opticinterface(S, insidematerial, nextmaterial, backsurfacereflectance, interfacemode))
         lens_rear = leaf(surf, Transform{S}(zero(S), S(π), zero(S), backdecenter[1], backdecenter[2], frontvertex - thickness))
     end
     extra_front = frontradius >= zero(S) || isinf(frontradius) ? zero(S) : abs(frontradius) - sqrt(frontradius^2 - semidiameter^2)

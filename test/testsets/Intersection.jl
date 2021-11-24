@@ -658,7 +658,6 @@
     @testset "Zernike" begin
         @test_nowarn ZernikeSurface(1.5)
         @test_throws AssertionError ZernikeSurface(0.0)
-        @test_throws AssertionError ZernikeSurface(1.5, aspherics = [(1, 0.1)])
 
         z1 = TestData.zernikesurface1()
         az1 = AcceleratedParametricSurface(z1, 20)
