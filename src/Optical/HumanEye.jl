@@ -57,7 +57,7 @@ export comfortable_entrance_pupil_translation
 """
     ModelEye(assembly::LensAssembly{T}, nsamples::Int = 17; pupil_radius::T = 3.0, detpixels::Int = 1000, transform::Transform{T} = identitytransform(T))
 
-Geometrically accurate model of the human eye focussed at infinity with variable `pupil_radius`.
+Geometrically accurate model of the human eye focused at infinity with variable `pupil_radius`.
 The eye is added to the provided `assembly` to create a [`CSGOpticalSystem`](@ref) with the retina of the eye as the detector.
 
 The eye can be positioned in the scene using the `transform` argument and the resolution of the detector specified with `detpixels`.
