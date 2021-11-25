@@ -2,6 +2,9 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # See LICENSE in the project root for full license information.
 
+#Various sizes of hexagonal clusters that are useful in lenslet design. To see what they look like use the functions in HexTilings to make lattices with color properties and then draw them with Vis.draw
+#example: Vis.draw(hex3RGB())
+
 function hex3()
     clusterelements = SVector((0, 0), (-1, 0), (-1, 1))
     eltlattice = Repeat.HexBasis1()
