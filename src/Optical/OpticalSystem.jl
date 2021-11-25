@@ -279,7 +279,7 @@ function get_front_back_property(prescription::DataFrame, rownum::Int, property:
     return replace(properties, missing => default)
 end
 
-turnEmptyIntoNothing(list) = length(list)==0 ? Nothing : list
+turnEmptyIntoNothing(list) = length(list)==0 ? nothing : list
 
 """
     AxisymmetricOpticalSystem{T,C<:CSGOpticalSystem{T}} <: AbstractOpticalSystem{T}
