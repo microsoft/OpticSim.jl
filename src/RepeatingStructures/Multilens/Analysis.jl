@@ -25,16 +25,7 @@ import DataFrames
 # 700   cd/m2	Typical photographic scene on overcast day[4][8][11]
 # 103	kcd/m2	2 kcd/m2	Average cloudy sky[2]
 # 5     kcd/m2	Typical photographic scene in full sunlight[4][8]
-"""
-# Pupil diameter as a function of scene luminance
-https://jov.arvojournals.org/article.aspx?articleid=2279420
-https://en.wikipedia.org/wiki/Orders_of_magnitude_(luminance)
 
-Pupil diameter is approximately 2.8mm at 100cd/m^2. A typical overcast day is 700cd/m^2 
-"""
-
-"""computes pupil diameter as a function of scene luminance, in cd/m², and the angular area, a, over which this luminance is presented to the eye."""
-𝐃sd(L,a) = 7.75 - 5.75 * ((L * a / 846)^.41) / ((L * a / 846)^.41 + 2) # the first letter of this function name is \bfD not D.
 
 
 """This function returns the radius of the longest basis vector of the lattice cluster. Most lattices defined in this project have symmetric basis vectors so the radii of all basis vectors will be identical."""
