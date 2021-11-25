@@ -14,19 +14,30 @@ using OpticSim.Repeat:tilevertices,HexBasis1,tilesinside
 centroid(a::AbstractMatrix) = sum(eachcol(a))/size(a)[2] #works except for the case of zero dimensional matrix.
 export centroid
 
+function project(point::AbstractVector{T},projectionvector::AbstractVector{T},surface::OpticSim.Surface{T}) where{T}
+    ray = Ray(point, projectionvector)
+    intsct = surfaceintersection(surface, ray)
+    pointintsct = closestintersection(intsct,false)
+    if pointintsct === nothing #point didn't project to a point on the surface
+        return nothing
+    else
+        return OpticSim.point(pointintsct)
+    end
+end
+export project
+
 """project the vertices of a polygon represented by `vertices` onto `surface` using the point as the origin and `projectionvector` as the projection direction. Return nothing if any of the projected points do not intersect the surface. The projected vertices are not guaranteed to be coplanar."""
 function project(vertices::AbstractMatrix{T}, projectionvector::AbstractVector{T}, surface::OpticSim.Surface{T}) where {T}
     result = similar(vertices)
 
     for i in 1:size(vertices)[2]
         origin = vertices[:, i]
-        ray = Ray(origin, projectionvector)
-        intsct = surfaceintersection(surface, ray)
-        pointintsct = closestintersection(intsct,false)
-        if pointintsct === nothing #one of the polygon points didn't project to a point on the surface so reject the polygon
+        pt = project(origin,projectionvector,surface)
+
+        if pt === nothing #one of the polygon points didn't project to a point on the surface so reject the polygon
             return nothing
         else
-            result[:, i] = OpticSim.point(pointintsct)
+            result[:, i] = pt
         end
     end
     return result
@@ -35,7 +46,7 @@ end
 project(vertices::AbstractMatrix{T}, projectionvector::AbstractVector{T}) where{T} = project(SMatrix{size(vertices)...,T}(vertices),projectionvector)
 
 """Finds the best fit plane to `vertices` then projects `vertices` onto this plane by transforming from the global to the local coordinate frame. The projected points are represented in the local coordinate frame of the plane."""
-function projectonplane(vertices::AbstractMatrix{T}) where{T}
+function projectonbestfitplane(vertices::AbstractMatrix{T}) where{T}
     @assert size(vertices)[1] == 3 "projection only works for 3D points"
 
     center, _, localrotation  = plane_from_points(vertices) 
@@ -44,7 +55,7 @@ function projectonplane(vertices::AbstractMatrix{T}) where{T}
     result = tolocal * vertices 
     return vcat(result[1:2,:],[0 for _ in 1:size(vertices)[2]]'),toworld,tolocal #project onto best fit plane by setting z coordinate to zero.
 end
-export projectonplane
+export projectonbestfitplane
 
 function testproject()
     normal = SVector(0.0, 0, 1)
@@ -60,14 +71,14 @@ export testproject
 function testprojectonplane()
     verts = tilevertices(HexBasis1())
     verts = vcat(verts,[0 for _ in 1:6]')
-    projectonplane(SMatrix{size(verts)...}(verts))
+    projectonbestfitplane(SMatrix{size(verts)...}(verts))
 end
 export testprojectonplane
 
 """projects convex polygon, represented by `vertices`, onto `surface` along vector `normal`. Assumes original polygon is convex and that the projection will be convex. No guarantee that this will be true bur for smoothly curved surfaces that are not varying too quickly relative to the size of the polygon it should be true."""
 function planarpoly(vertices,normal,surface)
     projectedpoints = project(vertices,normal,surface)
-    planarpoints,toworld,tolocal = projectonplane(vertices)
+    planarpoints,toworld,tolocal = projectonbestfitplane(vertices)
     return ConvexPolygon(toworld,planarpoints[1:2,:])
 end
 
