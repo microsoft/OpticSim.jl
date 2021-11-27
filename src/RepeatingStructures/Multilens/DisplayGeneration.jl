@@ -9,6 +9,7 @@
 using OpticSim.Geometry:Transform,world2local
 using OpticSim:plane_from_points,surfaceintersection,closestintersection,Ray,Plane,ConvexPolygon,Sphere
 using OpticSim.Repeat:tilevertices,HexBasis1,tilesinside
+using OpticSim.Vis:drawcells
 
 """compute the mean of the columns of `a`. If `a` is an `SMatrix` this is very fast and will not allocate."""
 centroid(a::AbstractMatrix) = sum(eachcol(a))/size(a)[2] #works except for the case of zero dimensional matrix.
@@ -75,10 +76,10 @@ function testprojectonplane()
 end
 export testprojectonplane
 
-"""projects convex polygon, represented by `vertices`, onto `surface` along vector `normal`. Assumes original polygon is convex and that the projection will be convex. No guarantee that this will be true bur for smoothly curved surfaces that are not varying too quickly relative to the size of the polygon it should be true."""
+"""projects convex polygon, represented by `vertices`, onto `surface` along vector `normal`. Assumes original polygon is convex and that the projection will be convex. No guarantee that this will be true but for smoothly curved surfaces that are not varying too quickly relative to the size of the polygon it should be true."""
 function planarpoly(vertices,normal,surface)
     projectedpoints = project(vertices,normal,surface)
-    planarpoints,toworld,tolocal = projectonbestfitplane(vertices)
+    planarpoints,toworld,_ = projectonbestfitplane(projectedpoints)
     return ConvexPolygon(toworld,planarpoints[1:2,:])
 end
 
@@ -101,13 +102,21 @@ export spherepoints
 """given a total fov in θ  and ϕ compute sample points on the edges of the spherical rectangle."""
 spherepoints(radius,θ,ϕ) = spherepoints(radius,-θ/2,θ/2,-ϕ/2,ϕ/2)
 
-function testspherepoints()
+function testprojection()
     pts = spherepoints(1.0,-.2,-.2,1.0,1.1)
     surf = Plane(0.0,0.0,-1.0,0.0,0.0,0.0)
     dir = [0.0,0.0,-1.0]
     project(pts,dir,surf)
 end
-export testspherepoints
+export testprojection
+
+function testspherepoint()
+    @assert isapprox(spherepoint(1,π/2,0.0), [0.0,1.0,0.0])
+    @assert isapprox(spherepoint(1,0.0,π/2), [1.0,0.0,0.0])
+    @assert isapprox(spherepoint(1,0,0.0), [0.0,0.0,1.0])
+    @assert isapprox(spherepoint(1,0.0,π/4), [sqrt(2)/2,0.0,sqrt(2)/2])
+end
+export testspherepoint
 
 function bounds(pts::AbstractMatrix{T}) where{T} 
     println(pts)
@@ -130,3 +139,28 @@ export boxtiles
 
 eyeboxtiles(eyebox,dir,radius,fovθ,fovϕ,lattice) = boxtiles(eyeboxbounds(eyebox,dir,radius,fovθ,fovϕ),lattice)
 export eyeboxtiles
+
+function spherehexagon(vertices,normal,radius)
+    sp = Sphere(radius) #assuming sphere is centered at the center of rotation of the eye
+    planarpoly(vertices,normal,sp)
+end
+
+#TODO need to figure out what to use as the normal (eventually this will need to take into account the part of the eyebox the lenslet should cover) 
+#TODO write test for planarpoly and generation of Paraxial lens system using planar hexagon as lenslet.
+function spherehexagons(eyebox,dir,radius,fovθ,fovϕ,lattice)
+    tiles = eyeboxtiles(eyebox,dir,radius,fovθ,fovϕ,lattice)
+    for coords in eachcol(tiles)
+        vertices = tilevertices(lattice[coords...])
+        projectedpts = project(vertices,-dir,Sphere(radius))
+        spherepoly = planarpoly(projectpts,)
+    end
+end
+
+
+function testeyeboxtiles()
+    tiles = eyeboxtiles(Plane(0.0,0.0,1.0,0.0,0.0,12.0),[0.0,0.0,-1.0],30,deg2rad(55),deg2rad(45),HexBasis1())
+    drawcells(HexBasis1(),10,tiles)
+    tiles = eyeboxtiles(Plane(0.0,0.0,1.0,0.0,0.0,12.0),[0.0,0.0,-1.0],30,deg2rad(25),deg2rad(45),HexBasis1())
+    drawcells(HexBasis1(),10,tiles)
+end
+export testeyeboxtiles
