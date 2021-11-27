@@ -82,12 +82,15 @@ function planarpoly(vertices,normal,surface)
     return ConvexPolygon(toworld,planarpoints[1:2,:])
 end
 
+spherepoint(radius,θ,ϕ) = radius .* SVector(cos(θ)sin(ϕ),sin(θ),cos(θ)cos(ϕ))
+export spherepoint
 
 """Computes points on the edges of the spherical rectangle defined by the range of θ,ϕ. This is used to determine lattice boundaries on the eyebox surface."""
 function spherepoints(radius, θmin,θmax,ϕmin,ϕmax)
-    a = Sphere(radius)
-    θedges =  [OpticSim.point(a,ϕ,θ) for θ in θmin:.01:θmax, ϕ in (ϕmin,ϕmax)]
-    ϕedges =  [OpticSim.point(a,ϕ,θ) for ϕ in ϕmin:.01:ϕmax, θ in (θmin,θmax)]
+    
+
+    θedges =  [spherepoint(radius,ϕ,θ) for θ in θmin:.5:θmax, ϕ in (ϕmin,ϕmax)]
+    ϕedges =  [spherepoint(radius,ϕ,θ) for ϕ in ϕmin:.5:ϕmax, θ in (θmin,θmax)]
     allpoints = vcat(reshape(θedges,reduce(*,size(θedges))),reshape(ϕedges,reduce(*,size(ϕedges))))
     # allpoints = vcat(reshape(θedges,reduce(*,size(θedges))))
     
@@ -106,11 +109,15 @@ function testspherepoints()
 end
 export testspherepoints
 
-bounds(pts::AbstractMatrix{T}) where{T} = [extrema(row) for row in eachrow(pts)]
+function bounds(pts::AbstractMatrix{T}) where{T} 
+    println(pts)
+    return [extrema(row) for row in eachrow(pts)]
+end
 export bounds
 
 function eyeboxbounds(eyebox::OpticSim.Plane,dir::AbstractVector, radius,fovθ,fovϕ) 
     pts = spherepoints(radius,fovθ,fovϕ)
+    display(pts)
     projectedpts = project(pts,dir,eyebox)
     return bounds(projectedpts)
 end
@@ -121,5 +128,5 @@ function boxtiles(bbox,lattice)
 end
 export boxtiles
 
-eyeboxtiles(eyebox,dir,display,lattice) = boxtiles(eyeboxbounds(eyebox,dir,display),lattice)
+eyeboxtiles(eyebox,dir,radius,fovθ,fovϕ,lattice) = boxtiles(eyeboxbounds(eyebox,dir,radius,fovθ,fovϕ),lattice)
 export eyeboxtiles
