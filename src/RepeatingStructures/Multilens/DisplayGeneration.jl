@@ -9,7 +9,18 @@
 using OpticSim.Geometry:Transform,world2local
 using OpticSim:plane_from_points,surfaceintersection,closestintersection,Ray,Plane,ConvexPolygon,Sphere
 using OpticSim.Repeat:tilevertices,HexBasis1,tilesinside
-using OpticSim.Vis:drawcells
+# using OpticSim.Vis:drawcells
+
+"""N is the number of vertices in the lattice tile. This contains information about the color of the display and which portion of the eyebox the lenslet should cover."""
+struct LatticeTile{N,T<:Real}
+    vertices::SMatrix{N,T}
+    color
+    boxi::Int64
+    boxj::Int64
+    clusteri::Int64
+    clusterj::Int64
+    cluster
+end
 
 """compute the mean of the columns of `a`. If `a` is an `SMatrix` this is very fast and will not allocate."""
 centroid(a::AbstractMatrix) = sum(eachcol(a))/size(a)[2] #works except for the case of zero dimensional matrix.
@@ -157,10 +168,10 @@ function spherehexagons(eyebox,dir,radius,fovθ,fovϕ,lattice)
 end
 
 
-function testeyeboxtiles()
-    tiles = eyeboxtiles(Plane(0.0,0.0,1.0,0.0,0.0,12.0),[0.0,0.0,-1.0],30,deg2rad(55),deg2rad(45),HexBasis1())
-    drawcells(HexBasis1(),10,tiles)
-    tiles = eyeboxtiles(Plane(0.0,0.0,1.0,0.0,0.0,12.0),[0.0,0.0,-1.0],30,deg2rad(25),deg2rad(45),HexBasis1())
-    drawcells(HexBasis1(),10,tiles)
-end
-export testeyeboxtiles
+# function testeyeboxtiles()
+#     tiles = eyeboxtiles(Plane(0.0,0.0,1.0,0.0,0.0,12.0),[0.0,0.0,-1.0],30,deg2rad(55),deg2rad(45),HexBasis1())
+#     drawcells(HexBasis1(),10,tiles)
+#     tiles = eyeboxtiles(Plane(0.0,0.0,1.0,0.0,0.0,12.0),[0.0,0.0,-1.0],30,deg2rad(25),deg2rad(45),HexBasis1())
+#     drawcells(HexBasis1(),10,tiles)
+# end
+# export testeyeboxtiles

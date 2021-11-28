@@ -68,6 +68,14 @@ function Base.size(::LatticeCluster{N1,N}) where{N1,N}
     return ntuple((i)->Base.IsInfinite(),N)
 end
 
+"""returns the integer coordinates of the tile at tileindex in the cluster at for a cluster with location cᵢ,cⱼ"""
+function tilecoordinates(cluster::LatticeCluster{N1,N},cᵢ,cⱼ,tileindex) where{N1,N}
+    @assert tileindex <= N1
+    clustercenter = basismatrix(clusterbasis(cluster))*SVector(cᵢ,cⱼ)
+    tileoffset = cluster.clusterelements[tileindex]
+    return clustercenter .+ tileoffset
+end
+
 Base.setindex!(A::AbstractBasis{N}, v, I::Vararg{Int, N}) where{N} = nothing #can't set lattice points. Might want to throw an exception instead.
 
 """ returns the lattice indices of the elements in the cluster. These are generally not the positions of the elements"""
@@ -77,10 +85,42 @@ function clustercoordinates(a::LatticeCluster{N1,N},indices::Vararg{Int,N}) wher
     for i in 1:N1
         temp[:,i] = SVector{N,Int}(a.clusterelements[i]) + clusteroffset
     end
-    return SMatrix{N,N1,Int}(temp) #positions of the cluster elements, not the lattice coordinates.
+    return SMatrix{N,N1,Int}(temp) #the lattice coordinates in the underlying element basis of the cluster elements
 end
 export clustercoordinates
 
+"""Given the (i,j) coordinates of a tile defined in the the underlying lattice basis of the cluster compute the coordinates (cᵢ,cⱼ) of the cluster containing the tile, and the tile number of the tile in that cluster"""
+function cluster_coordinates_from_tile_coordinates(cluster::LatticeCluster{N1,N},i::Int,j::Int) where{N1,N}
+    found = false
+    bmatrix = Rational.(basismatrix(clusterbasis(cluster)))
+
+    local clustercoords::SVector{}
+    tileindex = 0 #initialize to illegal value
+    for coords in eachcol(clustercoordinates(cluster, 0,0)) #don't know which tile in the cluster the i,j coords come from so try all of them until find one that yields an integer value for the cluster coordinate.
+        tileindex += 1
+        possiblecenter = SVector{N,Rational}((i,j)) .- Rational.(coords)
+        clustercoords = bmatrix \  possiblecenter
+        if reduce(&,1 .== denominator.(clustercoords)) #coordinates are integer so this is the correct cluster value.
+            found = true    #every tile position i,j corresponds to some cluster (cᵢ,cⱼ) so will always find an answer
+            break
+        end
+    end
+    @assert found == true
+
+    return Int64.(clustercoords),tileindex  #return coordinates of the cluster and the index of the tile within that cluster
+end
+
+function test_cluster_coordinates_from_tile_coordinates()
+    cluster = Repeat.Lenslets.hex9()
+
+    for iter in 1:100
+        (i,j) = rand.((1:1000,1:1000))
+        coords,tileindex = cluster_coordinates_from_tile_coordinates(cluster,i,j)
+        reconstructed = tilecoordinates(cluster,coords...,tileindex)
+        @assert all((i,j) .== reconstructed)
+    end
+end
+export test_cluster_coordinates_from_tile_coordinates
 
 """
 May want to have many properties associated with the elements in a cluster, which is why properties is represented as a DataFrame. The DataFrame in the properties field should have as many rows as there are elements in a cluster. At a minimum it must have a :Color and a :Name column.
