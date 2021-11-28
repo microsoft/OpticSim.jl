@@ -75,6 +75,7 @@ function tilecoordinates(cluster::LatticeCluster{N1,N},cᵢ,cⱼ,tileindex) wher
     tileoffset = cluster.clusterelements[tileindex]
     return clustercenter .+ tileoffset
 end
+export tilecoordinates
 
 Base.setindex!(A::AbstractBasis{N}, v, I::Vararg{Int, N}) where{N} = nothing #can't set lattice points. Might want to throw an exception instead.
 
