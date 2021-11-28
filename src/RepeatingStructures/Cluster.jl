@@ -106,7 +106,7 @@ function cluster_coordinates_from_tile_coordinates(cluster::LatticeCluster{N1,N}
             break
         end
     end
-    @assert found == true
+    @assert found == true #should always find a cluster corresponding to any i,j. If not then something is seriously wrong.
 
     return Int64.(clustercoords),tileindex  #return coordinates of the cluster and the index of the tile within that cluster
 end
@@ -120,6 +120,13 @@ function test_cluster_coordinates_from_tile_coordinates()
         coords,tileindex = cluster_coordinates_from_tile_coordinates(cluster,i,j)
         reconstructed = tilecoordinates(cluster,coords...,tileindex)
         @assert all((i,j) .== reconstructed)
+    end
+
+    #verify that the 0,0 cluster is correct
+    for (index,element) in pairs(clusterelements(cluster))
+        coords, tileindex = cluster_coordinates_from_tile_coordinates(cluster, element...)
+        @assert all(coords .== 0)
+        @assert tileindex == index
     end
 end
 export test_cluster_coordinates_from_tile_coordinates
