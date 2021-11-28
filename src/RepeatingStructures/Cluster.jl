@@ -101,7 +101,7 @@ function cluster_coordinates_from_tile_coordinates(cluster::LatticeCluster{N1,N}
         tileindex += 1
         possiblecenter = SVector{N,Rational}((i,j)) .- Rational.(coords)
         clustercoords = bmatrix \  possiblecenter
-        if reduce(&,1 .== denominator.(clustercoords)) #coordinates are integer so this is the correct cluster value.
+        if all(1 .== denominator.(clustercoords)) #If coordinates are integer so this is the correct cluster value. If coordinates are not integer keep trying.
             found = true    #every tile position i,j corresponds to some cluster (cᵢ,cⱼ) so will always find an answer
             break
         end
