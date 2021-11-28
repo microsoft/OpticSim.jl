@@ -27,7 +27,8 @@ AsphericSurface(semidiameter; radius, conic, aspherics=nothing, normradius = sem
 The surface is centered at the origin and treated as being the cap of an infinite cylinder, thus creating a true half-space.
 Outside of `0 <= ρ <= 1` the height of the surface is not necessarily well defined, so NaN may be returned.
 
-`aspherics`  aspherics should be vectors containing tuples of the form (i, v) where i is the polynomial power of the aspheric term
+`aspherics`  aspherics should be vectors containing tuples of the form (i, v) where i is the polynomial power of the aspheric term.
+An empty vector is not permitted. Use `nothing` instead.
 
 The sag is defined by the equation
 
@@ -56,6 +57,7 @@ struct AsphericSurface{T,N,Q,M} <: ParametricSurface{T,N}
         @assert semidiameter > 0
         @assert !isnan(semidiameter) && !isnan(radius) && !isnan(conic)
         @assert one(T) - (1 / radius)^2 * (conic + one(T)) * semidiameter^2 > 0 "Invalid surface (conic/radius combination: $radius, $conic)"
+        @assert aspherics != [] 
 
         acs = []
         if aspherics===nothing
