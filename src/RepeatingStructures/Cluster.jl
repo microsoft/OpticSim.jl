@@ -89,7 +89,7 @@ function clustercoordinates(a::LatticeCluster{N1,N},indices::Vararg{Int,N}) wher
 end
 export clustercoordinates
 
-"""Given the (i,j) coordinates of a tile defined in the the underlying lattice basis of the cluster compute the coordinates (cᵢ,cⱼ) of the cluster containing the tile, and the tile number of the tile in that cluster"""
+"""Given the (i,j) coordinates of a tile defined in the the underlying lattice basis of elements of the cluster compute the coordinates (cᵢ,cⱼ) of the cluster containing the tile, and the tile number of the tile in that cluster"""
 function cluster_coordinates_from_tile_coordinates(cluster::LatticeCluster{N1,N},i::Int,j::Int) where{N1,N}
     found = false
     bmatrix = Rational.(basismatrix(clusterbasis(cluster)))
