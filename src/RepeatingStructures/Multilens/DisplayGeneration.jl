@@ -7,7 +7,7 @@
 #start with eyebox plane and hexagonal tiling. Project onto display surface, generate lenslets automatically.
 
 using OpticSim.Geometry:Transform,world2local
-using OpticSim:plane_from_points,surfaceintersection,closestintersection,Ray,Plane,ConvexPolygon,Sphere,ParaxialLensConvexPoly
+using OpticSim:plane_from_points,surfaceintersection,closestintersection,Ray,Plane,ConvexPolygon,Sphere,ParaxialLensConvexPoly,ParaxialLens
 using OpticSim.Repeat:tilevertices,HexBasis1,tilesinside
 using Unitful:upreferred
 using Unitful.DefaultSymbols:°
@@ -163,9 +163,15 @@ end
 
 function spherelenslets(eyebox::Plane{T,N},dir,radius,fovθ,fovϕ,lattice) where{T,N}
     lenspolys = spherepolygons(eyebox,dir,radius,fovθ,fovϕ,lattice)
-    result = Vector{ParaxialLens{T}
-    lenslets = OpticSim.ParaxialLensConvexPoly(2,)
+    result = Vector{ParaxialLens{T}}(undef,length(lenspolys))
+    empty(result)
+    for poly in lenspolys
+        lenslet = ParaxialLensConvexPoly(2.0,poly,SVector{2,T}(T(0),T(0)))
+        push!(result,lenslet)
+    end
+    return result
 end
+export spherelenslets
 
 function testspherepolygons()
     eyebox = Plane(0.0,0.0,1.0,0.0,0.0,12.0)
