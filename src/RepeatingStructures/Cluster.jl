@@ -109,6 +109,7 @@ function cluster_coordinates_from_tile_coordinates(cluster::LatticeCluster{N1,N}
 
     return Int64.(clustercoords),tileindex  #return coordinates of the cluster and the index of the tile within that cluster
 end
+export cluster_coordinates_from_tile_coordinates
 
 function test_cluster_coordinates_from_tile_coordinates()
     cluster = Repeat.Lenslets.hex9()
