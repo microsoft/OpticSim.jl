@@ -112,24 +112,7 @@ function cluster_coordinates_from_tile_coordinates(cluster::LatticeCluster{N1,N}
 end
 export cluster_coordinates_from_tile_coordinates
 
-function test_cluster_coordinates_from_tile_coordinates()
-    cluster = Repeat.Lenslets.hex9()
 
-    for iter in 1:100
-        (i,j) = rand.((1:1000,1:1000))
-        coords,tileindex = cluster_coordinates_from_tile_coordinates(cluster,i,j)
-        reconstructed = tilecoordinates(cluster,coords...,tileindex)
-        @assert all((i,j) .== reconstructed)
-    end
-
-    #verify that the 0,0 cluster is correct
-    for (index,element) in pairs(clusterelements(cluster))
-        coords, tileindex = cluster_coordinates_from_tile_coordinates(cluster, element...)
-        @assert all(coords .== 0)
-        @assert tileindex == index
-    end
-end
-export test_cluster_coordinates_from_tile_coordinates
 
 """
 May want to have many properties associated with the elements in a cluster, which is why properties is represented as a DataFrame. The DataFrame in the properties field should have as many rows as there are elements in a cluster. At a minimum it must have a :Color and a :Name column.

@@ -29,4 +29,21 @@
     end
 
     @test basistest(hex3cluster()) == basistest(hex3RGB()) 
+
+    #LatticeCluster testset
+    cluster = Repeat.Lenslets.hex9()
+
+    for iter in 1:100
+        (i,j) = rand.((1:1000,1:1000))
+        coords,tileindex = Repeat.cluster_coordinates_from_tile_coordinates(cluster,i,j)
+        reconstructed = Repeat.tilecoordinates(cluster,coords...,tileindex)
+        @test all((i,j) .== reconstructed)
+    end
+ 
+    #verify that the 0,0 cluster is correct
+    for (index,element) in pairs(Repeat.clusterelements(cluster))
+        coords, tileindex = Repeat.cluster_coordinates_from_tile_coordinates(cluster, element...)
+        @test all(coords .== 0)
+        @test tileindex == index
+    end
 end
