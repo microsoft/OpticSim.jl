@@ -279,6 +279,8 @@ function get_front_back_property(prescription::DataFrame, rownum::Int, property:
     return replace(properties, missing => default)
 end
 
+turnEmptyIntoNothing(list) = length(list)==0 ? nothing : list
+
 """
     AxisymmetricOpticalSystem{T,C<:CSGOpticalSystem{T}} <: AbstractOpticalSystem{T}
 
@@ -374,12 +376,21 @@ struct AxisymmetricOpticalSystem{T,C<:CSGOpticalSystem{T}} <: AbstractOpticalSys
                 frontaspherics::Vector{Pair{Int,T}}, backaspherics::Vector{Pair{Int,T}} = [
                     [parse(Int, k) => v for (k, v) in params] for params in [frontparams, backparams]
                 ]
-
-                newelement = AsphericLens(
-                    material, vertices[i-1], frontradius, frontconic, frontaspherics, backradius, backconic,
-                    backaspherics, thickness, semidiameter; lastmaterial, nextmaterial, frontsurfacereflectance,
-                    backsurfacereflectance
-                )()
+                
+                fa = turnEmptyIntoNothing(frontaspherics)
+                ba = turnEmptyIntoNothing(backaspherics)
+                if fa === nothing && ba === nothing  #it should be a CONIC. Note: if aspheric terms are present but all zero then an AshpericLens will be created
+                    newelement = ConicLens(
+                        material, vertices[i-1], frontradius, frontconic, backradius, backconic, thickness,
+                        semidiameter; lastmaterial, nextmaterial, frontsurfacereflectance, backsurfacereflectance
+                    )()
+                else    
+                    newelement = AsphericLens(
+                        material, vertices[i-1], frontradius, frontconic, fa, backradius, backconic,
+                        ba, thickness, semidiameter; lastmaterial, nextmaterial, frontsurfacereflectance,
+                        backsurfacereflectance
+                    )()
+                end
             else
                 error(
                     "Unsupported surface type \"$surface_type\". If you'd like to add support for this surface, ",
