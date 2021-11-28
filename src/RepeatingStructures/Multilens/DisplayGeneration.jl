@@ -7,7 +7,7 @@
 #start with eyebox plane and hexagonal tiling. Project onto display surface, generate lenslets automatically.
 
 using OpticSim.Geometry:Transform,world2local
-using OpticSim:plane_from_points,surfaceintersection,closestintersection,Ray,Plane,ConvexPolygon,Sphere
+using OpticSim:plane_from_points,surfaceintersection,closestintersection,Ray,Plane,ConvexPolygon,Sphere,ParaxialLensConvexPoly
 using OpticSim.Repeat:tilevertices,HexBasis1,tilesinside
 using Unitful:upreferred
 using Unitful.DefaultSymbols:°
@@ -85,6 +85,7 @@ function planarpoly(projectedpoints::AbstractMatrix{T}) where{T}
     numpts = size(planarpoints)[2]
     temp = SMatrix{2,numpts}(planarpoints[1:2,:])
     vecofpts = collect(reinterpret(reshape,SVector{2,T},temp))
+    #this code is inefficient because of different data structures used by convex polygon and most other code for representing lists of vertices.
      return ConvexPolygon(toworld,vecofpts)
 end
 
@@ -158,6 +159,12 @@ function spherepolygons(eyebox::Plane{T,N},dir,radius,fovθ,fovϕ,lattice) where
         push!(shapes,spherepolygon(vertices,-dir,Sphere(radius)))
     end
     shapes
+end
+
+function spherelenslets(eyebox::Plane{T,N},dir,radius,fovθ,fovϕ,lattice) where{T,N}
+    lenspolys = spherepolygons(eyebox,dir,radius,fovθ,fovϕ,lattice)
+    result = Vector{ParaxialLens{T}
+    lenslets = OpticSim.ParaxialLensConvexPoly(2,)
 end
 
 function testspherepolygons()
