@@ -135,6 +135,14 @@ Transform(rotation::AbstractArray{S,2}, translation::AbstractArray{S,1})
 """
 Transform{T} = SMatrix{4,4,T,16}
 export Transform
+#TODO: This was a bad idea. Should make Transform a concrete type of its own containing an SMatrix because the * operator for SMatrix*SVector is specialized for static arrays and vectors of particular sizes. Will lead to subtle and hard to fix bugs. Maybe something like this:
+# struct Transform{T} <: SMatrix{4,4,T,16}
+#     transform::SMatrix{4,4,T,16}
+# end
+# :*(a::Transform{T},b::SVector{3,T}) ...
+# :*(a::Transform{T},b::SVector{4,T}) ...
+
+
 
 # for compatability ith the "old" RigidBodyTransform
 """
@@ -433,6 +441,7 @@ function world2local(t::Transform{T}) where {T<:Real}
 end
 export world2local
 
+#TODO: should make Transform a concrete type of its own containing an SMatrix. This is hijackijng the * operator for SMatrix*SVector for arrays and vectors of particular sizes. Will lead to subtle and hard to fix bugs.
 function Base.:*(t::Transform{T}, v::SVector{3,T}) where {T<:Real}
     res = t * Vec4(v)
     if (t[4,4] == one(T))
@@ -442,7 +451,7 @@ function Base.:*(t::Transform{T}, v::SVector{3,T}) where {T<:Real}
     end
 end
 
-
+#TODO: should make Transform a concrete type of its own containing an SMatrix. This is hijackijng the * operator for SMatrix*SVector for arrays and vectors of particular sizes. Will lead to subtle and hard to fix bugs.
 function Base.:*(t::Transform{T}, m::SMatrix{3,N,T}) where{N,T<:Real}
     res = MMatrix{3,N,T}(undef)
 

@@ -8,20 +8,30 @@
 
 Estimate the best fitting plane for a set of points in 3D.
 A more efficient version of plane_from_points.
+`D` is the dimension of the plane.
+`N` is the number of points to fit.
+`T` is the type of the number used to represent points.
 """
-function plane_from_points(points::SMatrix{3, N, Float64} where {N}) 
+function plane_from_points(points::SMatrix{D, N, P}) where {D,N,P<:Real}
     center = Statistics.mean(points,dims=2)
 
     u, _, _ = svd(points .- center)
     normal = u[:,3]             # The two largest singular vectors lie in the plane that is the best fit to the points, i.e., that accounts for the largest fraction of variance in the set of points. The smallest singular vector is perpendicular to this plane.
 
     # make sure the normal is pointing consistently to positive Z direction 
-    if (dot(normal, unitZ3()) < 0.0)
-        normal = normal * -1.0
+    if dot(normal, unitZ3()) < P(0.0)
+        normal = normal * P(-1.0)
     end
 
     return SVector(center), SVector(normal), u     # convert from SMatrix to SVector, return u matrix to use as local coordinate frame for the plane.
 end
+
+function plane_from_points(points::AbstractMatrix{P}) where{P<:Real}
+    dims = size(points)
+    temp = MMatrix{dims[1],dims[2],P}(points)
+    return plane_from_points(SMatrix(temp))
+end
+
 
 """only returns real roots"""
 function quadraticroots(a::T, b::T, c::T) where {T<:Real}

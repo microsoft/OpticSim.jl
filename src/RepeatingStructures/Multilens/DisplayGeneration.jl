@@ -9,22 +9,14 @@
 using OpticSim.Geometry:Transform,world2local
 using OpticSim:plane_from_points,surfaceintersection,closestintersection,Ray,Plane,ConvexPolygon,Sphere
 using OpticSim.Repeat:tilevertices,HexBasis1,tilesinside
+using Unitful:upreferred
+using Unitful.DefaultSymbols:°
+
 # using OpticSim.Vis:drawcells
 
-"""N is the number of vertices in the lattice tile. This contains information about the color of the display and which portion of the eyebox the lenslet should cover."""
-struct LatticeTile{N,T<:Real}
-    vertices::SMatrix{N,T}
-    color
-    boxi::Int64
-    boxj::Int64
-    clusteri::Int64
-    clusterj::Int64
-    cluster
-end
-
 """compute the mean of the columns of `a`. If `a` is an `SMatrix` this is very fast and will not allocate."""
-centroid(a::AbstractMatrix) = sum(eachcol(a))/size(a)[2] #works except for the case of zero dimensional matrix.
-export centroid
+columncentroid(a::AbstractMatrix) = sum(eachcol(a))/size(a)[2] #works except for the case of zero dimensional matrix.
+export columncentroid
 
 function project(point::AbstractVector{T},projectionvector::AbstractVector{T},surface::OpticSim.Surface{T}) where{T}
     ray = Ray(point, projectionvector)
@@ -55,7 +47,6 @@ function project(vertices::AbstractMatrix{T}, projectionvector::AbstractVector{T
     return result
 end
 
-project(vertices::AbstractMatrix{T}, projectionvector::AbstractVector{T}) where{T} = project(SMatrix{size(vertices)...,T}(vertices),projectionvector)
 
 """Finds the best fit plane to `vertices` then projects `vertices` onto this plane by transforming from the global to the local coordinate frame. The projected points are represented in the local coordinate frame of the plane."""
 function projectonbestfitplane(vertices::AbstractMatrix{T}) where{T}
@@ -64,15 +55,16 @@ function projectonbestfitplane(vertices::AbstractMatrix{T}) where{T}
     center, _, localrotation  = plane_from_points(vertices) 
     toworld = Transform(localrotation,center) #compute local to world transformation
     tolocal = world2local(toworld)
-    result = tolocal * vertices 
-    return vcat(result[1:2,:],[0 for _ in 1:size(vertices)[2]]'),toworld,tolocal #project onto best fit plane by setting z coordinate to zero.
+    numpts = size(vertices)[2]
+    result = tolocal * SMatrix{3,numpts}(vertices) 
+
+    return result,toworld,tolocal #project onto best fit plane by setting z coordinate to zero.
 end
 export projectonbestfitplane
 
 function testproject()
     normal = SVector(0.0, 0, 1)
     hex = HexBasis1()
-    # verts = SMatrix{3,6}(vcat(tilevertices((0, 0), hex), [0.0 0 0 0 0 0]))
     verts =vcat(tilevertices((0, 0), hex), [0.0 0 0 0 0 0])
     surf = Plane(normal, SVector(0.0, 0, 10))
 
@@ -88,10 +80,12 @@ end
 export testprojectonplane
 
 """projects convex polygon, represented by `vertices`, onto `surface` along vector `normal`. Assumes original polygon is convex and that the projection will be convex. No guarantee that this will be true but for smoothly curved surfaces that are not varying too quickly relative to the size of the polygon it should be true."""
-function planarpoly(vertices,normal,surface)
-    projectedpoints = project(vertices,normal,surface)
+function planarpoly(projectedpoints::AbstractMatrix{T}) where{T}
     planarpoints,toworld,_ = projectonbestfitplane(projectedpoints)
-    return ConvexPolygon(toworld,planarpoints[1:2,:])
+    numpts = size(planarpoints)[2]
+    temp = SMatrix{2,numpts}(planarpoints[1:2,:])
+    vecofpts = collect(reinterpret(reshape,SVector{2,T},temp))
+     return ConvexPolygon(toworld,vecofpts)
 end
 
 spherepoint(radius,θ,ϕ) = radius .* SVector(cos(θ)sin(ϕ),sin(θ),cos(θ)cos(ϕ))
@@ -99,12 +93,9 @@ export spherepoint
 
 """Computes points on the edges of the spherical rectangle defined by the range of θ,ϕ. This is used to determine lattice boundaries on the eyebox surface."""
 function spherepoints(radius, θmin,θmax,ϕmin,ϕmax)
-    
-
     θedges =  [spherepoint(radius,ϕ,θ) for θ in θmin:.5:θmax, ϕ in (ϕmin,ϕmax)]
     ϕedges =  [spherepoint(radius,ϕ,θ) for ϕ in ϕmin:.5:ϕmax, θ in (θmin,θmax)]
     allpoints = vcat(reshape(θedges,reduce(*,size(θedges))),reshape(ϕedges,reduce(*,size(ϕedges))))
-    # allpoints = vcat(reshape(θedges,reduce(*,size(θedges))))
     
     reshape(reinterpret(Float64,allpoints),3,length(allpoints)) #return points as 3xn matrix with points as columns
 end
@@ -121,23 +112,13 @@ function testprojection()
 end
 export testprojection
 
-function testspherepoint()
-    @assert isapprox(spherepoint(1,π/2,0.0), [0.0,1.0,0.0])
-    @assert isapprox(spherepoint(1,0.0,π/2), [1.0,0.0,0.0])
-    @assert isapprox(spherepoint(1,0,0.0), [0.0,0.0,1.0])
-    @assert isapprox(spherepoint(1,0.0,π/4), [sqrt(2)/2,0.0,sqrt(2)/2])
-end
-export testspherepoint
-
 function bounds(pts::AbstractMatrix{T}) where{T} 
-    println(pts)
     return [extrema(row) for row in eachrow(pts)]
 end
 export bounds
 
 function eyeboxbounds(eyebox::OpticSim.Plane,dir::AbstractVector, radius,fovθ,fovϕ) 
     pts = spherepoints(radius,fovθ,fovϕ)
-    display(pts)
     projectedpts = project(pts,dir,eyebox)
     return bounds(projectedpts)
 end
@@ -151,21 +132,45 @@ export boxtiles
 eyeboxtiles(eyebox,dir,radius,fovθ,fovϕ,lattice) = boxtiles(eyeboxbounds(eyebox,dir,radius,fovθ,fovϕ),lattice)
 export eyeboxtiles
 
-function spherehexagon(vertices,normal,radius)
-    sp = Sphere(radius) #assuming sphere is centered at the center of rotation of the eye
-    planarpoly(vertices,normal,sp)
+function spherepolygon(vertices,projectiondirection,sph::Sphere)
+    @assert typeof(vertices) <: SMatrix
+    projectedpts = project(vertices,projectiondirection,sph)
+    return planarpoly(projectedpts) #polygon on best fit plane to projectedpts
 end
 
 #TODO need to figure out what to use as the normal (eventually this will need to take into account the part of the eyebox the lenslet should cover) 
 #TODO write test for planarpoly and generation of Paraxial lens system using planar hexagon as lenslet.
-function spherehexagons(eyebox,dir,radius,fovθ,fovϕ,lattice)
-    tiles = eyeboxtiles(eyebox,dir,radius,fovθ,fovϕ,lattice)
+function spherepolygons(eyebox::Plane{T,N},dir,radius,fovθ,fovϕ,lattice) where{T,N}
+    #if fovθ, fovϕ are in degrees convert to radians. If they are unitless then the assumption is that the represent radians
+    eyeboxz = eyebox.pointonplane[3]
+    θ = upreferred(fovθ)
+    ϕ = upreferred(fovϕ)
+    tiles = eyeboxtiles(eyebox,dir,radius,θ,ϕ,lattice)
+    shapes = Vector{ConvexPolygon{6,T}}(undef,0)
     for coords in eachcol(tiles)
-        vertices = tilevertices(lattice[coords...])
-        projectedpts = project(vertices,-dir,Sphere(radius))
-        spherepoly = planarpoly(projectpts,)
+        twodverts = tilevertices(coords,lattice)
+        numverts = size(twodverts)[2]
+        temp = MMatrix{1,numverts,T}(undef)
+        fill!(temp,eyeboxz)
+        zerorow = SMatrix{1,numverts,T}(temp)
+        vertices = SMatrix{N,numverts,T}(vcat(twodverts,zerorow))
+        @assert typeof(vertices) <: SMatrix
+        push!(shapes,spherepolygon(vertices,-dir,Sphere(radius)))
     end
+    shapes
 end
+
+function testspherepolygons()
+    eyebox = Plane(0.0,0.0,1.0,0.0,0.0,12.0)
+    dir = [0.0,0.0,-1.0]
+    radius = 30.0
+    fovθ = 55°
+    fovϕ = 45°
+    lattice = HexBasis1()
+
+    return spherepolygons(eyebox,dir,radius,fovθ,fovϕ,lattice)
+end
+export testspherepolygons
 
 
 # function testeyeboxtiles()
