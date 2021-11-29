@@ -161,6 +161,27 @@ using StaticArrays
             ]
         end
 
+        @testset "RectJitterGrid" begin
+            @test Origins.RectJitterGrid(1., 2., 3, 4, 1).width === 1.0
+            @test Origins.RectJitterGrid(1., 2., 3, 4, 1).height === 2.0
+            @test Origins.RectJitterGrid(1., 2., 2, 2, 3).ustep === 0.5
+            @test Origins.RectJitterGrid(1., 2., 2, 2, 3).vstep === 1.0
+
+            @test Base.length(Origins.RectJitterGrid(1., 2., 5, 6, 7)) === 210
+            @test Emitters.visual_size(Origins.RectJitterGrid(1., 2., 5, 6, 7)) === 2.0
+
+            @test collect(Origins.RectJitterGrid(1., 2., 2, 2, 2, rng=Random.MersenneTwister(0))) == [
+                [-0.08817624601129381, -0.08964346207356355, 0.0],
+                [-0.4177171009331574, -0.8226711535337354, 0.0],  
+                [0.1394400546656005, -0.7965234419580773, 0.0],
+                [0.021150832966014832, -0.9317307444943552, 0.0],
+                [-0.3190858046118913, 0.9732164043865108, 0.0],
+                [-0.2070942241283379, 0.5392892841426182, 0.0],
+                [0.13001792513452393, 0.910046541351011, 0.0],
+                [0.08351809722107484, 0.6554484126999125, 0.0],
+            ]
+        end
+
         @testset "Hexapolar" begin
             @test Origins.Hexapolar(1, 0, 0).nrings === 1
             @test_throws MethodError Origins.Hexapolar(1., 0, 0)
