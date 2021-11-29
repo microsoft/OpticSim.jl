@@ -145,8 +145,8 @@ end
 function spherepolygons(eyebox::Plane{T,N},dir,radius,fovθ,fovϕ,lattice) where{T,N}
     #if fovθ, fovϕ are in degrees convert to radians. If they are unitless then the assumption is that the represent radians
     eyeboxz = eyebox.pointonplane[3]
-    θ = upreferred(fovθ)
-    ϕ = upreferred(fovϕ)
+    θ = upreferred(fovθ) #converts to radians if in degrees
+    ϕ = upreferred(fovϕ) #converts to radians if in degrees
     tiles = eyeboxtiles(eyebox,dir,radius,θ,ϕ,lattice)
     shapes = Vector{ConvexPolygon{6,T}}(undef,0)
     coordinates = Vector{Tuple{Int64,Int64}}(undef,0)
@@ -167,7 +167,7 @@ end
 function spherelenslets(eyebox::Plane{T,N},dir,radius,fovθ,fovϕ,lattice) where{T,N}
     lenspolys,tilecoords = spherepolygons(eyebox,dir,radius,fovθ,fovϕ,lattice)
     result = Vector{ParaxialLens{T}}(undef,length(lenspolys))
-    empty(result)
+    empty!(result)
     for poly in lenspolys
         lenslet = ParaxialLensConvexPoly(2.0,poly,SVector{2,T}(T(0),T(0)))
         push!(result,lenslet)
