@@ -7,7 +7,8 @@
 #start with eyebox plane and hexagonal tiling. Project onto display surface, generate lenslets automatically.
 
 using OpticSim.Geometry:Transform,world2local
-using OpticSim:plane_from_points,surfaceintersection,closestintersection,Ray,Plane,ConvexPolygon,Sphere,ParaxialLensConvexPoly,ParaxialLens
+using OpticSim:plane_from_points,surfaceintersection,closestintersection,Ray,Plane,ConvexPolygon,Sphere 
+using OpticSim
 using OpticSim.Repeat:tilevertices,HexBasis1,tilesinside
 using Unitful:upreferred
 using Unitful.DefaultSymbols:°
@@ -148,6 +149,7 @@ function spherepolygons(eyebox::Plane{T,N},dir,radius,fovθ,fovϕ,lattice) where
     ϕ = upreferred(fovϕ)
     tiles = eyeboxtiles(eyebox,dir,radius,θ,ϕ,lattice)
     shapes = Vector{ConvexPolygon{6,T}}(undef,0)
+    coordinates = Vector{Tuple{Int64,Int64}}(undef,0)
     for coords in eachcol(tiles)
         twodverts = tilevertices(coords,lattice)
         numverts = size(twodverts)[2]
@@ -157,21 +159,27 @@ function spherepolygons(eyebox::Plane{T,N},dir,radius,fovθ,fovϕ,lattice) where
         vertices = SMatrix{N,numverts,T}(vcat(twodverts,zerorow))
         @assert typeof(vertices) <: SMatrix
         push!(shapes,spherepolygon(vertices,-dir,Sphere(radius)))
+        push!(coordinates,Tuple{T,T}(coords))
     end
-    shapes
+    shapes,coordinates
 end
 
 function spherelenslets(eyebox::Plane{T,N},dir,radius,fovθ,fovϕ,lattice) where{T,N}
-    lenspolys = spherepolygons(eyebox,dir,radius,fovθ,fovϕ,lattice)
+    lenspolys,tilecoords = spherepolygons(eyebox,dir,radius,fovθ,fovϕ,lattice)
     result = Vector{ParaxialLens{T}}(undef,length(lenspolys))
     empty(result)
     for poly in lenspolys
         lenslet = ParaxialLensConvexPoly(2.0,poly,SVector{2,T}(T(0),T(0)))
         push!(result,lenslet)
     end
-    return result
+    return result,tilecoords
 end
 export spherelenslets
+
+function testspherelenslets()
+    spherelenslets(Plane(0.0,0.0,1.0,0.0,0.0,12.0),[0.0,0.0,-1.0],30.0,55°,45°,HexBasis1())
+end
+export testspherelenslets
 
 function testspherepolygons()
     eyebox = Plane(0.0,0.0,1.0,0.0,0.0,12.0)
