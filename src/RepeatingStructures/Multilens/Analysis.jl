@@ -28,7 +28,7 @@ import DataFrames
 
 
 
-"""This function returns the radius of the longest basis vector of the lattice cluster. Most lattices defined in this project have symmetric basis vectors so the radii of all basis vectors will be identical."""
+"""This function returns the radius of the longest basis vector of the lattice cluster. Most lattices defined in this project have symmetric basis vectors so the radii of all basis vectors will be identical. This function is used in determing which clusters "fit" within the eye pupil."""
 function latticediameter(basismatrix::SMatrix)
     maximum(norm.([basismatrix[:,i] for i in 1:size(basismatrix)[2]]))
 end
@@ -58,7 +58,7 @@ colorbasis(::Repeat.HexBasis3) = SMatrix{2,2}(2, -1, 1, 1)
 colororigins(::Repeat.HexBasis1) = ((0, 0), (-1, 0), (-1, 1))
 colororigins(::Repeat.HexBasis3) = ((0, 0), (0, -1), (1, -1))
 
-"""computes the color associated with a lattice point in the lattice"""
+"""To reduce color channel cross talk it may be useful to arrange the color lenslets in a hexagonal lattice so that each color is surrounded by lenslets of a different color. With appropriate color filtering crosstalk between immediately neighboring lenslets can be reduced. This function computes the color which should be assigned to any lattice point to ensure this properly holds."""
 function pointcolor(point, cluster::Repeat.AbstractLatticeCluster)
     latticematrix = colorbasis(Repeat.elementbasis(cluster))
     origins = colororigins(Repeat.elementbasis(cluster))
@@ -149,6 +149,7 @@ export ρatairyvalue
 closestpackingdistance(pupildiameter) = pupildiameter * cosd(30)
 export closestpackingdistance
 
+"""Tries clusters of various sizes to choose the largest one which fits within the eye pupil. Larger clusters allow for greater reduction of the fov each lenslet must cover so it returns the largest feasible cluster"""
 function choosecluster(pupildiameter, lensletdiameter)
     clusters = (hex3RGB(), hex4RGB(), hex7RGB(), hex9RGB(), hex12RGB(), hex19RGB())
     # cdist = closestpackingdistance(pupildiameter)
@@ -172,6 +173,7 @@ function choosecluster(pupildiameter, lensletdiameter)
 end
 export choosecluster
 
+"""Computes the largest feasible cluster size meeting constraints"""
 function choosecluster(pupildiameter, λ, mtf, cyclesperdeg::T) where {T <: Real} 
     diam = diameter_for_cycles_deg(mtf, cyclesperdeg, λ)
     return choosecluster(pupildiameter, diam) # use minimum diameter for now.
@@ -189,6 +191,7 @@ export sizeoflensletdisplay
 sizeofdisplay(fov,eyerelief) = @. 2 * tand(fov / 2) * eyerelief
 export sizeofdisplay
 
+"""Computes the number of lenslets required to create a specified field of view at the given eyerelief"""
 function numberoflenslets(fov, eyerelief, lensletdiameter)
     lensletarea = π * (lensletdiameter / 2)^2
     dispsize = sizeofdisplay(fov, eyerelief)
@@ -224,7 +227,7 @@ end
 export anglesubdivisions
 
 
-"""computes the approximate fov required of each lenslet for the given constraints. This is strictly correct only for a lenslet centered in front of the eyebox, but the approximation is good enough for high level analysis"""
+"""Computes the approximate fov required of each lenslet for the given constraints. This is strictly correct only for a lenslet centered in front of the eyebox, but the approximation is good enough for high level analysis"""
 function lensletangles(eyerelief, eyebox, pupildiameter, ppd; clusterproperties=defaultclusterproperties(), RGB=true)
     cyclesperdegree = ppd / 2.0
     return eyeboxangles(eyebox, eyerelief) ./ anglesubdivisions(pupildiameter, clusterproperties.λ, clusterproperties.mtf, clusterproperties.cyclesperdegree, RGB=RGB)
@@ -236,7 +239,7 @@ export testangles
 
 lensletresolution(angles,ppd) = angles .* ppd
 
-"""computes how many more pixels the multilens display will use than a conventional display of the same nominal resolution"""
+"""Multilens displays tradeoff pixel redundancy for a reduction in total track of the display, by using many short focal length lenses to cover the eyebox. This function computes the ratio of pixels in the multilens display vs. a conventional display of the same nominal resolution"""
 function pixelredundancy(fov, eyerelief, eyebox, pupildiameter, ppd; RGB=true)
     lensprops = defaultclusterproperties()
     clusterdata = choosecluster(pupildiameter, lensprops.λ, lensprops.mtf, lensprops.cyclesperdegree)
@@ -284,6 +287,26 @@ function displaysize_ppdvspupildiameter()
 end
 export displaysize_ppdvspupildiameter
 
+""" Compute high level properties of a lenslet display system. Uses basic geometric and optical constraints to compute approximate values which should be within 10% or so of a real physical system.
+
+`eyerelief` is in mm: `18mm` not `18`.
+
+`eyebox` is a 2 tuple of lengths, also in mm, that specifies the size of the rectangular eyebox, assumed to lie on vertex of the cornea when the eye is looking directly forward.
+
+`fov` is the field of view of the display as seen by the eye, in degrees (no unit type necessary here).
+
+`pupildiameter` is the diameter of the eye pupil in mm.
+
+`mtf` is the MTF response of the system at the angular frequency `cyclesperdegree`.
+
+`pixelsperdegree` is the number of pixels per degree on the display, as seen by the eye through the lenslets. This is not a specification of the optical resolution of the system (use `mtf` and `cyclesperdegree` for that). It is a physical characteristic of the display.
+
+Example:
+```
+julia> systemproperties(18mm,(10mm,9mm),(55°,45°),4.0mm,.2,11,30)
+(lenslet_diameter = 0.7999999999999999 mm, diffraction_limit = 26.344592482933276, fnumber = 1.9337325040249893, focal_length = 1.5469860032199914 mm, display_size = (18.740413819862866 mm, 14.911688245431423 mm), lenslet_display_size = (261.4914368916943 μm, 358.6281908905529 μm), total_silicon_area = 52.1360390897504 mm^2, number_lenslets = 555.9505147668694, pixel_redundancy = 28.895838544429424 °^-2, eyebox_angles = (29.054604099077146, 26.56505117707799), lenslet_fov = (9.684868033025715, 13.282525588538995), subdivisions = (3, 2))
+```
+"""
 function systemproperties(eyerelief, eyebox, fov, pupildiameter, mtf, cyclesperdegree,pixelsperdegree; minfnumber=2.0,RGB=true,λ=530nm,pixelpitch=.9μm)
     diameter = diameter_for_cycles_deg(mtf, cyclesperdegree, λ)
     clusterdata = choosecluster(pupildiameter, diameter)
@@ -303,6 +326,7 @@ function systemproperties(eyerelief, eyebox, fov, pupildiameter, mtf, cyclesperd
 end
 export systemproperties
 
+"""prints system properties nicely"""
 function printsystemproperties(eyerelief, eyebox, fov, pupildiameter, mtf, cyclesperdegree,pixelsperdegree; minfnumber=2.0,RGB=true,λ=530nm,pixelpitch=.9μm) 
     println("eye relief = $eyerelief")
     println("eye box = $eyebox")

@@ -4,7 +4,8 @@
 module Lenslets
 using LinearAlgebra
 import Unitful
-using Unitful.DefaultSymbols:mm,μm #Unitful.DefaultSymbols exports a variable T which can cause major confusion with type declarations since T is a common parametric type symbol. Import only what is needed.
+using Unitful:uconvert,ustrip
+using Unitful.DefaultSymbols:mm,μm,nm #Unitful.DefaultSymbols exports a variable T which can cause major confusion with type declarations since T is a common parametric type symbol. Import only what is needed.
 using Colors
 using StaticArrays
 import DataFrames
