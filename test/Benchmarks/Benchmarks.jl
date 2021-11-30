@@ -47,12 +47,15 @@ sphere_inside() = surfaceintersection, (Sphere(0.5), Ray([0.0, 0.0, 0.0], [0.0, 
 plane() = surfaceintersection, (Plane(0.0, 0.0, 1.0, 0.0, 0.0, 0.0), rayz())
 rectangle() = surfaceintersection, (Rectangle(1.0, 1.0, SVector(0.0, 0.0, 1.0), SVector(0.0, 0.0, 0.0)), rayz())
 ellipse() = surfaceintersection, (Ellipse(1.0, 1.0, SVector(0.0, 0.0, 1.0), SVector(0.0, 0.0, 0.0)), rayz())
+convexPolygon() = surfaceintersection, (ConvexPolygon(Geometry.Transform(), [SVector(-1.0, -1.0), SVector(1.0, -1.0), SVector(1.0, 1.0), SVector(-1.0, 1.0)]), rayz())
 cylinder_parallel() = surfaceintersection, (Cylinder(1.0), rayz())
 cylinder_perp() = surfaceintersection, (Cylinder(1.0), rayx())
 bbox_parallel() = surfaceintersection, (BoundingBox(-1.0, 1.0, -1.0, 1.0, -5.0, 5.0), rayz())
 bbox_perp() = surfaceintersection, (BoundingBox(-1.0, 1.0, -1.0, 1.0, -5.0, 5.0), rayx())
 
-simple_surface_benchmarks() = plane, rectangle, ellipse, triangle, sphere_outside, sphere_inside, sphericalcap, cylinder_parallel, cylinder_perp, bbox_parallel, bbox_perp
+infiniteStopConvexPolygon() = surfaceintersection, (InfiniteStopConvexPoly(ConvexPolygon(Geometry.Transform(), [SVector(-1.0, -1.0), SVector(1.0, -1.0), SVector(1.0, 1.0), SVector(-1.0, 1.0)])), rayz())
+
+simple_surface_benchmarks() = plane, rectangle, ellipse, convexPolygon, infiniteStopConvexPolygon, triangle, sphere_outside, sphere_inside, sphericalcap, cylinder_parallel, cylinder_perp, bbox_parallel, bbox_perp
 
 zernike_surface1() = surfaceintersection, (AcceleratedParametricSurface(TestData.zernikesurface1(), 30), perturbrayz())
 zernike_surface2() = surfaceintersection, (AcceleratedParametricSurface(TestData.zernikesurface3(), 30), perturbrayz())

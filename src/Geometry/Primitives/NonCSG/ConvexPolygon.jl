@@ -38,7 +38,7 @@ struct ConvexPolygon{N,T<:Real}  <: PlanarShape{T}
         ) where {T<:Real}
 
         # need at least 3 points to define apolygon
-        @assert length(local_polygon_points) > 3         
+        @assert length(local_polygon_points) >= 3         
 
         local_center = Statistics.mean(local_polygon_points)
         world_center = local2world(local_frame) * Vec3(local_center[1], local_center[2], zero(T))

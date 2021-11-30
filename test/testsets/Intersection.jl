@@ -545,6 +545,25 @@
         # outside finite
         r = Ray([0.9, 1.0, 1.9], [0.0, -1.0, 0.0])
         @test surfaceintersection(annulus, r) isa EmptyInterval
+
+        # polygon stop intesection
+        polygon_stop_frame = Transform()
+        polygon_stop_poly = ConvexPolygon(polygon_stop_frame, [SVector(0.0, 0.0), SVector(1.0, 0.0), SVector(0.5, 0.5)], opaqueinterface(Float64))
+        polygon_stop = InfiniteStopConvexPoly(polygon_stop_poly)        
+
+        # through polygon which should lead to non intersection
+        r = Ray([0.2, 0.1, 1.0], [0.0, 0.0, -1.0])
+        @test surfaceintersection(polygon_stop, r) isa EmptyInterval
+        # not through the polygon
+        r = Ray([-0.2, 0.2, 1.0], [0.0, 0.0, -1.0])
+        res = surfaceintersection(polygon_stop, r)
+        @test OpticSim.lower(surfaceintersection(polygon_stop, r)).point == SVector(-0.2, 0.2, 0.0)
+
+        # parallel to the polygon's plane
+        r = Ray([0.0, 0.0, 1.0], [1.0, 0.0, 0.0])
+        @test surfaceintersection(polygon_stop, r) isa EmptyInterval
+
+
     end # testset Stops
 
     @testset "Bezier" begin
