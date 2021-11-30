@@ -3,7 +3,7 @@
 # See LICENSE in the project root for full license information.
 
 module Origins
-export Point, RectUniform, RectGrid, Hexapolar
+export Point, RectUniform, RectGrid, Hexapolar, RectJitterGrid
 
 using ....OpticSim
 using ...Emitters
@@ -114,6 +114,51 @@ function Emitters.generate(o::RectGrid{T}, n::Int64) where {T<:Real}
     u = o.usamples == 1 ? zero(T) : 2 * mod(n, o.usamples) / (o.usamples - 1) - 1.0
     return zeros(Vec3{T}) + ((o.width / 2) * u * unitX3(T)) + ((o.height/2) * v * unitY3(T))
 end
+
+"""
+    RectJitterGrid{T} <: AbstractOriginDistribution{T}
+
+Encapsulates a rectangle sampled in a grid fashion with jitter.
+
+```julia
+RectGrid(width::T, height::T, ures::Int64, vres::Int64, samplesPerRegion::Int64) where {T<:Real} 
+```
+"""
+struct RectJitterGrid{T} <: AbstractOriginDistribution{T}
+    width::T
+    height::T
+    uResolution::Int64
+    vResolution::Int64
+    samplesPerRegion::Int64
+    ustep::T
+    vstep::T
+    rng::Random.AbstractRNG
+
+    function RectJitterGrid(width::T, height::T, ures::Int64, vres::Int64, samplesPerRegion::Int64; rng=Random.GLOBAL_RNG) where {T<:Real}
+        return new{T}(width, height, ures, vres, samplesPerRegion, width / ures, height / vres, rng)
+    end
+end
+
+Base.length(o::RectJitterGrid) = o.uResolution * o.vResolution * o.samplesPerRegion
+Emitters.visual_size(o::RectJitterGrid) = max(o.width, o.height)
+
+# generate origin on the grid
+function Emitters.generate(o::RectJitterGrid{T}, n::Int64) where {T<:Real}
+    n = mod(n, length(o))
+
+    uu = rand(o.rng, Distributions.Uniform(zero(T), o.ustep))
+    vv = rand(o.rng, Distributions.Uniform(zero(T), o.vstep))
+
+    nn = Int64(floor(n / o.samplesPerRegion))
+    v = (o.vResolution == 1) ? zero(T) : Int64(floor(nn / o.uResolution)) 
+    u = (o.uResolution == 1) ? zero(T) : Int64(floor(mod(nn, o.uResolution)))
+
+    v = v * o.vstep + vv - (o.height / 2.0)
+    u = u * o.ustep + uu - (o.width / 2.0)
+
+    return zeros(Vec3{T}) + u * unitX3(T) + v * unitY3(T)
+end
+
 
 """
     Hexapolar{T} <: AbstractOriginDistribution{T}
