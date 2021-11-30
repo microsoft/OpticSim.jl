@@ -2,6 +2,9 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # See LICENSE in the project root for full license information.
 
+# All of the objects can be displayed with Vis.draw. Example:
+# Vis.draw(hex4RGB())
+
 function clustercolors(lattice)
     elements = Repeat.clusterelements(lattice)
     colors = Vector{String}(undef, length(elements))
