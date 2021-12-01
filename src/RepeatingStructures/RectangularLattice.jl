@@ -13,7 +13,7 @@ basismatrix(::RectangularBasis{2,T}) where{T} = SMatrix{2,2,T}(T(1),T(0),T(0),T(
 # SVector{2,SVector{2,T}}(hexe₁(T),hexe₂(T))
 
 """Returns the vertices of the unit tile polygon for the basis"""
-function tilevertices(::RectangularBasis{2,T}) where{T}
+function vertices(::RectangularBasis{2,T}) where{T}
 	return SMatrix{2,4,T}(
 			-.5, -.5,
 			-.5, .5,

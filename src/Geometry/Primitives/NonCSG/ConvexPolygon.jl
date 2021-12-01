@@ -69,6 +69,8 @@ end
 export ConvexPolygon
 
 centroid(poly::ConvexPolygon) = poly.plane.pointonplane
+normal(poly::ConvexPolygon) = normal(poly.plane)
+localframe(poly::ConvexPolygon) = poly.local_frame
 
 #function barrier to make vertices allocate less and be faster.
 function to3d(pts::SMatrix{2,N,T,L}) where{N,L,T}

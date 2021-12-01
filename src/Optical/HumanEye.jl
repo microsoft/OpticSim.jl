@@ -2,12 +2,62 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # See LICENSE in the project root for full license information.
 
-using .GlassCat
+module HumanEye
+
+using OpticSim
+using OpticSim.GlassCat
+using OpticSim.Geometry
+import Unitful
+using Unitful.DefaultSymbols:mm,°
+
+# Approximate average properties of the human eye
+
+
+"""
+# Pupil diameter as a function of scene luminance
+https://jov.arvojournals.org/article.aspx?articleid=2279420
+https://en.wikipedia.org/wiki/Orders_of_magnitude_(luminance)
+
+Pupil diameter is approximately 2.8mm at 100cd/m^2. A typical overcast day is 700cd/m^2 
+"""
+
+"""computes pupil diameter as a function of scene luminance `L`, in cd/m², and the angular area, `a`, over which this luminance is presented to the eye."""
+𝐃sd(L,a) = 7.75 - 5.75 * ((L * a / 846)^.41) / ((L * a / 846)^.41 + 2) # the first letter of this function name is \bfD not D.
+
+eyeradius() = 12mm
+export eyeradius
+
+"""Posterior focal length, i.e., optical distance from entrance pupil to the retina. Focal length will change depending on accomodation. This value is for focus at ∞. When the eye is focused at 25cm focal length will be ≈ 22mm. Because the index of refraction of the vitreous humor is approximately 1.33 the physical distance from the entrance pupil to the retina will be 24mm/1.33 = 18mm."""
+eyefocallength() = 24mm
+export eyefocallength
+
+
+vc_epupil() = 3mm #distance from vertex of cornea to entrance pupil
+
+""" distance from vertex of cornea to center of rotation"""
+cornea_to_eyecenter() = 13.5mm
+export cornea_to_eyecenter
+
+entrancepupil_to_retina() = 22.9mm
+
+"""distance from entrance pupil to center of rotation."""
+entrancepupil_to_eyecenter() = entrancepupil_to_retina() - eyeradius()
+export entrancepupil_to_eyecenter
+
+"""average angle, in degrees, the eye will rotate before users will turn their head"""
+comfortable_eye_rotation_angle() = 20°
+
+"""average translation of the entrance pupil associated with comfortable eye rotation"""
+comfortable_entrance_pupil_translation() = sin(comfortable_eye_rotation_angle())*entrancepupil_to_eyecenter()
+export comfortable_entrance_pupil_translation
+
+
+#Model eyes of varying degrees of verisimilitude
 
 """
     ModelEye(assembly::LensAssembly{T}, nsamples::Int = 17; pupil_radius::T = 3.0, detpixels::Int = 1000, transform::Transform{T} = identitytransform(T))
 
-Geometrically accurate model of the human eye focussed at infinity with variable `pupil_radius`.
+Geometrically accurate model of the human eye focused at infinity with variable `pupil_radius`.
 The eye is added to the provided `assembly` to create a [`CSGOpticalSystem`](@ref) with the retina of the eye as the detector.
 
 The eye can be positioned in the scene using the `transform` argument and the resolution of the detector specified with `detpixels`.
@@ -76,4 +126,7 @@ function ArizonaEye(::Type{T} = Float64; accommodation::T = 0.0) where {T<:Real}
     )
 end
 export ArizonaEye
+
+end #module 
+export HumanEye
 #! format: on

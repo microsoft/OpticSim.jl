@@ -927,7 +927,7 @@ function eyebox_eval_eye(assembly::LensAssembly{T}, raygen::OpticalRayGenerator{
             r = OpticSim.rotmatd(T, ery, erx, 0.0)
             ov = OpticSim.rotate(eye_transform, SVector{3,T}(0.0, 0.0, 13.0))
             t = r * ov - ov
-            sys = ModelEye(assembly, pupil_radius = pupil_radius, detpixels = resolution, transform = eye_transform * Transform(r, t))
+            sys = HumanEye.ModelEye(assembly, pupil_radius = pupil_radius, detpixels = resolution, transform = eye_transform * Transform(r, t))
             # Vis.draw(sys)
             # Vis.draw!((eye_transform.translation - ov - SVector(0.0, 20.0, 0.0), eye_transform.translation - ov + SVector(0.0, 20.0, 0.0)))
             # Vis.draw!((eye_transform.translation - ov - SVector(20.0, 0.0, 0.0), eye_transform.translation - ov + SVector(20.0, 0.0, 0.0)))
