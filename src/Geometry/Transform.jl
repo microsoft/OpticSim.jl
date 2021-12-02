@@ -136,7 +136,7 @@ Transform(rotation::AbstractArray{S,2}, translation::AbstractArray{S,1})
 struct Transform{T} 
     matrix::SMatrix{4,4,T,16}
 
-    """ This is a private internal function. Not to be called by code outside of the Transform module. Don't use Transform{Float64}(...) for example. Instead use Transform(..)"""
+    """ This is a private internal function. In general don't want to allow users to populate Transform matrices with arbitrary elements. Not to be called by code outside of the Transform module. Don't use Transform{Float64}(...) for example. Instead use Transform(..)"""
     function Transform{T}(a11::T,a21::T,a31::T,a41::T,a12::T,a22::T,a32::T,a42::T,a13::T,a23::T,a33::T,a43::T,a14::T,a24::T,a34::T,a44::T) where{T<:Real} 
         return new{T}(SMatrix{4,4,T,16}(a11,a21,a31,a41,a12,a22,a32,a42,a13,a23,a33,a43,a14,a24,a34,a44))
     end
@@ -212,6 +212,7 @@ Base.transpose(a::Transform{T}) where{T<:Real} = Transform{T}(a')
 
 # END of functions for compatibility with base matrix API
 
+
 # for compatability ith the "old" RigidBodyTransform
 """
 identitytransform([S::Type]) -> Transform{S}
@@ -225,8 +226,6 @@ identitytransform(::Type{T} = Float64) where {T<:Real} = Transform{T}(
     zero(T), zero(T), zero(T), one(T)
 )
 export identitytransform
-
-Transform(mat_entries_by_col::T...) where{T<:Real} = Transform{T}(mat_entries_by_col...)
 
 """
     Transform([S::Type]) -> Transform{S}
@@ -268,8 +267,7 @@ function Transform(origin::Vec3{T}, forward::Vec3{T} = unitZ3()) where {T<:Real}
 end
 
 function Transform(θ::T, ϕ::T, ψ::T, x::T, y::T, z::T) where {T<:Number} 
-    temp_transform = Transform(rotmat(T, θ, ϕ, ψ), Vec3{T}(x, y, z))
-    return Transform{T}(temp_transform)
+    return Transform(rotmat(T, θ, ϕ, ψ), Vec3{T}(x, y, z))
 end
 
 """
@@ -278,7 +276,7 @@ end
 Returns the [`Transform`](@ref) of type `S` (default `Float64`) created by a rotation matrix and translation vector.
 """
 function Transform(rotation::SMatrix{3,3,T}, translation::SVector{3,T}) where {T<:Real} 
-    return Transform(
+    return Transform{T}(
         rotation[1,1], rotation[2,1], rotation[3,1], zero(T), 
         rotation[1,2], rotation[2,2], rotation[3,2], zero(T), 
         rotation[1,3], rotation[2,3], rotation[3,3], zero(T), 
@@ -292,7 +290,7 @@ Returns the [`Transform`](@ref) of type `S` (default `Float64`) created by a rot
 """
 function Transform(rotation::AbstractArray{T,2}, translation::AbstractArray{T,1}) where {T<:Real}
     @assert size(rotation)[1] == size(rotation)[2] == length(translation) == 3
-    return Transform(
+    return Transform{T}(
         rotation[1,1], rotation[2,1], rotation[3,1], zero(T), 
         rotation[1,2], rotation[2,2], rotation[3,2], zero(T), 
         rotation[1,3], rotation[2,3], rotation[3,3], zero(T), 
