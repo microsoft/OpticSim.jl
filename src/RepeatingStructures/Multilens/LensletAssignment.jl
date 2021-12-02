@@ -40,10 +40,11 @@ function setup_system(subdivisions::NTuple{2,Int})
     corneavertex = OpticSim.HumanEye.cornea_to_eyecenter()
     
 
-    eyeboxframe = eyeballframe*OpticSim.translation(0.0,0.0,ustrip(mm,corneavertex))  #unfortunately can't use unitful values in transforms because the rotation and translation components have different types which is not allowed in a Matrix.
+    eyeboxframe = eyeballframe*OpticSim.translation(0.0,0.0,ustrip(mm,corneavertex))  #unfortunately can't use unitful values in transforms because the rotation and translation components would have different types which is not allowed in a Matrix.
 
     println(typeof(eyeboxframe))
     eyeboxpoly =  eyeboxpolygon(10mm,9mm) #four corners of the eyebox frame which is assumed centered around the positive Z axis. Transformed to the eyeballframe.
+    println(typeof(subdivide(eyeboxpoly,subdivisions...)[1]))
     subdivided_eyeboxpolys = map(x-> eyeboxframe .* x, subdivide(eyeboxpoly,subdivisions...))  
 end
 export setup_system
