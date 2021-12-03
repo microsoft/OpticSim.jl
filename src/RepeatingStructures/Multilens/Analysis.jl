@@ -33,7 +33,7 @@ colorbasis(::Repeat.HexBasis3) = SMatrix{2,2}(2, -1, 1, 1)
 colororigins(::Repeat.HexBasis1) = ((0, 0), (-1, 0), (-1, 1))
 colororigins(::Repeat.HexBasis3) = ((0, 0), (0, -1), (1, -1))
 
-"""To reduce color channel cross talk it may be useful to arrange the color lenslets in a hexagonal lattice so that each color is surrounded by lenslets of a different color. With appropriate color filtering crosstalk between immediately neighboring lenslets can be reduced. This function computes the color which should be assigned to any lattice point to ensure this properly holds."""
+"""To reduce color channel cross talk it may be useful to arrange the color of lenslets in a hexagonal lattice so that each color is surrounded by lenslets of a different color. With appropriate color filtering crosstalk between immediately neighboring lenslets can be reduced. This function computes the color which should be assigned to any lattice point to ensure this property holds."""
 function pointcolor(point, cluster::Repeat.AbstractLatticeCluster)
     latticematrix = colorbasis(Repeat.elementbasis(cluster))
     origins = colororigins(Repeat.elementbasis(cluster))
