@@ -11,6 +11,7 @@ using StaticArrays:SVector,MVector,SMatrix,MMatrix
 using DataFrames:DataFrame
 using Colors
 import LazySets
+using LinearAlgebra:norm
 
 include("Lattice.jl")
 include("HexagonalLattice.jl")

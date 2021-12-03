@@ -6,7 +6,7 @@
 
 using Roots
 import DataFrames
-
+import OpticSim.Repeat
 
 # luminance (cd/m2)	Multiple	Value	Item
 # 10−6	µcd/m2	1 µcd/m2	Absolute threshold of vision[1]
@@ -28,33 +28,6 @@ import DataFrames
 
 
 
-"""This function returns the radius of the longest basis vector of the lattice cluster. Most lattices defined in this project have symmetric basis vectors so the radii of all basis vectors will be identical. This function is used in determing which clusters "fit" within the eye pupil."""
-function latticediameter(basismatrix::SMatrix)
-    maximum(norm.([basismatrix[:,i] for i in 1:size(basismatrix)[2]]))
-end
-export latticediameter
-
-""" The lattice diameter for a cluster takes into account the lattice diameter of the element basis"""
-latticediameter(a::Repeat.AbstractLatticeCluster) =   latticediameter(Repeat.basismatrix(Repeat.clusterbasis(a)))*latticediameter(Repeat.basismatrix(Repeat.elementbasis(a)))
-
-latticediameter(a::Repeat.AbstractBasis) =  latticediameter(Repeat.basismatrix(a))
-
-const hex3latticeclusterbasis = [2 // 1 -1 // 1;-1 // 1 2 // 1]
-export hex3latticeclusterbasis
-
-"""Only will work properly if lattice basis matrix contains only integer or rational terms. Returns the integer lattice coords of point in the given basis if the point is in the span of latticebasis. Otherwise returns nothing"""
-function latticepoint(latticebasis::AbstractMatrix, origin, point) 
-    Ainv = inv(Rational.(latticebasis))
-    b = [(point .- origin)...]
-    x = Ainv * b
-    if reduce(&, (1, 1) .== denominator.(x))
-        return Integer.(x)
-    else
-        return nothing
-    end
-end
-export latticepoint
-
 colorbasis(::Repeat.HexBasis1) = SMatrix{2,2}(2, -1, 1, 1)
 colorbasis(::Repeat.HexBasis3) = SMatrix{2,2}(2, -1, 1, 1)
 colororigins(::Repeat.HexBasis1) = ((0, 0), (-1, 0), (-1, 1))
@@ -66,7 +39,7 @@ function pointcolor(point, cluster::Repeat.AbstractLatticeCluster)
     origins = colororigins(Repeat.elementbasis(cluster))
     colors = zip(origins, ("red", "green", "blue"))
     for (origin, color) in colors
-        if nothing !== latticepoint(latticematrix, origin, point)
+        if nothing !== Repeat.latticepoint(latticematrix, origin, point)
             return color
         end
     end
@@ -160,7 +133,7 @@ function choosecluster(pupildiameter::Unitful.Length, lensletdiameter::Unitful.L
     ratio = 0.0
 
     for cluster in clusters
-        temp = cdist / (lensletdiameter * latticediameter(cluster))
+        temp = cdist / (lensletdiameter * Repeat.latticediameter(cluster))
             if temp >= 1.0
             ratio = temp
             maxcluster = cluster
@@ -169,9 +142,9 @@ function choosecluster(pupildiameter::Unitful.Length, lensletdiameter::Unitful.L
         end
     end
 
-    @assert ratio ≥ 1.0 "ratio $ratio cdist $cdist lensletdiameter $lensletdiameter latticediameter $(latticediameter(maxcluster)) scaled=$(lensletdiameter * latticediameter(maxcluster))"
+    @assert ratio ≥ 1.0 "ratio $ratio cdist $cdist lensletdiameter $lensletdiameter Repeat.latticediameter $(Repeat.latticediameter(maxcluster)) scaled=$(lensletdiameter * Repeat.latticediameter(maxcluster))"
 
-    return (cluster = maxcluster, lensletdiameter = lensletdiameter * ratio, diameteroflattice = latticediameter(maxcluster) / ratio, packingdistance = cdist * ustrip(mm, lensletdiameter))
+    return (cluster = maxcluster, lensletdiameter = lensletdiameter * ratio, diameteroflattice = Repeat.latticediameter(maxcluster) / ratio, packingdistance = cdist * ustrip(mm, lensletdiameter))
 end
 export choosecluster
 

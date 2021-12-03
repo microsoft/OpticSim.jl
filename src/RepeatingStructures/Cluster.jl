@@ -34,6 +34,8 @@ julia> lattice[1,1]  #returns the locations of the 3 elements in the cluster at 
 """
 abstract type AbstractLatticeCluster end
 
+
+
 """Basic lattic cluster type"""
 struct LatticeCluster{N1, N, T<:Real, B1<:AbstractBasis{N,Int},B2<:AbstractBasis{N,T}} <: AbstractLatticeCluster
     clusterbasis::B1 #this basis defines the offsets of the clusters
@@ -51,6 +53,9 @@ elementbasis(a::LatticeCluster) = a.elementbasis
 clustersize(a::LatticeCluster) = length(a.clusterelements)
 clusterbasis(a::LatticeCluster) = a.clusterbasis
 export clusterbasis
+
+""" Lattice clusters have integer basis vectors. These represent the lattice in unit steps of the underlying element basis, not the Euclidean distance between lattice cluster centers. For example, the lattice cluster basis vectors for a hex3 lattice are (-1,2),(2,-1), where the units of the basis vectors represent steps in the underlying element basis. To get a Euclidean distance measure between cluster centers you need to multiply by the size of the element basis diameter. In the case of lenslet layout you need to multiply the cluster diameter by the lenslet diameter."""
+latticediameter(a::Repeat.AbstractLatticeCluster) =   latticediameter(Repeat.basismatrix(Repeat.clusterbasis(a)))
 
 """returns the positions of every element in a cluster given the cluster indices"""
 function Base.getindex(A::LatticeCluster{N1,N,T,B1,B2}, indices::Vararg{Int, N}) where{N1,N,T,B1<:AbstractBasis{N,Int},B2<:AbstractBasis{N,T}} 
