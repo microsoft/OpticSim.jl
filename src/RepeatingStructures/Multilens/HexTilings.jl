@@ -77,7 +77,4 @@ function hex19RGB()
     # properties =  DataFrames.DataFrame(Color = colors)
     return Repeat.ClusterWithProperties(lattice, properties)
 end
-
-function hex37RGB()
-    
 export hex19RGB

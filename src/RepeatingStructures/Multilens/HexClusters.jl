@@ -67,9 +67,9 @@ function hex19()
 end
 export hex19
 
-""" Returns a lattice cluster composed of the lattice elements in rings 0..n. These clusters have regular hexagonal shapes"""
-function regularhexcluster(n::Int)
-    clusterelements = Repeat.region(HexBasis1,(0,0),n)
-    eltlattice = Repeat.HexBasis1()
-    clusterbasis = Repeat.LatticeBasis((2*n-1,0),())
-    return Repeat.LatticClusterA()
+# """ Returns a lattice cluster composed of the lattice elements in rings 0..n. These clusters have regular hexagonal shapes"""
+# function regularhexcluster(n::Int)
+#     clusterelements = Repeat.region(HexBasis1,(0,0),n)
+#     eltlattice = Repeat.HexBasis1()
+#     clusterbasis = Repeat.LatticeBasis((2*n-1,0))
+#     return Repeat.LatticClusterA()

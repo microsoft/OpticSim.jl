@@ -35,8 +35,17 @@ function draw(tilebasis::AbstractBasis, tilesize, i, j, color, name)
     Luxor.translate(-offset)
 end
 
+function drawcells(clstr::Repeat.ClusterWithProperties,scale,points) 
+    _,npts = size(points)
+    repeats = npts ÷ clustersize(clstr)
+    props = repeat(Repeat.properties(clstr), repeats)
+    drawcells(elementbasis(clstr), scale, points, color=props[:,:Color], name=props[:,:Name])
+end
+
+drawcells(clstr::Repeat.LatticeCluster,scale,points) = drawcells(elementbasis(clstr),scale,points)
+
 """Draws a list of hexagonal cells, represented by their lattice coordinates, which are represented as a 2D matrix, with each column being one lattice coordinate."""
-function drawcells(tilebasis::AbstractBasis, tilesize, cells::AbstractMatrix; color::Union{AbstractArray,Nothing}=nothing, name::Union{AbstractArray{String},Nothing}=nothing, format=:png, resolution=(500, 500))
+function drawcells(tilebasis::AbstractBasis, tilesize, cells::AbstractMatrix; color::Union{AbstractArray,Nothing}=nothing, name::Union{AbstractArray{String},Nothing}=nothing, format=:png, resolution=(1000, 1000))
 
     numcells = size(cells)[2]
     Luxor.Drawing(resolution[1], resolution[2], format)
@@ -62,20 +71,16 @@ function drawcells(tilebasis::AbstractBasis, tilesize, cells::AbstractMatrix; co
     end
 end
 
-""" draw the LatticeCluster offset to (0,0) """
-draw(clstr::LatticeCluster, cluster_coordinate_offset=[0;0;;], scale=50.0) = drawcells(clstr.elementbasis, scale, clustercoordinates(clstr, cluster_coordinate_offset[1,1],cluster_coordinate_offset[2,1]))
-
 """ draw the ClusterWithProperties at coordinates specified by lattice_coordinate_offset """
-function draw(clstr::Repeat.ClusterWithProperties, cluster_coordinate_offset=[0;0;;], scale=50.0) # this is how you have to make a 2x1 matrix. One would expect [0;0] to work but it doesn't.
+function draw(clstr::Repeat.AbstractLatticeCluster, cluster_coordinate_offset::AbstractMatrix{T} , scale=50.0) where{T}
     dims = size(cluster_coordinate_offset)
-    @assert dims[1] == 2 "dims[1] must be 2 instead was $(dims[1])"
     clstrsize = clustersize(clstr)
     points = Matrix(undef, dims[1], dims[2] * clstrsize)
     for i in 1:dims[2]
-        points[:,(i - 1) * clstrsize + 1:i * clstrsize] = clustercoordinates(clstr, cluster_coordinate_offset[1,i], cluster_coordinate_offset[2,i])
+        points[:,(i - 1) * clstrsize + 1:i * clstrsize] = clustercoordinates(clstr, cluster_coordinate_offset[:,i]...)
     end
-    props = repeat(Repeat.properties(clstr), dims[2])
-    drawcells(elementbasis(cluster(clstr)), scale, points, color=props[:,:Color], name=props[:,:Name])
+   
+    drawcells(clstr,scale,points)
 end
     
 
