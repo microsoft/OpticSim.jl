@@ -142,6 +142,18 @@ end
 
 #TODO need to figure out what to use as the normal (eventually this will need to take into account the part of the eyebox the lenslet should cover) 
 #TODO write test for planarpoly and generation of Paraxial lens system using planar hexagon as lenslet.
+""" 
+# Generate hexagonal polygons on a spherical display surface. 
+
+Each hexagonal polygon corresponds to one lenslet. A hexagonal lattice is first generated in the eyebox plane and then the vertices of these hexagonal tiles are projected onto the spherical display surface. The projected points are not necessarily planar so they are projected onto a best fit plane. For systems with fields of view less that 90° the error is small.
+
+`dir` is the 3d direction vector to project points from the eyebox plane to the spherical display surface. 
+
+`radius` is the radius of the spherical display surface.
+
+`fovθ,fovϕ` correspond to the field of view of the display as seen from the center of the eyebox plane.
+
+`lattice` is the hexagonal lattice to tile the sphere with, HexBasis1 or HexBasis3, which are rotated versions of each other."""
 function spherepolygons(eyebox::Plane{T,N},dir,radius,fovθ,fovϕ,lattice) where{T,N}
     #if fovθ, fovϕ are in degrees convert to radians. If they are unitless then the assumption is that the represent radians
     eyeboxz = eyebox.pointonplane[3]
@@ -164,12 +176,12 @@ function spherepolygons(eyebox::Plane{T,N},dir,radius,fovθ,fovϕ,lattice) where
     shapes,coordinates
 end
 
-function spherelenslets(eyebox::Plane{T,N},dir,radius,fovθ,fovϕ,lattice) where{T,N}
-    lenspolys,tilecoords = spherepolygons(eyebox,dir,radius,fovθ,fovϕ,lattice)
+function spherelenslets(eyeboxplane::Plane{T,N},focallength,dir,radius,fovθ,fovϕ,lattice) where{T,N}
+    lenspolys,tilecoords = spherepolygons(eyeboxplane,dir,radius,fovθ,fovϕ,lattice)
     result = Vector{ParaxialLens{T}}(undef,length(lenspolys))
     empty!(result)
     for poly in lenspolys
-        lenslet = ParaxialLensConvexPoly(2.0,poly,SVector{2,T}(T(0),T(0)))
+        lenslet = ParaxialLensConvexPoly(focallength,poly,SVector{2,T}(T.((0,0))))
         push!(result,lenslet)
     end
     return result,tilecoords
@@ -177,7 +189,11 @@ end
 export spherelenslets
 
 function testspherelenslets()
-    spherelenslets(Plane(0.0,0.0,1.0,0.0,0.0,12.0),[0.0,0.0,-1.0],30.0,55°,45°,HexBasis1())
+    props = systemproperties(18mm,(10mm,9mm),(55°,45°),4.0mm,.2,11,30)
+    focallength = ustrip(mm,props[:focal_length])
+    lenses,coordinates = spherelenslets(Plane(0.0,0.0,1.0,0.0,0.0,12.0),focallength,[0.0,0.0,-1.0],30.0,55°,45°,HexBasis1())
+    Vis.draw!.(lenses)
+    return nothing
 end
 export testspherelenslets
 
