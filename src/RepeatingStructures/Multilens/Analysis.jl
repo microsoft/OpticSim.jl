@@ -297,7 +297,7 @@ function systemproperties(eyerelief::Unitful.Length, eyebox::NTuple{2,Unitful.Le
     siliconarea = uconvert(mm^2,numlenses  * dispsize[1]*dispsize[2])
     fulldisplaysize = sizeofdisplay(fov,eyerelief)
 
-    return (lenslet_diameter = clusterdata.lensletdiameter, diffraction_limit = difflimit, fnumber = fnumber, focal_length = focal_length, display_size = fulldisplaysize, lenslet_display_size = dispsize, total_silicon_area = siliconarea, number_lenslets = numlenses, pixel_redundancy = redundancy, eyebox_angles = eyebox_angles, lenslet_fov = angles, subdivisions = subdivisions)
+    return (cluster_data = clusterdata, lenslet_diameter = clusterdata.lensletdiameter, diffraction_limit = difflimit, fnumber = fnumber, focal_length = focal_length, display_size = fulldisplaysize, lenslet_display_size = dispsize, total_silicon_area = siliconarea, number_lenslets = numlenses, pixel_redundancy = redundancy, eyebox_angles = eyebox_angles, lenslet_fov = angles, subdivisions = subdivisions)
 end
 export systemproperties
 
@@ -308,13 +308,16 @@ function printsystemproperties(eyerelief::Unitful.Length, eyebox::NTuple{2,Unitf
     println("fov = $(fov)°")
     println("pupil diameter = $pupildiameter")
     println("mtf = $mtf @ $cyclesperdegree cycles/degree")
-    for (key,value) in pairs(systemproperties(eyerelief, eyebox, fov, pupildiameter, mtf, cyclesperdegree,pixelsperdegree, minfnumber = minfnumber,RGB=RGB,λ=λ,pixelpitch=pixelpitch))
+    props = systemproperties(eyerelief, eyebox, fov, pupildiameter, mtf, cyclesperdegree,pixelsperdegree, minfnumber = minfnumber,RGB=RGB,λ=λ,pixelpitch=pixelpitch)
+    for (key,value) in pairs(props)
         if key == :diffraction_limit
             println("$key = $value cycles/°")
         else
             println("$key = $value")
         end
     end
+    clusterdiameter = props[:cluster_data][:diameteroflattice]
+    println("cluster diameter (approx): $(props[:lenslet_diameter]*clusterdiameter)")
 end
 export printsystemproperties
 
