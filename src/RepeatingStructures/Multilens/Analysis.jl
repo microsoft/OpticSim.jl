@@ -34,7 +34,9 @@ function latticediameter(basismatrix::SMatrix)
 end
 export latticediameter
 
-latticediameter(a::Repeat.AbstractLatticeCluster) =   latticediameter(Repeat.basismatrix(Repeat.clusterbasis(a)))
+""" The lattice diameter for a cluster takes into account the lattice diameter of the element basis"""
+latticediameter(a::Repeat.AbstractLatticeCluster) =   latticediameter(Repeat.basismatrix(Repeat.clusterbasis(a)))*latticediameter(Repeat.basismatrix(Repeat.elementbasis(a)))
+
 latticediameter(a::Repeat.AbstractBasis) =  latticediameter(Repeat.basismatrix(a))
 
 const hex3latticeclusterbasis = [2 // 1 -1 // 1;-1 // 1 2 // 1]
