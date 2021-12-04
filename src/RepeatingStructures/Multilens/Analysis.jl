@@ -278,7 +278,8 @@ export displaysize_ppdvspupildiameter
 Example:
 ```
 julia> systemproperties(18mm,(10mm,9mm),(55°,45°),4.0mm,.2,11,30)
-(lenslet_diameter = 0.7999999999999999 mm, diffraction_limit = 26.344592482933276, fnumber = 1.9337325040249893, focal_length = 1.5469860032199914 mm, display_size = (18.740413819862866 mm, 14.911688245431423 mm), lenslet_display_size = (261.4914368916943 μm, 358.6281908905529 μm), total_silicon_area = 52.1360390897504 mm^2, number_lenslets = 555.9505147668694, pixel_redundancy = 28.895838544429424 °^-2, eyebox_angles = (29.054604099077146, 26.56505117707799), lenslet_fov = (9.684868033025715, 13.282525588538995), subdivisions = (3, 2))
+(cluster_data = (cluster = ClusterWithProperties{19, 2, Float64}(LatticeCluster{19, 2, Float64, LatticeBasis{2, Int64}, HexBasis3{2, Float64}}(LatticeBasis{2, Int64}([5 -2; 0 4]), HexBasis3{2, Float64}(), [(0, 0), (-1, 0), (0, -1), (1, -1), (1, 0), (0, 1), (-1, 1), (-2, 0), (-1, -1), (0, -2), (1, -2), (2, -2), (2, -1), (2, 0), (1, 1), (0, 2), (-1, 2), (-2, 2), (-2, 1)]), 19×2 DataFrame
+, lensletdiameter = 0.7999999999999999 mm, diameteroflattice = 3.0386704504829325, packingdistance = 1.9447490883090768 mm), lenslet_diameter = 0.7999999999999999 mm, diffraction_limit = 26.344592482933276, fnumber = 1.9337325040249893, focal_length = 1.5469860032199914 mm, display_size = (18.740413819862866 mm, 14.911688245431423 mm), lenslet_display_size = (261.4914368916943 μm, 358.6281908905529 μm), total_silicon_area = 52.1360390897504 mm^2, number_lenslets = 555.9505147668694, pixel_redundancy = 28.895838544429424, eyebox_angles = (29.054604099077146, 26.56505117707799), lenslet_fov = (9.684868033025715, 13.282525588538995), subdivisions = (3, 2))
 ```
 """
 function systemproperties(eyerelief::Unitful.Length, eyebox::NTuple{2,Unitful.Length}, fov, pupildiameter::Unitful.Length, mtf, cyclesperdegree,pixelsperdegree; minfnumber=2.0,RGB=true,λ=530nm,pixelpitch=.9μm)

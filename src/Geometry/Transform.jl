@@ -162,9 +162,9 @@ function Base.:*(transform::Transform{T}, v::SVector{3,S}) where {T<:Real,S<:Num
 
     res = t * Vec4(v)
     if (t[4,4] == one(T))
-        return SVector(res[1], res[2], res[3])
+        return SVector{3,S}(res[1], res[2], res[3])
     else    
-        return SVector(res[1]/res[4], res[2]/res[4], res[3]/res[4])
+        return SVector{3,S}(res[1]/res[4], res[2]/res[4], res[3]/res[4])
     end
 end
 

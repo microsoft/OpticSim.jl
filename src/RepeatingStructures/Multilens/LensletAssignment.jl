@@ -33,35 +33,41 @@ function subdivide(poly::T, xsubdivisions, ysubdivisions) where{T<:SMatrix{3,4}}
 
     for i in 1:length(x) -1
         for j in 1:length(y) -1
-            push!(result,T([x[i];y[j];0.0 ;; x[i+1];y[j];0.0 ;; x[i+1];y[j+1];0.0 ;; x[i];y[j+1];0.0]))
+            push!(result,T([x[i];y[j];0.0mm ;; x[i+1];y[j];0.0mm ;; x[i+1];y[j+1];0.0mm ;; x[i];y[j+1];0.0mm])) #this is klunky but the polygon vertices have units of mm so the 0.0 terms must as well. 
         end
     end
     return result
 end
 export subdivide
     
-function setup_system(subdivisions::NTuple{2,Int})
+function setup_system()
     centroid(verts) = sum(eachcol(verts)) ./ size(verts)[2] 
 
-    props = systemproperties(18mm,(10mm,9mm),(55°,45°),4.0mm,.2,11,30)
-    eyeballframe = Transform(I(4)) #This establishes the global coordinate frame for the systems. Positive Z axis is assumed to be the forward direction, the default direction of the eye's optical axis when looking directly ahead.
+    eyeballframe = Transform() #This establishes the global coordinate frame for the systems. Positive Z axis is assumed to be the forward direction, the default direction of the eye's optical axis when looking directly ahead.
     corneavertex = OpticSim.HumanEye.cornea_to_eyecenter()
-    
+
+    props = systemproperties(18mm,(10mm,9mm),(55°,45°),4.0mm,.2,11,30)
+   
+    subdivisions = props[:subdivisions]
+    clusterdata = props[:cluster_data]
+    cluster = clusterdata[:cluster]
 
     eyeboxframe = eyeballframe*OpticSim.translation(0.0,0.0,ustrip(mm,corneavertex))  #unfortunately can't use unitful values in transforms because the rotation and translation components would have different types which is not allowed in a Matrix.
 
     eyeboxpoly =  eyeboxpolygon(10mm,9mm) #four corners of the eyebox frame which is assumed centered around the positive Z axis. Transformed to the eyeballframe.
 
-    subdivided_eyeboxpolys = map(x-> eyeboxframe .* x, subdivide(eyeboxpoly,subdivisions...))
-     
+    polys = subdivide(eyeboxpoly,subdivisions...)
+    strippedpolys =  map(x-> ustrip.(mm,x), polys)
+    subdivided_eyeboxpolys = map(x-> eyeboxframe .* x,strippedpolys) #these have units of mm which don't interact well with Transform.
+    polycentroids = centroid.(subdivided_eyeboxpolys)
+
     focallength = ustrip(mm,props[:focal_length])
     lenses,coordinates = spherelenslets(Plane(0.0,0.0,1.0,0.0,0.0,12.0),focallength,[0.0,0.0,-1.0],30.0,55°,45°,HexBasis1())
-    polycentroids = centroid.(subdivided_eyeboxpolys)
-    
+    lensletcolors = pointcolor.(coordinates,cluster)
     #compute offset of optical axis for lenslets so they cover the correct part of the eyebox.
 
     #project eyebox into lenslet display plane and compute bounding box. This is the size of the display for this lenslet
 
-    
+
 end
 export setup_system
