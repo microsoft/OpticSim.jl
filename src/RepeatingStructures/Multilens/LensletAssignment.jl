@@ -58,13 +58,16 @@ function setup_system()
 
     polys = subdivide(eyeboxpoly,subdivisions...)
     strippedpolys =  map(x-> ustrip.(mm,x), polys)
-    subdivided_eyeboxpolys = map(x-> eyeboxframe .* x,strippedpolys) #these have units of mm which don't interact well with Transform.
+    subdivided_eyeboxpolys =[eyeboxframe * x for x in strippedpolys] #these have units of mm which don't interact well with Transform.
     polycentroids = centroid.(subdivided_eyeboxpolys)
 
     focallength = ustrip(mm,props[:focal_length])
     lenses,coordinates = spherelenslets(Plane(0.0,0.0,1.0,0.0,0.0,12.0),focallength,[0.0,0.0,-1.0],30.0,55°,45°,HexBasis1())
-    lensletcolors = pointcolor.(coordinates,cluster)
+    lensletcolors = pointcolor.(coordinates,Ref(cluster))
+    
     #compute offset of optical axis for lenslets so they cover the correct part of the eyebox.
+
+
 
     #project eyebox into lenslet display plane and compute bounding box. This is the size of the display for this lenslet
 
