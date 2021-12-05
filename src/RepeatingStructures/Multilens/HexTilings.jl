@@ -78,3 +78,12 @@ function hex19RGB()
     return Repeat.ClusterWithProperties(lattice, properties)
 end
 export hex19RGB
+
+function hex37RGB()
+    lattice = hexn(3)
+    colors = clustercolors(lattice)
+    names = colornames(colors)
+    properties =  DataFrames.DataFrame(Color=colors, Name=names)
+    # properties =  DataFrames.DataFrame(Color = colors)
+    return Repeat.ClusterWithProperties(lattice, properties)
+end

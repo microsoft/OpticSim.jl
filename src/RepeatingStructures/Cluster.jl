@@ -41,11 +41,14 @@ struct LatticeCluster{N1, N, T<:Real, B1<:AbstractBasis{N,Int},B2<:AbstractBasis
     clusterbasis::B1 #this basis defines the offsets of the clusters
     elementbasis::B2 #this basis defines the underlying lattice
 
-    clusterelements::SVector{N1,NTuple{N,Int}} #vector containing the lattice indices of the elements in the cluster. Each column is one lattice coordinate. These indices are assumed to be offsets from the origin of the lattice.
+    clusterelements::SVector{N1,NTuple{N,Int64}} #vector containing the lattice indices of the elements in the cluster. Each column is one lattice coordinate. These indices are assumed to be offsets from the origin of the lattice.
 
-    LatticeCluster(clusterbasis::B1,eltlattice::B2,clusterelements::SVector{N1,NTuple{N,Int}}) where{N1,N,T<:Real,B1<:AbstractBasis{N,Int},B2<:AbstractBasis{N,T}} = new{N1,N,T,B1,B2}(clusterbasis,eltlattice,clusterelements)
+    LatticeCluster(clusterbasis::B1,eltlattice::B2,clusterelements::SVector{N1,NTuple{N,Int64}}) where{N1,N,T<:Real,B1<:AbstractBasis{N,Int64},B2<:AbstractBasis{N,T}} = new{N1,N,T,B1,B2}(clusterbasis,eltlattice,clusterelements)
 end
 export LatticeCluster
+
+LatticeCluster(clusterbasis::B1,eltlattice::B2,clusterelements::SMatrix{N,N1,Int64}) where{N1,N,T<:Real,B1<:AbstractBasis{N,Int64},B2<:AbstractBasis{N,T}} = LatticeCluster(clusterbasis,eltlattice,SVector{N1}(reinterpret(reshape,NTuple{N,Int64},clusterelements)))
+
 
 clusterelements(a::LatticeCluster) = a.clusterelements
 export clusterelements

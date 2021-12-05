@@ -14,6 +14,7 @@ import SpecialFunctions
 import Plots
 import ...OpticSim
 import ...OpticSim.Geometry
+import ...OpticSim.Repeat:region,HexBasis1,HexBasis3,LatticeBasis,LatticeCluster,clustersize,ClusterWithProperties
 
 include("HexClusters.jl")
 include("HexTilings.jl")

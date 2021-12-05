@@ -155,7 +155,7 @@ Each hexagonal polygon corresponds to one lenslet. A hexagonal lattice is first 
 
 `lattice` is the hexagonal lattice to tile the sphere with, HexBasis1 or HexBasis3, which are rotated versions of each other."""
 function spherepolygons(eyebox::Plane{T,N},dir,radius,fovθ,fovϕ,lattice) where{T,N}
-    #if fovθ, fovϕ are in degrees convert to radians. If they are unitless then the assumption is that the represent radians
+    # if fovθ, fovϕ are in degrees convert to radians. If they are unitless then the assumption is that they represent radians
     eyeboxz = eyebox.pointonplane[3]
     θ = upreferred(fovθ) #converts to radians if in degrees
     ϕ = upreferred(fovϕ) #converts to radians if in degrees
@@ -184,7 +184,7 @@ function spherelenslets(eyeboxplane::Plane{T,N},focallength,dir,radius,fovθ,fov
         lenslet = ParaxialLensConvexPoly(focallength,poly,SVector{2,T}(T.((0,0))))
         push!(result,lenslet)
     end
-    return result,tilecoords
+    return result,reinterpret(reshape,Int64,tilecoords)
 end
 export spherelenslets
 

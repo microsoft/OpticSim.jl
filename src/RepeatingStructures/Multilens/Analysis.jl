@@ -126,7 +126,7 @@ export closestpackingdistance
 
 """Tries clusters of various sizes to choose the largest one which fits within the eye pupil. Larger clusters allow for greater reduction of the fov each lenslet must cover so it returns the largest feasible cluster"""
 function choosecluster(pupildiameter::Unitful.Length, lensletdiameter::Unitful.Length)
-    clusters = (hex3RGB(), hex4RGB(), hex7RGB(), hex9RGB(), hex12RGB(), hex19RGB())
+    clusters = (hex3RGB(), hex4RGB(), hex7RGB(), hex9RGB(), hex12RGB(), hex19RGB(),hex37RGB())
     # cdist = closestpackingdistance(pupildiameter)
     cdist = pupildiameter
     maxcluster = clusters[1]
@@ -144,7 +144,7 @@ function choosecluster(pupildiameter::Unitful.Length, lensletdiameter::Unitful.L
 
     @assert ratio ≥ 1.0 "ratio $ratio cdist $cdist lensletdiameter $lensletdiameter Repeat.latticediameter $(Repeat.latticediameter(maxcluster)) scaled=$(lensletdiameter * Repeat.latticediameter(maxcluster))"
 
-    return (cluster = maxcluster, lensletdiameter = lensletdiameter * ratio, diameteroflattice = Repeat.latticediameter(maxcluster) / ratio, packingdistance = cdist * ustrip(mm, lensletdiameter))
+    return (cluster = maxcluster, lensletdiameter = lensletdiameter * ratio, diameteroflattice = (lensletdiameter * Repeat.latticediameter(maxcluster)) / ratio, packingdistance = cdist * ustrip(mm, lensletdiameter))
 end
 export choosecluster
 
@@ -186,7 +186,9 @@ export eyeboxangles
 function anglesubdivisions(pupildiameter::Unitful.Length, λ::Unitful.Length, mtf, cyclesperdegree;RGB=true)
     cluster, _ = choosecluster(pupildiameter, λ, mtf, cyclesperdegree)
     numelements = Repeat.clustersize(cluster)
-    if numelements == 19
+    if numelements == 37
+        return RGB ? (4,3) : (6,6)
+    elseif numelements == 19
         return RGB ? (3, 2) : (5, 3)
     elseif numelements == 12
         return RGB ? (2, 2) : (4, 3)
@@ -320,5 +322,8 @@ function printsystemproperties(eyerelief::Unitful.Length, eyebox::NTuple{2,Unitf
     println("cluster diameter (approx): $(props[:lenslet_diameter]*clusterdiameter)")
 end
 export printsystemproperties
+
+typicalsystemproperties() = systemproperties(18mm,(10mm,9mm),(55°,45°),4.0mm,.2,11,30)
+export typicalsystemproperties
 
 

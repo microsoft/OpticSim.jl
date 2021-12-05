@@ -63,7 +63,7 @@ function setup_system()
 
     focallength = ustrip(mm,props[:focal_length])
     lenses,coordinates = spherelenslets(Plane(0.0,0.0,1.0,0.0,0.0,12.0),focallength,[0.0,0.0,-1.0],30.0,55°,45°,HexBasis1())
-    lensletcolors = pointcolor.(coordinates,Ref(cluster))
+    lensletcolors = [pointcolor(coordinates[:,j],cluster) for j in 1:size(coordinates)[2]]
     
     #compute offset of optical axis for lenslets so they cover the correct part of the eyebox.
 
@@ -71,6 +71,6 @@ function setup_system()
 
     #project eyebox into lenslet display plane and compute bounding box. This is the size of the display for this lenslet
 
-
+    return (lenses,coordinates,lensletcolors)
 end
 export setup_system
