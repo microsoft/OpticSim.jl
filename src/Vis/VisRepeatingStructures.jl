@@ -72,7 +72,7 @@ function drawcells(tilebasis::AbstractBasis, tilesize, cells::AbstractMatrix; co
 end
 
 """ draw the ClusterWithProperties at coordinates specified by lattice_coordinate_offset """
-function draw(clstr::Repeat.AbstractLatticeCluster, cluster_coordinate_offset::AbstractMatrix{T} , scale=50.0) where{T}
+function draw(clstr::Repeat.AbstractLatticeCluster, cluster_coordinate_offset::AbstractMatrix{T} = [0;0;;] , scale=50.0) where{T}
     dims = size(cluster_coordinate_offset)
     clstrsize = clustersize(clstr)
     points = Matrix(undef, dims[1], dims[2] * clstrsize)
