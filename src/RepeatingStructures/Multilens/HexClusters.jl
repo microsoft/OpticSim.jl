@@ -22,12 +22,7 @@ function hex4()
 end
 export hex4
 
-function hex7()
-    clusterelements = SVector((1, -1), (0, -1), (-1, 0), (0, 0), (-1, 1), (0, 1), (1, 0), )
-    eltlattice = HexBasis1()
-    clusterbasis = LatticeBasis((2, 2), (-3, 2))
-    return LatticeCluster(clusterbasis, eltlattice, clusterelements)
-end
+hex7() = hexn(1)
 export hex7
 
 
@@ -53,18 +48,16 @@ function hex12()
 end
 export hex12
 
-function hex19()
-    eltlattice = HexBasis1()
-    clusterbasis = LatticeBasis((5, 0), (-2, 4))
-    return LatticeCluster(clusterbasis, eltlattice, region(HexBasis1,(0,0),2))
-end
+hex19() = hexn(2)
 export hex19
+
+hex37() = hexn(3)
+export hex37
 
 function hexn(regionsize::Int64)
     eltlattice = HexBasis1()
     clusterbasis = LatticeBasis((2*regionsize+1, -regionsize), (regionsize, regionsize+1))
     return LatticeCluster(clusterbasis, eltlattice, region(HexBasis1,(0,0),regionsize))
-
 end
 export hexn
 

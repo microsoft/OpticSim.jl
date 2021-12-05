@@ -79,11 +79,9 @@ function region(::Type{HexBasis1},centerpoint::Tuple{Int64,Int64}, n::Int64)
     f(i) = i==0 ? () : (neighbors(HexBasis1,centerpoint,i)...,f(i-1)...)
     cells = (centerpoint...,f(n)...)
     numcells = length(cells) ÷ 2
-    println(numcells)
     # convert to matrix form since that is what the drawing code expects
     temp = MMatrix{2,numcells,Int64}(undef)
     for i in 1:numcells
-        println(cells[i])
         temp[1,i] = cells[2*i-1]
         temp[2,i] = cells[2*i]
     end

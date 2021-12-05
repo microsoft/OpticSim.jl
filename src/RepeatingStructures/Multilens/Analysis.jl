@@ -305,17 +305,24 @@ export systemproperties
 
 """prints system properties nicely"""
 function printsystemproperties(eyerelief::Unitful.Length, eyebox::NTuple{2,Unitful.Length}, fov, pupildiameter::Unitful.Length, mtf, cyclesperdegree,pixelsperdegree; minfnumber=2.0,RGB=true,λ=530nm,pixelpitch=.9μm) 
+    println("Input parameters")
+    println()
     println("eye relief = $eyerelief")
     println("eye box = $eyebox")
     println("fov = $(fov)°")
     println("pupil diameter = $pupildiameter")
     println("mtf = $mtf @ $cyclesperdegree cycles/degree")
+    println()
+    println("Output values")
+    println()
     props = systemproperties(eyerelief, eyebox, fov, pupildiameter, mtf, cyclesperdegree,pixelsperdegree, minfnumber = minfnumber,RGB=RGB,λ=λ,pixelpitch=pixelpitch)
     for (key,value) in pairs(props)
-        if key == :diffraction_limit
-            println("$key = $value cycles/°")
-        else
-            println("$key = $value")
+        if key !== :cluster_data #don't print cluster data since it is very long
+            if key == :diffraction_limit
+                println("$key = $value cycles/°")
+            else
+                println("$key = $value")
+            end
         end
     end
     clusterdiameter = props[:cluster_data][:diameteroflattice]
@@ -323,7 +330,10 @@ function printsystemproperties(eyerelief::Unitful.Length, eyebox::NTuple{2,Unitf
 end
 export printsystemproperties
 
-typicalsystemproperties() = systemproperties(18mm,(10mm,9mm),(55°,45°),4.0mm,.2,11,30)
+function typicalsystemproperties() 
+    printsystemproperties(18mm,(10mm,9mm),(55°,45°),4.0mm,.3,11,30)
+    return nothing
+end
 export typicalsystemproperties
 
 
