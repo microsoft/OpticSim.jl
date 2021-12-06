@@ -41,7 +41,7 @@ end
 export subdivide
 
     
-displayplane(lens) =  Plane(-normal(lens), centroid(lens) + normal(lens))
+displayplane(lens) =  Plane(-normal(lens), centroid(lens) + normal(lens), vishalfsizeu = 5.0, vishalfsizev = 5.0)
 export displayplane
 
 function setup_system()
