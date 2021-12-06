@@ -4,21 +4,22 @@
 
 
 """
-    plane_from_points(points::SMatrix{3, N, Float64}}) ->  centroid, normal
+    plane_from_points(points::SMatrix{D, N, P}}) ->  centroid, normal, local_to_world transform
 
+Points to be fitted are assumed to be stored by column in the `points` matrix.
 Estimate the best fitting plane for a set of points in 3D.
-A more efficient version of plane_from_points.
 `D` is the dimension of the plane.
 `N` is the number of points to fit.
-`T` is the type of the number used to represent points.
+`P` is the number type used to represent points.
 """
 function plane_from_points(points::SMatrix{D, N, P}) where {D,N,P<:Real}
-    center = Statistics.mean(points,dims=2)
+    center = Statistics.mean(points,dims=2) #compute average of columns of point matrix.
 
     u, _, _ = svd(points .- center)
+    @assert det(u) > 0 "u matrix was not a rotation" #always want a rotation matrix. The svd seems to always generate this but it is not guaranteed in the documentation that this will be true so check for it here. Will catch it if a future implementation doesn't have this property. Slight efficiency hit but this code is not used in any time critical loops (yet).
     normal = u[:,3]             # The two largest singular vectors lie in the plane that is the best fit to the points, i.e., that accounts for the largest fraction of variance in the set of points. The smallest singular vector is perpendicular to this plane.
 
-    # make sure the normal is pointing consistently to positive Z direction 
+    # make sure the normal is pointing consistently to positive Z direction of local coordinate frame
     if dot(normal, unitZ3()) < P(0.0)
         normal = normal * P(-1.0)
     end

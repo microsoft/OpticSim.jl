@@ -13,6 +13,7 @@ import ..Repeat
 import SpecialFunctions
 import Plots
 import ...OpticSim
+import ...OpticSim:plane_from_points,centroid,pointonplane
 import ...OpticSim.Geometry
 import ...OpticSim.Repeat:region,HexBasis1,HexBasis3,LatticeBasis,LatticeCluster,clustersize,ClusterWithProperties
 

@@ -39,7 +39,11 @@ function subdivide(poly::T, xsubdivisions, ysubdivisions) where{T<:SMatrix{3,4}}
     return result
 end
 export subdivide
+
     
+displayplane(lens) =  Plane(-normal(lens), centroid(lens) + normal(lens))
+export displayplane
+
 function setup_system()
     centroid(verts) = sum(eachcol(verts)) ./ size(verts)[2] 
 
