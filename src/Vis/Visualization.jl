@@ -220,13 +220,20 @@ Draw an object in a new scene.
 `kwargs` depends on the object type.
 """
 function draw(ob; resolution = (1000, 1000), kwargs...)
-    scene, lscene = Vis.scene(resolution)
-    draw!(lscene, ob; kwargs...)
-    display(scene)
+    if activeFigureView && !(get_current_mode() == :pluto || get_current_mode() == :docs)
+        dInR = DrawingInR()
+        draw!(dInR, ob; kwargs...)
+        display(dInR)
+    else
+        scene, lscene = Vis.scene(resolution)
+        draw!(lscene, ob; kwargs...)
+        display(scene)
 
-    if (get_current_mode() == :pluto || get_current_mode() == :docs)
-        return scene
+        if (get_current_mode() == :pluto || get_current_mode() == :docs)
+            return scene
+        end
     end
+
 end
 
 """
@@ -236,17 +243,27 @@ Draw an object in an existing scene.
 `kwargs` depends on the object type.
 """
 function draw!(ob; kwargs...)
-    if current_3d_scene === nothing
-        scene, lscene = Vis.scene()
-    else
-        scene = current_main_scene
-        lscene = current_3d_scene
-    end
-    draw!(lscene, ob; kwargs...)
-    display(scene)
+    if get_current_mode() == :pluto || get_current_mode() == :docs || !activeFigureView
+        if current_3d_scene === nothing
+            scene, lscene = Vis.scene()
+        else
+            scene = current_main_scene
+            lscene = current_3d_scene
+        end
+        draw!(lscene, ob; kwargs...)
+        display(scene)
 
-    if (get_current_mode() == :pluto || get_current_mode() == :docs)
-        return scene
+        if (get_current_mode() == :pluto || get_current_mode() == :docs)
+            return scene
+        end
+    else
+        if currentDrawingInR === nothing
+            dInR = DrawingInR()
+        else
+            dInR = currentDrawingInR
+        end
+        draw!(dInR, ob; kwargs...)
+        display(dInR)
     end
 end
 
@@ -337,14 +354,14 @@ end
 ## GEOMETRY
 
 """
-    draw!(scene::Makie.LScene, surf::Surface{T}; numdivisions = 20, normals = false, normalcolor = :blue, kwargs...)
+    draw!(scene, surf::Surface{T}; numdivisions = 20, normals = false, normalcolor = :blue, kwargs...)
 
 Transforms `surf` into a mesh using [`makemesh`](@ref) and draws the result.
 `normals` of the surface can be drawn at evenly sampled points with provided `normalcolor`.
 `numdivisions` determines the resolution with which the mesh is triangulated.
 `kwargs` is passed on to the [`TriangleMesh`](@ref) drawing function.
 """
-function draw!(scene::Makie.LScene, surf::Surface{T}; numdivisions::Int = 30, normals::Bool = false, normalcolor = :blue, kwargs...) where {T<:Real}
+function draw!(scene::Union{Makie.LScene, DrawingInR} , surf::Surface{T}; numdivisions::Int = 30, normals::Bool = false, normalcolor = :blue, kwargs...) where {T<:Real}
     mesh = makemesh(surf, numdivisions)
     if nothing === mesh
         return
@@ -356,6 +373,19 @@ function draw!(scene::Makie.LScene, surf::Surface{T}; numdivisions::Int = 30, no
         Makie.arrows!(scene, norigins, ndirs, arrowsize = 0.2, arrowcolor = normalcolor, linecolor = normalcolor, linewidth = 2)
     end
 end
+
+function Makie.arrows!(dInR::DrawingInR, norigins, ndirs; arrowsize = 0.2, arrowcolor = normalcolor, linecolor = normalcolor, linewidth = 2)
+    Makie.arrows!(dInR.lscene1, norigins, ndirs, arrowsize = arrowsize, arrowcolor = arrowcolor, linecolor = linecolor, linewidth = linewidth)
+    for (origin, dir) in zip(norigins, ndirs)
+        if inside(visPlaneY, SVector{3, Float64}(origin))
+            Makie.arrows!(dInR.lscene2, [origin], [dir], arrowsize = arrowsize, arrowcolor = arrowcolor, linecolor = linecolor, linewidth = linewidth)
+        elseif inside(visPlaneX, SVector{3, Float64}(origin))
+            Makie.arrows!(dInR.lscene3, norigins, ndirs, arrowsize = arrowsize, arrowcolor = arrowcolor, linecolor = linecolor, linewidth = linewidth)
+        end
+    end
+end
+
+
 
 """
     draw!(scene::Makie.LScene, tmesh::TriangleMesh{T}; linewidth = 3, shaded = true, wireframe = false, color = :orange, normals = false, normalcolor = :blue, transparency = false, kwargs...)
@@ -385,13 +415,14 @@ function draw!(scene::Makie.LScene, tmesh::TriangleMesh{T}; linewidth = 3, shade
     end
 end
 
+
 """
     draw!(scene::Makie.LScene, meshes::Vararg{S}; colors::Bool = false, kwargs...) where {T<:Real,S<:Union{TriangleMesh{T},Surface{T}}}
 
 Draw a series of [`TriangleMesh`](@ref) or [`Surface`](@ref) objects, if `colors` is true then each mesh will be colored automatically with a diverse series of colors.
 `kwargs` are is passed on to the drawing function for each element.
 """
-function draw!(scene::Makie.LScene, meshes::Vararg{S}; colors::Bool = false, kwargs...) where {T<:Real,S<:Union{TriangleMesh{T},Surface{T}}}
+function draw!(scene::Union{Makie.LScene, DrawingInR} , meshes::Vararg{S}; colors::Bool = false, kwargs...) where {T<:Real,S<:Union{TriangleMesh{T},Surface{T}}}
     for i in 1:length(meshes)
         if colors
             col = indexedcolor2(i)
@@ -403,11 +434,17 @@ function draw!(scene::Makie.LScene, meshes::Vararg{S}; colors::Bool = false, kwa
 end
 
 function draw(meshes::Vararg{S}; kwargs...) where {T<:Real,S<:Union{TriangleMesh{T},Surface{T}}}
-    scene, lscene = Vis.scene()
-    draw!(lscene, meshes...; kwargs...)
-    Makie.display(scene)
-    if (get_current_mode() == :pluto || get_current_mode() == :docs)
-        return scene
+    if activeFigureView && !(get_current_mode() == :pluto || get_current_mode() == :docs)
+        dInR = DrawingInR()
+        draw!(dInR, meshes...; kwargs...)
+        display(dInR)
+    else
+        scene, lscene = Vis.scene(resolution)
+        draw!(lscene, meshes...; kwargs...)
+        Makie.display(scene)
+        if (get_current_mode() == :pluto || get_current_mode() == :docs)
+            return scene
+        end
     end
 end
 
@@ -417,7 +454,18 @@ end
 Convert a CSG object ([`CSGTree`](@ref) or [`CSGGenerator`](@ref)) to a mesh using [`makemesh`](@ref) with resolution set by `numdivisions` and draw the resulting [`TriangleMesh`](@ref).
 """
 draw!(scene::Makie.LScene, csg::CSGTree{T}; numdivisions::Int = 30, kwargs...) where {T<:Real} = draw!(scene, makemesh(csg, numdivisions); kwargs...)
-draw!(scene::Makie.LScene, csg::CSGGenerator{T}; kwargs...) where {T<:Real} = draw!(scene, csg(); kwargs...)
+
+draw!(scene::Makie.LScene , csg::CSGGenerator{T}; kwargs...) where {T<:Real} = draw!(scene, csg(); kwargs...)
+
+# this method SHOULD take care of all LensAssembly entries before they become meshes where the interesection operators don't work. It does not. 
+# Apparently about in AxisymmetricOpticalSystem creates and stores the trees instead of CSGGenertor objects (???) 
+function draw!(dInR::DrawingInR, csg::CSGGenerator; kwargs...) where {T<:Real} 
+    draw!(dInR.lscene1, csg(); kwargs...)
+    draw!(dInR.lscene2, (csg ∩ dInR.yRegion)(); kwargs...)
+    draw!(dInR.lscene3, (csg ∩ dInR.xRegion)(); kwargs...)
+    return dInR
+end
+
 
 """
     draw!(scene::Makie.LScene, bbox::BoundingBox{T}; kwargs...)
@@ -436,6 +484,14 @@ function draw!(scene::Makie.LScene, bbox::BoundingBox{T}; kwargs...) where {T<:R
     Makie.linesegments!(scene, [p1, p2, p2, p3, p3, p4, p4, p1, p1, p5, p2, p6, p3, p7, p4, p8, p5, p6, p6, p7, p7, p8, p8, p5]; kwargs...)
 end
 
+function draw!(dInR::DrawingInR, bbox::BoundingBox{T}; kwargs...) where {T<:Real}
+    draw!(dInR.lscene1, bbox; kwargs...)
+    draw!(dInR.lscene2, bbox; kwargs...)  #don't trim wireframe of bounding box
+    draw!(dInR.lscene3, bbox; kwargs...)
+
+end
+
+
 ## OPTICS
 
 """
@@ -443,7 +499,7 @@ end
 
 Draw each element in a [`LensAssembly`](@ref), with each element automatically colored differently.
 """
-function draw!(scene::Makie.LScene, ass::LensAssembly{T}; kwargs...) where {T<:Real}
+function draw!(scene::Union{Makie.LScene, DrawingInR} , ass::LensAssembly{T}; kwargs...) where {T<:Real}
     for (i, e) in enumerate(elements(ass))
         draw!(scene, e; kwargs..., color = indexedcolor2(i))
     end
@@ -454,12 +510,12 @@ end
 
 Draw each element in the lens assembly of an [`AbstractOpticalSystem`](@ref), with each element automatically colored differently, as well as the detector of the system.
 """
-function draw!(scene::Makie.LScene, sys::CSGOpticalSystem{T}; kwargs...) where {T<:Real}
+function draw!(scene::Union{Makie.LScene, DrawingInR} , sys::CSGOpticalSystem{T}; kwargs...) where {T<:Real}
     draw!(scene, sys.assembly; kwargs...)
     draw!(scene, sys.detector; kwargs...)
 end
 
-draw!(scene::Makie.LScene, sys::AxisymmetricOpticalSystem{T}; kwargs...) where {T<:Real} = draw!(scene, sys.system; kwargs...)
+draw!(scene::Union{Makie.LScene, DrawingInR} , sys::AxisymmetricOpticalSystem{T}; kwargs...) where {T<:Real} = draw!(scene, sys.system; kwargs...)
 
 onlydetectorrays(system::Q, tracevalue::LensTrace{T,3}) where {T<:Real,Q<:AbstractOpticalSystem{T}} = onsurface(detector(system), point(tracevalue))
 
@@ -478,19 +534,29 @@ Also `drawtracerays!` to add to an existing scene, with `drawsys` and `drawgen` 
 """
 function drawtracerays(system::Q; raygenerator::S = Source(transform = translation(0.0,0.0,10.0), origins = Origins.RectGrid(10.0,10.0,25,25),directions = Constant(0.0,0.0,-1.0)), test::Bool = false, trackallrays::Bool = false, colorbysourcenum::Bool = false, colorbynhits::Bool = false, rayfilter::Union{Nothing,Function} = onlydetectorrays, verbose::Bool = false, resolution::Tuple{Int,Int} = (1000, 1000), kwargs...) where {T<:Real,Q<:AbstractOpticalSystem{T},S<:AbstractRayGenerator{T}}
     verbose && println("Drawing System...")
-    s, ls = Vis.scene(resolution)
-
-    drawtracerays!(ls, system, raygenerator = raygenerator, test = test, colorbysourcenum = colorbysourcenum, colorbynhits = colorbynhits, rayfilter = rayfilter, trackallrays = trackallrays, verbose = verbose, drawsys = true, drawgen = true; kwargs...)
-
-    display(s)
-    if (get_current_mode() == :pluto || get_current_mode() == :docs)
-        return s
+    if activeFigureView && !(get_current_mode() == :pluto || get_current_mode() == :docs)
+        dInR = DrawingInR()
+        drawtracerays!(dInR, system, raygenerator = raygenerator, test = test, colorbysourcenum = colorbysourcenum, colorbynhits = colorbynhits, rayfilter = rayfilter, trackallrays = trackallrays, verbose = verbose, drawsys = true, drawgen = true; kwargs...)
+        display(dInR)
+    else
+        s, ls = Vis.scene(resolution)
+        drawtracerays!(ls, system, raygenerator = raygenerator, test = test, colorbysourcenum = colorbysourcenum, colorbynhits = colorbynhits, rayfilter = rayfilter, trackallrays = trackallrays, verbose = verbose, drawsys = true, drawgen = true; kwargs...)
+        display(s)
+        if (get_current_mode() == :pluto || get_current_mode() == :docs)
+            return s
+        end
     end
 end
 
-drawtracerays!(system::Q; kwargs...) where {T<:Real,Q<:AbstractOpticalSystem{T}} = drawtracerays!(current_3d_scene, system; kwargs...)
+function drawtracerays!(system::Q; kwargs...) where {T<:Real,Q<:AbstractOpticalSystem{T}}
+    if get_current_mode() == :pluto || get_current_mode() == :docs || !activeFigureView
+        drawtracerays!(current_3d_scene, system; kwargs...)
+    else
+        drawtracerays!(dInR, system; kwargs...)
+    end
+end
 
-function drawtracerays!(scene::Makie.LScene, system::Q; raygenerator::S = Source(transform = translation(0.0,0.0,10.0), origins = Origins.RectGrid(10.0,10.0,25,25),directions = Constant(0.0,0.0,-1.0)), test::Bool = false, trackallrays::Bool = false, colorbysourcenum::Bool = false, colorbynhits::Bool = false, rayfilter::Union{Nothing,Function} = onlydetectorrays, verbose::Bool = false, drawsys::Bool = false, drawgen::Bool = false, kwargs...) where {T<:Real,Q<:AbstractOpticalSystem{T},S<:AbstractRayGenerator{T}}
+function drawtracerays!(scene::Union{Makie.LScene, DrawingInR} , system::Q; raygenerator::S = Source(transform = translation(0.0,0.0,10.0), origins = Origins.RectGrid(10.0,10.0,25,25),directions = Constant(0.0,0.0,-1.0)), test::Bool = false, trackallrays::Bool = false, colorbysourcenum::Bool = false, colorbynhits::Bool = false, rayfilter::Union{Nothing,Function} = onlydetectorrays, verbose::Bool = false, drawsys::Bool = false, drawgen::Bool = false, kwargs...) where {T<:Real,Q<:AbstractOpticalSystem{T},S<:AbstractRayGenerator{T}}
     raylines = Vector{LensTrace{T,3}}(undef, 0)
 
     drawgen && draw!(scene, raygenerator, norays = true; kwargs...)
@@ -557,7 +623,7 @@ end
 
 Draw a vector of [`Ray`](@ref) or [`OpticalRay`](@ref) objects.
 """
-function draw!(scene::Makie.LScene, rays::AbstractVector{<:AbstractRay{T,N}}; kwargs...) where {T<:Real,N}
+function draw!(scene::Union{Makie.LScene, DrawingInR} , rays::AbstractVector{<:AbstractRay{T,N}}; kwargs...) where {T<:Real,N}
     for r in rays
         draw!(scene, r; kwargs...)
     end
@@ -568,7 +634,7 @@ end
 
 Draw a vector of [`LensTrace`](@ref) objects.
 """
-function draw!(scene::Makie.LScene, traces::AbstractVector{LensTrace{T,N}}; kwargs...) where {T<:Real,N}
+function draw!(scene::Union{Makie.LScene, DrawingInR} , traces::AbstractVector{LensTrace{T,N}}; kwargs...) where {T<:Real,N}
     for t in traces
         draw!(scene, t; kwargs...)
     end
@@ -580,7 +646,7 @@ end
 Draw a [`LensTrace`](@ref) as a line which can be colored automatically by its `sourcenum` or `nhits` attributes.
 The alpha is determined by the `power` attribute of `trace`.
 """
-function draw!(scene::Makie.LScene, trace::LensTrace{T,N}; colorbysourcenum::Bool = false, colorbynhits::Bool = false, kwargs...) where {T<:Real,N}
+function draw!(scene::Union{Makie.LScene, DrawingInR} , trace::LensTrace{T,N}; colorbysourcenum::Bool = false, colorbynhits::Bool = false, kwargs...) where {T<:Real,N}
     if colorbysourcenum
         color = indexedcolor(sourcenum(trace))
     elseif colorbynhits
@@ -598,7 +664,7 @@ Draw an [`OpticalRay`](@ref) which can be colored automatically by its `sourcenu
 The alpha of the ray is determined by the `power` attribute of `ray`.
 `kwargs` are passed to `draw!(scene, ray::Ray)`.
 """
-function draw!(scene::Makie.LScene, r::OpticalRay{T,N}; colorbysourcenum::Bool = false, colorbynhits::Bool = false, kwargs...) where {T<:Real,N}
+function draw!(scene::Union{Makie.LScene, DrawingInR} , r::OpticalRay{T,N}; colorbysourcenum::Bool = false, colorbynhits::Bool = false, kwargs...) where {T<:Real,N}
     if colorbysourcenum
         color = indexedcolor(sourcenum(r))
     elseif colorbynhits
@@ -620,12 +686,19 @@ function draw!(scene::Makie.LScene, ray::AbstractRay{T,N}; color = :yellow, rays
     Makie.arrows!(scene, [Makie.Point3f0(origin(ray))], [Makie.Point3f0(rayscale * direction(ray))]; kwargs..., arrowsize = arrow_size, arrowcolor = color, linecolor = color, linewidth=arrow_size * 0.5)
 end
 
+function draw!(dInR::DrawingInR, ray::AbstractRay{T,N}; color = :yellow, rayscale = 1.0, kwargs...) where {T<:Real,N}
+    arrow_size = min(0.05, rayscale * 0.05)
+    Makie.arrows!(dInR.lscene1, [Makie.Point3f0(origin(ray))], [Makie.Point3f0(rayscale * direction(ray))]; kwargs..., arrowsize = arrow_size, arrowcolor = color, linecolor = color, linewidth=arrow_size * 0.5)
+    Makie.arrows!(dInR.lscene2, [Makie.Point3f0(origin(ray))], [Makie.Point3f0(rayscale * direction(ray))]; kwargs..., arrowsize = arrow_size, arrowcolor = color, linecolor = color, linewidth=arrow_size * 0.5)
+    Makie.arrows!(dInR.lscene3, [Makie.Point3f0(origin(ray))], [Makie.Point3f0(rayscale * direction(ray))]; kwargs..., arrowsize = arrow_size, arrowcolor = color, linecolor = color, linewidth=arrow_size * 0.5)
+end
+
 """
     draw!(scene::Makie.LScene, du::DisjointUnion{T}; kwargs...)
 
 Draw each [`Interval`](@ref) in a [`DisjointUnion`](@ref).
 """
-function draw!(scene::Makie.LScene, du::DisjointUnion{T}; kwargs...) where {T<:Real}
+function draw!(scene::Union{Makie.LScene, DrawingInR} , du::DisjointUnion{T}; kwargs...) where {T<:Real}
     draw!(scene, intervals(du); kwargs...)
 end
 
@@ -634,7 +707,7 @@ end
 
 Draw a vector of [`Interval`](@ref)s.
 """
-function draw!(scene::Makie.LScene, intervals::AbstractVector{Interval{T}}; kwargs...) where {T<:Real}
+function draw!(scene::Union{Makie.LScene, DrawingInR} , intervals::AbstractVector{Interval{T}}; kwargs...) where {T<:Real}
     for i in intervals
         draw!(scene, i; kwargs...)
     end
@@ -645,7 +718,7 @@ end
 
 Draw an [`Interval`](@ref) as a line with circles at each [`Intersection`](@ref) point.
 """
-function draw!(scene::Makie.LScene, interval::Interval{T}; kwargs...) where {T<:Real}
+function draw!(scene::Union{Makie.LScene, DrawingInR} , interval::Interval{T}; kwargs...) where {T<:Real}
     if !(interval isa EmptyInterval)
         l = lower(interval)
         u = upper(interval)
@@ -670,7 +743,7 @@ end
 
 Draw an [`Intersection`](@ref) as a circle, optionally showing the surface normal at the point.
 """
-function draw!(scene::Makie.LScene, intersection::Intersection; normal::Bool = false, kwargs...)
+function draw!(scene::Union{Makie.LScene, DrawingInR} , intersection::Intersection; normal::Bool = false, kwargs...)
     draw!(scene, point(intersection); kwargs...)
     if normal
         draw!(scene, Ray(point(intersection), normal(intersection)); kwargs...)
@@ -682,7 +755,7 @@ end
 
 Draw a vector of lines.
 """
-function draw!(scene::Makie.LScene, lines::AbstractVector{Tuple{P,P}}; kwargs...) where {T<:Real,P<:AbstractVector{T}}
+function draw!(scene::Union{Makie.LScene, DrawingInR} , lines::AbstractVector{Tuple{P,P}}; kwargs...) where {T<:Real,P<:AbstractVector{T}}
     for l in lines
         draw!(scene, l; kwargs...)
     end
@@ -697,12 +770,18 @@ function draw!(scene::Makie.LScene, line::Tuple{P,P}; color = :yellow, kwargs...
     Makie.linesegments!(scene, [line[1], line[2]]; kwargs..., color = color)
 end
 
+function draw!(dInR::DrawingInR, line::Tuple{P,P}; color = :yellow, kwargs...) where {T<:Real,P<:AbstractVector{T}}
+    Makie.linesegments!(dInR.lscene1, [line[1], line[2]]; kwargs..., color = color)
+    Makie.linesegments!(dInR.lscene2, [line[1], line[2]]; kwargs..., color = color)
+    Makie.linesegments!(dInR.lscene2, [line[1], line[2]]; kwargs..., color = color)
+end
+
 """
     draw!(s::Makie.LScene, point::AbstractVector{T}; kwargs...)
 
 Draw a single point, `kwargs` are passed to `draw!(scene, points::AbstractVector{AbstractVector{T}})`.
 """
-function draw!(s::Makie.LScene, point::AbstractVector{T}; kwargs...) where {T<:Real}
+function draw!(s::Union{Makie.LScene, DrawingInR} , point::AbstractVector{T}; kwargs...) where {T<:Real}
     draw!(s, [point]; kwargs...)
 end
 
@@ -714,6 +793,12 @@ Draw a vector of points.
 """
 function draw!(scene::Makie.LScene, points::AbstractVector{P}; markersize = 20, color = :black, kwargs...) where {T<:Real,P<:AbstractVector{T}}
     Makie.scatter!(scene, points, markersize = markersize, color = color, strokewidth = 0; kwargs...)
+end
+
+function draw!(dInR::DrawingInR, points::AbstractVector{P}; markersize = 20, color = :black, kwargs...) where {T<:Real,P<:AbstractVector{T}}
+    Makie.scatter!(dInR.lscene1, points, markersize = markersize, color = color, strokewidth = 0; kwargs...)
+    Makie.scatter!(dInR.lscene2, points, markersize = markersize, color = color, strokewidth = 0; kwargs...)
+    Makie.scatter!(dInR.lscene3, points, markersize = markersize, color = color, strokewidth = 0; kwargs...)
 end
 
 #######################################################
