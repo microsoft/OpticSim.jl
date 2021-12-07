@@ -4,10 +4,11 @@ export nominal_system_properties
 
 
 function drawspherelenslets()
-    (;fov, eyerelief,eyebox,display_radius,pupil_diameter,pixel_pitch,minfnumber,mtf,cycles_per_degree) = nominal_system_properties()
+    (;fov, eye_relief,eyebox,display_radius,pupil_diameter,pixel_pitch,minfnumber,mtf,cycles_per_degree) = nominal_system_properties()
+    
     computedprops = systemproperties(eye_relief,eyebox,fov,pupil_diameter,mtf,cycles_per_degree,minfnumber = minfnumber,maxdisplaysize = max_display_size,pixelpitch = pixel_pitch)
     focallength = ustrip(mm,computedprops[:focal_length])
-    lenses,_ = spherelenslets(Plane(0.0,0.0,1.0,0.0,0.0,18.0),focallength,[0.0,0.0,-1.0],ustrip(mm,displayradius),fov[1],fov[2],HexBasis1())
+    lenses,_ = spherelenslets(Plane(0.0,0.0,1.0,0.0,0.0,18.0),focallength,[0.0,0.0,-1.0],ustrip(mm,display_radius),fov[1],fov[2],HexBasis1())
     Vis.draw!.(lenses)
     return nothing
 end

@@ -10,13 +10,13 @@ import OpticSim.Repeat
 
 
 
-
+#Really should extend AbstractLattice to support cosets, then wouldn't need this ad hoc stuff. TODO
 colorbasis(::Repeat.HexBasis1) = SMatrix{2,2}(2, -1, 1, 1)
 colorbasis(::Repeat.HexBasis3) = SMatrix{2,2}(2, -1, 1, 1)
 colororigins(::Repeat.HexBasis1) = ((0, 0), (-1, 0), (-1, 1))
 colororigins(::Repeat.HexBasis3) = ((0, 0), (0, -1), (1, -1))
 
-"""To reduce color channel cross talk it may be useful to arrange the color of lenslets in a hexagonal lattice so that each color is surrounded by lenslets of a different color. With appropriate color filtering crosstalk between immediately neighboring lenslets can be reduced. This function computes the color which should be assigned to any lattice point to ensure this property holds."""
+""" For lenslets arranged in a hexagonal pattern cross talk between lenslets can be reduced by arranging the color of the lenslets so that each lenslet is surrounded only by lenslets of a different color. This function computes the color to assign to any lattice point to ensure this property holds."""
 function pointcolor(point, cluster::Repeat.AbstractLatticeCluster)
     latticematrix = colorbasis(Repeat.elementbasis(cluster))
     origins = colororigins(Repeat.elementbasis(cluster))
@@ -58,7 +58,18 @@ function lensletdisplaysize(fov,focal_length)
 end
 export lenseletdisplaysize
 
-"""returns the diffraction limit frequency in cycles/deg
+
+"""diffraction limited response for a circular aperture, normalized by maximum cutoff frequency"""
+function mtfcircular(freq, freqcutoff) 
+    s =  freq / freqcutoff
+    return 2 / π * (acos(s) - s * ((1 - s^2)^.5))
+end
+export mtfcircular
+
+""" 
+# Returns the diffraction limit frequency in cycles/deg. At this frequeny the response of the system is zero.
+
+## Derivation from the more common formula relating f number and diffraction limit.
 
 focal length = 𝒇𝒍
 diffraction cutoff frequency,fc, in cycles/mm = 1/λF# = diameter/λ*𝒇𝒍
@@ -75,19 +86,7 @@ from equation for Wc:
 λ*𝒇𝒍/diameter = Wc = θc*𝒇𝒍
 θc = λ/diameter
 cycles/rad = 1/θc = diameter/λ
-
 """
-cyclesperdegree(diameter::Unitful.Length,λ::Unitful.Length) = uconvert(Unitful.NoUnits, diameter / (rad2deg(1) * λ))
-export cyclesperdegree
-
-"""diffraction limited response for a circular aperture, normalized by maximum cutoff frequency"""
-function mtfcircular(freq, freqcutoff) 
-    s =  freq / freqcutoff
-    return 2 / π * (acos(s) - s * ((1 - s^2)^.5))
-end
-export mtfcircular
-
-"""rmaxurns the diffraction limit frequency in cycles/degree. At this frequeny the response of the system is zero"""
 diffractionlimit(λ::Unitful.Length,diameter::Unitful.Length) = uconvert(Unitful.NoUnits, diameter / λ) / rad2deg(1)
 export diffractionlimit
 
@@ -153,14 +152,6 @@ function choosecluster(pupildiameter::Unitful.Length, λ::Unitful.Length, mtf, c
     return choosecluster(pupildiameter, diam) # use minimum diameter for now.
 end
 
-"""Computes display size assuming lenslet normal to eyebox plane passes through lenslet. This is an approximation but for the narrow fov we are considering it is accurate enough to estimate pixel redundandcy, etc."""
-function sizeoflensletdisplay(eyerelief::T, eyebox::AbstractVector{T}, ppd, pixelpitch::S) where {T <: Unitful.Length,S <: Unitful.Length}
-    θ = eyeboxangles(eyebox, eyerelief)
-    displaysize = @.  θ * ppd * pixelpitch
-    return uconvert.(mm, displaysize)
-end
-export sizeoflensletdisplay
-
 """This computes the approximate size of the entire display, not the individual lenslet displays."""
 sizeofdisplay(fov,eyerelief) = @. 2 * tand(fov / 2) * eyerelief
 export sizeofdisplay
@@ -172,10 +163,6 @@ function numberoflenslets(fov, eyerelief::Unitful.Length, lensletdiameter::Unitf
      return dispsize[1] * dispsize[2] / lensletarea
 end
 export numberoflenslets
-
-
-"""given the angles each lenslet has to cover compute the corresponding display size"""
-sizeoflensletdisplay(angles,ppd,pixelpitch::Unitful.Length) = @. angles * ppd * pixelpitch
 
 """angular size of the eyebox when viewed from distance eyerelief"""
 eyeboxangles(eyebox,eyerelief) = @. atand(uconvert(Unitful.NoUnits, eyebox / eyerelief))
@@ -204,30 +191,23 @@ export anglesubdivisions
 
 
 """Computes the approximate fov required of each lenslet for the given constraints. This is strictly correct only for a lenslet centered in front of the eyebox, but the approximation is good enough for high level analysis"""
-function lensletangles(eyerelief::Unitful.Length, eyebox::NTuple{2,Unitful.Length}, pupildiameter::Unitful.Length, ppd; clusterproperties=defaultclusterproperties(), RGB=true)
+function lensletangles(eyerelief::Unitful.Length, eyebox::NTuple{2,Unitful.Length}, pupildiameter::Unitful.Length; clusterproperties=defaultclusterproperties(), RGB=true)
     return eyeboxangles(eyebox, eyerelief) ./ anglesubdivisions(pupildiameter, clusterproperties.λ, clusterproperties.mtf, clusterproperties.cyclesperdegree, RGB=RGB)
 end
 export lensletangles
 
-testangles() = lensletangles(18mm, (10mm, 6mm), 4mm, 45)
-export testangles
-
-lensletresolution(angles,ppd) = angles .* ppd
 
 """Multilens displays tradeoff pixel redundancy for a reduction in total track of the display, by using many short focal length lenses to cover the eyebox. This function computes the ratio of pixels in the multilens display vs. a conventional display of the same nominal resolution"""
 function pixelredundancy(fov, eyerelief::Unitful.Length, eyebox::NTuple{2,Unitful.Length}, pupildiameter::Unitful.Length, ppd; RGB=true)
     lensprops = defaultclusterproperties()
     clusterdata = choosecluster(pupildiameter, lensprops.λ, lensprops.mtf, lensprops.cyclesperdegree)
     nominalresolution = ustrip.(°, fov) .* ppd #remove degree units so pixel redundancy doesn't have units of °^-2
-    angles = lensletangles(eyerelief, eyebox, pupildiameter, ppd, RGB=RGB)
+    angles = lensletangles(eyerelief, eyebox, pupildiameter, RGB=RGB)
     pixelsperlenslet = angles .* ppd
     numlenses = numberoflenslets(fov, eyerelief, clusterdata.lensletdiameter)
     return (numlenses * pixelsperlenslet[1] * pixelsperlenslet[2]) / ( nominalresolution[1] * nominalresolution[2])
 end
 export pixelredundancy
-
-testpixelredundancy() = pixelredundancy((55, 35), 18mm, (10mm, 6mm), 4mm, 45, RGB=false)
-export testpixelredundancy
 
 label(color) = color ? "RGB" : "Monochrome"
 
@@ -280,7 +260,7 @@ function systemproperties(eyerelief::Unitful.Length, eyebox::NTuple{2,Unitful.Le
     redundancy = pixelredundancy(fov, eyerelief, eyebox, pupildiameter, difflimit, RGB=RGB)
     subdivisions = anglesubdivisions(pupildiameter, λ, mtf, cyclesperdegree, RGB=RGB)
     eyebox_angles = eyeboxangles(eyebox,eyerelief)
-    angles = lensletangles(eyerelief, eyebox, pupildiameter, difflimit, clusterproperties=(mtf = mtf, minfnumber = minfnumber, cyclesperdegree = cyclesperdegree, λ = λ, pixelpitch = pixelpitch))
+    angles = lensletangles(eyerelief, eyebox, pupildiameter, clusterproperties=(mtf = mtf, minfnumber = minfnumber, cyclesperdegree = cyclesperdegree, λ = λ, pixelpitch = pixelpitch))
 
     focal_length = focallength(angles,clusterdata.lensletdiameter,minfnumber,maxdisplaysize)
     dispsize = lensletdisplaysize(angles,focal_length)
