@@ -2,6 +2,7 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # See LICENSE in the project root for full license information.
 module Multilens
+
 using LinearAlgebra
 import Unitful
 using Unitful:uconvert,ustrip
@@ -16,7 +17,7 @@ import ...OpticSim
 import ...OpticSim:plane_from_points,centroid,pointonplane
 import ...OpticSim.Geometry
 import ...OpticSim.Repeat:region,HexBasis1,HexBasis3,LatticeBasis,LatticeCluster,clustersize,ClusterWithProperties
-using ...OpticSim.HumanEye
+using ...OpticSim.Data
 
 include("HexClusters.jl")
 include("HexTilings.jl")

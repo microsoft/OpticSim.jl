@@ -50,7 +50,7 @@ function drawcells(tilebasis::AbstractBasis, tilesize, cells::AbstractMatrix; co
     numcells = size(cells)[2]
     Luxor.Drawing(resolution[1], resolution[2], format)
     Luxor.origin()
-    Luxor.background(Colors.RGBA(0, 1, 1, 0.0))
+    Luxor.background(Colors.RGBA(1, 1, 1, 0.0))
     if color === nothing
         color = Colors.distinguishable_colors(numcells, lchoices=30:250) # type unstable but not performance critical code
     end
@@ -60,7 +60,7 @@ function drawcells(tilebasis::AbstractBasis, tilesize, cells::AbstractMatrix; co
         cellname = name === nothing ? nothing : name[i]
         draw(tilebasis, tilesize, cell[1], cell[2], color[i], cellname)
     end
- 
+
     Luxor.finish()
     if (format == :svg)
         res = Luxor.svgstring()
@@ -72,14 +72,14 @@ function drawcells(tilebasis::AbstractBasis, tilesize, cells::AbstractMatrix; co
 end
 
 """ draw the ClusterWithProperties at coordinates specified by lattice_coordinate_offset """
-function draw(clstr::Repeat.AbstractLatticeCluster, cluster_coordinate_offset::AbstractMatrix{T} = [0;0;;] , scale=50.0) where{T}
+function draw(clstr::Repeat.AbstractLatticeCluster, cluster_coordinate_offset::AbstractMatrix{T} = [0;0;;] , scale=5.0) where{T}
     dims = size(cluster_coordinate_offset)
     clstrsize = clustersize(clstr)
-    points = Matrix(undef, dims[1], dims[2] * clstrsize)
+    points = Matrix{Int64}(undef, dims[1], dims[2] * clstrsize)
     for i in 1:dims[2]
         points[:,(i - 1) * clstrsize + 1:i * clstrsize] = clustercoordinates(clstr, cluster_coordinate_offset[:,i]...)
     end
-   
+
     drawcells(clstr,scale,points)
 end
     

@@ -282,7 +282,7 @@ function printsystemproperties(eyerelief::Unitful.Length, eyebox::NTuple{2,Unitf
     println("eye box = $eyebox")
     println("fov = $(fov)")
     println("pupil diameter = $pupildiameter")
-    println("mtf = $mtf @ $cyclesperdegree cycles/degree")
+    println("mtf = $mtf @ $cyclesperdegree cycles/°")
     println()
     println("Output values")
     println()
