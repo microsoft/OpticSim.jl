@@ -8,23 +8,6 @@ using Roots
 import DataFrames
 import OpticSim.Repeat
 
-# luminance (cd/m2)	Multiple	Value	Item
-# 10−6	µcd/m2	1 µcd/m2	Absolute threshold of vision[1]
-# 10−5			
-# 10−4		400 µcd/m2	Darkest sky[2]
-# 10−3	mcd/m2	1 mcd/m2	Night sky[3]
-# 1.4   mcd/m2	Typical photographic scene lit by full moon[4]
-# 5     mcd/m2	Approximate scotopic/mesopic threshold[5]
-# 10−2		40 mcd/m2	Phosphorescent markings on a watch dial after 1 h in the dark[6][7]
-# 10−1			
-# 100	cd/m2	2 cd/m2	Floodlit buildings, monuments, and fountains[8]
-# 5     cd/m2	Approximate mesopic/photopic threshold[5]
-# 101		25 cd/m2	Typical photographic scene at sunrise or sunset[4]
-# 30    cd/m2	Green electroluminescent source[2]
-# 102		250 cd/m2	Peak luminance of a typical LCD monitor[10][11]
-# 700   cd/m2	Typical photographic scene on overcast day[4][8][11]
-# 103	kcd/m2	2 kcd/m2	Average cloudy sky[2]
-# 5     kcd/m2	Typical photographic scene in full sunlight[4][8]
 
 
 
@@ -58,8 +41,22 @@ export ρ_quartervalue
 const ρ_zerovalue = 3.832 # value of ρ at which the airy disk function has magnitude 0
 
 """given pixelpitch and angular subtense (in degrees) of pixel returns focal length"""
-focallength(pixelpitch::Unitful.Length,θ) = uconvert(mm, .5 * pixelpitch / tand(θ / 2))
+function focallength(fov,lensletdiameter, minfnumber, maxdisplaysize)
+    maxangle = deg2rad(max(fov...)) #leaving angles as degrees caused trouble for not obvious reason
+
+    tempfl = uconvert(mm, maxdisplaysize/(2*tan(maxangle/2.0)))
+    fnum = tempfl/lensletdiameter
+    return tempfl*minfnumber/fnum
+end
 export focallength
+
+pixelsperdegree(focal_length,pixelpitch) = 1/(2.0*atand(uconvert(Unitful.NoUnits,pixelpitch/(2.0*focal_length))))
+export pixelsperdegree
+
+function lensletdisplaysize(fov,focal_length) 
+    uconvert.(μm,2*focal_length .* tand.(fov./2))
+end
+export lenseletdisplaysize
 
 """returns the diffraction limit frequency in cycles/deg
 
@@ -90,7 +87,7 @@ function mtfcircular(freq, freqcutoff)
 end
 export mtfcircular
 
-"""returns the diffraction limit frequency in cycles/degree. At this frequeny the response of the system is zero"""
+"""rmaxurns the diffraction limit frequency in cycles/degree. At this frequeny the response of the system is zero"""
 diffractionlimit(λ::Unitful.Length,diameter::Unitful.Length) = uconvert(Unitful.NoUnits, diameter / λ) / rad2deg(1)
 export diffractionlimit
 
@@ -126,8 +123,7 @@ export closestpackingdistance
 
 """Tries clusters of various sizes to choose the largest one which fits within the eye pupil. Larger clusters allow for greater reduction of the fov each lenslet must cover so it returns the largest feasible cluster"""
 function choosecluster(pupildiameter::Unitful.Length, lensletdiameter::Unitful.Length)
-    clusters = (hex3RGB(), hex4RGB(), hex7RGB(), hex9RGB(), hex12RGB(), hex19RGB(),hex37RGB())
-    # cdist = closestpackingdistance(pupildiameter)
+    clusters = (hex3RGB(), hex4RGB(), hex7RGB() , hex9RGB(), hex12RGB(),hex19RGB()) #leave out for now. Lenslets aren't big enough relative to occlusion  ,hex37RGB())
     cdist = pupildiameter
     maxcluster = clusters[1]
     ratio = 0.0
@@ -144,7 +140,10 @@ function choosecluster(pupildiameter::Unitful.Length, lensletdiameter::Unitful.L
 
     @assert ratio ≥ 1.0 "ratio $ratio cdist $cdist lensletdiameter $lensletdiameter Repeat.latticediameter $(Repeat.latticediameter(maxcluster)) scaled=$(lensletdiameter * Repeat.latticediameter(maxcluster))"
 
-    return (cluster = maxcluster, lensletdiameter = lensletdiameter * ratio, diameteroflattice = (lensletdiameter * Repeat.latticediameter(maxcluster)) / ratio, packingdistance = cdist * ustrip(mm, lensletdiameter))
+    scaledlenslet = lensletdiameter*ratio
+    scaledcluster = scaledlenslet * Repeat.latticediameter(maxcluster)
+
+    return (cluster = maxcluster, lensletdiameter = scaledlenslet, diameteroflattice = (scaledcluster), packingdistance = cdist * ustrip(mm, lensletdiameter))
 end
 export choosecluster
 
@@ -219,7 +218,7 @@ lensletresolution(angles,ppd) = angles .* ppd
 function pixelredundancy(fov, eyerelief::Unitful.Length, eyebox::NTuple{2,Unitful.Length}, pupildiameter::Unitful.Length, ppd; RGB=true)
     lensprops = defaultclusterproperties()
     clusterdata = choosecluster(pupildiameter, lensprops.λ, lensprops.mtf, lensprops.cyclesperdegree)
-    nominalresolution = fov .* ppd
+    nominalresolution = ustrip.(°, fov) .* ppd #remove degree units so pixel redundancy doesn't have units of °^-2
     angles = lensletangles(eyerelief, eyebox, pupildiameter, ppd, RGB=RGB)
     pixelsperlenslet = angles .* ppd
     numlenses = numberoflenslets(fov, eyerelief, clusterdata.lensletdiameter)
@@ -241,17 +240,6 @@ function redundancy_ppdvspupildiameter()
     Plots.plot(Plots.contour(x, y, (x, y) -> pixelredundancy((50, 35), 18mm, (10mm, 6mm), y * mm, x, RGB=RGB), fill=true, xlabel="pixels per degree", ylabel="pupil diameter", legendtitle="pixel redundancy", title="$(label(RGB)) lenslets"))
 end
 export redundancy_ppdvspupildiameter
-
-"""computes lenslet display size to match the design constraints"""
-function lensletdisplaysize(fov, eyerelief::Unitful.Length, eyebox::NTuple{2,Unitful.Length}, pupildiameter::Unitful.Length, ppd; RGB=true)
-    lensprops = defaultclusterproperties()
-    angles = lensletangles(eyerelief, eyebox, pupildiameter, ppd, RGB=RGB)
-    return @. angles * ppd * lensprops.pixelpitch
-end
-export lensletdisplaysize
-
-testlensletdisplaysize() = lensletdisplaysize((55, 35), 18mm, (10mm, 6mm), 4mm, 30, RGB=true)
-export testlensletdisplaysize
 
 """generates a contour plot of lenslet display size as a function of ppd and pupil diameter"""
 function displaysize_ppdvspupildiameter()
@@ -284,7 +272,7 @@ julia> systemproperties(18mm,(10mm,9mm),(55°,45°),4.0mm,.2,11,30)
 , lensletdiameter = 0.7999999999999999 mm, diameteroflattice = 3.0386704504829325, packingdistance = 1.9447490883090768 mm), lenslet_diameter = 0.7999999999999999 mm, diffraction_limit = 26.344592482933276, fnumber = 1.9337325040249893, focal_length = 1.5469860032199914 mm, display_size = (18.740413819862866 mm, 14.911688245431423 mm), lenslet_display_size = (261.4914368916943 μm, 358.6281908905529 μm), total_silicon_area = 52.1360390897504 mm^2, number_lenslets = 555.9505147668694, pixel_redundancy = 28.895838544429424, eyebox_angles = (29.054604099077146, 26.56505117707799), lenslet_fov = (9.684868033025715, 13.282525588538995), subdivisions = (3, 2))
 ```
 """
-function systemproperties(eyerelief::Unitful.Length, eyebox::NTuple{2,Unitful.Length}, fov, pupildiameter::Unitful.Length, mtf, cyclesperdegree,pixelsperdegree; minfnumber=2.0,RGB=true,λ=530nm,pixelpitch=.9μm)
+function systemproperties(eyerelief::Unitful.Length, eyebox::NTuple{2,Unitful.Length}, fov, pupildiameter::Unitful.Length, mtf, cyclesperdegree,; minfnumber=2.0,RGB=true,λ=530nm,pixelpitch=.9μm, maxdisplaysize = 250μm)
     diameter = diameter_for_cycles_deg(mtf, cyclesperdegree, λ)
     clusterdata = choosecluster(pupildiameter, diameter)
     difflimit = diffractionlimit(λ, clusterdata.lensletdiameter)
@@ -293,29 +281,32 @@ function systemproperties(eyerelief::Unitful.Length, eyebox::NTuple{2,Unitful.Le
     subdivisions = anglesubdivisions(pupildiameter, λ, mtf, cyclesperdegree, RGB=RGB)
     eyebox_angles = eyeboxangles(eyebox,eyerelief)
     angles = lensletangles(eyerelief, eyebox, pupildiameter, difflimit, clusterproperties=(mtf = mtf, minfnumber = minfnumber, cyclesperdegree = cyclesperdegree, λ = λ, pixelpitch = pixelpitch))
-    dispsize = lensletdisplaysize(angles, eyerelief, eyebox, pupildiameter, pixelsperdegree, RGB=RGB)
-    focal_length = focallength(pixelpitch,1/pixelsperdegree)
+
+    focal_length = focallength(angles,clusterdata.lensletdiameter,minfnumber,maxdisplaysize)
+    dispsize = lensletdisplaysize(angles,focal_length)
     fnumber = focal_length/clusterdata.lensletdiameter
     siliconarea = uconvert(mm^2,numlenses  * dispsize[1]*dispsize[2])
     fulldisplaysize = sizeofdisplay(fov,eyerelief)
 
-    return (cluster_data = clusterdata, lenslet_diameter = clusterdata.lensletdiameter, diffraction_limit = difflimit, fnumber = fnumber, focal_length = focal_length, display_size = fulldisplaysize, lenslet_display_size = dispsize, total_silicon_area = siliconarea, number_lenslets = numlenses, pixel_redundancy = redundancy, eyebox_angles = eyebox_angles, lenslet_fov = angles, subdivisions = subdivisions)
+    pixels_per_degree = pixelsperdegree(focal_length,pixelpitch)
+    return (cluster_data = clusterdata, lenslet_diameter = clusterdata.lensletdiameter,pixels_per_degree = pixels_per_degree, diffraction_limit = difflimit, fnumber = fnumber, focal_length = focal_length, display_size = fulldisplaysize, lenslet_display_size = dispsize, total_silicon_area = siliconarea, number_lenslets = numlenses, pixel_redundancy = redundancy, eyebox_angles = eyebox_angles, lenslet_fov = angles, subdivisions = subdivisions)
 end
 export systemproperties
 
 """prints system properties nicely"""
-function printsystemproperties(eyerelief::Unitful.Length, eyebox::NTuple{2,Unitful.Length}, fov, pupildiameter::Unitful.Length, mtf, cyclesperdegree,pixelsperdegree; minfnumber=2.0,RGB=true,λ=530nm,pixelpitch=.9μm) 
+function printsystemproperties(eyerelief::Unitful.Length, eyebox::NTuple{2,Unitful.Length}, fov, pupildiameter::Unitful.Length, mtf, cyclesperdegree; minfnumber=2.0,RGB=true,λ=530nm,pixelpitch=.9μm,maxdisplaysize = 350μm) 
     println("Input parameters")
     println()
+    println("pixels per degree = $pixelsperdegree")
     println("eye relief = $eyerelief")
     println("eye box = $eyebox")
-    println("fov = $(fov)°")
+    println("fov = $(fov)")
     println("pupil diameter = $pupildiameter")
     println("mtf = $mtf @ $cyclesperdegree cycles/degree")
     println()
     println("Output values")
     println()
-    props = systemproperties(eyerelief, eyebox, fov, pupildiameter, mtf, cyclesperdegree,pixelsperdegree, minfnumber = minfnumber,RGB=RGB,λ=λ,pixelpitch=pixelpitch)
+    props = systemproperties(eyerelief, eyebox, fov, pupildiameter, mtf, cyclesperdegree, minfnumber = minfnumber,RGB=RGB,λ=λ,pixelpitch=pixelpitch,maxdisplaysize = maxdisplaysize)
     for (key,value) in pairs(props)
         if key !== :cluster_data #don't print cluster data since it is very long
             if key == :diffraction_limit
@@ -326,12 +317,12 @@ function printsystemproperties(eyerelief::Unitful.Length, eyebox::NTuple{2,Unitf
         end
     end
     clusterdiameter = props[:cluster_data][:diameteroflattice]
-    println("cluster diameter (approx): $(props[:lenslet_diameter]*clusterdiameter)")
+    println("cluster diameter (approx): $(clusterdiameter)")
 end
 export printsystemproperties
 
 function typicalsystemproperties() 
-    printsystemproperties(18mm,(10mm,9mm),(55°,45°),4.0mm,.3,11,30)
+    printsystemproperties(20mm,(10mm,8mm),(90°,60°),4.0mm,.22,11,pixelpitch = .9μm)
     return nothing
 end
 export typicalsystemproperties

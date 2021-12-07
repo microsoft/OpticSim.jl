@@ -13,6 +13,24 @@ using Unitful.DefaultSymbols:mm,°
 # Approximate average properties of the human eye
 
 
+# luminance (cd/m2)	Multiple	Value	Item
+# 10−6	µcd/m2	1 µcd/m2	Absolute threshold of vision[1]
+# 10−5			
+# 10−4		400 µcd/m2	Darkest sky[2]
+# 10−3	mcd/m2	1 mcd/m2	Night sky[3]
+# 1.4   mcd/m2	Typical photographic scene lit by full moon[4]
+# 5     mcd/m2	Approximate scotopic/mesopic threshold[5]
+# 10−2		40 mcd/m2	Phosphorescent markings on a watch dial after 1 h in the dark[6][7]
+# 10−1			
+# 100	cd/m2	2 cd/m2	Floodlit buildings, monuments, and fountains[8]
+# 5     cd/m2	Approximate mesopic/photopic threshold[5]
+# 101		25 cd/m2	Typical photographic scene at sunrise or sunset[4]
+# 30    cd/m2	Green electroluminescent source[2]
+# 102		250 cd/m2	Peak luminance of a typical LCD monitor[10][11]
+# 700   cd/m2	Typical photographic scene on overcast day[4][8][11]
+# 103	kcd/m2	2 kcd/m2	Average cloudy sky[2]
+# 5     kcd/m2	Typical photographic scene in full sunlight[4][8]
+
 """
 # Pupil diameter as a function of scene luminance
 https://jov.arvojournals.org/article.aspx?articleid=2279420
@@ -23,6 +41,7 @@ Pupil diameter is approximately 2.8mm at 100cd/m^2. A typical overcast day is 70
 
 """computes pupil diameter as a function of scene luminance `L`, in cd/m², and the angular area, `a`, over which this luminance is presented to the eye."""
 𝐃sd(L,a) = 7.75 - 5.75 * ((L * a / 846)^.41) / ((L * a / 846)^.41 + 2) # the first letter of this function name is \bfD not D.
+export 𝐃sd
 
 eyeradius() = 12mm
 export eyeradius
