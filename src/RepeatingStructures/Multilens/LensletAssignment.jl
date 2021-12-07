@@ -40,7 +40,13 @@ function subdivide(poly::T, xsubdivisions, ysubdivisions) where{T<:SMatrix{3,4}}
 end
 export subdivide
 
-    
+function eyebox_assignment(tilecoords::NTuple{2,Int64},cluster::R,eyeboxes::T) where{R<:AbstractLatticeCluster,T<:Vector}
+    #compute cluster
+    println(tilecoords)
+    _, tile_index = cluster_coordinates_from_tile_coordinates(cluster,tilecoords)
+   return eyeboxes[mod(tile_index-1,length(eyeboxes)) + 1] #use linear index for Matrix.
+end
+
 displayplane(lens) =  Plane(-normal(lens), centroid(lens) + normal(lens), vishalfsizeu = 5.0, vishalfsizev = 5.0)
 export displayplane
 
@@ -48,9 +54,9 @@ function setup_system()
     centroid(verts) = sum(eachcol(verts)) ./ size(verts)[2] 
 
     eyeballframe = Transform() #This establishes the global coordinate frame for the systems. Positive Z axis is assumed to be the forward direction, the default direction of the eye's optical axis when looking directly ahead.
-    corneavertex = OpticSim.HumanEye.cornea_to_eyecenter()
+    corneavertex = OpticSim.Data.cornea_to_eyecenter()
 
-    props = systemproperties(18mm,(10mm,9mm),(55°,45°),4.0mm,.2,11,30)
+    props = systemproperties(18mm,(10mm,9mm),(55°,45°),4.0mm,.2,11)
    
     subdivisions = props[:subdivisions]
     clusterdata = props[:cluster_data]
@@ -60,21 +66,32 @@ function setup_system()
 
     eyeboxpoly =  eyeboxpolygon(10mm,9mm) #four corners of the eyebox frame which is assumed centered around the positive Z axis. Transformed to the eyeballframe.
 
-    polys = subdivide(eyeboxpoly,subdivisions...)
-    strippedpolys =  map(x-> ustrip.(mm,x), polys)
+    eyebox_subdivisions = subdivide(eyeboxpoly,subdivisions...)
+    strippedpolys =  map(x-> ustrip.(mm,x), eyebox_subdivisions)
     subdivided_eyeboxpolys =[eyeboxframe * x for x in strippedpolys] #these have units of mm which don't interact well with Transform.
     polycentroids = centroid.(subdivided_eyeboxpolys)
 
     focallength = ustrip(mm,props[:focal_length])
     lenses,coordinates = spherelenslets(Plane(0.0,0.0,1.0,0.0,0.0,12.0),focallength,[0.0,0.0,-1.0],30.0,55°,45°,HexBasis1())
-    lensletcolors = [pointcolor(coordinates[:,j],cluster) for j in 1:size(coordinates)[2]]
+    println(coordinates)
+
+    lensletcolors = pointcolor.(coordinates,Ref(cluster))
     
-    #compute offset of optical axis for lenslets so they cover the correct part of the eyebox.
-
-
+    lenslet_eyeboxes = eyebox_assignment.(coordinates,Ref(cluster),Ref(subdivided_eyeboxpolys))
+    println(lenslet_eyeboxes)
 
     #project eyebox into lenslet display plane and compute bounding box. This is the size of the display for this lenslet
 
     return (lenses,coordinates,lensletcolors)
 end
 export setup_system
+
+function testspherelenslets()
+    (;fov, eye_relief,eyebox,display_radius,pupil_diameter,pixel_pitch,minfnumber,mtf,cycles_per_degree,max_display_size) = nominal_system_properties()
+    
+    computedprops = systemproperties(eye_relief,eyebox,fov,pupil_diameter,mtf,cycles_per_degree,minfnumber = minfnumber,maxdisplaysize = max_display_size,pixelpitch = pixel_pitch)
+    focallength = ustrip(mm,computedprops[:focal_length])
+    spherelenslets(Plane(0.0,0.0,1.0,0.0,0.0,18.0),focallength,[0.0,0.0,-1.0],ustrip(mm,display_radius),fov[1],fov[2],HexBasis1())
+end
+export testspherelenslets
+

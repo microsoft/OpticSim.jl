@@ -32,12 +32,12 @@ julia> lattice[1,1]  #returns the locations of the 3 elements in the cluster at 
 
 ```
 """
-abstract type AbstractLatticeCluster end
+abstract type AbstractLatticeCluster{N1,N} end
 
 
 
-"""Basic lattic cluster type"""
-struct LatticeCluster{N1, N, T<:Real, B1<:AbstractBasis{N,Int},B2<:AbstractBasis{N,T}} <: AbstractLatticeCluster
+"""Basic lattic cluster type. N1 is the number of tiles in the cluster, N is the dimension."""
+struct LatticeCluster{N1, N, T<:Real, B1<:AbstractBasis{N,Int},B2<:AbstractBasis{N,T}} <: AbstractLatticeCluster{N1,N}
     clusterbasis::B1 #this basis defines the offsets of the clusters
     elementbasis::B2 #this basis defines the underlying lattice
 
@@ -98,8 +98,9 @@ function clustercoordinates(a::LatticeCluster{N1,N},indices::Vararg{Int,N}) wher
 end
 export clustercoordinates
 
+
 """Given the (i,j) coordinates of a tile defined in the the underlying lattice basis of elements of the cluster compute the coordinates (cᵢ,cⱼ) of the cluster containing the tile, and the tile number of the tile in that cluster"""
-function cluster_coordinates_from_tile_coordinates(cluster::LatticeCluster{N1,N},i::Int,j::Int) where{N1,N}
+function cluster_coordinates_from_tile_coordinates(cluster::S,i::Int,j::Int) where{N1,N, S<:AbstractLatticeCluster{N1,N}}
     found = false
     bmatrix = Rational.(basismatrix(clusterbasis(cluster)))
 
@@ -121,6 +122,7 @@ end
 export cluster_coordinates_from_tile_coordinates
 
 
+cluster_coordinates_from_tile_coordinates(cluster::S,coords::NTuple{2,Int64}) where{N1,N, S<:AbstractLatticeCluster{N1,N}} = cluster_coordinates_from_tile_coordinates(cluster,coords...)
 
 """
 May want to have many properties associated with the elements in a cluster, which is why properties is represented as a DataFrame. The DataFrame in the properties field should have as many rows as there are elements in a cluster. At a minimum it must have a :Color and a :Name column.
@@ -140,7 +142,7 @@ function hex3RGB()
 end
 ```
 """
-struct ClusterWithProperties{N1,N,T} <: AbstractLatticeCluster
+struct ClusterWithProperties{N1,N,T} <: AbstractLatticeCluster{N1,N}
     cluster::LatticeCluster{N1,N,T}
     properties::DataFrame
 end

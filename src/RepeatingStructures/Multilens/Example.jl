@@ -1,5 +1,5 @@
 """ Typical properties for near eye VR display """
-nominal_system_properties() = (eye_relief = 20mm, fov = (90°,60°),eyebox = (10mm,8mm),display_radius = 125mm, pupil_diameter = 3.5mm,pixel_pitch = .9μm, minfnumber = 2.0, mtf = .2, cycles_per_degree = 11, max_display_size = 250μm, )
+nominal_system_properties() = (eye_relief = 20mm, fov = (90°,60°),eyebox = (10mm,8mm),display_radius = 125.0mm, pupil_diameter = 3.5mm,pixel_pitch = .9μm, minfnumber = 2.0, mtf = .2, cycles_per_degree = 11, max_display_size = 250μm, )
 export nominal_system_properties
 
 
@@ -12,7 +12,7 @@ function drawspherelenslets()
     Vis.draw!.(lenses)
     return nothing
 end
-export testspherelenslets
+export drawspherelenslets
 
 function testspherepolygons()
     eyebox = Plane(0.0,0.0,1.0,0.0,0.0,12.0)

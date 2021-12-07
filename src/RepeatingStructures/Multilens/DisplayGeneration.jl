@@ -19,7 +19,7 @@ using Unitful.DefaultSymbols:°
 columncentroid(a::AbstractMatrix) = sum(eachcol(a))/size(a)[2] #works except for the case of zero dimensional matrix.
 export columncentroid
 
-function project(point::AbstractVector{T},projectionvector::AbstractVector{T},surface::OpticSim.Surface{T}) where{T}
+function project(point::AbstractVector{T},projectionvector::AbstractVector{T},surface::S) where{T<:Real,S<:OpticSim.Surface{T}}
     ray = Ray(point, projectionvector)
     intsct = surfaceintersection(surface, ray)
     pointintsct = closestintersection(intsct,false)
@@ -32,7 +32,7 @@ end
 export project
 
 """project the vertices of a polygon represented by `vertices` onto `surface` using the point as the origin and `projectionvector` as the projection direction. Return nothing if any of the projected points do not intersect the surface. The projected vertices are not guaranteed to be coplanar."""
-function project(vertices::AbstractMatrix{T}, projectionvector::AbstractVector{T}, surface::OpticSim.Surface{T}) where {T}
+function project(vertices::R, projectionvector::AbstractVector{T}, surface::S) where {T,S<:OpticSim.Surface{T},R<:AbstractMatrix{T}}
     result = similar(vertices)
 
     for i in 1:size(vertices)[2]
@@ -184,7 +184,7 @@ function spherelenslets(eyeboxplane::Plane{T,N},focallength,dir,radius,fovθ,fov
         lenslet = ParaxialLensConvexPoly(focallength,poly,SVector{2,T}(T.((0,0))))
         push!(result,lenslet)
     end
-    return result,reinterpret(reshape,Int64,tilecoords)
+    return result,tilecoords
 end
 export spherelenslets
 
