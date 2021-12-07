@@ -19,7 +19,7 @@ function plane_from_points(points::SMatrix{D, N, P}) where {D,N,P<:Real}
     
     #always want a rotation matrix.
     if det(u) < 0
-        u[:,3] = -u[:,3]
+        u = SMatrix{D,D}(u[:,1:(end-1)]...,-u[:,end]...) #change sign of last singular vector to turn into rotation matrix
     end
 
     normal = u[:,3]             # The two largest singular vectors lie in the plane that is the best fit to the points, i.e., that accounts for the largest fraction of variance in the set of points. The smallest singular vector is perpendicular to this plane.

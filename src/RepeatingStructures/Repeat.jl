@@ -18,7 +18,7 @@ include("HexagonalLattice.jl")
 include("RectangularLattice.jl")
 include("Array.jl")
 include("Cluster.jl")
-include("Multilens/Lenslets.jl")
+include("Multilens/Multilens.jl")
 
 
 end #module

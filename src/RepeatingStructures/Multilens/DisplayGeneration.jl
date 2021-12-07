@@ -188,27 +188,6 @@ function spherelenslets(eyeboxplane::Plane{T,N},focallength,dir,radius,fovθ,fov
 end
 export spherelenslets
 
-function testspherelenslets()
-    props = systemproperties(18mm,(10mm,9mm),(55°,45°),4.0mm,.2,11,30)
-    focallength = ustrip(mm,props[:focal_length])
-    lenses,coordinates = spherelenslets(Plane(0.0,0.0,1.0,0.0,0.0,12.0),focallength,[0.0,0.0,-1.0],30.0,55°,45°,HexBasis1())
-    Vis.draw!.(lenses)
-    return nothing
-end
-export testspherelenslets
-
-function testspherepolygons()
-    eyebox = Plane(0.0,0.0,1.0,0.0,0.0,12.0)
-    dir = [0.0,0.0,-1.0]
-    radius = 30.0
-    fovθ = 55°
-    fovϕ = 45°
-    lattice = HexBasis1()
-
-    return spherepolygons(eyebox,dir,radius,fovθ,fovϕ,lattice)
-end
-export testspherepolygons
-
 
 # function testeyeboxtiles()
 #     tiles = eyeboxtiles(Plane(0.0,0.0,1.0,0.0,0.0,12.0),[0.0,0.0,-1.0],30,deg2rad(55),deg2rad(45),HexBasis1())

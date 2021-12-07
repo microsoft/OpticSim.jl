@@ -10,8 +10,7 @@ using OpticSim.Geometry
 import Unitful
 using Unitful.DefaultSymbols:mm,°
 
-# Approximate average properties of the human eye
-
+# This file contains average properties of the human eye and optical human eye models
 
 # luminance (cd/m2)	Multiple	Value	Item
 # 10−6	µcd/m2	1 µcd/m2	Absolute threshold of vision[1]
@@ -66,7 +65,7 @@ export entrancepupil_to_eyecenter
 """average angle, in degrees, the eye will rotate before users will turn their head"""
 comfortable_eye_rotation_angle() = 20°
 
-"""average translation of the entrance pupil associated with comfortable eye rotation"""
+"""Average one sided translation of the entrance pupil associated with comfortable eye rotation. If you are using this define an eyebox multiply this value by 2"""
 comfortable_entrance_pupil_translation() = sin(comfortable_eye_rotation_angle())*entrancepupil_to_eyecenter()
 export comfortable_entrance_pupil_translation
 
