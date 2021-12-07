@@ -298,7 +298,6 @@ function printsystemproperties(eyerelief::Unitful.Length, eyebox::NTuple{2,Unitf
     println("Input parameters")
     println()
     println("pixel pitch $pixelpitch")
-    println("pixels per degree = $pixelsperdegree")
     println("eye relief = $eyerelief")
     println("eye box = $eyebox")
     println("fov = $(fov)")
