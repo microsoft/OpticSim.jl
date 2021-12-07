@@ -123,7 +123,7 @@ export closestpackingdistance
 
 """Tries clusters of various sizes to choose the largest one which fits within the eye pupil. Larger clusters allow for greater reduction of the fov each lenslet must cover so it returns the largest feasible cluster"""
 function choosecluster(pupildiameter::Unitful.Length, lensletdiameter::Unitful.Length)
-    clusters = (hex3RGB(), hex4RGB(), hex7RGB() , hex9RGB(), hex12RGB())#,hex19RGB()) #leave out for now. Lenslets aren't big enough relative to occlusion  ,hex37RGB())
+    clusters = (hex3RGB(), hex4RGB(), hex7RGB() , hex9RGB(), hex12RGB(),hex19RGB()) #,hex37RGB()) #leave out for now. Lenslets aren't big enough relative to occlusion  ,hex37RGB())
     cdist = pupildiameter
     maxcluster = clusters[1]
     ratio = 0.0
@@ -308,12 +308,13 @@ function printsystemproperties(eyerelief::Unitful.Length, eyebox::NTuple{2,Unitf
     println()
     props = systemproperties(eyerelief, eyebox, fov, pupildiameter, mtf, cyclesperdegree, minfnumber = minfnumber,RGB=RGB,λ=λ,pixelpitch=pixelpitch,maxdisplaysize = maxdisplaysize)
     for (key,value) in pairs(props)
-        if key !== :cluster_data #don't print cluster data since it is very long
-            if key == :diffraction_limit
+        if key !== :cluster_data
+            if key == 
+            println(typeof(value))
+        elseif key == :diffraction_limit
                 println("$key = $value cycles/°")
-            else
+        else
                 println("$key = $value")
-            end
         end
     end
 
@@ -323,8 +324,8 @@ function printsystemproperties(eyerelief::Unitful.Length, eyebox::NTuple{2,Unitf
 end
 export printsystemproperties
 
-function typicalsystemproperties(minfnumber) 
-    printsystemproperties(20mm,(10mm,8mm),(90°,60°),4.0mm,.22,11,pixelpitch = .9μm, minfnumber = minfnumber)
+function typicalsystemproperties(minfnumber,pupildiameter) 
+    printsystemproperties(20mm,(10mm,8mm),(90°,60°),pupildiameter,.22,11,pixelpitch = .9μm, minfnumber = minfnumber)
     return nothing
 end
 export typicalsystemproperties
