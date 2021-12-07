@@ -297,6 +297,7 @@ export systemproperties
 function printsystemproperties(eyerelief::Unitful.Length, eyebox::NTuple{2,Unitful.Length}, fov, pupildiameter::Unitful.Length, mtf, cyclesperdegree; minfnumber=2.0,RGB=true,λ=530nm,pixelpitch=.9μm,maxdisplaysize = 350μm) 
     println("Input parameters")
     println()
+    println("pixel pitch $pixelpitch")
     println("pixels per degree = $pixelsperdegree")
     println("eye relief = $eyerelief")
     println("eye box = $eyebox")
