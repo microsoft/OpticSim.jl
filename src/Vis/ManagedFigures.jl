@@ -158,7 +158,7 @@ function DrawingInR(; name = "Draw-$numNextFigPos",  xRegion = visPlaneX, yRegio
     Makie.on(dInR.oneButton.clicks) do n
         if dInR.oneswap
             dInR.fV.workingGrid[1,1] = lscene1
-            dInR.V.userGrid[1,1] = lscene2
+            dInR.fV.userGrid[1,1] = lscene2
             dInR.fV.userGrid[3,1] = lscene3
             dInR.oneswap = false
         else
