@@ -31,7 +31,8 @@ focallength(a::ParaxialLens) = focallength(a.interface)
 export focallength
 """returns the 2 dimensional vertex points of the shape defining the lens aperture. These points lie in the plane of the shape"""
 vertices(a::ParaxialLens) = vertices(a.shape)
-
+"""All paraxial lens surfaces are planar"""
+plane(a::ParaxialLens) = plane(a.shape)
 struct VirtualPoint{T<:Real}
     center::SVector{3,T}
     direction::SVector{3,T}

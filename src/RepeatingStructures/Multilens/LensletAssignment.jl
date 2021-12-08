@@ -2,6 +2,7 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # See LICENSE in the project root for full license information.
 
+import Statistics
 
 """ Computes the location of the optical center of the lens that will project the centroid of the display to the centroid of the eyebox. Normally the display centroid will be aligned with the geometric centroid of the lens, rather than the optical center of the lens."""
 function compute_optical_center(eyeboxcentroid,displaycenter,lensplane)
@@ -9,6 +10,17 @@ function compute_optical_center(eyeboxcentroid,displaycenter,lensplane)
     r = Ray(eyeboxcentroid,v)
     return closestintersection(surfaceintersection(lensplane))
 end
+
+replace_optical_center(lens,new_optical_center) = ParaxialLensConvexPoly(lens.focallength,lens.convpoly,new_optical_center)
+
+replace_optical_center(eyeboxcentroid,displaycenter,lens) = replace_optical_center(lens,compute_optical_center(eyeboxcentroid,displaycenter,surface(lens)))
+
+function displayplane(lens) 
+    center_point = centroid(lens) + normal(lens)
+    pln = Plane(-normal(lens), center_point, vishalfsizeu = 5.0, vishalfsizev = 5.0)
+    return pln,center_point
+export displayplane
+
 
 function subdivide_fov(eyeboxpolygon)
 end
@@ -47,8 +59,19 @@ function eyebox_assignment(tilecoords::NTuple{2,Int64},cluster::R,eyeboxes::T) w
    return eyeboxes[mod(tile_index-1,length(eyeboxes)) + 1] #use linear index for Matrix.
 end
 
-displayplane(lens) =  Plane(-normal(lens), centroid(lens) + normal(lens), vishalfsizeu = 5.0, vishalfsizev = 5.0)
-export displayplane
+
+
+
+"""computes a vector from the centroid of the eyebox to the center of the display, which is the projection of the geometric center of the lens onto the display plane. This vector is intersected with the lens to compute an optical center which will 
+"""
+function project_eyebox_to_display(lens,eyebox)
+    pln,center = displayplane(lens)
+    boxctr = Statistics.mean(eyebox)
+    vec = center-boxctr
+    r = Ray(center,vec)
+    optcenter = closestintersection(surfaceintersection(lens,r))
+
+end
 
 function setup_system()
     centroid(verts) = sum(eachcol(verts)) ./ size(verts)[2] 
