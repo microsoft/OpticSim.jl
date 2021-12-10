@@ -75,53 +75,55 @@ function compute_lenslet_eyebox_data(eyeboxtransform,eyeboxpoly,subdivisions)
     return subdivided_eyeboxpolys,polycentroids
 end
 
-function setup_system()
-    centroid(verts) = sum(eachcol(verts)) ./ size(verts)[2] 
+"""System parameters for a typical HMD."""
+function systemparameters() 
+    return (eye_box = (10mm,9mm),fov = (90°,60°),eye_relief = 20mm, pupil_diameter = 3.5mm, display_sphere_radius = 125mm,min_fnumber = 2.0)
+end
 
-    eyeballframe = Transform() #This establishes the global coordinate frame for the systems. Positive Z axis is assumed to be the forward direction, the default direction of the eye's optical axis when looking directly ahead.
+"""Coordinate frames for the eye/display system. The origin of this frame is at the geometric center of the eyeball. Positive Z axis is assumed to be the forward direction, the default direction of the eye's optical axis when looking directly ahead."""
+function setup_coordinate_frames()
+    eyeballframe = Transform()
     corneavertex = OpticSim.Data.cornea_to_eyecenter()
-    defaulteyebox = (10mm,9mm)
-
-    fov = (90°,60°)
-    eyeboxsize = (10mm,8mm)
-    eyerelief = 20mm
-    pupildiameter = 3.5mm
-    displaysphereradius = 125.0mm
-
-    props = systemproperties(eyerelief,eyeboxsize,fov,pupildiameter,.22,11,pixelpitch = .9μm, minfnumber = 2.0)
-    subdivisions = props[:subdivisions]
-    clusterdata = props[:cluster_data]
-    cluster = clusterdata[:cluster]
-
     eyeboxtransform = eyeballframe*OpticSim.translation(0.0,0.0,ustrip(mm,corneavertex))  #unfortunately can't use unitful values in transforms because the rotation and translation components would have different types which is not allowed in a Matrix.
 
-    eyeboxpoly =  eyeboxpolygon(defaulteyebox...) #four corners of the eyebox frame which is assumed centered around the positive Z axis. Transformed to the eyeballframe.
+    return (eyeball_frame = eyeballframe,eye_box_frame = eyeboxtransform)
+end
 
+"""Create lenslet system that will cover the eyebox and fov"""
+function setup_system()
+    #All coordinates are ultimately transformed into the eyeball_frame coordinate systems
 
+    (eyeball_frame,eye_box_frame) = setup_coordinate_frames()
+    (eye_box,fov,eye_relief,pupil_diameter,display_sphere_radius,min_fnumber) = systemparameters()
 
-    focallength = ustrip(mm,props[:focal_length])
+    #get system properties
+    props = systemproperties(eye_relief,eye_box,fov,pupil_diameter,.22,11,pixelpitch = .9μm, minfnumber = min_fnumber)
+    subdivisions = props[:subdivisions] #tuple representing how the eyebox can be subdivided given the cluster used for the lenslets
+    clusterdata = props[:cluster_data] 
+    cluster = clusterdata[:cluster] #cluster that is repeated across the display to ensure continuous coverage of the eyebox and fov.
+    focallength = ustrip(mm,props[:focal_length]) #strip units off because these don't work well with Transform
 
-    lenses,coordinates = spherelenslets(Plane(0.0,0.0,1.0,0.0,0.0,12.0),eyerelief,focallength,[0.0,0.0,-1.0],displaysphereradius,fov[1],fov[2],HexBasis1())
-
+    #compute lenslets based on system properties. lattice_coordinates are the (i,j) integer lattice coordinates of the hexagonal lattice making up the display. These coordinates are used to properly assign color and subdivided eyebox to the lenslets.
+    lenses,lattice_coordinates = spherelenslets(Plane(0.0,0.0,1.0,0.0,0.0,12.0),eye_relief,focallength,[0.0,0.0,-1.0],display_sphere_radius,fov[1],fov[2],HexBasis1())
 
     temp = display_plane.(lenses)
     displayplanes = [x[1] for x in temp]
     planecenters = [x[2] for x in temp]
 
-    lensletcolors = pointcolor.(coordinates,Ref(cluster))
+    lensletcolors = pointcolor.(lattice_coordinates,Ref(cluster))
 
-    subdivided_eyeboxpolys,polycentroids = compute_lenslet_eyebox_data(eyeboxtransform,eyeboxpoly,subdivisions)
-    lensleteyeboxes = eyebox_assignment.(coordinates,Ref(cluster),Ref(subdivided_eyeboxpolys))
+    #compute subdivided eyebox polygons and assign to appropriate lenslets
+    eyeboxpoly =  eye_box_frame * eyeboxpolygon(eye_box...) #four corners of the eyebox frame which is assumed centered around the positive Z axis. Transformed to the eyeballframe.
+    subdivided_eyeboxpolys,polycentroids = compute_lenslet_eyebox_data(eye_box_frame,eyeboxpoly,subdivisions)
+    lensleteyeboxes = eyebox_assignment.(lattice_coordinates,Ref(cluster),Ref(subdivided_eyeboxpolys))
 
-
-    lensleteyeboxcenters = [Statistics.mean(eachcol(x)) for x in lensleteyeboxes]
-
-    #make new lenses with optical centers that will cause the centroid of the eyebox assigned to the lens to project to the center of the display plane.
-    lenses = replace_optical_center.(lensleteyeboxcenters,planecenters,lenses)
+    #compute display rectangles that will cover the assigned eyebox polygons
+    lensleteyeboxcenters = [Statistics.mean(eachcol(x)) for x in lensleteyeboxes] 
+    lenses = replace_optical_center.(lensleteyeboxcenters,planecenters,lenses)  #make new lenses with optical centers that will cause the centroid of the eyebox assigned to the lens to project to the center of the display plane.
 
     #project eyebox into lenslet display plane and compute bounding box. This is the size of the display for this lenslet
 
-    return (lenses,coordinates,lensletcolors)
+    return (lenses,lattice_coordinates,lensletcolors)
 end
 export setup_system
 

@@ -303,10 +303,5 @@ function printsystemproperties(eyerelief::Unitful.Length, eyebox::NTuple{2,Unitf
 end
 export printsystemproperties
 
-function typicalsystemproperties(minfnumber,pupildiameter) 
-    printsystemproperties(20mm,(10mm,8mm),(90°,60°),pupildiameter,.22,11,pixelpitch = .9μm, minfnumber = minfnumber)
-    return nothing
-end
-export typicalsystemproperties
 
 
