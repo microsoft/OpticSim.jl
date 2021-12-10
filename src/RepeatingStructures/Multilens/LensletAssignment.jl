@@ -6,18 +6,20 @@ import Statistics
 
 """ Computes the location of the optical center of the lens that will project the centroid of the display to the centroid of the eyebox. Normally the display centroid will be aligned with the geometric centroid of the lens, rather than the optical center of the lens."""
 function compute_optical_center(eyeboxcentroid,displaycenter,lensplane)
-    println("displaycenter $displaycenter eyeboxcentroid $eyeboxcentroid")
     v = displaycenter - eyeboxcentroid
     r = Ray(eyeboxcentroid,v)
-    println("r $r v $v lensplane $lensplane")
-    intsct = closestintersection(surfaceintersection(lensplane,r))
+    intsct = point(closestintersection(surfaceintersection(lensplane,r),false)) #this seems complicated when you don't need CSG
     @assert intsct !== nothing
     return intsct
 end
 
 replace_optical_center(lens,new_optical_center) = ParaxialLensConvexPoly(focallength(lens),shape(lens),new_optical_center)
 
-replace_optical_center(eyeboxcentroid,displaycenter,lens) = replace_optical_center(lens,compute_optical_center(eyeboxcentroid,displaycenter,OpticSim.plane(lens)))
+
+function replace_optical_center(eyeboxcentroid,displaycenter,lens)
+    transform(lens)
+     replace_optical_center(lens,compute_optical_center(eyeboxcentroid,displaycenter,OpticSim.plane(lens)))
+end
 
 
 """returns display plane represented in world coordinates, and the center point of the display"""
@@ -60,20 +62,6 @@ function eyebox_assignment(tilecoords::NTuple{2,Int64},cluster::R,eyeboxes::Abst
     #compute cluster
     _, tile_index = cluster_coordinates_from_tile_coordinates(cluster,tilecoords)
    return eyeboxes[mod(tile_index-1,length(eyeboxes)) + 1] #use linear index for Matrix.
-end
-
-
-
-
-"""computes a vector from the centroid of the eyebox to the center of the display, which is the projection of the geometric center of the lens onto the display plane. This vector is intersected with the lens to compute an optical center which will 
-"""
-function project_eyebox_to_display(lens,eyebox)
-    pln,center = display_plane(lens)
-    boxctr = Statistics.mean(eyebox)
-    vec = center-boxctr
-    r = Ray(center,vec)
-    optcenter = closestintersection(surfaceintersection(lens,r))
-
 end
 
 """given the eye box polygon and how it is to be subdivided computes the subdivided eyeboxes and centroids"""
@@ -125,9 +113,9 @@ function setup_system()
     subdivided_eyeboxpolys,polycentroids = compute_lenslet_eyebox_data(eyeboxtransform,eyeboxpoly,subdivisions)
     lensleteyeboxes = eyebox_assignment.(coordinates,Ref(cluster),Ref(subdivided_eyeboxpolys))
 
-    println("type of lensleteyeboxes $(typeof(lensleteyeboxes))")
+
     lensleteyeboxcenters = [Statistics.mean(eachcol(x)) for x in lensleteyeboxes]
-    println(lensleteyeboxcenters)
+
     #make new lenses with optical centers that will cause the centroid of the eyebox assigned to the lens to project to the center of the display plane.
     lenses = replace_optical_center.(lensleteyeboxcenters,planecenters,lenses)
 
@@ -149,5 +137,3 @@ export testspherelenslets
 function test_eyebox_assignment()
     eyebox_assignment([(0,0),(0,1)],hex19(),)
 end
-
-
