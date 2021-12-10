@@ -31,8 +31,8 @@ import .GlassCat: plot_indices, index, polyfit_indices, absairindex, absorption,
 
 include("Data/Data.jl")
 include("Geometry/Geometry.jl")
-include("RepeatingStructures/Repeat.jl")
 include("Optical/Optical.jl")
+include("RepeatingStructures/Repeat.jl")
 include("Vis/Vis.jl")
 include("Examples/Examples.jl")
 include("Optimization/Optimization.jl")

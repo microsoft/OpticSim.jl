@@ -41,14 +41,14 @@ export ρ_quartervalue
 const ρ_zerovalue = 3.832 # value of ρ at which the airy disk function has magnitude 0
 
 """given pixelpitch and angular subtense (in degrees) of pixel returns focal length"""
-function focallength(fov,lensletdiameter, minfnumber, maxdisplaysize)
+function compute_focal_length(fov,lensletdiameter, minfnumber, maxdisplaysize)
     maxangle = deg2rad(max(fov...)) #leaving angles as degrees caused trouble for not obvious reason
 
     tempfl = uconvert(mm, maxdisplaysize/(2*tan(maxangle/2.0)))
     fnum = tempfl/lensletdiameter
     return tempfl*minfnumber/fnum
 end
-export focallength
+export compute_focal_length
 
 pixelsperdegree(focal_length,pixelpitch) = 1/(2.0*atand(uconvert(Unitful.NoUnits,pixelpitch/(2.0*focal_length))))
 export pixelsperdegree
@@ -262,7 +262,7 @@ function systemproperties(eyerelief::Unitful.Length, eyebox::NTuple{2,Unitful.Le
     eyebox_angles = eyeboxangles(eyebox,eyerelief)
     angles = lensletangles(eyerelief, eyebox, pupildiameter, clusterproperties=(mtf = mtf, minfnumber = minfnumber, cyclesperdegree = cyclesperdegree, λ = λ, pixelpitch = pixelpitch))
 
-    focal_length = focallength(angles,clusterdata.lensletdiameter,minfnumber,maxdisplaysize)
+    focal_length = compute_focal_length(angles,clusterdata.lensletdiameter,minfnumber,maxdisplaysize)
     dispsize = lensletdisplaysize(angles,focal_length)
     fnumber = focal_length/clusterdata.lensletdiameter
     siliconarea = uconvert(mm^2,numlenses  * dispsize[1]*dispsize[2])

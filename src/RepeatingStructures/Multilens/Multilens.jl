@@ -14,9 +14,9 @@ import ..Repeat
 import SpecialFunctions
 import Plots
 import ...OpticSim
-import ...OpticSim:plane_from_points,centroid,pointonplane,shape,focallength
+using ...OpticSim:plane_from_points,centroid,pointonplane,focallength,ParaxialLens
 import ...OpticSim.Geometry
-import ...OpticSim.Repeat:region,HexBasis1,HexBasis3,LatticeBasis,LatticeCluster,clustersize,ClusterWithProperties,cluster_coordinates_from_tile_coordinates, AbstractLatticeCluster
+using ...OpticSim.Repeat:region,HexBasis1,HexBasis3,LatticeBasis,LatticeCluster,clustersize,ClusterWithProperties,cluster_coordinates_from_tile_coordinates, AbstractLatticeCluster
 using ...OpticSim.Data
 
 include("HexClusters.jl")

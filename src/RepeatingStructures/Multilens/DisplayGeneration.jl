@@ -13,8 +13,6 @@ using OpticSim.Repeat:tilevertices,HexBasis1,tilesinside
 using Unitful:upreferred
 using Unitful.DefaultSymbols:°
 
-# using OpticSim.Vis:drawcells
-
 """compute the mean of the columns of `a`. If `a` is an `SMatrix` this is very fast and will not allocate."""
 columncentroid(a::AbstractMatrix) = sum(eachcol(a))/size(a)[2] #works except for the case of zero dimensional matrix.
 export columncentroid
@@ -180,6 +178,7 @@ function spherepolygons(eyebox::Plane{T,N},eyerelief,sphereradius,dir,fovθ,fov�
     shapes,coordinates
 end
 
+
 function spherelenslets(eyeboxplane::Plane{T,N},eyerelief,focallength,dir,sphereradius,fovθ,fovϕ,lattice) where{T,N}
     lenspolys,tilecoords = spherepolygons(eyeboxplane,eyerelief, sphereradius, dir,fovθ,fovϕ,lattice)
     result = Vector{ParaxialLens{T}}(undef,length(lenspolys))
@@ -191,12 +190,3 @@ function spherelenslets(eyeboxplane::Plane{T,N},eyerelief,focallength,dir,sphere
     return result,tilecoords
 end
 export spherelenslets
-
-
-# function testeyeboxtiles()
-#     tiles = eyeboxtiles(Plane(0.0,0.0,1.0,0.0,0.0,12.0),[0.0,0.0,-1.0],30,deg2rad(55),deg2rad(45),HexBasis1())
-#     drawcells(HexBasis1(),10,tiles)
-#     tiles = eyeboxtiles(Plane(0.0,0.0,1.0,0.0,0.0,12.0),[0.0,0.0,-1.0],30,deg2rad(25),deg2rad(45),HexBasis1())
-#     drawcells(HexBasis1(),10,tiles)
-# end
-# export testeyeboxtiles

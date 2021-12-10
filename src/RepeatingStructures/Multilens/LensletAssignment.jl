@@ -13,12 +13,20 @@ function compute_optical_center(eyeboxcentroid,displaycenter,lensplane)
     return intsct
 end
 
-replace_optical_center(lens,new_optical_center) = ParaxialLensConvexPoly(focallength(lens),shape(lens),new_optical_center)
+replace_optical_center(lens,new_optical_center) = ParaxialLensConvexPoly(focallength(lens),OpticSim.shape(lens),new_optical_center)
 
+function localframe(a::ParaxialLens)
+    if OpticSim.shape(a) isa ConvexPolygon
+        return localframe(OpticSim.shape(a))
+    else
+        return nothing
+    end
+end
 
 function replace_optical_center(eyeboxcentroid,displaycenter,lens)
-    transform(lens)
-     replace_optical_center(lens,compute_optical_center(eyeboxcentroid,displaycenter,OpticSim.plane(lens)))
+    world_optic_center = compute_optical_center(eyeboxcentroid,displaycenter,OpticSim.plane(lens))
+    local_optic_center = SVector{2}((inv(localframe(lens)) * world_optic_center)[1:2]) #this is defined in the 2D lens plane so z = 0
+    replace_optical_center(lens,local_optic_center)
 end
 
 
@@ -96,7 +104,7 @@ function setup_system()
     (eyeball_frame,eye_box_frame) = setup_coordinate_frames()
     (eye_box,fov,eye_relief,pupil_diameter,display_sphere_radius,min_fnumber) = systemparameters()
     
-
+    fov = (10°,5°)
 
     #get system properties
     props = systemproperties(eye_relief,eye_box,fov,pupil_diameter,.22,11,pixelpitch = .9μm, minfnumber = min_fnumber)
@@ -115,7 +123,7 @@ function setup_system()
     lensletcolors = pointcolor.(lattice_coordinates,Ref(cluster))
 
     #compute subdivided eyebox polygons and assign to appropriate lenslets
-    eyeboxpoly .* mm =  eye_box_frame * eyeboxpolygon(ustrip.(mm,eye_box)...) #four corners of the eyebox frame which is assumed centered around the positive Z axis. Transformed to the eyeballframe. Have to switch back and forth between Unitful and unitless quantities because Transform doesn't work with Unitful values.
+    eyeboxpoly  =  mm * (eye_box_frame * eyeboxpolygon(ustrip.(mm,eye_box)...)) #four corners of the eyebox frame which is assumed centered around the positive Z axis. Transformed to the eyeballframe. Have to switch back and forth between Unitful and unitless quantities because Transform doesn't work with Unitful values.
     subdivided_eyeboxpolys,polycentroids = compute_lenslet_eyebox_data(eye_box_frame,eyeboxpoly,subdivisions)
     lensleteyeboxes = eyebox_assignment.(lattice_coordinates,Ref(cluster),Ref(subdivided_eyeboxpolys))
 
@@ -139,5 +147,10 @@ end
 export testspherelenslets
 
 function test_eyebox_assignment()
-    eyebox_assignment([(0,0),(0,1)],hex19(),)
+    lenses,coords,colors = setup_system()
+
+    for (lens,coord,color) in zip(lenses,coords,colors)
+        Vis.draw!(lens,color = color)
+    end
 end
+export test_eyebox_assignment
