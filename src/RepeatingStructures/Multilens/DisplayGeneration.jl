@@ -19,9 +19,10 @@ using Unitful.DefaultSymbols:°
 columncentroid(a::AbstractMatrix) = sum(eachcol(a))/size(a)[2] #works except for the case of zero dimensional matrix.
 export columncentroid
 
-function project(point::AbstractVector{T},projectionvector::AbstractVector{T},surface::S) where{T<:Real,S<:OpticSim.Surface{T}}
+function project(point::AbstractVector{T},projectionvector::AbstractVector{T},surface::Union{OpticSim.LeafNode{T,N}, S}) where {T,N,S<:ParametricSurface{T,N}}
     ray = Ray(point, projectionvector)
     intsct = surfaceintersection(surface, ray)
+
     pointintsct = closestintersection(intsct,false)
     if pointintsct === nothing #point didn't project to a point on the surface
         return nothing
@@ -32,7 +33,7 @@ end
 export project
 
 """project the vertices of a polygon represented by `vertices` onto `surface` using the point as the origin and `projectionvector` as the projection direction. Return nothing if any of the projected points do not intersect the surface. The projected vertices are not guaranteed to be coplanar."""
-function project(vertices::R, projectionvector::AbstractVector{T}, surface::S) where {T,S<:OpticSim.Surface{T},R<:AbstractMatrix{T}}
+function project(vertices::R, projectionvector::AbstractVector{T}, surface::Union{OpticSim.LeafNode{T,N}, S}) where {T,N,S<:ParametricSurface{T,N},R<:AbstractMatrix{T}}
     result = similar(vertices)
 
     for i in 1:size(vertices)[2]
@@ -119,6 +120,7 @@ function bounds(pts::AbstractMatrix{T}) where{T}
 end
 export bounds
 
+"""projects points on the spher onto the eyebox along the -z axis direction."""
 function eyeboxbounds(eyebox::OpticSim.Plane,dir::AbstractVector, radius,fovθ,fovϕ) 
     pts = spherepoints(radius,fovθ,fovϕ)
     projectedpts = project(pts,dir,eyebox)
@@ -134,7 +136,7 @@ export boxtiles
 eyeboxtiles(eyebox,dir,radius,fovθ,fovϕ,lattice) = boxtiles(eyeboxbounds(eyebox,dir,radius,fovθ,fovϕ),lattice)
 export eyeboxtiles
 
-function spherepolygon(vertices,projectiondirection,sph::Sphere)
+function spherepolygon(vertices,projectiondirection,sph::OpticSim.LeafNode)
     @assert typeof(vertices) <: SMatrix
     projectedpts = project(vertices,projectiondirection,sph)
     return planarpoly(projectedpts) #polygon on best fit plane to projectedpts
@@ -154,12 +156,14 @@ Each hexagonal polygon corresponds to one lenslet. A hexagonal lattice is first 
 `fovθ,fovϕ` correspond to the field of view of the display as seen from the center of the eyebox plane.
 
 `lattice` is the hexagonal lattice to tile the sphere with, HexBasis1 or HexBasis3, which are rotated versions of each other."""
-function spherepolygons(eyebox::Plane{T,N},dir,radius,fovθ,fovϕ,lattice) where{T,N}
+function spherepolygons(eyebox::Plane{T,N},eyerelief,sphereradius,dir,fovθ,fovϕ,lattice) where{T,N}
     # if fovθ, fovϕ are in degrees convert to radians. If they are unitless then the assumption is that they represent radians
-    eyeboxz = eyebox.pointonplane[3]
+    eyeboxz = eyebox.pointonplane[3] 
+    vertexofsphere = eyeboxz + ustrip(mm,eyerelief - sphereradius) #we don't use mm when creating shapes because Transform doesn't work properly with unitful values. Add the units back on here.
+    sph = OpticSim.LeafNode(Sphere(ustrip(mm,sphereradius)),Geometry.translation(0.0,0.0,-vertexofsphere)) #Sphere objects are always centered at the origin so have to make 
     θ = upreferred(fovθ) #converts to radians if in degrees
     ϕ = upreferred(fovϕ) #converts to radians if in degrees
-    tiles = eyeboxtiles(eyebox,dir,radius,θ,ϕ,lattice)
+    tiles = eyeboxtiles(eyebox,dir,ustrip(mm,sphereradius),θ,ϕ,lattice)
     shapes = Vector{ConvexPolygon{6,T}}(undef,0)
     coordinates = Vector{Tuple{Int64,Int64}}(undef,0)
     for coords in eachcol(tiles)
@@ -170,14 +174,14 @@ function spherepolygons(eyebox::Plane{T,N},dir,radius,fovθ,fovϕ,lattice) where
         zerorow = SMatrix{1,numverts,T}(temp)
         vertices = SMatrix{N,numverts,T}(vcat(twodverts,zerorow))
         @assert typeof(vertices) <: SMatrix
-        push!(shapes,spherepolygon(vertices,-dir,Sphere(radius)))
+        push!(shapes,spherepolygon(vertices,-dir,sph))
         push!(coordinates,Tuple{T,T}(coords))
     end
     shapes,coordinates
 end
 
-function spherelenslets(eyeboxplane::Plane{T,N},focallength,dir,radius,fovθ,fovϕ,lattice) where{T,N}
-    lenspolys,tilecoords = spherepolygons(eyeboxplane,dir,radius,fovθ,fovϕ,lattice)
+function spherelenslets(eyeboxplane::Plane{T,N},eyerelief,focallength,dir,sphereradius,fovθ,fovϕ,lattice) where{T,N}
+    lenspolys,tilecoords = spherepolygons(eyeboxplane,eyerelief, sphereradius, dir,fovθ,fovϕ,lattice)
     result = Vector{ParaxialLens{T}}(undef,length(lenspolys))
     empty!(result)
     for poly in lenspolys

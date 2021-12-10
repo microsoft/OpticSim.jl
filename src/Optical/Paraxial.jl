@@ -25,6 +25,8 @@ struct ParaxialLens{T} <: Surface{T}
     end
 end
 
+shape(a::ParaxialLens) = a.shape
+export shape
 opticalcenter(a::ParaxialLens) = opticalcenter(a.interface)
 export opticalcenter
 focallength(a::ParaxialLens) = focallength(a.interface)

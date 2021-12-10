@@ -6,24 +6,28 @@ import Statistics
 
 """ Computes the location of the optical center of the lens that will project the centroid of the display to the centroid of the eyebox. Normally the display centroid will be aligned with the geometric centroid of the lens, rather than the optical center of the lens."""
 function compute_optical_center(eyeboxcentroid,displaycenter,lensplane)
+    println("displaycenter $displaycenter eyeboxcentroid $eyeboxcentroid")
     v = displaycenter - eyeboxcentroid
     r = Ray(eyeboxcentroid,v)
-    return closestintersection(surfaceintersection(lensplane))
+    println("r $r v $v lensplane $lensplane")
+    intsct = closestintersection(surfaceintersection(lensplane,r))
+    @assert intsct !== nothing
+    return intsct
 end
 
-replace_optical_center(lens,new_optical_center) = ParaxialLensConvexPoly(lens.focallength,lens.convpoly,new_optical_center)
+replace_optical_center(lens,new_optical_center) = ParaxialLensConvexPoly(focallength(lens),shape(lens),new_optical_center)
 
-replace_optical_center(eyeboxcentroid,displaycenter,lens) = replace_optical_center(lens,compute_optical_center(eyeboxcentroid,displaycenter,surface(lens)))
+replace_optical_center(eyeboxcentroid,displaycenter,lens) = replace_optical_center(lens,compute_optical_center(eyeboxcentroid,displaycenter,OpticSim.plane(lens)))
 
-function displayplane(lens) 
-    center_point = centroid(lens) + normal(lens)
-    pln = Plane(-normal(lens), center_point, vishalfsizeu = 5.0, vishalfsizev = 5.0)
+
+"""returns display plane represented in world coordinates, and the center point of the display"""
+function display_plane(lens) 
+    center_point = centroid(lens) + -normal(lens)* OpticSim.focallength(lens)
+     pln = Plane(-normal(lens), center_point, vishalfsizeu = 5.0, vishalfsizev = 5.0)
     return pln,center_point
-export displayplane
-
-
-function subdivide_fov(eyeboxpolygon)
 end
+export display_plane
+
 
 """ eyebox rectangle represented as a 3x4 SMatrix with x,y,z coordinates in rows 1,2,3 respectively."""
 function eyeboxpolygon(xsize,ysize)
@@ -52,9 +56,8 @@ function subdivide(poly::T, xsubdivisions, ysubdivisions) where{T<:SMatrix{3,4}}
 end
 export subdivide
 
-function eyebox_assignment(tilecoords::NTuple{2,Int64},cluster::R,eyeboxes::T) where{R<:AbstractLatticeCluster,T<:Vector}
+function eyebox_assignment(tilecoords::NTuple{2,Int64},cluster::R,eyeboxes::AbstractVector) where{R<:AbstractLatticeCluster}
     #compute cluster
-    println(tilecoords)
     _, tile_index = cluster_coordinates_from_tile_coordinates(cluster,tilecoords)
    return eyeboxes[mod(tile_index-1,length(eyeboxes)) + 1] #use linear index for Matrix.
 end
@@ -65,7 +68,7 @@ end
 """computes a vector from the centroid of the eyebox to the center of the display, which is the projection of the geometric center of the lens onto the display plane. This vector is intersected with the lens to compute an optical center which will 
 """
 function project_eyebox_to_display(lens,eyebox)
-    pln,center = displayplane(lens)
+    pln,center = display_plane(lens)
     boxctr = Statistics.mean(eyebox)
     vec = center-boxctr
     r = Ray(center,vec)
@@ -73,35 +76,60 @@ function project_eyebox_to_display(lens,eyebox)
 
 end
 
+"""given the eye box polygon and how it is to be subdivided computes the subdivided eyeboxes and centroids"""
+function compute_lenslet_eyebox_data(eyeboxtransform,eyeboxpoly,subdivisions)
+    subdivided_eyeboxpolys = subdivide(eyeboxpoly,subdivisions...)
+    strippedpolys =  map(x-> ustrip.(mm,x),  subdivided_eyeboxpolys)
+    subdivided_eyeboxpolys =[eyeboxtransform * x for x in strippedpolys] #these have units of mm which don't interact well with Transform.
+    polycentroids = Statistics.mean.(subdivided_eyeboxpolys)
+    
+
+    return subdivided_eyeboxpolys,polycentroids
+end
+
 function setup_system()
     centroid(verts) = sum(eachcol(verts)) ./ size(verts)[2] 
 
     eyeballframe = Transform() #This establishes the global coordinate frame for the systems. Positive Z axis is assumed to be the forward direction, the default direction of the eye's optical axis when looking directly ahead.
     corneavertex = OpticSim.Data.cornea_to_eyecenter()
+    defaulteyebox = (10mm,9mm)
 
-    props = systemproperties(18mm,(10mm,9mm),(55°,45°),4.0mm,.2,11)
-   
+    fov = (90°,60°)
+    eyeboxsize = (10mm,8mm)
+    eyerelief = 20mm
+    pupildiameter = 3.5mm
+    displaysphereradius = 125.0mm
+
+    props = systemproperties(eyerelief,eyeboxsize,fov,pupildiameter,.22,11,pixelpitch = .9μm, minfnumber = 2.0)
     subdivisions = props[:subdivisions]
     clusterdata = props[:cluster_data]
     cluster = clusterdata[:cluster]
 
-    eyeboxframe = eyeballframe*OpticSim.translation(0.0,0.0,ustrip(mm,corneavertex))  #unfortunately can't use unitful values in transforms because the rotation and translation components would have different types which is not allowed in a Matrix.
+    eyeboxtransform = eyeballframe*OpticSim.translation(0.0,0.0,ustrip(mm,corneavertex))  #unfortunately can't use unitful values in transforms because the rotation and translation components would have different types which is not allowed in a Matrix.
 
-    eyeboxpoly =  eyeboxpolygon(10mm,9mm) #four corners of the eyebox frame which is assumed centered around the positive Z axis. Transformed to the eyeballframe.
+    eyeboxpoly =  eyeboxpolygon(defaulteyebox...) #four corners of the eyebox frame which is assumed centered around the positive Z axis. Transformed to the eyeballframe.
 
-    eyebox_subdivisions = subdivide(eyeboxpoly,subdivisions...)
-    strippedpolys =  map(x-> ustrip.(mm,x), eyebox_subdivisions)
-    subdivided_eyeboxpolys =[eyeboxframe * x for x in strippedpolys] #these have units of mm which don't interact well with Transform.
-    polycentroids = centroid.(subdivided_eyeboxpolys)
+
 
     focallength = ustrip(mm,props[:focal_length])
-    lenses,coordinates = spherelenslets(Plane(0.0,0.0,1.0,0.0,0.0,12.0),focallength,[0.0,0.0,-1.0],30.0,55°,45°,HexBasis1())
-    println(coordinates)
+
+    lenses,coordinates = spherelenslets(Plane(0.0,0.0,1.0,0.0,0.0,12.0),eyerelief,focallength,[0.0,0.0,-1.0],displaysphereradius,fov[1],fov[2],HexBasis1())
+
+
+    temp = display_plane.(lenses)
+    displayplanes = [x[1] for x in temp]
+    planecenters = [x[2] for x in temp]
 
     lensletcolors = pointcolor.(coordinates,Ref(cluster))
-    
-    lenslet_eyeboxes = eyebox_assignment.(coordinates,Ref(cluster),Ref(subdivided_eyeboxpolys))
-    println(lenslet_eyeboxes)
+
+    subdivided_eyeboxpolys,polycentroids = compute_lenslet_eyebox_data(eyeboxtransform,eyeboxpoly,subdivisions)
+    lensleteyeboxes = eyebox_assignment.(coordinates,Ref(cluster),Ref(subdivided_eyeboxpolys))
+
+    println("type of lensleteyeboxes $(typeof(lensleteyeboxes))")
+    lensleteyeboxcenters = [Statistics.mean(eachcol(x)) for x in lensleteyeboxes]
+    println(lensleteyeboxcenters)
+    #make new lenses with optical centers that will cause the centroid of the eyebox assigned to the lens to project to the center of the display plane.
+    lenses = replace_optical_center.(lensleteyeboxcenters,planecenters,lenses)
 
     #project eyebox into lenslet display plane and compute bounding box. This is the size of the display for this lenslet
 
@@ -117,4 +145,9 @@ function testspherelenslets()
     spherelenslets(Plane(0.0,0.0,1.0,0.0,0.0,18.0),focallength,[0.0,0.0,-1.0],ustrip(mm,display_radius),fov[1],fov[2],HexBasis1())
 end
 export testspherelenslets
+
+function test_eyebox_assignment()
+    eyebox_assignment([(0,0),(0,1)],hex19(),)
+end
+
 
