@@ -17,7 +17,7 @@ replace_optical_center(lens,new_optical_center) = ParaxialLensConvexPoly(focalle
 
 function localframe(a::ParaxialLens)
     if OpticSim.shape(a) isa ConvexPolygon
-        return localframe(OpticSim.shape(a))
+        return OpticSim.localframe(OpticSim.shape(a))
     else
         return nothing
     end
@@ -33,7 +33,7 @@ end
 """returns display plane represented in world coordinates, and the center point of the display"""
 function display_plane(lens) 
     center_point = centroid(lens) + -normal(lens)* OpticSim.focallength(lens)
-     pln = Plane(-normal(lens), center_point, vishalfsizeu = 5.0, vishalfsizev = 5.0)
+    pln = Plane(-normal(lens), center_point, vishalfsizeu = 5.0, vishalfsizev = 5.0)
     return pln,center_point
 end
 export display_plane
@@ -104,7 +104,7 @@ function setup_system()
     (eyeball_frame,eye_box_frame) = setup_coordinate_frames()
     (eye_box,fov,eye_relief,pupil_diameter,display_sphere_radius,min_fnumber) = systemparameters()
     
-    fov = (10°,5°)
+    fov = (40°,40°)
 
     #get system properties
     props = systemproperties(eye_relief,eye_box,fov,pupil_diameter,.22,11,pixelpitch = .9μm, minfnumber = min_fnumber)

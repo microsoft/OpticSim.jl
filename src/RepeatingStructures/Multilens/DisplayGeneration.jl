@@ -157,8 +157,8 @@ Each hexagonal polygon corresponds to one lenslet. A hexagonal lattice is first 
 function spherepolygons(eyebox::Plane{T,N},eyerelief,sphereradius,dir,fovθ,fovϕ,lattice) where{T,N}
     # if fovθ, fovϕ are in degrees convert to radians. If they are unitless then the assumption is that they represent radians
     eyeboxz = eyebox.pointonplane[3] 
-    vertexofsphere = eyeboxz + ustrip(mm,eyerelief - sphereradius) #we don't use mm when creating shapes because Transform doesn't work properly with unitful values. Add the units back on here.
-    sph = OpticSim.LeafNode(Sphere(ustrip(mm,sphereradius)),Geometry.translation(0.0,0.0,-vertexofsphere)) #Sphere objects are always centered at the origin so have to make 
+    sphereoriginoffset = eyeboxz + ustrip(mm,eyerelief - sphereradius) #we don't use mm when creating shapes because Transform doesn't work properly with unitful values. Add the units back on here.
+    sph = OpticSim.LeafNode(Sphere(ustrip(mm,sphereradius)),Geometry.translation(0.0,0.0,sphereoriginoffset)) #Sphere objects are always centered at the origin so have to make 
     θ = upreferred(fovθ) #converts to radians if in degrees
     ϕ = upreferred(fovϕ) #converts to radians if in degrees
     tiles = eyeboxtiles(eyebox,dir,ustrip(mm,sphereradius),θ,ϕ,lattice)
