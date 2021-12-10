@@ -17,11 +17,13 @@ export drawspherelenslets
 function testspherepolygons()
     eyebox = Plane(0.0,0.0,1.0,0.0,0.0,12.0)
     dir = [0.0,0.0,-1.0]
-    fovθ = 90°
-    fovϕ = 60°
+    fovθ = 10.0°
+    fovϕ = 5.0°
     lattice = HexBasis1()
+    displayradius = 125.0mm
+    eyerelief = 20mm
 
-    return spherepolygons(eyebox,dir,ustrip(mm,displayradius),fovθ,fovϕ,lattice)
+    return spherepolygons(eyebox,eyerelief,displayradius,dir,fovθ,fovϕ,lattice)
 end
 export testspherepolygons
 
