@@ -200,6 +200,7 @@ function Base.:*(transform::Transform{T}, m::SMatrix{3,N,S}) where{N,T<:Real,S<:
 end
 
 """ The t and m matrices are allowed to be of different element type. This allows transforming a Unitful matrix for example:
+WARNING: this doesn't work. The translation component of the transform matrix has to be in Unitful units but the rotation part has to be in unitless units for this to work. Only works if one assumes that the translation part of the transform implicitly has the same units as the Unitful vectors being transformed. Brittle and likely to cause obscure bugs.
 ```
 id = identitytransform()
 m = fill(1mm,3,4)

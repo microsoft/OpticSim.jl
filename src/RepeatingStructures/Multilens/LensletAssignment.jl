@@ -77,7 +77,7 @@ end
 
 """System parameters for a typical HMD."""
 function systemparameters() 
-    return (eye_box = (10mm,9mm),fov = (90°,60°),eye_relief = 20mm, pupil_diameter = 3.5mm, display_sphere_radius = 125mm,min_fnumber = 2.0)
+    return (eye_box = (10.0mm,9.0mm),fov = (90.0°,60.0°),eye_relief = 20.0mm, pupil_diameter = 3.5mm, display_sphere_radius = 125.0mm,min_fnumber = 2.0)
 end
 
 """Coordinate frames for the eye/display system. The origin of this frame is at the geometric center of the eyeball. Positive Z axis is assumed to be the forward direction, the default direction of the eye's optical axis when looking directly ahead."""
@@ -95,6 +95,8 @@ function setup_system()
 
     (eyeball_frame,eye_box_frame) = setup_coordinate_frames()
     (eye_box,fov,eye_relief,pupil_diameter,display_sphere_radius,min_fnumber) = systemparameters()
+    
+
 
     #get system properties
     props = systemproperties(eye_relief,eye_box,fov,pupil_diameter,.22,11,pixelpitch = .9μm, minfnumber = min_fnumber)
@@ -113,7 +115,7 @@ function setup_system()
     lensletcolors = pointcolor.(lattice_coordinates,Ref(cluster))
 
     #compute subdivided eyebox polygons and assign to appropriate lenslets
-    eyeboxpoly =  eye_box_frame * eyeboxpolygon(eye_box...) #four corners of the eyebox frame which is assumed centered around the positive Z axis. Transformed to the eyeballframe.
+    eyeboxpoly .* mm =  eye_box_frame * eyeboxpolygon(ustrip.(mm,eye_box)...) #four corners of the eyebox frame which is assumed centered around the positive Z axis. Transformed to the eyeballframe. Have to switch back and forth between Unitful and unitless quantities because Transform doesn't work with Unitful values.
     subdivided_eyeboxpolys,polycentroids = compute_lenslet_eyebox_data(eye_box_frame,eyeboxpoly,subdivisions)
     lensleteyeboxes = eyebox_assignment.(lattice_coordinates,Ref(cluster),Ref(subdivided_eyeboxpolys))
 
