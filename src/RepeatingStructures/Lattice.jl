@@ -140,7 +140,7 @@ export tilesinside
 """The vertices of the containing shape are the columns of the matrix containingshape"""
 tilesinside(containingshape::AbstractMatrix,lattice::Repeat.AbstractBasis) = tilesinside(LazySets.VPolygon(containingshape), lattice)
 
-tilesinside(xmin::T,ymin::T,xmax::T,ymax::T,lattice::Repeat.AbstractBasis) where {T <: Real} = tilesinside(SMatrix{2,4,T}(xmin, ymin, xmin, ymax, xmax, ymax, xmax, ymin), lattice)
+tilesinside(xmin::T,ymin::T,xmax::T,ymax::T,lattice::Repeat.AbstractBasis) where {T <: AbstractFloat} = tilesinside(SMatrix{2,4,T}(xmin, ymin, xmin, ymax, xmax, ymax, xmax, ymin), lattice)
 
 using Plots
 

@@ -4,6 +4,23 @@
 
 import Statistics
 
+"""
+    @unzip xs, ys, ... = us
+
+will expand the assignment into the following code
+    xs, ys, ... = map(x -> x[1], us), map(x -> x[2], us), ...
+"""
+macro unzip(args)
+    args.head != :(=) && error("Expression needs to be of form `xs, ys, ... = us`")
+    lhs, rhs = args.args
+    items = isa(lhs, Symbol) ? [lhs] : lhs.args
+    rhs_items = [:(map(x -> x[$i], $rhs)) for i in 1:length(items)]
+    rhs_expand = Expr(:tuple, rhs_items...)
+    esc(Expr(:(=), lhs, rhs_expand))
+end
+export @unzip
+
+
 """ Computes the location of the optical center of the lens that will project the centroid of the display to the centroid of the eyebox. Normally the display centroid will be aligned with the geometric centroid of the lens, rather than the optical center of the lens."""
 function compute_optical_center(eyeboxcentroid,displaycenter,lensplane)
     v = displaycenter - eyeboxcentroid
@@ -85,7 +102,7 @@ end
 
 """System parameters for a typical HMD."""
 function systemparameters() 
-    return (eye_box = (10.0mm,9.0mm),fov = (90.0°,60.0°),eye_relief = 20.0mm, pupil_diameter = 3.5mm, display_sphere_radius = 125.0mm,min_fnumber = 2.0)
+    return (eye_box = (10.0mm,9.0mm),fov = (90.0°,60.0°),eye_relief = 20.0mm, pupil_diameter = 3.5mm, display_sphere_radius = 40.0mm,min_fnumber = 2.0)
 end
 
 """Coordinate frames for the eye/display system. The origin of this frame is at the geometric center of the eyeball. Positive Z axis is assumed to be the forward direction, the default direction of the eye's optical axis when looking directly ahead."""
@@ -136,7 +153,7 @@ function setup_system()
 
     #project eyebox into lenslet display plane and compute bounding box. This is the size of the display for this lenslet
     eyeboxrect = Rectangle(ustrip(mm,eye_box[1]/2),ustrip(mm,eye_box[2]/2),[0.0,0.0,1.0],[0.0,0.0,eyeboxz])
-    return (eyeboxrect,lenses,lattice_coordinates,lensletcolors)
+    return (eyeboxrect,lenses,lensleteyeboxcenters,lattice_coordinates,lensletcolors)
 end
 export setup_system
 
@@ -150,7 +167,7 @@ end
 export testspherelenslets
 
 function test_eyebox_assignment()
-   eyeboxrect, lenses,coords,colors = setup_system()
+   eyeboxrect, lenses,_,coords,colors = setup_system()
     Vis.draw() #clear screen
     Vis.draw!(eyeboxrect)
     for (lens,coord,color) in zip(lenses,coords,colors)
@@ -158,3 +175,7 @@ function test_eyebox_assignment()
     end
 end
 export test_eyebox_assignment
+
+function verify_optical_centers()
+    eyeboxrect, lenses,lensleteyeboxcenters, coords,colors = setup_system()
+end

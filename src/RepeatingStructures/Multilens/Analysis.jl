@@ -139,10 +139,10 @@ function choosecluster(pupildiameter::Unitful.Length, lensletdiameter::Unitful.L
 
     @assert ratio ≥ 1.0 "ratio $ratio cdist $cdist lensletdiameter $lensletdiameter Repeat.latticediameter $(Repeat.latticediameter(maxcluster)) scaled=$(lensletdiameter * Repeat.latticediameter(maxcluster))"
 
-    scaledlenslet = lensletdiameter*ratio
-    scaledcluster = scaledlenslet * Repeat.latticediameter(maxcluster)
+    scaledlensletdiameter = lensletdiameter*ratio
+    scaledclusterdiameter = scaledlensletdiameter * Repeat.latticediameter(maxcluster)
 
-    return (cluster = maxcluster, lensletdiameter = scaledlenslet, diameteroflattice = (scaledcluster), packingdistance = cdist * ustrip(mm, lensletdiameter))
+    return (cluster = maxcluster, lensletdiameter = scaledlensletdiameter, diameteroflattice = scaledclusterdiameter, packingdistance = cdist * ustrip(mm, lensletdiameter))
 end
 export choosecluster
 

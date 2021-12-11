@@ -48,12 +48,30 @@ function hex12()
 end
 export hex12
 
+#TODO fix cluster basis vectors.
+"""WARNING: the cluster basis vectors are incorrect. Still need to figure out what these are. This will not tile properly"""
+function hex18()
+    clusterelements = SVector(
+        (-2,1),(-1, 1),(0, 1),(1,1),
+        (-2,0),(-1, 0),(0, 0),(1, 0),(2,0),
+        (-1, -1),(0, -1),(1, -1),(2, -1),
+        (0, -2),(1, -2),(2, -2),
+        (1,-3),(2,-3)
+    )
+
+    eltlattice = HexBasis3()
+    clusterbasis = LatticeBasis((2, 2), (-3, 2))
+    return LatticeCluster(clusterbasis, eltlattice, clusterelements)
+end
+export hex18
+
 hex19() = hexn(2)
 export hex19
 
 hex37() = hexn(3)
 export hex37
 
+""" function for creating symmetric clusters consisting of all lattice cells within regionsize of the origin. This includes hex1 (use regionsize = 0),hex7 (regionsize = 1),hex19 (region size = 2),hex37 (regionsize = 3), etc."""
 function hexn(regionsize::Int64)
     eltlattice = HexBasis1()
     clusterbasis = LatticeBasis((2*regionsize+1, -regionsize), (regionsize, regionsize+1))
