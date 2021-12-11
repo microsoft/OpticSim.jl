@@ -34,7 +34,9 @@ julia> lattice[1,1]  #returns the locations of the 3 elements in the cluster at 
 """
 abstract type AbstractLatticeCluster{N1,N} end
 
-
+"""returns the euclidean distance between lattice clusters (norm of the longest lattice basis vector). The companion function `latticediameter` returns the distance in lattice space which does not take into account the size the element basis underlying the cluster."""
+euclideandiameter(a::AbstractLatticeCluster) = latticediameter(elementbasis(a))*latticediameter(a)
+export euclideandiameter
 
 """Basic lattic cluster type. N1 is the number of tiles in the cluster, N is the dimension."""
 struct LatticeCluster{N1, N, T<:Real, B1<:AbstractBasis{N,Int},B2<:AbstractBasis{N,T}} <: AbstractLatticeCluster{N1,N}

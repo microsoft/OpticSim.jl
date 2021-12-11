@@ -19,45 +19,45 @@ function clustercolors(lattice)
 end
 export clustercolors
 
-function hex3RGB()
-    lattice = hex3()
+function hex3RGB(scale::T = 1.0) where{T<:Real}
+    lattice = hex3(scale)
     colors = clustercolors(lattice)
     names = colornames(colors)
     properties =  DataFrames.DataFrame(Color=colors, Name=names)
-    return Repeat.ClusterWithProperties(hex3(), properties)
+    return Repeat.ClusterWithProperties(hex3(scale), properties)
 end
 export hex3RGB
 
-function hex4RGB()
-    lattice = hex4()
+function hex4RGB(scale::T = 1.0) where{T<:Real}
+    lattice = hex4(scale)
     colors = clustercolors(lattice)
     names = colornames(colors)
     properties =  DataFrames.DataFrame(Color=colors, Name=names)
-    return Repeat.ClusterWithProperties(hex4(), properties)
+    return Repeat.ClusterWithProperties(hex4(scale), properties)
 end
 export hex4RGB
 
-function hex7RGB()
-    lattice = hex7()
+function hex7RGB(scale::T = 1.0) where{T<:Real}
+    lattice = hex7(scale)
     colors = clustercolors(lattice)
     names = colornames(colors)
     properties =  DataFrames.DataFrame(Color=colors, Name=names)
-    return Repeat.ClusterWithProperties(hex7(), properties)
+    return Repeat.ClusterWithProperties(hex7(scale), properties)
 end
 export hex7RGB
 
-function hex9RGB()
-    lattice = hex9()
+function hex9RGB(scale::T = 1.0) where{T<:Real}
+    lattice = hex9(scale)
     colors = clustercolors(lattice)
     names = colornames(colors)
     properties =  DataFrames.DataFrame(Color=colors, Name=names)
-    return Repeat.ClusterWithProperties(hex9(), properties)
+    return Repeat.ClusterWithProperties(hex9(scale), properties)
 end
 export hex9RGB
 
-function hex12RGB()
+function hex12RGB(scale::T = 1.0) where{T<:Real}
    
-    lattice = hex12()
+    lattice = hex12(scale)
 
     colors = clustercolors(lattice)
 
@@ -67,8 +67,8 @@ function hex12RGB()
 end
 export hex12RGB
 
-function hex19RGB()
-    lattice = hex19()
+function hex19RGB(scale::T = 1.0) where{T<:Real}
+    lattice = hex19(scale)
 
     colors = clustercolors(lattice)
     
@@ -79,8 +79,8 @@ function hex19RGB()
 end
 export hex19RGB
 
-function hex37RGB()
-    lattice = hexn(3)
+function hex37RGB(scale::T = 1.0) where{T<:Real}
+    lattice = hexn(3,scale)
     colors = clustercolors(lattice)
     names = colornames(colors)
     properties =  DataFrames.DataFrame(Color=colors, Name=names)
