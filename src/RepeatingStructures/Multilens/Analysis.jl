@@ -122,16 +122,20 @@ export closestpackingdistance
 
 """Tries clusters of various sizes to choose the largest one which fits within the eye pupil. Larger clusters allow for greater reduction of the fov each lenslet must cover so it returns the largest feasible cluster"""
 function choosecluster(pupildiameter::Unitful.Length, lensletdiameter::Unitful.Length)
-    clusters = (hex3RGB(), hex4RGB(), hex7RGB() , hex9RGB(), hex12RGB(),hex19RGB()) #,hex37RGB()) #leave out for now. Multilens aren't big enough relative to occlusion  ,hex37RGB())
+    clusters = (hex3RGB, hex4RGB, hex7RGB , hex9RGB, hex12RGB,hex19RGB) #,hex37RGB) #leave out for now. Multilens aren't big enough relative to occlusion  ,hex37RGB())
     cdist = pupildiameter
-    maxcluster = clusters[1]
     ratio = 0.0
+    clusterindex = 0
+    scale = 0
 
-    for cluster in clusters
-        temp = cdist / (lensletdiameter * Repeat.latticediameter(cluster))
+    for clusterfunc in clusters
+        cluster = clusterfunc() #get an instance of the cluster type
+        scale = ustrip(mm,lensletdiameter)/latticediameter(elementbasis(cluster)) #scale the element basis of the cluster to match lenslet diameter
+        cluster = clusterfunc(scale)
+        temp = ustrip(mm,cdist) / (Repeat.latticediameter(cluster))
             if temp >= 1.0
             ratio = temp
-            maxcluster = cluster
+            clusterindex += 1
         else
             break
         end
@@ -139,10 +143,12 @@ function choosecluster(pupildiameter::Unitful.Length, lensletdiameter::Unitful.L
 
     @assert ratio ≥ 1.0 "ratio $ratio cdist $cdist lensletdiameter $lensletdiameter Repeat.latticediameter $(Repeat.latticediameter(maxcluster)) scaled=$(lensletdiameter * Repeat.latticediameter(maxcluster))"
 
+    maxcluster = clusters[clusterindex](ratio*scale)
+    println("element basis $(elementbasis(maxcluster))")
+    println("ratio*scale $(ratio*scale) lenslet diam $lensletdiameter basis diam $(latticediameter(elementbasis(maxcluster)))")
     scaledlensletdiameter = lensletdiameter*ratio
-    scaledclusterdiameter = scaledlensletdiameter * Repeat.latticediameter(maxcluster)
 
-    return (cluster = maxcluster, lensletdiameter = scaledlensletdiameter, diameteroflattice = scaledclusterdiameter, packingdistance = cdist * ustrip(mm, lensletdiameter))
+    return (cluster = maxcluster, lensletdiameter = scaledlensletdiameter, packingdistance = cdist * ustrip(mm, lensletdiameter))
 end
 export choosecluster
 

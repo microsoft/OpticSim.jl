@@ -55,6 +55,7 @@ LatticeCluster(clusterbasis::B1,eltlattice::B2,clusterelements::SMatrix{N,N1,Int
 clusterelements(a::LatticeCluster) = a.clusterelements
 export clusterelements
 elementbasis(a::LatticeCluster) = a.elementbasis
+export elementbasis
 clustersize(a::LatticeCluster) = length(a.clusterelements)
 clusterbasis(a::LatticeCluster) = a.clusterbasis
 export clusterbasis

@@ -17,7 +17,7 @@ const hexcoords = [
 """`scale` will scale the canonical basis vectors of this hexagonal tiling"""
 struct HexBasis1{N,T} <: AbstractBasis{N,T}
     scale::T
-    HexBasis1(scale::T = T(1)) where{T<:Real} = new{2,T}(scale)
+    HexBasis1(scale::T = 1.0) where{T<:Real} = new{2,T}(scale)
 end
 export HexBasis1
 
@@ -168,9 +168,11 @@ export Repeat
 """`scale` will scale the canonical basis vectors of this hexagonal tiling"""
 struct HexBasis3{N,T}<:AbstractBasis{N,T}
     scale::T
-    HexBasis3(scale::T = T(1)) where{T<:Real} = new{2,T}(scale)
+    HexBasis3(scale::T = 1.0) where{T<:Real} = new{2,T}(scale)
 end
 export HexBasis3
+
+scale(a::HexBasis3) = a.scale
 
 function tilevertices(a::HexBasis3{2,T}) where{T}
     sin60 = T(.5)*sqrt(T(3))

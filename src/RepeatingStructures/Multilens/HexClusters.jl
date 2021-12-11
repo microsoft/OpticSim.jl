@@ -28,7 +28,7 @@ export hex7
 
 function hex9(scale::T =  1.0) where{T<:Real}
     clusterelements = SVector((-1, -1), (-1, 0), (-2, 1), (0, -1), (0, 0), (-1, 1), (1, -1), (1, 0), (0, 1))
-    eltlattice = HexBasis1()
+    eltlattice = HexBasis1(scale)
     clusterbasis = LatticeBasis((3, 0), (0, 3))
     return LatticeCluster(clusterbasis, eltlattice, clusterelements)
 end
@@ -51,6 +51,7 @@ export hex12
 #TODO fix cluster basis vectors.
 """WARNING: the cluster basis vectors are incorrect. Still need to figure out what these are. This will not tile properly"""
 function hex18(scale::T =  1.0) where{T<:Real}
+    throw(ErrorException("not yet working"))
     clusterelements = SVector(
         (-2,1),(-1, 1),(0, 1),(1,1),
         (-2,0),(-1, 0),(0, 0),(1, 0),(2,0),
