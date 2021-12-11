@@ -109,10 +109,13 @@ function setup_system()
     #get system properties
     props = systemproperties(eye_relief,eye_box,fov,pupil_diameter,.22,11,pixelpitch = .9μm, minfnumber = min_fnumber)
     subdivisions = props[:subdivisions] #tuple representing how the eyebox can be subdivided given the cluster used for the lenslets
+    println(subdivisions)
     clusterdata = props[:cluster_data] 
     cluster = clusterdata[:cluster] #cluster that is repeated across the display to ensure continuous coverage of the eyebox and fov.
     focallength = ustrip(mm,props[:focal_length]) #strip units off because these don't work well with Transform
 
+    #TODO need to generate new lattice that has the proper dimensions for the lenslets based on the cluster properties and the scaling applied to the cluster. May need to modify systemproperties to get the neeeded info.
+    
     #compute lenslets based on system properties. lattice_coordinates are the (i,j) integer lattice coordinates of the hexagonal lattice making up the display. These coordinates are used to properly assign color and subdivided eyebox to the lenslets.
     lenses,lattice_coordinates = spherelenslets(Plane(0.0,0.0,1.0,0.0,0.0,12.0),eye_relief,focallength,[0.0,0.0,-1.0],display_sphere_radius,fov[1],fov[2],HexBasis1())
 
