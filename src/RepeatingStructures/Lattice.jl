@@ -177,13 +177,13 @@ export testtilesinside
 
 
 """This function returns the radius of the longest basis vector of the lattice cluster. Most lattices defined in this project have symmetric basis vectors so the radii of all basis vectors will be identical. This function is used in determing which clusters "fit" within the eye pupil."""
-function latticediameter(basismatrix::SMatrix)
+function euclideandiameter(basismatrix::SMatrix)
     maximum(norm.([basismatrix[:,i] for i in 1:size(basismatrix)[2]]))
 end
-export latticediameter
+export euclideandiameter
 
 """ Lattic bases can have real basis vectors. This returns the maximum Euclidean distance between lattice basis center points."""
-latticediameter(a::Repeat.AbstractBasis) =  latticediameter(Repeat.basismatrix(a))
+euclideandiameter(a::Repeat.AbstractBasis) =  euclideandiameter(Repeat.basismatrix(a))
 
 """Only will work properly if lattice basis matrix contains only integer or rational terms. Returns the integer lattice coords of point in the given basis if the point is in the span of latticebasis. Otherwise returns nothing"""
 function latticepoint(lattice_basis_matrix::AbstractMatrix, origin, point) 

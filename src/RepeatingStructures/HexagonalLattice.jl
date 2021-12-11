@@ -17,6 +17,7 @@ const hexcoords = [
 """`scale` will scale the canonical basis vectors of this hexagonal tiling"""
 struct HexBasis1{N,T} <: AbstractBasis{N,T}
     scale::T
+    
     HexBasis1(scale::T = 1.0) where{T<:Real} = new{2,T}(scale)
 end
 export HexBasis1

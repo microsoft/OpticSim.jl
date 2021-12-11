@@ -102,7 +102,7 @@ end
 
 """System parameters for a typical HMD."""
 function systemparameters() 
-    return (eye_box = (10.0mm,9.0mm),fov = (90.0°,60.0°),eye_relief = 20.0mm, pupil_diameter = 3.5mm, display_sphere_radius = 40.0mm,min_fnumber = 2.0)
+    return (eye_box = (10.0mm,9.0mm),fov = (90.0°,60.0°),eye_relief = 20.0mm, pupil_diameter = 4.0mm, display_sphere_radius = 40.0mm,min_fnumber = 2.0)
 end
 
 """Coordinate frames for the eye/display system. The origin of this frame is at the geometric center of the eyeball. Positive Z axis is assumed to be the forward direction, the default direction of the eye's optical axis when looking directly ahead."""
@@ -124,13 +124,15 @@ function setup_system()
     fov = (90°,60°)
 
     #get system properties
-    props = systemproperties(eye_relief,eye_box,fov,pupil_diameter,.22,11,pixelpitch = .9μm, minfnumber = min_fnumber)
+    props = systemproperties(eye_relief,eye_box,fov,pupil_diameter,.2,11,pixelpitch = .9μm, minfnumber = min_fnumber)
+    printsystemproperties(props)
     subdivisions = props[:subdivisions] #tuple representing how the eyebox can be subdivided given the cluster used for the lenslets
     println(subdivisions)
     clusterdata = props[:cluster_data] 
     cluster = clusterdata[:cluster] #cluster that is repeated across the display to ensure continuous coverage of the eyebox and fov.
     focallength = ustrip(mm,props[:focal_length]) #strip units off because these don't work well with Transform
 
+    println("element basis diam $(euclideandiameter(elementbasis(cluster))) lenslet diameter $(props[:lenslet_diameter])")
     #TODO need to generate new lattice that has the proper dimensions for the lenslets based on the cluster properties and the scaling applied to the cluster. May need to modify systemproperties to get the neeeded info.
     
     #compute lenslets based on system properties. lattice_coordinates are the (i,j) integer lattice coordinates of the hexagonal lattice making up the display. These coordinates are used to properly assign color and subdivided eyebox to the lenslets.

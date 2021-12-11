@@ -22,7 +22,7 @@ function hex4(scale::T =  1.0) where{T<:Real}
 end
 export hex4
 
-hex7(scale::T) where{T<:Real} = hexn(1,scale)
+hex7(scale::T = 1.0) where{T<:Real} = hexn(1,scale)
 export hex7
 
 

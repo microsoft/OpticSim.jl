@@ -123,16 +123,19 @@ export closestpackingdistance
 """Tries clusters of various sizes to choose the largest one which fits within the eye pupil. Larger clusters allow for greater reduction of the fov each lenslet must cover so it returns the largest feasible cluster"""
 function choosecluster(pupildiameter::Unitful.Length, lensletdiameter::Unitful.Length)
     clusters = (hex3RGB, hex4RGB, hex7RGB , hex9RGB, hex12RGB,hex19RGB) #,hex37RGB) #leave out for now. Multilens aren't big enough relative to occlusion  ,hex37RGB())
-    cdist = pupildiameter
+    pupildiameter
     ratio = 0.0
     clusterindex = 0
     scale = 0
 
     for clusterfunc in clusters
-        cluster = clusterfunc() #get an instance of the cluster type
-        scale = ustrip(mm,lensletdiameter)/latticediameter(elementbasis(cluster)) #scale the element basis of the cluster to match lenslet diameter
-        cluster = clusterfunc(scale)
-        temp = ustrip(mm,cdist) / (Repeat.latticediameter(cluster))
+        cluster = clusterfunc() #create an instance of the cluster type with default unit scale
+        scale = ustrip(mm,lensletdiameter)/euclideandiameter(elementbasis(cluster)) #scale the element basis of the cluster to match lenslet diameter
+        cluster = clusterfunc(scale) #make a new instance of the cluster type scaled so the element basis had diameter equal to lenslet diameter
+        if clusterfunc == hex19RGB
+            println("here lenslet diam $lensletdiameter element diam $(euclideandiameter(elementbasis(cluster))) $(Repeat.euclideandiameter(cluster))")
+        end
+        temp = ustrip(mm,pupildiameter) / (Repeat.euclideandiameter(cluster))
             if temp >= 1.0
             ratio = temp
             clusterindex += 1
@@ -141,14 +144,11 @@ function choosecluster(pupildiameter::Unitful.Length, lensletdiameter::Unitful.L
         end
     end
 
-    @assert ratio ≥ 1.0 "ratio $ratio cdist $cdist lensletdiameter $lensletdiameter Repeat.latticediameter $(Repeat.latticediameter(maxcluster)) scaled=$(lensletdiameter * Repeat.latticediameter(maxcluster))"
-
     maxcluster = clusters[clusterindex](ratio*scale)
-    println("element basis $(elementbasis(maxcluster))")
-    println("ratio*scale $(ratio*scale) lenslet diam $lensletdiameter basis diam $(latticediameter(elementbasis(maxcluster)))")
-    scaledlensletdiameter = lensletdiameter*ratio
+    @assert Repeat.euclideandiameter(maxcluster) <= ustrip(mm,pupildiameter)
 
-    return (cluster = maxcluster, lensletdiameter = scaledlensletdiameter, packingdistance = cdist * ustrip(mm, lensletdiameter))
+    scaledlensletdiameter = lensletdiameter*ratio
+    return (cluster = maxcluster, lensletdiameter = scaledlensletdiameter, packingdistance = pupildiameter * ustrip(mm, lensletdiameter))
 end
 export choosecluster
 
@@ -290,9 +290,14 @@ function printsystemproperties(eyerelief::Unitful.Length, eyebox::NTuple{2,Unitf
     println("pupil diameter = $pupildiameter")
     println("mtf = $mtf @ $cyclesperdegree cycles/°")
     println()
+    printsystemproperties(systemproperties(eyerelief, eyebox, fov, pupildiameter, mtf, cyclesperdegree, minfnumber = minfnumber,RGB=RGB,λ=λ,pixelpitch=pixelpitch,maxdisplaysize = maxdisplaysize))
+end
+export printsystemproperties
+
+function printsystemproperties(props)
     println("Output values")
     println()
-    props = systemproperties(eyerelief, eyebox, fov, pupildiameter, mtf, cyclesperdegree, minfnumber = minfnumber,RGB=RGB,λ=λ,pixelpitch=pixelpitch,maxdisplaysize = maxdisplaysize)
+
     for (key,value) in pairs(props)
         if key == :cluster_data
             println("cluster = $(typeof(props[:cluster_data][:cluster]))")
@@ -304,10 +309,10 @@ function printsystemproperties(eyerelief::Unitful.Length, eyebox::NTuple{2,Unitf
     end
 
     println("occlusion ratio  $(π*uconvert(Unitful.NoUnits,*(props[:lenslet_display_size]...)/(props[:lenslet_diameter])^2))")
-    clusterdiameter = props[:cluster_data][:diameteroflattice]
+    cluster = props[:cluster_data][:cluster]
+    clusterdiameter = Repeat.euclideandiameter(cluster)
     println("cluster diameter (approx): $(clusterdiameter)")
 end
-export printsystemproperties
 
 
 
