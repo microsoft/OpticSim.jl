@@ -103,8 +103,8 @@ function setup_system()
 
     (eyeball_frame,eye_box_frame) = setup_coordinate_frames()
     (eye_box,fov,eye_relief,pupil_diameter,display_sphere_radius,min_fnumber) = systemparameters()
-    
-    fov = (40°,40°)
+    eyeboxz = (eye_box_frame*SVector(0.0,0.0,0.0))[3]
+    fov = (90°,60°)
 
     #get system properties
     props = systemproperties(eye_relief,eye_box,fov,pupil_diameter,.22,11,pixelpitch = .9μm, minfnumber = min_fnumber)
@@ -132,8 +132,8 @@ function setup_system()
     lenses = replace_optical_center.(lensleteyeboxcenters,planecenters,lenses)  #make new lenses with optical centers that will cause the centroid of the eyebox assigned to the lens to project to the center of the display plane.
 
     #project eyebox into lenslet display plane and compute bounding box. This is the size of the display for this lenslet
-
-    return (lenses,lattice_coordinates,lensletcolors)
+    eyeboxrect = Rectangle(ustrip(mm,eye_box[1]/2),ustrip(mm,eye_box[2]/2),[0.0,0.0,1.0],[0.0,0.0,eyeboxz])
+    return (eyeboxrect,lenses,lattice_coordinates,lensletcolors)
 end
 export setup_system
 
@@ -147,8 +147,9 @@ end
 export testspherelenslets
 
 function test_eyebox_assignment()
-    lenses,coords,colors = setup_system()
-
+   eyeboxrect, lenses,coords,colors = setup_system()
+    Vis.draw() #clear screen
+    Vis.draw!(eyeboxrect)
     for (lens,coord,color) in zip(lenses,coords,colors)
         Vis.draw!(lens,color = color)
     end

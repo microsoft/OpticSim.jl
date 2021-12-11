@@ -94,8 +94,8 @@ export spherepoint
 
 """Computes points on the edges of the spherical rectangle defined by the range of θ,ϕ. This is used to determine lattice boundaries on the eyebox surface."""
 function spherepoints(radius, θmin,θmax,ϕmin,ϕmax)
-    θedges =  [spherepoint(radius,ϕ,θ) for θ in θmin:.5:θmax, ϕ in (ϕmin,ϕmax)]
-    ϕedges =  [spherepoint(radius,ϕ,θ) for ϕ in ϕmin:.5:ϕmax, θ in (θmin,θmax)]
+    θedges =  [spherepoint(radius,ϕ,θ) for θ in θmin:.01:θmax, ϕ in (ϕmin,ϕmax)]
+    ϕedges =  [spherepoint(radius,ϕ,θ) for ϕ in ϕmin:.01:ϕmax, θ in (θmin,θmax)]
     allpoints = vcat(reshape(θedges,reduce(*,size(θedges))),reshape(ϕedges,reduce(*,size(ϕedges))))
     
     reshape(reinterpret(Float64,allpoints),3,length(allpoints)) #return points as 3xn matrix with points as columns
@@ -103,7 +103,14 @@ end
 export spherepoints
 
 """given a total fov in θ  and ϕ compute sample points on the edges of the spherical rectangle."""
-spherepoints(radius,θ,ϕ) = spherepoints(radius,-θ/2,θ/2,-ϕ/2,ϕ/2)
+function spherepoints(eyerelief,radius,θ,ϕ) 
+    hθ = tan(θ/2)*eyerelief
+    nθ = atan(uconvert(Unitful.NoUnits,hθ/radius))
+    hϕ = tan(ϕ/2)*eyerelief
+    nϕ = atan(uconvert(Unitful.NoUnits,hϕ/radius))
+
+    spherepoints(radius,-nθ,nθ,-nϕ,nϕ)
+end
 
 function testprojection()
     pts = spherepoints(1.0,-.2,-.2,1.0,1.1)
@@ -119,8 +126,8 @@ end
 export bounds
 
 """projects points on the spher onto the eyebox along the -z axis direction."""
-function eyeboxbounds(eyebox::OpticSim.Plane,dir::AbstractVector, radius,fovθ,fovϕ) 
-    pts = spherepoints(radius,fovθ,fovϕ)
+function eyeboxbounds(eyebox::OpticSim.Plane,eyerelief, dir::AbstractVector, radius,fovθ,fovϕ) 
+    pts = spherepoints(eyerelief,radius,fovθ,fovϕ)
     projectedpts = project(pts,dir,eyebox)
     return bounds(projectedpts)
 end
@@ -131,7 +138,7 @@ function boxtiles(bbox,lattice)
 end
 export boxtiles
 
-eyeboxtiles(eyebox,dir,radius,fovθ,fovϕ,lattice) = boxtiles(eyeboxbounds(eyebox,dir,radius,fovθ,fovϕ),lattice)
+eyeboxtiles(eyebox,eyerelief,dir,radius,fovθ,fovϕ,lattice) = boxtiles(eyeboxbounds(eyebox,eyerelief,dir,radius,fovθ,fovϕ),lattice)
 export eyeboxtiles
 
 function spherepolygon(vertices,projectiondirection,sph::OpticSim.LeafNode)
@@ -161,7 +168,7 @@ function spherepolygons(eyebox::Plane{T,N},eyerelief,sphereradius,dir,fovθ,fov�
     sph = OpticSim.LeafNode(Sphere(ustrip(mm,sphereradius)),Geometry.translation(0.0,0.0,sphereoriginoffset)) #Sphere objects are always centered at the origin so have to make 
     θ = upreferred(fovθ) #converts to radians if in degrees
     ϕ = upreferred(fovϕ) #converts to radians if in degrees
-    tiles = eyeboxtiles(eyebox,dir,ustrip(mm,sphereradius),θ,ϕ,lattice)
+    tiles = eyeboxtiles(eyebox,eyerelief,dir,sphereradius,θ,ϕ,lattice)
     shapes = Vector{ConvexPolygon{6,T}}(undef,0)
     coordinates = Vector{Tuple{Int64,Int64}}(undef,0)
     for coords in eachcol(tiles)
