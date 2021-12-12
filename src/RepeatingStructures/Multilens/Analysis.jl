@@ -122,7 +122,7 @@ export closestpackingdistance
 
 """Tries clusters of various sizes to choose the largest one which fits within the eye pupil. Larger clusters allow for greater reduction of the fov each lenslet must cover so it returns the largest feasible cluster"""
 function choosecluster(pupildiameter::Unitful.Length, lensletdiameter::Unitful.Length)
-    clusters = (hex3RGB, hex4RGB, hex7RGB , hex9RGB, hex12RGB,hex19RGB) #,hex37RGB) #leave out for now. Multilens aren't big enough relative to occlusion  ,hex37RGB())
+    clusters = (hex3RGB, hex4RGB, hex7RGB , hex9RGB, hex12RGB,hex19RGB) #, hex37RGB) # hex37RGB leave out for now. Leads to designs with thousands of small lenslets. May not be practical.
     pupildiameter
     ratio = 0.0
     clusterindex = 0
@@ -131,12 +131,11 @@ function choosecluster(pupildiameter::Unitful.Length, lensletdiameter::Unitful.L
     for clusterfunc in clusters
         cluster = clusterfunc() #create an instance of the cluster type with default unit scale
         scale = ustrip(mm,lensletdiameter)/euclideandiameter(elementbasis(cluster)) #scale the element basis of the cluster to match lenslet diameter
-        cluster = clusterfunc(scale) #make a new instance of the cluster type scaled so the element basis had diameter equal to lenslet diameter
-        if clusterfunc == hex19RGB
-            println("here lenslet diam $lensletdiameter element diam $(euclideandiameter(elementbasis(cluster))) $(Repeat.euclideandiameter(cluster))")
-        end
-        temp = ustrip(mm,pupildiameter) / (Repeat.euclideandiameter(cluster))
-            if temp >= 1.0
+        scaledcluster = clusterfunc(scale) #make a new instance of the cluster type scaled so the element basis has diameter equal to lenslet diameter
+
+        temp = ustrip(mm,pupildiameter) / (euclideandiameter(scaledcluster))
+
+        if temp >= 1.0
             ratio = temp
             clusterindex += 1
         else

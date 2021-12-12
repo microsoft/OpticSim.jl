@@ -63,7 +63,7 @@ function hex12RGB(scale::T = 1.0) where{T<:Real}
 
     names = colornames(colors)
     properties =  DataFrames.DataFrame(Color=colors, Name=names)
-    return Repeat.ClusterWithProperties(hex12(), properties)
+    return Repeat.ClusterWithProperties(lattice, properties)
 end
 export hex12RGB
 

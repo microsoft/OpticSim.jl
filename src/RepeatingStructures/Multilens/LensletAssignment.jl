@@ -102,7 +102,7 @@ end
 
 """System parameters for a typical HMD."""
 function systemparameters() 
-    return (eye_box = (10.0mm,9.0mm),fov = (90.0°,60.0°),eye_relief = 20.0mm, pupil_diameter = 4.0mm, display_sphere_radius = 40.0mm,min_fnumber = 2.0)
+    return (eye_box = (10.0mm,9.0mm),fov = (90.0°,60.0°),eye_relief = 20.0mm, pupil_diameter = 4.0mm, display_sphere_radius = 40.0mm,min_fnumber = 1.6, pixel_pitch = .7μm) #these numbers give a reasonable system, albeit with 2000 lenslets. However displays are quite small (184x252)μm
 end
 
 """Coordinate frames for the eye/display system. The origin of this frame is at the geometric center of the eyeball. Positive Z axis is assumed to be the forward direction, the default direction of the eye's optical axis when looking directly ahead."""
@@ -119,21 +119,27 @@ function setup_system()
     #All coordinates are ultimately transformed into the eyeball_frame coordinate systems
 
     (eyeball_frame,eye_box_frame) = setup_coordinate_frames()
-    (eye_box,fov,eye_relief,pupil_diameter,display_sphere_radius,min_fnumber) = systemparameters()
+    (eye_box,fov,eye_relief,pupil_diameter,display_sphere_radius,min_fnumber,pixel_pitch) = systemparameters()
+        
+    println("Input parameters\n")
+
+    temp = systemparameters()
+    for key in keys(temp) println("$key = $(temp[key])") end
+    println("\n\n")
+
     eyeboxz = (eye_box_frame*SVector(0.0,0.0,0.0))[3]
     fov = (90°,60°)
 
     #get system properties
-    props = systemproperties(eye_relief,eye_box,fov,pupil_diameter,.2,11,pixelpitch = .9μm, minfnumber = min_fnumber)
+    props = systemproperties(eye_relief,eye_box,fov,pupil_diameter,.2,11,pixelpitch = pixel_pitch, minfnumber = min_fnumber)
+
     printsystemproperties(props)
+
     subdivisions = props[:subdivisions] #tuple representing how the eyebox can be subdivided given the cluster used for the lenslets
     println(subdivisions)
     clusterdata = props[:cluster_data] 
     cluster = clusterdata[:cluster] #cluster that is repeated across the display to ensure continuous coverage of the eyebox and fov.
     focallength = ustrip(mm,props[:focal_length]) #strip units off because these don't work well with Transform
-
-    println("element basis diam $(euclideandiameter(elementbasis(cluster))) lenslet diameter $(props[:lenslet_diameter])")
-    #TODO need to generate new lattice that has the proper dimensions for the lenslets based on the cluster properties and the scaling applied to the cluster. May need to modify systemproperties to get the neeeded info.
     
     #compute lenslets based on system properties. lattice_coordinates are the (i,j) integer lattice coordinates of the hexagonal lattice making up the display. These coordinates are used to properly assign color and subdivided eyebox to the lenslets.
     lenses,lattice_coordinates = spherelenslets(Plane(0.0,0.0,1.0,0.0,0.0,12.0),eye_relief,focallength,[0.0,0.0,-1.0],display_sphere_radius,fov[1],fov[2],elementbasis(cluster))
@@ -164,7 +170,7 @@ function testspherelenslets()
     
     computedprops = systemproperties(eye_relief,eyebox,fov,pupil_diameter,mtf,cycles_per_degree,minfnumber = minfnumber,maxdisplaysize = max_display_size,pixelpitch = pixel_pitch)
     focallength = ustrip(mm,computedprops[:focal_length])
-    spherelenslets(Plane(0.0,0.0,1.0,0.0,0.0,18.0),focallength,[0.0,0.0,-1.0],ustrip(mm,display_radius),fov[1],fov[2],HexBasis1())
+    spherelenslets(Plane(0.0,0.0,1.0,0.0,0.0,18.0),eye_relief,focallength,[0.0,0.0,-1.0],ustrip(mm,display_radius),fov[1],fov[2],HexBasis1())
 end
 export testspherelenslets
 

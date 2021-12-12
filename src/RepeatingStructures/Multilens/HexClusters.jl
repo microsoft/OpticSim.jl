@@ -80,3 +80,10 @@ function hexn(regionsize::Int64,scale::T = 1.0) where{T<:Real}
 end
 export hexn
 
+function testhexclusters()
+    for clusterfunc in (hex3,hex4,hex9,hex12,hex19,hex37)
+        cluster = clusterfunc()
+        println("$clusterfunc euclidean diameter $(euclideandiameter(cluster))")
+    end
+end
+export testhexclusters
