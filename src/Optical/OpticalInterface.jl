@@ -88,6 +88,57 @@ transmission(::ParaxialInterface{T}) where {T<:Real} = one(T)
 opticalcenter(a::ParaxialInterface) = a.centroid
 focallength(a::ParaxialInterface) = a.focallength
 
+"""
+    ParaxialInterfaceSphere{T} <: OpticalInterface{T}
+
+Interface describing an idealized planar lens that focuses on a sphere, i.e. one that is thin and with no aberrations.
+
+```julia
+
+```
+"""
+struct ParaxialInterfaceSphere{T} <: OpticalInterface{T}
+    focallength::T
+    outsidematerial::GlassID
+    centroid::SVector{3,T}
+    surface::ParametricSurface{T,3} # this is of ParametricSurface instead of SphericalCap because of order of includes
+    
+    function ParaxialInterfaceSphere(focallength::T, surfacenormal::SVector{3,T}, centroid::SVector{3,T}, outsidematerial::Y) where {Y<:OpticSim.GlassCat.AbstractGlass,T<:Real}
+
+        sphere_radius = focallength / 2.0
+        sphere_position = centroid + surfacenormal * focallength # weird, i though it should be the center
+        @info sphere_radius
+        @info sphere_position
+        surface = SphericalCap(
+            sphere_radius,            # 11.0,
+            3.1,                      # close to pi to cover everything
+            surfacenormal * -1.0,
+            sphere_position,
+            interface = FresnelInterface{Float64}(
+                OpticSim.GlassCat.EYE.VITREOUS, 
+                OpticSim.GlassCat.EYE.VITREOUS, 
+                reflectance = 0.0, 
+                transmission = 0.0
+            )
+        )            
+
+        return new{T}(focallength, glassid(outsidematerial), centroid, surface)
+    end
+end
+export ParaxialInterfaceSphere
+
+function Base.show(io::IO, a::ParaxialInterfaceSphere{R}) where {R<:Real}
+    print(io, "ParaxialInterfaceSphere($(a.focallength), $(glassname(a.outsidematerial)))")
+end
+
+insidematerialid(a::ParaxialInterfaceSphere{T}) where {T<:Real} = a.outsidematerial
+outsidematerialid(a::ParaxialInterfaceSphere{T}) where {T<:Real} = a.outsidematerial
+reflectance(::ParaxialInterfaceSphere{T}) where {T<:Real} = zero(T)
+transmission(::ParaxialInterfaceSphere{T}) where {T<:Real} = one(T)
+opticalcenter(a::ParaxialInterfaceSphere) = a.centroid
+focallength(a::ParaxialInterfaceSphere) = a.focallength
+
+
 ######################################################################
 
 """
@@ -297,7 +348,7 @@ const MultiHologramInterfaceRefCache = []
 
 # a few things need a concrete type to prevent allocations resulting from the ambiguities introduce by an abstract type (i.e. OpticalInterface{T})
 # if adding new subtypes of OpticalInterface they must be added to this definition as well (and only paramaterised by T so they are fully specified)
-AllOpticalInterfaces{T} = Union{NullInterface{T},ParaxialInterface{T},FresnelInterface{T},HologramInterface{T},MultiHologramInterface{T},ThinGratingInterface{T}}
+AllOpticalInterfaces{T} = Union{NullInterface{T},ParaxialInterface{T},ParaxialInterfaceSphere{T},FresnelInterface{T},HologramInterface{T},MultiHologramInterface{T},ThinGratingInterface{T}}
 NullOrFresnel{T} = Union{NullInterface{T},FresnelInterface{T}}
 
 # can't have more than 4 types here or we get allocations because inference on the union stops: https://github.com/JuliaLang/julia/blob/1e6e65691254a7fe81f5da8706bb30aa6cb3f8d2/base/compiler/types.jl#L113

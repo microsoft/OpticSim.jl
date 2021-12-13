@@ -18,9 +18,9 @@ ParaxialLensConvexPoly(focaldistance, local_frame, local_polygon_points, local_c
 """
 struct ParaxialLens{T} <: Surface{T}
     shape::Union{Rectangle{T},Ellipse{T},Hexagon{T},ConvexPolygon{N, T} where {N}} 
-    interface::ParaxialInterface{T}
+    interface::Union{ParaxialInterface{T}, ParaxialInterfaceSphere{T}}
 
-    function ParaxialLens(shape::Union{Rectangle{T},Ellipse{T},Hexagon{T},ConvexPolygon{N, T} where {N}}, interface::ParaxialInterface{T}) where {T<:Real}
+    function ParaxialLens(shape::Union{Rectangle{T},Ellipse{T},Hexagon{T},ConvexPolygon{N, T} where {N}}, interface::Union{ParaxialInterface{T}, ParaxialInterfaceSphere{T}}) where {T<:Real}
             new{T}(shape, interface)
     end
 end
@@ -91,12 +91,6 @@ function ParaxialLensHex(focaldistance::T, side_length::T, surfacenormal::SVecto
     return ParaxialLens(h, ParaxialInterface(focaldistance, centrepoint, outsidematerial))
 end
 
-function ParaxialLensConvexPoly(focallength::T,convpoly::ConvexPolygon{N,T},local_center_point::SVector{2,T}; outsidematerial::OpticSim.GlassCat.AbstractGlass = OpticSim.GlassCat.Air) where {N, T<:Real}
-    centrepoint = SVector{3, T}(local2world(localframe(convpoly)) * Vec3(local_center_point[1], local_center_point[2], zero(T)))
-    return ParaxialLens(convpoly, ParaxialInterface(focallength, centrepoint, outsidematerial))
-end
-
-
 function ParaxialLensConvexPoly(focaldistance::T, local_frame::Transform{T}, local_polygon_points::Vector{SVector{2, T}}, local_center_point::SVector{2, T}; outsidematerial::OpticSim.GlassCat.AbstractGlass = OpticSim.GlassCat.Air) where {N, T<:Real}
     poly = ConvexPolygon(local_frame, local_polygon_points)
     centrepoint = SVector{3, T}(local2world(local_frame) * Vec3(local_center_point[1], local_center_point[2], zero(T)))
@@ -152,6 +146,39 @@ function processintersection(opticalinterface::ParaxialInterface{T}, point::SVec
     raypathlength = pathlength(incidentray) + thisraypathlength
     # refraction calculated directly for paraxial lens
     raydirection = normalize((opticalinterface.centroid - point) + direction(incidentray) * opticalinterface.focallength / dot(normal, direction(incidentray)))
+    if opticalinterface.focallength < 0
+        # flip for negative focal lengths
+        raydirection = -raydirection
+    end
+    return raydirection, raypower, raypathlength
+end
+
+
+function processintersection(opticalinterface::ParaxialInterfaceSphere{T}, point::SVector{N,T}, normal::SVector{N,T}, incidentray::OpticalRay{T,N}, temperature::T, pressure::T, ::Bool, firstray::Bool = false) where {T<:Real,N}
+    raypower = power(incidentray)
+    m = outsidematerialid(opticalinterface) # necessarily both the same
+    n = one(T)
+    if !isair(m)
+        mat = glassforid(m)::OpticSim.GlassCat.Glass
+        n = index(mat, wavelength(incidentray), temperature = temperature, pressure = pressure)::T
+    end
+    geometricpathlength = norm(point - origin(incidentray)) + (firstray ? zero(T) : T(RAY_OFFSET))
+    thisraypathlength = n * geometricpathlength
+    raypathlength = pathlength(incidentray) + thisraypathlength
+    # refraction calculated directly for paraxial lens
+
+    # query the sphere cap for intersection
+    query_ray = Ray(opticalinterface.centroid, direction(incidentray))
+    interval = surfaceintersection(opticalinterface.surface, query_ray)
+    if interval isa EmptyInterval{T} || isinfiniteinterval(interval)
+        @error "Can't find intersection (or found one with infinite interval) with the focal sphere - please check"
+        raydirection = SVector(0.0, 0.0, 0.0)        
+    else
+        point_on_sphere = OpticSim.point(lower(interval))
+        raydirection = normalize(point_on_sphere - point)  
+    end
+    # raydirection = normalize((opticalinterface.centroid - point) + direction(incidentray) * opticalinterface.focallength / dot(normal, direction(incidentray)))
+
     if opticalinterface.focallength < 0
         # flip for negative focal lengths
         raydirection = -raydirection
