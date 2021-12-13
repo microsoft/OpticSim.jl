@@ -13,11 +13,14 @@ import ..Repeat
 import SpecialFunctions
 import Plots
 import ...OpticSim
+import ...OpticSim.Geometry
 
 include("HexClusters.jl")
 include("HexTilings.jl")
 include("Analysis.jl")
 include("DisplayGeneration.jl")
+include("LensletAssignment.jl")
+
 
 end # module
 export Lenslets

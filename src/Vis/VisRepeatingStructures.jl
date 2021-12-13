@@ -63,16 +63,16 @@ function drawcells(tilebasis::AbstractBasis, tilesize, cells::AbstractMatrix; co
 end
 
 """ draw the LatticeCluster offset to (0,0) """
-draw(clstr::LatticeCluster,tilesize=50.0, cells=hcat([0,0])) = drawcells(clstr.elementbasis, tilesize, clustercoordinates(clstr, 0, 0))
+draw(clstr::LatticeCluster, cluster_coordinate_offset=[0;0;;], scale=50.0) = drawcells(clstr.elementbasis, scale, clustercoordinates(clstr, cluster_coordinate_offset[1,1],cluster_coordinate_offset[2,1]))
 
-""" draw the ClusterWithProperties at coordinates specified by cells """
-function draw(clstr::Repeat.ClusterWithProperties, cells=hcat([0,0]), scale=50.0) # this is how you have to make a 2x1 matrix. One would expect [0;0] to work but it doesn't.
-    dims = size(cells)
+""" draw the ClusterWithProperties at coordinates specified by lattice_coordinate_offset """
+function draw(clstr::Repeat.ClusterWithProperties, cluster_coordinate_offset=[0;0;;], scale=50.0) # this is how you have to make a 2x1 matrix. One would expect [0;0] to work but it doesn't.
+    dims = size(cluster_coordinate_offset)
     @assert dims[1] == 2 "dims[1] must be 2 instead was $(dims[1])"
     clstrsize = clustersize(clstr)
     points = Matrix(undef, dims[1], dims[2] * clstrsize)
     for i in 1:dims[2]
-        points[:,(i - 1) * clstrsize + 1:i * clstrsize] = clustercoordinates(clstr, cells[1,i], cells[2,i])
+        points[:,(i - 1) * clstrsize + 1:i * clstrsize] = clustercoordinates(clstr, cluster_coordinate_offset[1,i], cluster_coordinate_offset[2,i])
     end
     props = repeat(Repeat.properties(clstr), dims[2])
     drawcells(elementbasis(cluster(clstr)), scale, points, color=props[:,:Color], name=props[:,:Name])
