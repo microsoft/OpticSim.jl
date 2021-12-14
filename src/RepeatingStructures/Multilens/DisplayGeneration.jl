@@ -49,10 +49,14 @@ end
 
 
 """Finds the best fit plane to `vertices` then projects `vertices` onto this plane by transforming from the global to the local coordinate frame. The projected points are represented in the local coordinate frame of the plane."""
-function projectonbestfitplane(vertices::AbstractMatrix{T}) where{T}
+function projectonbestfitplane(vertices::AbstractMatrix{T},positive_z_direction::AbstractVector) where{T}
     @assert size(vertices)[1] == 3 "projection only works for 3D points"
 
     center, _, localrotation  = plane_from_points(vertices) 
+    if localrotation[3,:] ⋅ positive_z_direction < 0 #want the local frame z axis to be aligned with positive_z_direction
+        lr = localrotation
+        localrotation = SMatrix{3,3,T}(lr[:,1]...,-lr[:,2]...,-lr[:,3]...) #flip zaxis to align with positive_z_direction. Also flip sign of one other column to maintain a +1 determinant
+    end
     toworld = Transform(localrotation,center) #compute local to world transformation
     tolocal = world2local(toworld)
     numpts = size(vertices)[2]
@@ -75,13 +79,13 @@ export testproject
 function testprojectonplane()
     verts = tilevertices(HexBasis1())
     verts = vcat(verts,[0 for _ in 1:6]')
-    projectonbestfitplane(SMatrix{size(verts)...}(verts))
+    projectonbestfitplane(SMatrix{size(verts)...}(verts),[0.0,0.0,1.0])
 end
 export testprojectonplane
 
 """projects convex polygon, represented by `vertices`, onto `surface` along vector `normal`. Assumes original polygon is convex and that the projection will be convex. No guarantee that this will be true but for smoothly curved surfaces that are not varying too quickly relative to the size of the polygon it should be true."""
-function planarpoly(projectedpoints::AbstractMatrix{T}) where{T}
-    planarpoints,toworld,_ = projectonbestfitplane(projectedpoints)
+function planarpoly(projectedpoints::AbstractMatrix{T},desired_normal::AbstractVector) where{T}
+    planarpoints,toworld,_ = projectonbestfitplane(projectedpoints,desired_normal)
     numpts = size(planarpoints)[2]
     temp = SMatrix{2,numpts}(planarpoints[1:2,:])
     vecofpts = collect(reinterpret(reshape,SVector{2,T},temp))
@@ -144,7 +148,7 @@ export eyeboxtiles
 function spherepolygon(vertices,projectiondirection,sph::OpticSim.LeafNode)
     @assert typeof(vertices) <: SMatrix
     projectedpts = project(vertices,projectiondirection,sph)
-    return planarpoly(projectedpts) #polygon on best fit plane to projectedpts
+    return planarpoly(projectedpts,-projectiondirection) #polygon on best fit plane to projectedpts. Make normal of polygon be opposite projection, which points from eyebox plane to projection sphere
 end
 
 #TODO need to figure out what to use as the normal (eventually this will need to take into account the part of the eyebox the lenslet should cover) 
@@ -168,7 +172,7 @@ function spherepolygons(eyebox::Plane{T,N},eyerelief,sphereradius,dir,fovθ,fov�
     sph = OpticSim.LeafNode(Sphere(ustrip(mm,sphereradius)),Geometry.translation(0.0,0.0,sphereoriginoffset)) #Sphere objects are always centered at the origin so have to make 
     θ = upreferred(fovθ) #converts to radians if in degrees
     ϕ = upreferred(fovϕ) #converts to radians if in degrees
-    tiles = eyeboxtiles(eyebox,eyerelief,dir,sphereradius,θ,ϕ,lattice)
+    tiles = eyeboxtiles(eyebox,eyerelief,-dir,sphereradius,θ,ϕ,lattice)
     shapes = Vector{ConvexPolygon{6,T}}(undef,0)
     coordinates = Vector{Tuple{Int64,Int64}}(undef,0)
     for coords in eachcol(tiles)
@@ -179,7 +183,8 @@ function spherepolygons(eyebox::Plane{T,N},eyerelief,sphereradius,dir,fovθ,fov�
         zerorow = SMatrix{1,numverts,T}(temp)
         vertices = SMatrix{N,numverts,T}(vcat(twodverts,zerorow))
         @assert typeof(vertices) <: SMatrix
-        push!(shapes,spherepolygon(vertices,-dir,sph))
+        
+        push!(shapes,spherepolygon(vertices,dir,sph)) 
         push!(coordinates,Tuple{T,T}(coords))
     end
     shapes,coordinates
