@@ -133,15 +133,84 @@ Transform(rotation::AbstractArray{S,2}, translation::AbstractArray{S,1})
 ```
 `θ`, `ϕ` and `ψ` in first constructor are in **radians**.
 """
-Transform{T} = SMatrix{4,4,T,16}
-export Transform
-#TODO: This was a bad idea. Should make Transform a concrete type of its own containing an SMatrix because the * operator for SMatrix*SVector is specialized for static arrays and vectors of particular sizes. Will lead to subtle and hard to fix bugs. Maybe something like this:
-# struct Transform{T} <: SMatrix{4,4,T,16}
-#     transform::SMatrix{4,4,T,16}
-# end
-# :*(a::Transform{T},b::SVector{3,T}) ...
-# :*(a::Transform{T},b::SVector{4,T}) ...
+struct Transform{T} 
+    matrix::SMatrix{4,4,T,16}
 
+    """ This is a private internal function. In general don't want to allow users to populate Transform matrices with arbitrary elements. Not to be called by code outside of the Transform module. Don't use Transform{Float64}(...) for example. Instead use Transform(..)"""
+    function Transform{T}(a11::T,a21::T,a31::T,a41::T,a12::T,a22::T,a32::T,a42::T,a13::T,a23::T,a33::T,a43::T,a14::T,a24::T,a34::T,a44::T) where{T<:Real} 
+        return new{T}(SMatrix{4,4,T,16}(a11,a21,a31,a41,a12,a22,a32,a42,a13,a23,a33,a43,a14,a24,a34,a44))
+    end
+
+    Transform{T}(mat::SMatrix{4,4,T,16}) where{T<:Real} = new{T}(mat)
+end
+export Transform
+
+#functions to make Transform compatible with base matrix API
+matrix(a::Transform) = a.matrix
+
+# Base.length(a::Transform) = length(matrix(a))
+Base.getindex(a::Transform, indices::Vararg{Int,N}) where{N} = getindex(matrix(a),indices...)
+# Base.iterate(a::Transform) = iterate(matrix(a))
+# Base.iterate(a::Transform{Float64}, b::Tuple{StaticArrays.SOneTo{16}, Int64}) = iterate(matrix(a),b)
+
+Base.collect(a::Transform) = collect(matrix(a))
+
+Base.:*(transa::Transform{T},transb::Transform{T}) where{T<:Real} = Transform{T}(matrix(transa)*matrix(transb))
+
+function Base.:*(transform::Transform{T}, v::SVector{3,S}) where {T<:Real,S<:Number}
+    t = matrix(transform)
+
+    res = t * Vec4(v)
+    if (t[4,4] == one(T))
+        return SVector(res[1], res[2], res[3])
+    else    
+        return SVector(res[1]/res[4], res[2]/res[4], res[3]/res[4])
+    end
+end
+
+#Transform is not necessarily constrained to be a rigid body transformation so use general invers.
+Base.inv(a::Transform{T}) where{T<:Real}= Transform{T}(inv(matrix(a)))
+
+""" The t and m matrices are allowed to be of different element type. This allows transforming a Unitful matrix for example:
+```
+id = identitytransform()
+m = fill(1mm,3,4)
+id*m #returns a matrix filled with Unitful quantities. If both matrices had to be the same type this would not work
+```
+"""
+function Base.:*(transform::Transform{T}, m::SMatrix{3,N,S}) where{N,T<:Real,S<:Number}
+    res = MMatrix{3,N,T}(undef)
+    t = matrix(transform)
+
+    for outcol in 1:N
+        for row in 1:3
+            sum = T(0)
+            for incol in 1:3
+                sum += t[row,incol]*m[incol,outcol]
+            end
+            #implicit 1 w coordinate value
+            sum += t[row,4]
+            res[row,outcol] = sum
+        end
+        if t[4,4] != 1
+            res[:,outcol] /= t[4,4]
+        end
+    end
+    return SMatrix{3,N,S}(res)
+end
+
+""" The t and m matrices are allowed to be of different element type. This allows transforming a Unitful matrix for example:
+```
+id = identitytransform()
+m = fill(1mm,3,4)
+id*m #returns a matrix filled with Unitful quantities. If both matrices had to be the same type this would not work
+```
+"""
+Base.:*(transform::Transform{T},m::SMatrix{4,N,S}) where{N,T<:Real,S<:Number} = matrix(transform)*m
+
+Base.transpose(a::Transform{T}) where{T<:Real} = Transform{T}(a')
+
+# END of functions for compatibility with base matrix API
 
 
 # for compatability ith the "old" RigidBodyTransform
@@ -158,7 +227,6 @@ identitytransform(::Type{T} = Float64) where {T<:Real} = Transform{T}(
 )
 export identitytransform
 
-
 """
     Transform([S::Type]) -> Transform{S}
 
@@ -174,7 +242,7 @@ end
 Costruct a transform from the input columns.     
 """
 function Transform(colx::Vec3{T}, coly::Vec3{T}, colz::Vec3{T}, colw::Vec3{T} = zero(Vec3{T})) where {T<:Real}
-    return vcat(hcat(colx,coly,colz,colw),SMatrix{1,4,T}(zero(T),zero(T),zero(T),one(T)) )
+    return Transform{T}(vcat(hcat(colx,coly,colz,colw),SMatrix{1,4,T}(zero(T),zero(T),zero(T),one(T)) ))
 end
 
 
@@ -184,7 +252,7 @@ end
 Costruct a transform from the input columns.     
 """
 function Transform(colx::Vec4{T}, coly::Vec4{T}, colz::Vec4{T}, colw::Vec4{T}) where {T<:Real}
-    return hcat(colx,coly,colz,colw)
+    return Transform{T}(hcat(colx,coly,colz,colw))
 end
 
 """
@@ -192,15 +260,14 @@ end
 
 Returns the [`Transform`](@ref) of type `S` (default `Float64`) representing the local frame with origin and forward direction. the other 2 axes are computed automaticlly.
 """
-function Transform(origin::Vec3{T}, forward::Vec3{T} = unitZ3(); type::Type{T} = Float64) where {T<:Real}
+function Transform(origin::Vec3{T}, forward::Vec3{T} = unitZ3()) where {T<:Real}
     forward = normalize(forward)
     right, up = get_orthogonal_vectors(forward)
     return Transform(right, up, forward, origin)
 end
 
-function Transform{S}(θ::T, ϕ::T, ψ::T, x::T, y::T, z::T; type::Type{S} = Float64) where {T<:Number,S<:Real} 
-    temp_transform = Transform(rotmat(S, θ, ϕ, ψ), Vec3{S}(x, y, z))
-    return Transform{S}(temp_transform)
+function Transform(θ::T, ϕ::T, ψ::T, x::T, y::T, z::T) where {T<:Number} 
+    return Transform(rotmat(T, θ, ϕ, ψ), Vec3{T}(x, y, z))
 end
 
 """
@@ -209,7 +276,7 @@ end
 Returns the [`Transform`](@ref) of type `S` (default `Float64`) created by a rotation matrix and translation vector.
 """
 function Transform(rotation::SMatrix{3,3,T}, translation::SVector{3,T}) where {T<:Real} 
-    return Transform(
+    return Transform{T}(
         rotation[1,1], rotation[2,1], rotation[3,1], zero(T), 
         rotation[1,2], rotation[2,2], rotation[3,2], zero(T), 
         rotation[1,3], rotation[2,3], rotation[3,3], zero(T), 
@@ -223,7 +290,7 @@ Returns the [`Transform`](@ref) of type `S` (default `Float64`) created by a rot
 """
 function Transform(rotation::AbstractArray{T,2}, translation::AbstractArray{T,1}) where {T<:Real}
     @assert size(rotation)[1] == size(rotation)[2] == length(translation) == 3
-    return Transform(
+    return Transform{T}(
         rotation[1,1], rotation[2,1], rotation[3,1], zero(T), 
         rotation[1,2], rotation[2,2], rotation[3,2], zero(T), 
         rotation[1,3], rotation[2,3], rotation[3,3], zero(T), 
@@ -369,6 +436,7 @@ export translation, rotation, rotationd
 Creates a translation transform
 """
 translation(::Type{S}, x::T, y::T, z::T) where {T<:Number,S<:Real} = convert(Transform{S},translation(x, y, z))
+
 function translation(x::T, y::T, z::T) where {T<:Real}
     col1 = unitX4(T)
     col2 = unitY4(T)
@@ -441,36 +509,7 @@ function world2local(t::Transform{T}) where {T<:Real}
 end
 export world2local
 
-#TODO: should make Transform a concrete type of its own containing an SMatrix. This is hijackijng the * operator for SMatrix*SVector for arrays and vectors of particular sizes. Will lead to subtle and hard to fix bugs.
-function Base.:*(t::Transform{T}, v::SVector{3,T}) where {T<:Real}
-    res = t * Vec4(v)
-    if (t[4,4] == one(T))
-        return SVector(res[1], res[2], res[3])
-    else    
-        return SVector(res[1]/res[4], res[2]/res[4], res[3]/res[4])
-    end
-end
 
-#TODO: should make Transform a concrete type of its own containing an SMatrix. This is hijackijng the * operator for SMatrix*SVector for arrays and vectors of particular sizes. Will lead to subtle and hard to fix bugs.
-function Base.:*(t::Transform{T}, m::SMatrix{3,N,T}) where{N,T<:Real}
-    res = MMatrix{3,N,T}(undef)
-
-    for outcol in 1:N
-        for row in 1:3
-            sum = T(0)
-            for incol in 1:3
-                sum += t[row,incol]*m[incol,outcol]
-            end
-            #implicit 1 w coordinate value
-            sum += t[row,4]
-            res[row,outcol] = sum
-        end
-        if t[4,4] != 1
-            res[:,outcol] /= t[4,4]
-        end
-    end
-    return SMatrix{3,N,T}(res)
-end
     
 """
     decomposeRTS(tr::Transform{T}) where {T<:Real}

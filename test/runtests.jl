@@ -95,6 +95,7 @@ end
 include("Benchmarks/Benchmarks.jl")
 
 alltestsets = [
+    "Transform",
     "Repeat",
     "ParaxialAnalysis",
     "Paraxial",
@@ -110,8 +111,7 @@ alltestsets = [
     "Comparison",
     "Visualization",
     "Allocations",
-    "GlassCat",
-    "Transform"
+    "GlassCat"    
 ]
 
 runtestsets = ALL_TESTS ? alltestsets : intersect(alltestsets, ARGS)

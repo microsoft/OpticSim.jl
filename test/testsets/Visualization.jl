@@ -16,7 +16,7 @@
         m = (
             leaf(surf1, translation(-0.5, -0.5, 0.0)) ∩
             Cylinder(0.3, 5.0) ∩
-            leaf(surf1, Transform{Float64}(0.0, Float64(π), 0.0, 0.5, -0.5, 0.0))
+            leaf(surf1, Transform(0.0, Float64(π), 0.0, 0.5, -0.5, 0.0))
         )()
         Vis.draw(m)
         @test_nowarn Vis.draw(m)
