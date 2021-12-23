@@ -104,7 +104,7 @@ function AsphericLens(insidematerial::T, frontvertex::S, frontradius::S, frontco
             backaspherics = Tuple{Int,S}.(backaspherics)
         end
         surf = AcceleratedParametricSurface(AsphericSurface(semidiameter + backdecenter_l + S(0.01), radius = backradius, conic = backconic, aspherics = backaspherics), nsamples, interface = opticinterface(S, insidematerial, nextmaterial, backsurfacereflectance, interfacemode))
-        lens_rear = leaf(surf, Transform{S}(zero(S), S(π), zero(S), backdecenter[1], backdecenter[2], frontvertex - thickness))
+        lens_rear = leaf(surf, Transform(zero(S), S(π), zero(S), backdecenter[1], backdecenter[2], frontvertex - thickness))
     end
     extra_front = frontradius >= zero(S) || isinf(frontradius) ? zero(S) : abs(frontradius) - sqrt(frontradius^2 - semidiameter^2)
     extra_back = backradius >= zero(S) || isinf(backradius) ? zero(S) : abs(backradius) - sqrt(backradius^2 - semidiameter^2)
