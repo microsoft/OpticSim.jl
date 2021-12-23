@@ -100,7 +100,7 @@ begin
 	
 	# two transformed copies of the canonic bezier surface
 	csg1_surf2 = leaf(csg1_surf1, OpticSim.translation(-0.5, -0.5, 0.0))
-	csg1_surf3 = leaf(csg1_surf1, Transform{Float64}(0.0, Float64(π), 0.0, 0.5, -0.5, 0.0))
+	csg1_surf3 = leaf(csg1_surf1, Transform(0.0, Float64(π), 0.0, 0.5, -0.5, 0.0))
 	
 	# transformed cilinder
 	csg1_surf4_1 = leaf(Cylinder(0.3, 1.0), OpticSim.translation(0.0, 0.0, 0.0))
