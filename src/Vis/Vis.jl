@@ -18,11 +18,13 @@ using ColorSchemes
 using StaticArrays
 using LinearAlgebra
 import Makie
+import GLMakie
 import GeometryBasics
 import Plots
 import Luxor
 using FileIO
 
+include("ManagedFigures.jl")
 include("Visualization.jl")
 include("Emitters.jl")
 include("VisRepeatingStructures.jl")
