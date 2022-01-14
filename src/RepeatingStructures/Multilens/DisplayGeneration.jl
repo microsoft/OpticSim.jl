@@ -66,22 +66,7 @@ function projectonbestfitplane(vertices::AbstractMatrix{T},positive_z_direction:
 end
 export projectonbestfitplane
 
-function testproject()
-    normal = SVector(0.0, 0, 1)
-    hex = HexBasis1()
-    verts =vcat(tilevertices((0, 0), hex), [0.0 0 0 0 0 0])
-    surf = Plane(normal, SVector(0.0, 0, 10))
 
-    project(verts, normal, surf)
-end
-export testproject
-
-function testprojectonplane()
-    verts = tilevertices(HexBasis1())
-    verts = vcat(verts,[0 for _ in 1:6]')
-    projectonbestfitplane(SMatrix{size(verts)...}(verts),[0.0,0.0,1.0])
-end
-export testprojectonplane
 
 """projects convex polygon, represented by `vertices`, onto `surface` along vector `normal`. Assumes original polygon is convex and that the projection will be convex. No guarantee that this will be true but for smoothly curved surfaces that are not varying too quickly relative to the size of the polygon it should be true."""
 function planarpoly(projectedpoints::AbstractMatrix{T},desired_normal::AbstractVector) where{T}
@@ -125,13 +110,6 @@ function spherepoints(eyerelief,radius,θ,ϕ)
     spherepoints(radius,-nθ,nθ,-nϕ,nϕ)
 end
 
-function testprojection()
-    pts = spherepoints(1.0,-.2,-.2,1.0,1.1)
-    surf = Plane(0.0,0.0,-1.0,0.0,0.0,0.0)
-    dir = [0.0,0.0,-1.0]
-    project(pts,dir,surf)
-end
-export testprojection
 
 function bounds(pts::AbstractMatrix{T}) where{T} 
     return [extrema(row) for row in eachrow(pts)]
@@ -142,7 +120,7 @@ export bounds
 function eyeboxbounds(eyebox::OpticSim.Plane,eyerelief, dir::AbstractVector, radius,fovθ,fovϕ) 
     pts = spherepoints(eyerelief,radius,fovθ,fovϕ)
     projectedpts = project(pts,dir,eyebox)
-    @assert length(projectedpts) != 0
+    @assert projectedpts !== nothing && length(projectedpts) > 0
     return bounds(projectedpts)
 end
 export eyeboxbounds

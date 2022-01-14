@@ -32,6 +32,7 @@ struct LensletSystem{T<:Real}
     lenslet_eye_boxes::Vector{SMatrix{3, 4, T, 12}}
     lenslet_eyebox_numbers::Vector{Int64}
     lenslet_eyebox_centers::Vector{SVector{3,T}}
+    system_properties::Dict
 end
 
 
@@ -199,19 +200,17 @@ function setup_system(eye_box,fov,eye_relief,pupil_diameter,display_sphere_radiu
     #All coordinates are ultimately transformed into the eyeball_frame coordinate systems
     (eyeball_frame,eye_box_frame) = setup_coordinate_frames()
         
-    println("Input parameters\n")
+    @info "Input parameters\n"
 
     parameters = (eye_box = eye_box,fov = fov,eye_relief = eye_relief,pupil_diameter = pupil_diameter,display_sphere_radius = display_sphere_radius,min_fnumber = min_fnumber,pixel_pitch = pixel_pitch)
     
-    for key in keys(parameters) println("$key = $(parameters[key])") end
+    for key in keys(parameters) @info "$key = $(parameters[key])" end
     println("\n\n")
 
     eyeboxz = (eye_box_frame*SVector(0.0,0.0,0.0))[3]
 
     #get system properties
     props = systemproperties(eye_relief,eye_box,fov,pupil_diameter,.2,11,pixelpitch = pixel_pitch, minfnumber = min_fnumber)
-
-    printsystemproperties(props)
 
     subdivisions = props[:subdivisions] #tuple representing how the eyebox can be subdivided given the cluster used for the lenslets
  
@@ -225,7 +224,7 @@ function setup_system(eye_box,fov,eye_relief,pupil_diameter,display_sphere_radiu
     temp = display_plane.(lenses)
     displayplanes = [x[1] for x in temp]
     planecenters = [x[2] for x in temp]
-
+println(planecenters)
     lensletcolors = pointcolor.(lattice_coordinates,Ref(cluster))
 
     #compute subdivided eyebox polygons and assign to appropriate lenslets
@@ -237,7 +236,7 @@ function setup_system(eye_box,fov,eye_relief,pupil_diameter,display_sphere_radiu
 
     #compute display rectangles that will cover the assigned eyebox polygons
     lensleteyeboxcenters = [Statistics.mean(eachcol(x)) for x in lenslet_eye_boxes] 
-    println(typeof(lensleteyeboxcenters))
+
     lenses = replace_optical_center.(lensleteyeboxcenters,planecenters,lenses)  #make new lenses with optical centers that will cause the centroid of the eyebox assigned to the lens to project to the center of the display plane.
 
     #project eyebox into lenslet display plane and compute bounding box. This is the size of the display for this lenslet
@@ -245,50 +244,12 @@ function setup_system(eye_box,fov,eye_relief,pupil_diameter,display_sphere_radiu
     
     projected_eyeboxes = project_eyebox_to_display_plane.(subdivs,lenses,displayplanes) #repeate subdivided_eyeboxpolys enough times to cover all lenses
     eyeboxrect = Rectangle(ustrip(mm,eye_box[1]/2),ustrip(mm,eye_box[2]/2),[0.0,0.0,1.0],[0.0,0.0,eyeboxz])
-    println("lenslet_eye_boxes $(typeof(lenslet_eye_boxes))")
-    return LensletSystem{Float64}(eyeboxrect,subdivisions,lenses,lattice_coordinates,lensletcolors,projected_eyeboxes,displayplanes,lenslet_eye_boxes,lenslet_eyebox_numbers,lensleteyeboxcenters)
+
+    return LensletSystem{Float64}(eyeboxrect,subdivisions,lenses,lattice_coordinates,lensletcolors,projected_eyeboxes,displayplanes,lenslet_eye_boxes,lenslet_eyebox_numbers,lensleteyeboxcenters,props)
 
 end
 export setup_system
 
-function testspherelenslets()
-    (;fov, eye_relief,eyebox,display_radius,pupil_diameter,pixel_pitch,minfnumber,mtf,cycles_per_degree,max_display_size) = nominal_system_properties()
-    
-    fov = (10°,10°)
-    computedprops = systemproperties(eye_relief,eyebox,fov,pupil_diameter,mtf,cycles_per_degree,minfnumber = minfnumber,maxdisplaysize = max_display_size,pixelpitch = pixel_pitch)
-    focallength = ustrip(mm,computedprops[:focal_length])
-    spherelenslets(Plane(0.0,0.0,1.0,0.0,0.0,18.0),eye_relief,focallength,[0.0,0.0,1.0],display_radius,fov[1],fov[2],HexBasis1())
-end
-export testspherelenslets
 
-function test_eyebox_assignment()
-    (;fov, eye_relief,eyebox,display_radius,pupil_diameter,minfnumber,pixel_pitch) = nominal_system_properties()
 
-    fov = (15°,15°)
-    
-    (;eyeboxrect,
-    lenses,
-    lenslet_colors,
-    lattice_coordinates,
-    subdivisions_of_eyebox,
-    projected_eyeboxes,
-    displayplanes,
-    lenslet_eyebox_numbers) = setup_system(eyebox,fov,eye_relief,pupil_diameter,display_radius,minfnumber,pixel_pitch)
-    Vis.draw() #clear screen
-    Vis.draw!(eyeboxrect)
-    for (lens,lattice_coordinates,color) in zip(lenses,lattice_coordinates,lenslet_colors)
-        Vis.draw!(lens,color = color)
-    end
 
-    num_distinct_eyeboxes = reduce(*,subdivisions_of_eyebox) 
-    colors = distinguishable_colors(num_distinct_eyeboxes)
-
-    for (eyebox,plane,eyeboxnum) in zip(projected_eyeboxes,displayplanes,lenslet_eyebox_numbers)
-        localframe = Transform(pointonplane(plane),normal(plane))
-        transformedpoints = (inv(localframe)*eyebox)[1:2,:]
-        pts = [SVector{2}(x...) for x in eachcol(transformedpoints)]
-        # Vis.draw!(plane,color = colors[eyeboxnum])
-        Vis.draw!(ConvexPolygon(localframe,pts),color = colors[eyeboxnum])
-    end
-end
-export test_eyebox_assignment

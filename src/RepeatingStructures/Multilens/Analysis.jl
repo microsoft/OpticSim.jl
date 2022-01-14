@@ -274,7 +274,7 @@ function systemproperties(eyerelief::Unitful.Length, eyebox::NTuple{2,Unitful.Le
     fulldisplaysize = sizeofdisplay(fov,eyerelief)
 
     pixels_per_degree = pixelsperdegree(focal_length,pixelpitch)
-    return (cluster_data = clusterdata, lenslet_diameter = clusterdata.lensletdiameter,pixels_per_degree = pixels_per_degree, diffraction_limit = difflimit, fnumber = fnumber, focal_length = focal_length, display_size = fulldisplaysize, lenslet_display_size = dispsize, total_silicon_area = siliconarea, number_lenslets = numlenses, pixel_redundancy = redundancy, eyebox_angles = eyebox_angles, lenslet_fov = angles, subdivisions = subdivisions)
+    return Dict(cluster_data => clusterdata, lenslet_diameter => clusterdata.lensletdiameter,pixels_per_degree => pixels_per_degree, diffraction_limit => difflimit, fnumber => fnumber, focal_length => focal_length, display_size => fulldisplaysize, lenslet_display_size => dispsize, total_silicon_area => siliconarea, number_lenslets => numlenses, pixel_redundancy => redundancy, eyebox_angles => eyebox_angles, lenslet_fov => angles, subdivisions => subdivisions)
 end
 export systemproperties
 

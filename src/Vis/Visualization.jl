@@ -242,6 +242,7 @@ function draw!(ob; kwargs...)
         scene = current_main_scene
         lscene = current_3d_scene
     end
+    Makie.cameracontrols(lscene.scene).attributes.mouse_rotationspeed[] = 10.0f0
     draw!(lscene, ob; kwargs...)
     display(scene)
 
