@@ -98,11 +98,20 @@ export spherepoint
 
 """Computes points on the edges of the spherical rectangle defined by the range of θ,ϕ. This is used to determine lattice boundaries on the eyebox surface."""
 function spherepoints(radius, θmin,θmax,ϕmin,ϕmax)
+    @assert abs(θmax-θmin) > 0
+    @assert abs(ϕmax-ϕmin) > 0
+
     θedges =  [spherepoint(radius,ϕ,θ) for θ in θmin:.01:θmax, ϕ in (ϕmin,ϕmax)]
     ϕedges =  [spherepoint(radius,ϕ,θ) for ϕ in ϕmin:.01:ϕmax, θ in (θmin,θmax)]
+    
+    @assert length(θedges) > 0
+    @assert length(ϕedges) > 0
+
     allpoints = vcat(reshape(θedges,reduce(*,size(θedges))),reshape(ϕedges,reduce(*,size(ϕedges))))
     
-    reshape(reinterpret(Float64,allpoints),3,length(allpoints)) #return points as 3xn matrix with points as columns
+    pts = collect(reshape(reinterpret(Float64,allpoints),3,length(allpoints))) #return points as 3xn matrix with points as columns. Collect is not strictly necessary but it makes debugging easier
+    @assert length(pts) > 0
+    return pts
 end
 export spherepoints
 
@@ -129,10 +138,11 @@ function bounds(pts::AbstractMatrix{T}) where{T}
 end
 export bounds
 
-"""projects points on the spher onto the eyebox along the -z axis direction."""
+"""projects points on the sphere onto the eyebox along the -z axis direction."""
 function eyeboxbounds(eyebox::OpticSim.Plane,eyerelief, dir::AbstractVector, radius,fovθ,fovϕ) 
     pts = spherepoints(eyerelief,radius,fovθ,fovϕ)
     projectedpts = project(pts,dir,eyebox)
+    @assert length(projectedpts) != 0
     return bounds(projectedpts)
 end
 export eyeboxbounds
@@ -165,7 +175,7 @@ Each hexagonal polygon corresponds to one lenslet. A hexagonal lattice is first 
 `fovθ,fovϕ` correspond to the field of view of the display as seen from the center of the eyebox plane.
 
 `lattice` is the hexagonal lattice to tile the sphere with, HexBasis1 or HexBasis3, which are rotated versions of each other."""
-function spherepolygons(eyebox::Plane{T,N},eyerelief,sphereradius,dir,fovθ,fovϕ,lattice) where{T,N}
+function spherepolygons(eyebox::Plane{T,N},eyerelief,sphereradius,dir,fovθ,fovϕ,lattice)::Tuple{Vector{ConvexPolygon{6,T}},Vector{Tuple{Int64,Int64}}} where{T,N}
     # if fovθ, fovϕ are in degrees convert to radians. If they are unitless then the assumption is that they represent radians
     eyeboxz = eyebox.pointonplane[3] 
     sphereoriginoffset = eyeboxz + ustrip(mm,eyerelief - sphereradius) #we don't use mm when creating shapes because Transform doesn't work properly with unitful values. Add the units back on here.
@@ -174,7 +184,7 @@ function spherepolygons(eyebox::Plane{T,N},eyerelief,sphereradius,dir,fovθ,fov�
     ϕ = upreferred(fovϕ) #converts to radians if in degrees
     tiles = eyeboxtiles(eyebox,eyerelief,-dir,sphereradius,θ,ϕ,lattice)
     shapes = Vector{ConvexPolygon{6,T}}(undef,0)
-    coordinates = Vector{Tuple{Int64,Int64}}(undef,0)
+    lattice_coordinates = Vector{Tuple{Int64,Int64}}(undef,0)
     for coords in eachcol(tiles)
         twodverts = tilevertices(coords,lattice)
         numverts = size(twodverts)[2]
@@ -185,13 +195,13 @@ function spherepolygons(eyebox::Plane{T,N},eyerelief,sphereradius,dir,fovθ,fov�
         @assert typeof(vertices) <: SMatrix
         
         push!(shapes,spherepolygon(vertices,dir,sph)) 
-        push!(coordinates,Tuple{T,T}(coords))
+        push!(lattice_coordinates,Tuple{T,T}(coords))
     end
-    shapes,coordinates
+    shapes,lattice_coordinates
 end
 
 
-function spherelenslets(eyeboxplane::Plane{T,N},eyerelief,focallength,dir,sphereradius,fovθ,fovϕ,lattice) where{T,N}
+function spherelenslets(eyeboxplane::Plane{T,N},eyerelief,focallength,dir,sphereradius,fovθ,fovϕ,lattice)::Tuple{Vector{ParaxialLens{T}},Vector{Tuple{Int64,Int64}}} where{T,N}
     lenspolys,tilecoords = spherepolygons(eyeboxplane,eyerelief, sphereradius, dir,fovθ,fovϕ,lattice)
     result = Vector{ParaxialLens{T}}(undef,length(lenspolys))
     empty!(result)

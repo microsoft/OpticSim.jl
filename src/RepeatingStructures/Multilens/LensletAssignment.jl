@@ -20,6 +20,20 @@ macro unzip(args)
 end
 export @unzip
 
+"""Contains the information defining a lenslet array."""
+struct LensletSystem{T<:Real}
+    eyeboxrect::Rectangle{T}
+    subdivisions_of_eyebox::Tuple{Int64,Int64}
+    lenses::Vector{ParaxialLens{T}}
+    lattice_coordinates::Vector{Tuple{Int64,Int64}}
+    lenslet_colors::Vector{String}
+    projected_eyeboxes::Vector{SMatrix{3,4,T}}
+    displayplanes::Vector{Plane{T,3}}
+    lenslet_eye_boxes::Vector{SMatrix{3, 4, T, 12}}
+    lenslet_eyebox_numbers::Vector{Int64}
+    lenslet_eyebox_centers::Vector{SVector{3,T}}
+end
+
 
 """ Computes the location of the optical center of the lens that will project the centroid of the display to the centroid of the eyebox. Normally the display centroid will be aligned with the geometric centroid of the lens, rather than the optical center of the lens."""
 function compute_optical_center(eyeboxcentroid,displaycenter,lensplane)
@@ -57,7 +71,7 @@ export display_plane
 
 
 """ eyebox rectangle represented as a 3x4 SMatrix with x,y,z coordinates in rows 1,2,3 respectively."""
-function eyeboxpolygon(xsize,ysize)
+function eyeboxpolygon(xsize,ysize)::SMatrix{3,4}
     xext,yext = (xsize,ysize) ./ 2.0 #divide by 2 to get min and max extensions
     return SMatrix{3,4}([xext;yext;0.0 ;; xext;-yext;0.0 ;; -xext;-yext;0.0 ;; -xext;yext;0.0])
 end
@@ -68,7 +82,7 @@ export subpoints
 subdivide(poly::AbstractMatrix,xsubdivisions,ysubdivisions) = subdivide(SMatrix{3,4}(poly),xsubdivisions,ysubdivisions)
 
 """poly is a two dimensional rectangle represented as a 3x4 SMatrix with x values in row 1 and y values in row 2. Returns a vector of length xsubdivisions*ysubdivisions containing all the subdivided rectangles."""
-function subdivide(poly::T, xsubdivisions, ysubdivisions) where{T<:SMatrix{3,4}}
+function subdivide(poly::T, xsubdivisions, ysubdivisions)::Vector{T} where{T<:SMatrix{3,4}}
     result = Vector{T}(undef,0) #efficiency not an issue here so don't need to preallocate vector
     
     x = subpoints(poly[1,:],xsubdivisions+1) #range function makes one less subdivision that people will be expecting, e.g., collect(range(1,3,2)) returns [1,3] 
@@ -83,7 +97,7 @@ function subdivide(poly::T, xsubdivisions, ysubdivisions) where{T<:SMatrix{3,4}}
 end
 export subdivide
 
-function eyebox_number(tilecoords::NTuple{2,Int64},cluster::R,eyeboxes::AbstractVector) where {R<:AbstractLatticeCluster}
+function eyebox_number(tilecoords::NTuple{2,Int64},cluster::R,eyeboxes::AbstractVector)::Int64 where {R<:AbstractLatticeCluster}
     _, tile_index = cluster_coordinates_from_tile_coordinates(cluster,tilecoords)
     eyeboxnum = mod(tile_index-1,length(eyeboxes)) + 1
     return eyeboxnum
@@ -96,14 +110,11 @@ function eyebox_assignment(tilecoords::NTuple{2,Int64},cluster::R,eyeboxes::Abst
 end
 
 """given the eye box polygon and how it is to be subdivided computes the subdivided eyeboxes and centroids"""
-function compute_lenslet_eyebox_data(eyeboxtransform,eyeboxpoly,subdivisions)
+function compute_lenslet_eyebox_data(eyeboxtransform,eyeboxpoly::SMatrix{3,4,T,12},subdivisions::Tuple{Int64,Int64})::Vector{SMatrix{3,4,Float64}} where{T} #can't figure out how to get the system to accept a type for an SMatrix of a Unitful quantity which is what eyeboxpoly is. Want to extract the number type from the Quantity type but this is not happening.
     subdivided_eyeboxpolys = subdivide(eyeboxpoly,subdivisions...)
     strippedpolys =  map(x-> ustrip.(mm,x),  subdivided_eyeboxpolys)
     subdivided_eyeboxpolys =[eyeboxtransform * x for x in strippedpolys] #these have units of mm which don't interact well with Transform.
-    polycentroids = Statistics.mean.(subdivided_eyeboxpolys)
-    
-
-    return subdivided_eyeboxpolys,polycentroids
+    return subdivided_eyeboxpolys
 end
 
 function project_eyebox_to_display_plane(eyeboxpoly::AbstractMatrix{T},lens,displayplane) where{T<:Real}
@@ -172,17 +183,27 @@ function extend(vec1,vec2)
     return subdivs
 end
 
-"""Create lenslet system that will cover the eyebox and fov"""
-function setup_system(parameters)
-    #All coordinates are ultimately transformed into the eyeball_frame coordinate systems
+"""Create lenslet system that will cover the eyebox and fov. 
 
+fov can be (should be) an angle in Unitful quantities, i.e., either rad or °. Either of these is acceptable as an input
+```
+(1rad,1.1rad)
+(1°,1.1°)
+```
+If you pass in 
+```
+(1,1.1)
+```
+the system will assume the angle is in radians."""
+function setup_system(eye_box,fov,eye_relief,pupil_diameter,display_sphere_radius,min_fnumber,pixel_pitch)
+    #All coordinates are ultimately transformed into the eyeball_frame coordinate systems
     (eyeball_frame,eye_box_frame) = setup_coordinate_frames()
-    (eye_box,fov,eye_relief,pupil_diameter,display_sphere_radius,min_fnumber,pixel_pitch) = parameters
         
     println("Input parameters\n")
 
-    temp = parameters
-    for key in keys(temp) println("$key = $(temp[key])") end
+    parameters = (eye_box = eye_box,fov = fov,eye_relief = eye_relief,pupil_diameter = pupil_diameter,display_sphere_radius = display_sphere_radius,min_fnumber = min_fnumber,pixel_pitch = pixel_pitch)
+    
+    for key in keys(parameters) println("$key = $(parameters[key])") end
     println("\n\n")
 
     eyeboxz = (eye_box_frame*SVector(0.0,0.0,0.0))[3]
@@ -208,13 +229,15 @@ function setup_system(parameters)
     lensletcolors = pointcolor.(lattice_coordinates,Ref(cluster))
 
     #compute subdivided eyebox polygons and assign to appropriate lenslets
-    eyeboxpoly  =  mm * (eye_box_frame * eyeboxpolygon(ustrip.(mm,eye_box)...)) #four corners of the eyebox frame which is assumed centered around the positive Z axis. Transformed to the eyeballframe. Have to switch back and forth between Unitful and unitless quantities because Transform doesn't work with Unitful values.
-    subdivided_eyeboxpolys,polycentroids = compute_lenslet_eyebox_data(eye_box_frame,eyeboxpoly,subdivisions)
+    eyeboxpoly::SMatrix{3,4}  =  mm * (eye_box_frame * eyeboxpolygon(ustrip.(mm,eye_box)...)) #four corners of the eyebox frame which is assumed centered around the positive Z axis. Transformed to the eyeballframe. Have to switch back and forth between Unitful and unitless quantities because Transform doesn't work with Unitful values.
+    subdivided_eyeboxpolys::Vector{SMatrix{3,4}} = compute_lenslet_eyebox_data(eye_box_frame,eyeboxpoly,subdivisions)
+   
     lenslet_eye_boxes = eyebox_assignment.(lattice_coordinates,Ref(cluster),Ref(subdivided_eyeboxpolys))
     lenslet_eyebox_numbers = eyebox_number.(lattice_coordinates,Ref(cluster),Ref(subdivided_eyeboxpolys))
 
     #compute display rectangles that will cover the assigned eyebox polygons
     lensleteyeboxcenters = [Statistics.mean(eachcol(x)) for x in lenslet_eye_boxes] 
+    println(typeof(lensleteyeboxcenters))
     lenses = replace_optical_center.(lensleteyeboxcenters,planecenters,lenses)  #make new lenses with optical centers that will cause the centroid of the eyebox assigned to the lens to project to the center of the display plane.
 
     #project eyebox into lenslet display plane and compute bounding box. This is the size of the display for this lenslet
@@ -222,29 +245,42 @@ function setup_system(parameters)
     
     projected_eyeboxes = project_eyebox_to_display_plane.(subdivs,lenses,displayplanes) #repeate subdivided_eyeboxpolys enough times to cover all lenses
     eyeboxrect = Rectangle(ustrip(mm,eye_box[1]/2),ustrip(mm,eye_box[2]/2),[0.0,0.0,1.0],[0.0,0.0,eyeboxz])
-    return (subdivisions, eyeboxrect,lenses,lensleteyeboxcenters,lattice_coordinates,lensletcolors,projected_eyeboxes,displayplanes,lenslet_eye_boxes,lenslet_eyebox_numbers,displayplanes)
+    println("lenslet_eye_boxes $(typeof(lenslet_eye_boxes))")
+    return LensletSystem{Float64}(eyeboxrect,subdivisions,lenses,lattice_coordinates,lensletcolors,projected_eyeboxes,displayplanes,lenslet_eye_boxes,lenslet_eyebox_numbers,lensleteyeboxcenters)
+
 end
 export setup_system
 
 function testspherelenslets()
     (;fov, eye_relief,eyebox,display_radius,pupil_diameter,pixel_pitch,minfnumber,mtf,cycles_per_degree,max_display_size) = nominal_system_properties()
     
+    fov = (10°,10°)
     computedprops = systemproperties(eye_relief,eyebox,fov,pupil_diameter,mtf,cycles_per_degree,minfnumber = minfnumber,maxdisplaysize = max_display_size,pixelpitch = pixel_pitch)
     focallength = ustrip(mm,computedprops[:focal_length])
-    spherelenslets(Plane(0.0,0.0,1.0,0.0,0.0,18.0),eye_relief,focallength,[0.0,0.0,-1.0],ustrip(mm,display_radius),fov[1],fov[2],HexBasis1())
+    spherelenslets(Plane(0.0,0.0,1.0,0.0,0.0,18.0),eye_relief,focallength,[0.0,0.0,1.0],display_radius,fov[1],fov[2],HexBasis1())
 end
 export testspherelenslets
 
-function test_eyebox_assignment(parameters)
-    println(parameters)
-  subdivisions, eyeboxrect, lenses,_,coords,colors,projected_eyeboxes,displayplanes,lenslet_eyeboxes,lenslet_eyebox_numbers,displayplanes = setup_system(parameters)
+function test_eyebox_assignment()
+    (;fov, eye_relief,eyebox,display_radius,pupil_diameter,minfnumber,pixel_pitch) = nominal_system_properties()
+
+    fov = (15°,15°)
+    
+    (;eyeboxrect,
+    lenses,
+    lenslet_colors,
+    lattice_coordinates,
+    subdivisions_of_eyebox,
+    projected_eyeboxes,
+    displayplanes,
+    lenslet_eyebox_numbers) = setup_system(eyebox,fov,eye_relief,pupil_diameter,display_radius,minfnumber,pixel_pitch)
     Vis.draw() #clear screen
     Vis.draw!(eyeboxrect)
-    for (lens,coord,color) in zip(lenses,coords,colors)
+    for (lens,lattice_coordinates,color) in zip(lenses,lattice_coordinates,lenslet_colors)
         Vis.draw!(lens,color = color)
     end
 
-    num_distinct_eyeboxes = reduce(*,subdivisions) 
+    num_distinct_eyeboxes = reduce(*,subdivisions_of_eyebox) 
     colors = distinguishable_colors(num_distinct_eyeboxes)
 
     for (eyebox,plane,eyeboxnum) in zip(projected_eyeboxes,displayplanes,lenslet_eyebox_numbers)
@@ -256,7 +292,3 @@ function test_eyebox_assignment(parameters)
     end
 end
 export test_eyebox_assignment
-
-function verify_optical_centers()
-    eyeboxrect, lenses,lensleteyeboxcenters, coords,colors = setup_system()
-end
