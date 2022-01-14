@@ -252,12 +252,26 @@ export displaysize_ppdvspupildiameter
 
 Example:
 ```
-julia> systemproperties(18mm,(10mm,9mm),(55°,45°),4.0mm,.2,11,30)
-(cluster_data = (cluster = ClusterWithProperties{19, 2, Float64}(LatticeCluster{19, 2, Float64, LatticeBasis{2, Int64}, HexBasis3{2, Float64}}(LatticeBasis{2, Int64}([5 -2; 0 4]), HexBasis3{2, Float64}(), [(0, 0), (-1, 0), (0, -1), (1, -1), (1, 0), (0, 1), (-1, 1), (-2, 0), (-1, -1), (0, -2), (1, -2), (2, -2), (2, -1), (2, 0), (1, 1), (0, 2), (-1, 2), (-2, 2), (-2, 1)]), 19×2 DataFrame
-, lensletdiameter = 0.7999999999999999 mm, diameteroflattice = 3.0386704504829325, packingdistance = 1.9447490883090768 mm), lenslet_diameter = 0.7999999999999999 mm, diffraction_limit = 26.344592482933276, fnumber = 1.9337325040249893, focal_length = 1.5469860032199914 mm, display_size = (18.740413819862866 mm, 14.911688245431423 mm), lenslet_display_size = (261.4914368916943 μm, 358.6281908905529 μm), total_silicon_area = 52.1360390897504 mm^2, number_lenslets = 555.9505147668694, pixel_redundancy = 28.895838544429424, eyebox_angles = (29.054604099077146, 26.56505117707799), lenslet_fov = (9.684868033025715, 13.282525588538995), subdivisions = (3, 2))
+julia> system_properties(18mm,(10mm,9mm),(55°,45°),4.0mm,.2,11.0)
+Dict{Symbol, Any} with 14 entries:
+  :lenslet_diameter     => 0.742781 mm
+  :lenslet_display_size => (251.708 μm, 345.939 μm)
+  :fnumber              => 2.0
+  :number_lenslets      => 644.903
+  :total_silicon_area   => 56.1555 mm^2
+  :subdivisions         => (3, 2)
+  :pixel_redundancy     => 33.5192
+  :diffraction_limit    => 24.4603
+  :eyebox_angles        => (29.0546, 26.5651)
+  :pixels_per_degree    => 28.8088
+  :lenslet_fov          => (9.68487, 13.2825)
+  :display_size         => (18.7404 mm, 14.9117 mm)
+  :cluster_data         => (cluster = ClusterWithProperties{19, 2, Float64}(Lat…
+  :focal_length         => 1.48556 mm
+
 ```
 """
-function systemproperties(eyerelief::Unitful.Length, eyebox::NTuple{2,Unitful.Length}, fov, pupildiameter::Unitful.Length, mtf, cyclesperdegree,; minfnumber=2.0,RGB=true,λ=530nm,pixelpitch=.9μm, maxdisplaysize = 250μm)
+function system_properties(eyerelief::Unitful.Length, eyebox::NTuple{2,Unitful.Length}, fov, pupildiameter::Unitful.Length, mtf, cyclesperdegree; minfnumber=2.0,RGB=true,λ=530nm,pixelpitch=.9μm, maxdisplaysize = 250μm)::Dict{Symbol,Any}
     diameter = diameter_for_cycles_deg(mtf, cyclesperdegree, λ)
     clusterdata = choosecluster(pupildiameter, diameter)
     difflimit = diffractionlimit(λ, clusterdata.lensletdiameter)
@@ -274,9 +288,9 @@ function systemproperties(eyerelief::Unitful.Length, eyebox::NTuple{2,Unitful.Le
     fulldisplaysize = sizeofdisplay(fov,eyerelief)
 
     pixels_per_degree = pixelsperdegree(focal_length,pixelpitch)
-    return Dict(cluster_data => clusterdata, lenslet_diameter => clusterdata.lensletdiameter,pixels_per_degree => pixels_per_degree, diffraction_limit => difflimit, fnumber => fnumber, focal_length => focal_length, display_size => fulldisplaysize, lenslet_display_size => dispsize, total_silicon_area => siliconarea, number_lenslets => numlenses, pixel_redundancy => redundancy, eyebox_angles => eyebox_angles, lenslet_fov => angles, subdivisions => subdivisions)
+    return Dict(:cluster_data => clusterdata, :lenslet_diameter => clusterdata.lensletdiameter,:pixels_per_degree => pixels_per_degree, :diffraction_limit => difflimit, :fnumber => fnumber, :focal_length => focal_length, :display_size => fulldisplaysize, :lenslet_display_size => dispsize, :total_silicon_area => siliconarea, :number_lenslets => numlenses, :pixel_redundancy => redundancy, :eyebox_angles => eyebox_angles, :lenslet_fov => angles, :subdivisions => subdivisions)
 end
-export systemproperties
+export system_properties
 
 """prints system properties nicely"""
 function printsystemproperties(eyerelief::Unitful.Length, eyebox::NTuple{2,Unitful.Length}, fov, pupildiameter::Unitful.Length, mtf, cyclesperdegree; minfnumber=2.0,RGB=true,λ=530nm,pixelpitch=.9μm,maxdisplaysize = 350μm) 
@@ -289,7 +303,7 @@ function printsystemproperties(eyerelief::Unitful.Length, eyebox::NTuple{2,Unitf
     println("pupil diameter = $pupildiameter")
     println("mtf = $mtf @ $cyclesperdegree cycles/°")
     println()
-    printsystemproperties(systemproperties(eyerelief, eyebox, fov, pupildiameter, mtf, cyclesperdegree, minfnumber = minfnumber,RGB=RGB,λ=λ,pixelpitch=pixelpitch,maxdisplaysize = maxdisplaysize))
+    printsystemproperties(system_properties(eyerelief, eyebox, fov, pupildiameter, mtf, cyclesperdegree, minfnumber = minfnumber,RGB=RGB,λ=λ,pixelpitch=pixelpitch,maxdisplaysize = maxdisplaysize))
 end
 export printsystemproperties
 

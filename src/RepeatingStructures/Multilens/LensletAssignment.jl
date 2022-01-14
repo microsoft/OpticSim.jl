@@ -210,7 +210,7 @@ function setup_system(eye_box,fov,eye_relief,pupil_diameter,display_sphere_radiu
     eyeboxz = (eye_box_frame*SVector(0.0,0.0,0.0))[3]
 
     #get system properties
-    props = systemproperties(eye_relief,eye_box,fov,pupil_diameter,.2,11,pixelpitch = pixel_pitch, minfnumber = min_fnumber)
+    props = system_properties(eye_relief,eye_box,fov,pupil_diameter,.2,11,pixelpitch = pixel_pitch, minfnumber = min_fnumber)
 
     subdivisions = props[:subdivisions] #tuple representing how the eyebox can be subdivided given the cluster used for the lenslets
  
@@ -224,7 +224,7 @@ function setup_system(eye_box,fov,eye_relief,pupil_diameter,display_sphere_radiu
     temp = display_plane.(lenses)
     displayplanes = [x[1] for x in temp]
     planecenters = [x[2] for x in temp]
-println(planecenters)
+
     lensletcolors = pointcolor.(lattice_coordinates,Ref(cluster))
 
     #compute subdivided eyebox polygons and assign to appropriate lenslets
