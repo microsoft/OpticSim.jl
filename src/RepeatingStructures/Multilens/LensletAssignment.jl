@@ -22,7 +22,7 @@ export @unzip
 
 """Contains the information defining a lenslet array."""
 struct LensletSystem{T<:Real}
-    eyeboxrect::Rectangle{T}
+    eyebox_rectangle::Rectangle{T}
     subdivisions_of_eyebox::Tuple{Int64,Int64}
     lenses::Vector{ParaxialLens{T}}
     lattice_coordinates::Vector{Tuple{Int64,Int64}}
@@ -51,10 +51,13 @@ function compute_optical_center(eyeboxcentroid,display_center,lens)
     lens_geometric_center = centroid(lens) #geometric and optical center coincide at this point
     v = eyeboxcentroid - lens_geometric_center
     r = Ray(display_center,v)
-    intsct = point(closestintersection(surfaceintersection(lens,r),false)) #this seems complicated when you don't need CSG
+    #optical center may not lie inside the shape of the lens. surfaceintersection(lens,r) will return nothing in this case which will cause the setup_system code to crash. Instead intersect with the plane of the shape of the lens, which has infinite extent.
+    surf = OpticSim.plane(lens)
+    intsct = point(closestintersection(surfaceintersection(surf,r),false)) #this seems complicated when you don't need CSG
     @assert intsct !== nothing
     return intsct
 end
+export compute_optical_center
 
 function localframe(a::ParaxialLens)
     if OpticSim.shape(a) isa ConvexPolygon
@@ -68,7 +71,9 @@ end
 function replace_optical_center(eyeboxcentroid,displaycenter,lens)
     world_optic_center = compute_optical_center(eyeboxcentroid,displaycenter,lens)
     world_to_local_lens = inv(localframe(lens))
-    local_optic_center = SVector{2}((world_to_local_lens * world_optic_center)[1:2]) #this is defined in the 2D lens plane so z = 0
+    local_optic_center = world_to_local_lens * world_optic_center
+    @assert isapprox(0.0, local_optic_center[3],atol = 1e-12) "z should be zero in the local frame but instead it is $(local_optic_center[3])"
+    local_optic_center = SVector{2}((local_optic_center)[1:2]) #this is defined in the 2D lens plane so z = 0
     # need the untransformed convexpoly vertices
     return ParaxialLensConvexPoly(focallength(lens),shape(lens),local_optic_center)
 end
@@ -135,35 +140,14 @@ function test_compute_lenslet_eyebox_data(eyeboxtransform,eyeboxpoly,subdivision
     subpolys = compute_lenslet_eyebox_data(eyeboxtransform,eyeboxpoly,subdivisions)
 end
 
-function project_eyebox_to_display_plane(eyeboxpoly::AbstractMatrix{T},lens,displayplane) where{T<:Real}
+function project_eyebox_to_display_plane(eyeboxpoly::AbstractMatrix{T},lens,displayplane)::SMatrix where{T<:Real}
     rowdim,coldim = size(eyeboxpoly)
-    rays = [Ray(SVector{rowdim}(point),centroid(lens)-SVector{rowdim}(point)) for point in eachcol(eyeboxpoly)]
+    rays = [Ray(SVector{rowdim}(point),opticalcenter(lens)-SVector{rowdim}(point)) for point in eachcol(eyeboxpoly)]
 
     points = collect([point(closestintersection(surfaceintersection(displayplane,ray),false)) for ray in rays])
 
     SMatrix{rowdim,coldim}(reinterpret(Float64,points)...)
 end
-
-function test_project_eyebox_to_display_plane()
-    boxpoly = SMatrix{3,4}(
-        -1.0,1,0.0,
-        1.0,1.0,0.0,
-        1.0,-1.0,0.0,
-        -1.0,-1.0,0.0
-        )
-    correct_answer = SMatrix{3,4}(0.15, -0.15, 11.5, 
-    -0.15, -0.15, 11.5, 
-    -0.15, 0.15, 11.5, 
-    0.15, 0.15, 11.5)
-    fl = 1.5
-    lenscenter = [0.0,0.0,10.0]
-    lens = ParaxialLensRect(fl,.5,.5,[0.0,0.0,-1.0],lenscenter)
-    displayplane = Plane([0.0,0.0,-1.0],[0.0,0.0,lenscenter[3]+fl])
-
-    answer = project_eyebox_to_display_plane(boxpoly,lens,displayplane)
-    @assert isapprox(answer,correct_answer)
-end
-export test_project_eyebox_to_display_plane
 
 """System parameters for a typical HMD."""
 function systemparameters() 
@@ -228,7 +212,7 @@ function setup_system(eye_box,fov,eye_relief,pupil_diameter,display_sphere_radiu
     props = system_properties(eye_relief,eye_box,fov,pupil_diameter,.2,11,pixelpitch = pixel_pitch, minfnumber = min_fnumber)
 
     subdivisions = props[:subdivisions] #tuple representing how the eyebox can be subdivided given the cluster used for the lenslets
- 
+    
     clusterdata = props[:cluster_data] 
     cluster = clusterdata[:cluster] #cluster that is repeated across the display to ensure continuous coverage of the eyebox and fov.
     focallength = ustrip(mm,props[:focal_length]) #strip units off because these don't work well with Transform
@@ -245,34 +229,37 @@ function setup_system(eye_box,fov,eye_relief,pupil_diameter,display_sphere_radiu
 
     #compute subdivided eyebox polygons and assign to appropriate lenslets
     eyeboxpoly::SMatrix{3,4}  =  mm * (eye_box_frame * eyeboxpolygon(ustrip.(mm,eye_box)...)) #four corners of the eyebox frame which is assumed centered around the positive Z axis. Transformed to the eyeballframe. Have to switch back and forth between Unitful and unitless quantities because Transform doesn't work with Unitful values.
-    @info "eyeboxpoly $eyeboxpoly"
 
     @info "Subdividing eyebox polygon into $subdivisions sub boxes"
     subdivided_eyeboxpolys::Vector{SMatrix{3,4}} = compute_lenslet_eyebox_data(eye_box_frame,eyeboxpoly,subdivisions)
     test_compute_lenslet_eyebox_data(eye_box_frame,eyeboxpoly,subdivisions)
 
+    #assign each lenslet one of the subdivided eyebox polygons
     lenslet_eye_boxes = eyebox_assignment.(lattice_coordinates,Ref(cluster),Ref(subdivided_eyeboxpolys))
 
+    #assign each lenslet the index into subdivided_eyeboxpolys that corresponds to the subdivided eyebox polygon the lenslet is supposed to cover.
     lenslet_eyebox_numbers = eyebox_number.(lattice_coordinates,Ref(cluster),Ref(length(subdivided_eyeboxpolys)))
 
     #compute display rectangles that will cover the assigned eyebox polygons
     lensleteyeboxcenters = [Statistics.mean(eachcol(x)) for x in lenslet_eye_boxes] 
 
-    lenslet_geometric_centers = [centroid(shape(x)) for x in lenses]
-    lenses = replace_optical_center.(lensleteyeboxcenters,display_plane_centers,lenses)  #make new lenses with optical centers that will cause the centroid of the eyebox assigned to the lens to project to the center of the display plane.
+    
    
-    testresults = test_replace_optical_center.(lensleteyeboxcenters,lenslet_geometric_centers,display_plane_centers,lenses)
-    repropoints = [round.(x,digits = 2) for x in testresults]
+    # testresults = test_replace_optical_center.(lensleteyeboxcenters,lenslet_geometric_centers,display_plane_centers,lenses)
+    # repropoints = [round.(x,digits = 2) for x in testresults]
 
-    @info "reprojected points $(repropoints)"
+    # @info "reprojected points $(repropoints)"
 
     #project eyebox into lenslet display plane and compute bounding box. This is the size of the display for this lenslet
     subdivs = extend(lenses,subdivided_eyeboxpolys)
     
     projected_eyeboxes = project_eyebox_to_display_plane.(subdivs,lenses,displayplanes) #repeate subdivided_eyeboxpolys enough times to cover all lenses
-    eyeboxrect = Rectangle(ustrip(mm,eye_box[1]/2),ustrip(mm,eye_box[2]/2),[0.0,0.0,1.0],[0.0,0.0,eyeboxz], interface = opaqueinterface())
+    eyebox_rectangle = Rectangle(ustrip(mm,eye_box[1]/2),ustrip(mm,eye_box[2]/2),[0.0,0.0,1.0],[0.0,0.0,eyeboxz], interface = opaqueinterface())
 
-    return LensletSystem{Float64}(eyeboxrect,subdivisions,lenses,lattice_coordinates,lensletcolors,projected_eyeboxes,displayplanes,lenslet_eye_boxes,lenslet_eyebox_numbers,lensleteyeboxcenters,props,subdivided_eyeboxpolys)
+    projected_eyebox_centers = [Statistics.mean(eachcol(x)) for x in projected_eyeboxes]
+    lenses = replace_optical_center.(lensleteyeboxcenters,projected_eyebox_centers,lenses)  #make new lenses with optical centers that will cause the centroid of the eyebox assigned to the lens to project to the center of the display plane.
+
+    return LensletSystem{Float64}(eyebox_rectangle,subdivisions,lenses,lattice_coordinates,lensletcolors,projected_eyeboxes,displayplanes,lenslet_eye_boxes,lenslet_eyebox_numbers,lensleteyeboxcenters,props,subdivided_eyeboxpolys)
 
 end
 export setup_system
