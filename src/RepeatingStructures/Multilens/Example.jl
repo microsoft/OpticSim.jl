@@ -6,13 +6,13 @@ xcoords(a::SMatrix{3,4}) = a[1,:]
 ycoords(a::SMatrix{3,4}) = a[2,:]
 zcoords(a::SMatrix{3,4}) = a[3,:]
 
-function normal(a::SMatrix{3,4}) 
+function matnormal(a::SMatrix{3,4}) 
     side1 = a[:,4] - a[:,1]
     side2 = a[:,2] - a[:,1]
     return normalize(cross(side1,side2))
 end
 
-centroid(a::SMatrix{3,4}) = Statistics.mean(eachcol(a))
+matcentroid(a::SMatrix{3,4}) = Statistics.mean(eachcol(a))
 
 function matrix2rectangle(a::SMatrix{3,4,T}) where{T}
     center = Statistics.mean(eachcol(a))
@@ -20,7 +20,7 @@ function matrix2rectangle(a::SMatrix{3,4,T}) where{T}
     halfsizeu = (xmax-xmin)/2.0
     ymin,ymax = extrema(ycoords(a))
     halfsizev = (ymax-ymin)/2.0
-    Rectangle(halfsizeu,halfsizev,normal(a),center, interface = opaqueinterface())
+    Rectangle(halfsizeu,halfsizev,matnormal(a),center, interface = opaqueinterface())
 end
 
 function test_paraxial_lens()
@@ -110,12 +110,12 @@ end
 export testprojectonplane
 
 function testproject()
-    normal = SVector(0.0, 0, 1)
+    norml = SVector(0.0, 0, 1)
     hex = HexBasis1()
     verts =vcat(tilevertices((0, 0), hex), [0.0 0 0 0 0 0])
-    surf = Plane(normal, SVector(0.0, 0, 10))
+    surf = Plane(norml, SVector(0.0, 0, 10))
 
-    project(verts, normal, surf)
+    project(verts, norml, surf)
 end
 export testproject
 
@@ -158,7 +158,7 @@ function test_eyebox_assignment(system = setup_nominal_system())
     colors = distinguishable_colors(num_distinct_eyeboxes)
 
     for (eyebox,plane,eyeboxnum) in zip(projected_eyeboxes,displayplanes,lenslet_eyebox_numbers)
-        localframe = Transform(pointonplane(plane),normal(plane))
+        localframe = Transform(pointonplane(plane),OpticSim.normal(plane))
         transformedpoints = (inv(localframe)*eyebox)[1:2,:]
         pts = [SVector{2}(x...) for x in eachcol(transformedpoints)]
         # Vis.draw!(plane,color = colors[eyeboxnum])
@@ -174,8 +174,8 @@ end
 export draw_system
 
 """draw subdivided eyeboxes to make sure they are in the right place"""
-function test_eyebox_subdivision(clear_screen = true)
-    (;subdivided_eyebox_polys) = setup_nominal_system()
+function test_eyebox_subdivision(system = setup_nominal_system, clear_screen = true)
+    (;subdivided_eyebox_polys) = system
     @info "eyebox subdivisions $subdivided_eyebox_polys"
     for subdiv in subdivided_eyebox_polys
         @info "subdivided rectangle $(matrix2rectangle(subdiv))"
@@ -187,17 +187,17 @@ function test_eyebox_subdivision(clear_screen = true)
     end
     
     for (eyebox,color) in zip(subdivided_eyebox_polys,colors)
-        center = centroid(eyebox)
+        center = matcentroid(eyebox)
         Vis.draw!(matrix2rectangle(eyebox),color = color)
         Vis.draw!(leaf(Sphere(.1),Geometry.translation(center)),color = "white")
-        r = Ray(center,normal(eyebox))
+        r = Ray(center,matnormal(eyebox))
         Vis.draw!(r)
     end
     Vis.draw!(Sphere(.001)) #need to draw another 3d object not on the plane or numbers on axes are impossible to read
 end
 export test_eyebox_subdivision
 
-"""For each display computes a ray from the display center to the geometric center of the lenslet. Then it computes the refracted ray and intersects it with the subdivided eyebox associated with the display. Draws all these rays."""
+"""For each display computes a ray from the display center to the geometric center of the lenslet. Then it computes the refracted ray and intersects it with the subdivided eyebox associated with the display. Draws all these rays. The rays from the displays should hit the center points of the subdivided eyeboxes"""
 function test_ray_cast_from_display_center(clear_display = true)
     system = setup_nominal_system()
     (;eyeboxrect,lenses,projected_eyeboxes) = system
@@ -207,15 +207,16 @@ function test_ray_cast_from_display_center(clear_display = true)
     end
 
     # draw_system(system)
-
+    test_eyebox_subdivision(system,false)
     for (lens,display_eyebox) in zip(lenses,projected_eyeboxes)
         lens_geometric_center = centroid(shape(lens))
-        display_center = centroid(display_eyebox)
+        @info "lens normal $(OpticSim.normal(lens))"
+        display_center = matcentroid(display_eyebox)
         diff = lens_geometric_center-display_center
 
         r = OpticalRay(Ray(display_center,diff),1.0,.53)
        
-        Vis.draw!(eyeboxrect)
+        # Vis.draw!(eyeboxrect)
         system = CSGOpticalSystem(LensAssembly(lens),eyeboxrect)
         Vis.draw!(r,color = "black")
         tr = trace(system,r)
@@ -226,5 +227,57 @@ function test_ray_cast_from_display_center(clear_display = true)
     end
 end
 export test_ray_cast_from_display_center
+
+
+"""refracts the ray from the center of the display passing through the geometric center of the lens and then computes the closes point on this ray to the eyeboxcentroid. If the lens optical center has been calculated correctly the ray should pass through the eyeboxcentroid"""
+function test_replace_optical_center(eyeboxcentroid,lensgeometriccenter,displaycenter,lens)
+    rdir = lensgeometriccenter-displaycenter
+    r = Ray(displaycenter,rdir)
+
+    assy = LensAssembly(lens)
+    refracted_trace = trace(assy,OpticalRay(r,1.0,.530))
+
+    r2 = Ray(eyeboxcentroid,lensgeometriccenter-eyeboxcentroid)
+
+    reverse_trace = trace(assy,OpticalRay(r2,1.0,.530))
+    reverse_point = closestpointonray(ray(reverse_trace),displaycenter)
+
+    return closestpointonray(ray(refracted_trace),eyeboxcentroid)
+end
+export test_replace_optical_center
+
+
+"""verify that paraxial lens properly transorms rays into local coordinate frame to compute intersections with convex poly shape"""
+function test_paraxial_convex_poly()
+    a = HexBasis1()
+    verts = 5*tilevertices(a)
+    vecofmat = collect(reinterpret(reshape,SVector{2,eltype(verts)},verts))
+     
+    lens = ParaxialLensConvexPoly(
+        1.0,
+        Geometry.translation(1.0,0.0,1.0)*Geometry.rotation(0.0,Float64(π),0.0),
+        vecofmat,
+        SVector(0.0,0.0)
+    )
+
+    @info "normal of lens $(OpticSim.normal(lens))"
+    @info "center of lens $(centroid(lens))"
+    display_center = [1.0,0.0,2.0]
+    lens_center = [1.0,0.0,1.0]
+    eyebox_center = [0.0,0.0,0.0]
+    display_ray = OpticalRay(Ray([1.0,0.0,2.0],[0.0,0.0,-1.0]),1.0,.53)
+    center = compute_optical_center(eyebox_center,display_center,lens)
+    
+    ltrace = trace(LensAssembly(lens),display_ray)
+    @info "trace $ltrace"
+    displaced_lens = replace_optical_center(eyebox_center,display_center,lens)
+    dtrace = trace(LensAssembly(displaced_lens),display_ray)
+    @info "dtrace $dtrace"
+    refracted_ray = ray(dtrace)
+    intsct = surfaceintersection(Plane([0.0,0.0,1.0],eyebox_center),refracted_ray)
+    @info "intsct should be [0,0,0] $intsct" #ray was computed to refract from the geometric lens center to the point [0,0,0] on the eyebox plane
+
+end
+export test_paraxial_convex_poly
 
 

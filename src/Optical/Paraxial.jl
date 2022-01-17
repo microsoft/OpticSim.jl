@@ -95,12 +95,14 @@ function ParaxialLensHex(focaldistance::T, side_length::T, surfacenormal::SVecto
 end
 
 function ParaxialLensConvexPoly(focallength::T,convpoly::ConvexPolygon{N,T},local_center_point::SVector{2,T}; outsidematerial::OpticSim.GlassCat.AbstractGlass = OpticSim.GlassCat.Air) where {N, T<:Real}
+    # the local frame information is stored in convpoly. The polygon points are 2D stored in the z = 0 local plane. The shape and vertices functions automatically apply local to world transformations so the points are represented in world space.
     centrepoint = SVector{3, T}(local2world(localframe(convpoly)) * Vec3(local_center_point[1], local_center_point[2], zero(T)))
     return ParaxialLens(convpoly, ParaxialInterface(focallength, centrepoint, outsidematerial))
 end
 
 
 function ParaxialLensConvexPoly(focaldistance::T, local_frame::Transform{T}, local_polygon_points::Vector{SVector{2, T}}, local_center_point::SVector{2, T}; outsidematerial::OpticSim.GlassCat.AbstractGlass = OpticSim.GlassCat.Air) where {N, T<:Real}
+    # the local frame information is stored in convpoly. The polygon points are 2D stored in the z = 0 local plane. The shape and vertices functions automatically apply local to world transformations so the points are represented in world space.
     poly = ConvexPolygon(local_frame, local_polygon_points)
     centrepoint = SVector{3, T}(local2world(local_frame) * Vec3(local_center_point[1], local_center_point[2], zero(T)))
     return ParaxialLens(poly, ParaxialInterface(focaldistance, centrepoint, outsidematerial))
@@ -153,6 +155,8 @@ function processintersection(opticalinterface::ParaxialInterface{T}, point::SVec
     geometricpathlength = norm(point - origin(incidentray)) + (firstray ? zero(T) : T(RAY_OFFSET))
     thisraypathlength = n * geometricpathlength
     raypathlength = pathlength(incidentray) + thisraypathlength
+    #TODO there is an error in this formula for refraction. If the ray and the normal have a negative dot product the refracted ray will be the negative of the correct direction. Fix this.
+    
     # refraction calculated directly for paraxial lens
     raydirection = normalize((opticalinterface.centroid - point) + direction(incidentray) * opticalinterface.focallength / dot(normal, direction(incidentray)))
     if opticalinterface.focallength < 0

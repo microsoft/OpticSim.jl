@@ -47,15 +47,14 @@ end
 # end
 
 """ Computes the location of the optical center of the lens that will project the centroid of the display to the centroid of the eyebox. Normally the display centroid will be aligned with the geometric centroid of the lens, rather than the optical center of the lens."""
-function compute_optical_center(eyeboxcentroid,lens_geometric_center,display_center,lens_plane)
+function compute_optical_center(eyeboxcentroid,display_center,lens)
+    lens_geometric_center = centroid(lens) #geometric and optical center coincide at this point
     v = eyeboxcentroid - lens_geometric_center
     r = Ray(display_center,v)
-    intsct = point(closestintersection(surfaceintersection(lens_plane,r),false)) #this seems complicated when you don't need CSG
+    intsct = point(closestintersection(surfaceintersection(lens,r),false)) #this seems complicated when you don't need CSG
     @assert intsct !== nothing
     return intsct
 end
-
-replace_optical_center(lens,new_optical_center) = ParaxialLensConvexPoly(focallength(lens),OpticSim.shape(lens),new_optical_center)
 
 function localframe(a::ParaxialLens)
     if OpticSim.shape(a) isa ConvexPolygon
@@ -65,35 +64,21 @@ function localframe(a::ParaxialLens)
     end
 end
 
-function replace_optical_center(eyeboxcentroid,lensgeometriccenter,displaycenter,lens)
-    world_optic_center = compute_optical_center(eyeboxcentroid,lensgeometriccenter,displaycenter,OpticSim.plane(lens))
-    local_optic_center = SVector{2}((inv(localframe(lens)) * world_optic_center)[1:2]) #this is defined in the 2D lens plane so z = 0
-    replace_optical_center(lens,local_optic_center)
+"""Paraxial lenses are created with a local transform of identity. This is confusing because the lens has a local transform and the shape in the lens has a local transform."""
+function replace_optical_center(eyeboxcentroid,displaycenter,lens)
+    world_optic_center = compute_optical_center(eyeboxcentroid,displaycenter,lens)
+    world_to_local_lens = inv(localframe(lens))
+    local_optic_center = SVector{2}((world_to_local_lens * world_optic_center)[1:2]) #this is defined in the 2D lens plane so z = 0
+    # need the untransformed convexpoly vertices
+    return ParaxialLensConvexPoly(focallength(lens),shape(lens),local_optic_center)
 end
 
-"""refracts the ray from the center of the display passing through the geometric center of the lens and then computes the closes point on this ray to the eyeboxcentroid. If the lens optical center has been calculated correctly the ray should pass through the eyeboxcentroid"""
-function test_replace_optical_center(eyeboxcentroid,lensgeometriccenter,displaycenter,lens)
-    rdir = lensgeometriccenter-displaycenter
-    r = Ray(displaycenter,rdir)
-
-    assy = LensAssembly(lens)
-    refracted_trace = trace(assy,OpticalRay(r,1.0,.530))
-    @info "refracted_trace $refracted_trace rdir = $rdir"
-
-    r2 = Ray(eyeboxcentroid,lensgeometriccenter-eyeboxcentroid)
-    @info "r2 $r2"
-    reverse_trace = trace(assy,OpticalRay(r2,1.0,.530))
-    reverse_point = closestpointonray(ray(reverse_trace),displaycenter)
-    @info "reverse trace error $(norm(reverse_point - displaycenter)) reverse trace $reverse_trace)"
-    return closestpointonray(ray(refracted_trace),eyeboxcentroid)
-end
-export test_replace_optical_center
 
 
 """returns display plane represented in world coordinates, and the center point of the display"""
 function display_plane(lens) 
-    center_point = centroid(lens) + -normal(lens)* OpticSim.focallength(lens)
-    pln = Plane(-normal(lens), center_point, vishalfsizeu = .5, vishalfsizev = .5)
+    center_point = centroid(lens) + -OpticSim.normal(lens)* OpticSim.focallength(lens)
+    pln = Plane(-OpticSim.normal(lens), center_point, vishalfsizeu = .5, vishalfsizev = .5)
     return pln,center_point
 end
 export display_plane
@@ -148,7 +133,6 @@ end
 
 function test_compute_lenslet_eyebox_data(eyeboxtransform,eyeboxpoly,subdivisions)
     subpolys = compute_lenslet_eyebox_data(eyeboxtransform,eyeboxpoly,subdivisions)
-    @info "number of subdivisions $(length(subpolys))"
 end
 
 function project_eyebox_to_display_plane(eyeboxpoly::AbstractMatrix{T},lens,displayplane) where{T<:Real}
@@ -275,7 +259,7 @@ function setup_system(eye_box,fov,eye_relief,pupil_diameter,display_sphere_radiu
     lensleteyeboxcenters = [Statistics.mean(eachcol(x)) for x in lenslet_eye_boxes] 
 
     lenslet_geometric_centers = [centroid(shape(x)) for x in lenses]
-    lenses = replace_optical_center.(lensleteyeboxcenters,lenslet_geometric_centers,display_plane_centers,lenses)  #make new lenses with optical centers that will cause the centroid of the eyebox assigned to the lens to project to the center of the display plane.
+    lenses = replace_optical_center.(lensleteyeboxcenters,display_plane_centers,lenses)  #make new lenses with optical centers that will cause the centroid of the eyebox assigned to the lens to project to the center of the display plane.
    
     testresults = test_replace_optical_center.(lensleteyeboxcenters,lenslet_geometric_centers,display_plane_centers,lenses)
     repropoints = [round.(x,digits = 2) for x in testresults]
@@ -292,6 +276,9 @@ function setup_system(eye_box,fov,eye_relief,pupil_diameter,display_sphere_radiu
 
 end
 export setup_system
+
+
+
 
 
 
