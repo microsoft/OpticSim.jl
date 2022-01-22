@@ -23,11 +23,11 @@ using Unitful.DefaultSymbols
     @testset "Projection" begin
         focallength = 10.0
         lens = ParaxialLensRect(focallength,100.0,100.0,[0.0,0.0,1.0],[0.0,0.0,0.0])
-        display = ParaxialAnalysis.Display(1000,1000,1.0μm,1.0μm,translation(0.0,0.0,-focallength))
-        lenslet = ParaxialAnalysis.LensletAssembly(lens,identitytransform(),display)
+        display =Repeat.Multilens.Display(1000,1000,1.0μm,1.0μm,translation(0.0,0.0,-focallength))
+        lenslet = Repeat.Multilens.LensletAssembly(lens,identitytransform(),display)
         displaypoint = SVector(0.0,0.0,-8.0)
         pupilpoints = SMatrix{3,2}(10.0,10.0,10.0,-10.0,-10.0,20.0)
-        ParaxialAnalysis.project(lenslet,displaypoint,pupilpoints)
+        Repeat.Multilens.project(lenslet,displaypoint,pupilpoints)
     end
 
     @testset "BeamEnergy" begin
