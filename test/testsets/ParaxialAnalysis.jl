@@ -2,7 +2,7 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # See LICENSE in the project root for full license information.
 
-using OpticSim:area
+using OpticSim:area,Rectangle,ParaxialLensRect
 using Unitful.DefaultSymbols
 
 @testset "ParaxialAnalysis" begin
@@ -23,8 +23,8 @@ using Unitful.DefaultSymbols
     @testset "Projection" begin
         focallength = 10.0
         lens = ParaxialLensRect(focallength,100.0,100.0,[0.0,0.0,1.0],[0.0,0.0,0.0])
-        display =Repeat.Multilens.Display(1000,1000,1.0μm,1.0μm,translation(0.0,0.0,-focallength))
-        lenslet = Repeat.Multilens.LensletAssembly(lens,identitytransform(),display)
+        display = OpticSim.Repeat.Display(1000,1000,1.0μm,1.0μm,translation(0.0,0.0,-focallength))
+        lenslet = OpticSim.Repeat.LensletAssembly(lens,identitytransform(),display)
         displaypoint = SVector(0.0,0.0,-8.0)
         pupilpoints = SMatrix{3,2}(10.0,10.0,10.0,-10.0,-10.0,20.0)
         Repeat.Multilens.project(lenslet,displaypoint,pupilpoints)
