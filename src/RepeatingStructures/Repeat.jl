@@ -12,6 +12,8 @@ using DataFrames:DataFrame
 using Colors
 import LazySets
 using LinearAlgebra:norm
+import ..OpticSim #only LensletAssembly uses OpticSim. This doesn't seem like a great idea. Probably should move LensletAssembly somewhere else or at least remove the dependency.
+import Unitful
 
 include("Lattice.jl")
 include("HexagonalLattice.jl")
@@ -19,6 +21,7 @@ include("RectangularLattice.jl")
 include("Array.jl")
 include("Cluster.jl")
 include("Multilens/Multilens.jl")
+include("LensletAssembly.jl")
 
 
 end #module

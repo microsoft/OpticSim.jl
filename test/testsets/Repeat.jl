@@ -48,8 +48,6 @@
         @test all((i,j) .== reconstructed)
     end
  
-    #for a 3 eyebox assignment verify that 3 out of the 9 tiles in a hex9 cluster get eyebox 1, 3 get eyebox 2, 3 get eyebox 3
-    eyebox_assignment()
     #verify that the 0,0 cluster is correct
     for (index,element) in pairs(Repeat.clusterelements(cluster))
         coords, tileindex = Repeat.cluster_coordinates_from_tile_coordinates(cluster, element...)

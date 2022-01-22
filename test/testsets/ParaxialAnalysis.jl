@@ -33,12 +33,12 @@ using Unitful.DefaultSymbols
     @testset "BeamEnergy" begin
         focallength = 10.0
         lens = ParaxialLensRect(focallength,1.0,1.0,[0.0,0.0,1.0],[0.0,0.0,0.0])
-        display = ParaxialAnalysis.Display(1000,1000,1.0μm,1.0μm,translation(0.0,0.0,-focallength))
-        lenslet = ParaxialAnalysis.LensletAssembly(lens,identitytransform(),display)
+        display = OpticSim.Repeat.Display(1000,1000,1.0μm,1.0μm,translation(0.0,0.0,-focallength))
+        lenslet = OpticSim.Repeat.LensletAssembly(lens,identitytransform(),display)
         displaypoint = SVector(0.0,0.0,-8.0)
         #pupil is placed so that only 1/4 of it (approximately) is illuminated by lens beam
         pupil = Rectangle(1.0,1.0,SVector(0.0,0.0,-1.0),SVector(2.0,2.0,40.0))
-        energy,centroid = ParaxialAnalysis.beamenergy(lenslet,displaypoint,Geometry.vertices3d(pupil))
+        energy,centroid = OpticSim.Repeat.beamenergy(lenslet,displaypoint,Geometry.vertices3d(pupil))
         @test isapprox(1/16, energy,atol = 1e-4)
         @test isapprox([.75,.75,0.0],centroid)
     end
