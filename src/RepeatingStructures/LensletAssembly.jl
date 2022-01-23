@@ -88,7 +88,7 @@ function beamenergy(assy::LensletAssembly{T}, displaypoint::AbstractVector{T}, p
     llens::OpticSim.ParaxialLens{T} = lens(assy)
     virtpoint = point(virtualpoint(llens, displaypoint))
     projectedpoints = project(assy, displaypoint, pupilpoints)
-    lensverts = vertices(llens)
+    lensverts = OpticSim.vertices(llens)
     rows, cols = size(lensverts)
     temp = SMatrix{1,cols,T}(reshape(fill(0, cols), 1, cols))
     lensverts3D = vcat(lensverts, temp)
@@ -120,7 +120,7 @@ function activebox(lenslet::LensletAssembly{T}, worldpoly::SVector{N,SVector{3,T
     for point in worldpoly
         locpoint = transform(lenslet) * point
 
-        for lenspoint in vertices(lens)
+        for lenspoint in OpticSim.vertices(lens)
             ray = Ray(locpoint, lenspoint - locpoint)
             refractedray, _, _ = processintersection(interface(lens), lenspoint, ray, T(OpticSim.GlassCat.TEMP_REF), T(OpticSim.GlassCat.PRESSURE_REF))
             displaypoint = surfaceintersection(display, refractedray)

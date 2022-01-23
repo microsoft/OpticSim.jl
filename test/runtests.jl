@@ -95,9 +95,9 @@ end
 include("Benchmarks/Benchmarks.jl")
 
 alltestsets = [
-    "Transform",
-    "Repeat",
     "ParaxialAnalysis",
+    "Transform",
+    "Repeat",  
     "Paraxial",
     "JuliaLang",
     # "BVH",
