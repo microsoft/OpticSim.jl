@@ -19,6 +19,37 @@
         @test isapprox(virtptfromslope,point(virtualpoint(lens,displaypoint)))
     end
 
+    function rayintersection(lens,incomingray)
+        intsct = OpticSim.surfaceintersection(lens,incomingray)
+        refrac,_,_ = OpticSim.processintersection(OpticSim.interface(lens),OpticSim.point(intsct),OpticSim.normal(lens),OpticalRay(incomingray,1.0,.55),OpticSim.TEMP_REF,OpticSim.PRESSURE_REF,false)
+        return refrac
+    end
+
+    @testset "Refracted rays" begin
+         #test all 4 combinations: n⋅r > 0, n⋅r < 0, focal length > 0, focal length < 0
+        #n⋅r > 0 focal length > 0
+        lens = ParaxialLensRect(1.0,100.0,100.0,[0.0,0.0,1.0],[0.0,0.0,0.0])
+        r = Ray([1.0,0.0,-1.0],[0.0,0.0,1.0])
+        refrac = rayintersection(lens,r)
+        @test isapprox([-sqrt(2)/2,0.0,sqrt(2)/2],refrac)
+        
+        #n⋅r < 0 focal length > 0
+        r = Ray([1.0,0.0,1.0],[0.0,0.0,-1.0])
+        refrac = rayintersection(lens,r)
+        @test isapprox([-sqrt(2)/2,0.0,-sqrt(2)/2],refrac)
+
+        #n⋅r > 0 focal length < 0
+        lens = ParaxialLensRect(-1.0,100.0,100.0,[0.0,0.0,1.0],[0.0,0.0,0.0])
+        r = Ray([1.0,0.0,-1.0],[0.0,0.0,1.0])
+        refrac = rayintersection(lens,r)
+        @test isapprox([sqrt(2)/2,0.0,sqrt(2)/2],refrac)
+        
+        #n⋅r < 0 focal length < 0
+        r = Ray([1.0,0.0,1.0],[0.0,0.0,-1.0])
+        refrac = rayintersection(lens,r)
+        @test isapprox([sqrt(2)/2,0.0,-sqrt(2)/2],refrac)
+    end
+
     @testset "Reversibility of rays for paraxial lenses" begin
         lens = ParaxialLensRect(10.0,100.0,100.0,[0.0,0.0,1.0],[0.0,0.0,0.0])
         displaypoint = [0.0,0.0,-8.0]

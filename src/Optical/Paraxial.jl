@@ -158,10 +158,13 @@ function processintersection(opticalinterface::ParaxialInterface{T}, point::SVec
     #TODO there is an error in this formula for refraction. If the ray and the normal have a negative dot product the refracted ray will be the negative of the correct direction. Fix this.
     
     # refraction calculated directly for paraxial lens
-    raydirection = normalize((opticalinterface.centroid - point) + direction(incidentray) * opticalinterface.focallength / dot(normal, direction(incidentray)))
-    if opticalinterface.focallength < 0
-        # flip for negative focal lengths
-        raydirection = -raydirection
-    end
+    # raydirection = normalize((opticalinterface.centroid - point) + direction(incidentray) * opticalinterface.focallength / dot(normal, direction(incidentray)))
+    #this works for both positive and negative focal lengths
+    raydirection = normalize(sign(opticalinterface.focallength)*(opticalinterface.centroid - point) + direction(incidentray) * abs(opticalinterface.focallength / dot(normal, direction(incidentray))))
+    
+    # if opticalinterface.focallength < 0
+    #     # flip for negative focal lengths
+    #     raydirection = -raydirection
+    # end
     return raydirection, raypower, raypathlength
 end
