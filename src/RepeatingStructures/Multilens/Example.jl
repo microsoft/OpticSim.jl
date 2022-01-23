@@ -1,3 +1,8 @@
+# MIT license
+# Copyright (c) Microsoft Corporation. All rights reserved.
+# See LICENSE in the project root for full license information.
+
+
 """ Typical properties for near eye VR display """
 nominal_system_inputs() = (eye_relief = 20mm, fov = (50°,5°),eyebox = (10mm,8mm),display_radius = 125.0mm, pupil_diameter = 3.5mm,pixel_pitch = .9μm, minfnumber = 2.0, mtf = .2, cycles_per_degree = 11, max_display_size = 250μm, )
 export nominal_system_inputs
