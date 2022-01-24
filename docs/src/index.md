@@ -11,6 +11,7 @@ This software provides extensive control over the modelling, simulation, visuali
 ## Installation
 
 Install the Julia programming language from the [official download page](https://julialang.org/downloads/).
+
 OpticSim.jl is optimized for use with Julia 1.7.x; using other versions will probably not work.
 
 The system will automatically download glass catalog (.agf) files from some manufacturers when the package is built for the first time. These files are in an industry standard format and can be downloaded from many optical glass manufacturers.
