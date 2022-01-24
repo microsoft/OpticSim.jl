@@ -1,7 +1,8 @@
 # MIT license
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # See LICENSE in the project root for full license information.
-module Lenslets
+module Multilens
+
 using LinearAlgebra
 import Unitful
 using Unitful:uconvert,ustrip
@@ -13,14 +14,18 @@ import ..Repeat
 import SpecialFunctions
 import Plots
 import ...OpticSim
+using ...OpticSim:plane_from_points,centroid,pointonplane,focallength,ParaxialLens
 import ...OpticSim.Geometry
+using ...OpticSim.Repeat:region,HexBasis1,HexBasis3,LatticeBasis,LatticeCluster,clustersize,ClusterWithProperties,cluster_coordinates_from_tile_coordinates, AbstractLatticeCluster,elementbasis,euclideandiameter
+using ...OpticSim.Data
 
 include("HexClusters.jl")
 include("HexTilings.jl")
 include("Analysis.jl")
 include("DisplayGeneration.jl")
 include("LensletAssignment.jl")
+include("Example.jl")
 
 
 end # module
-export Lenslets
+export Multilens

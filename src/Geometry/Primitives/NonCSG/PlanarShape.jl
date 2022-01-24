@@ -28,4 +28,5 @@ interface(p::PlanarShape) = interface(p.plane)
 """The vertices of planar shapes are defined in a plane so they are two dimensional. In the local coordinate frame this is the x,y plane, so the implied z coordinate is 0"""
 vertices(p::PlanarShape) = throw(ErrorException("This function should be defined for any concrete type that is a subtype of PlanarShape")) #don't think this function can ever be called because you can't instantiate something of PlanarShape type; it's an abstract type.
 export vertices
+plane(p::PlanarShape) = p.plane
 

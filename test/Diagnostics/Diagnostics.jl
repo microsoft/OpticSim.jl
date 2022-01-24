@@ -429,7 +429,6 @@ function testIpopt()
 end
 
 function testtypesignature()
-    println("here")
     a = OpticSim.Sphere(1.0)
     b = (a ∪ a) ∩ (a ∪ a)
 end
