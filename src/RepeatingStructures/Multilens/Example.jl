@@ -4,7 +4,7 @@
 
 
 """ Typical properties for near eye VR display """
-nominal_system_inputs() = (eye_relief = 20mm, fov = (50°,5°),eyebox = (10mm,8mm),display_radius = 125.0mm, pupil_diameter = 3.5mm,pixel_pitch = .9μm, minfnumber = 2.0, mtf = .2, cycles_per_degree = 11, max_display_size = 250μm, )
+nominal_system_inputs() = (eye_relief = 20mm, fov = (5°,5°),eyebox = (10mm,8mm),display_radius = 125.0mm, pupil_diameter = 3.5mm,pixel_pitch = .9μm, minfnumber = 2.0, mtf = .2, cycles_per_degree = 11, max_display_size = 250μm, )
 export nominal_system_inputs
 
 xcoords(a::SMatrix{3,4}) = a[1,:]
@@ -52,13 +52,13 @@ end
 export test_paraxial_lens
 
 """Example that shows how to call setup_system with typical values"""
-function setup_nominal_system()
+function setup_nominal_system()::LensletSystem
     (;eye_relief,fov,eyebox,display_radius,pupil_diameter,minfnumber,pixel_pitch) = nominal_system_inputs()
     setup_system(eyebox,fov,eye_relief,pupil_diameter,display_radius,minfnumber,pixel_pitch)
 end
 export setup_nominal_system
 
-function draw_eyebox_rays(sys = setup_nominal_system())
+function compute_eyebox_rays(sys = setup_nominal_system())
     (;lenses,projected_eyeboxes,eyebox_rectangle) = sys
     centers = [x for x in centroid.(shape.(lenses))] #use the geometric center of the lenses not the optical center_point
     display_centers = matcentroid.(projected_eyeboxes)
@@ -66,10 +66,10 @@ function draw_eyebox_rays(sys = setup_nominal_system())
     ray_traces = Vector{LensTrace{Float64,3}}(undef,0)
 
     tracked_rays = [trace(CSGOpticalSystem(LensAssembly(lens),eyebox_rectangle),OpticalRay(ray,1.0,.530),trackrays = ray_traces) for (lens,ray) in zip(lenses,rays)]
-    # all_rays = vcat(tracked_rays,ray_traces)
+
     return [x for x in ray_traces]
 end
-export draw_eyebox_rays
+export compute_eyebox_rays
 
 """Example call of system_properties function"""
 function systemproperties_call()
@@ -142,6 +142,25 @@ function testspherelenslets()
 end
 export testspherelenslets
 
+function draw_projected_corners(system = setup_nominal_system())
+    (;lenslet_eye_boxes, subdivisions_of_eyebox,lenses,displayplanes,projected_eyeboxes) = system
+    colors = distinguishable_colors(reduce(*,subdivisions_of_eyebox))
+
+    for (lenslet_eyebox,lens,display_plane,projected_eyebox) in zip(lenslet_eye_boxes,lenses,displayplanes,projected_eyeboxes)
+        center = opticalcenter(lens)
+        for (eyeboxpt,projected_point) in zip(eachcol(lenslet_eyebox),eachcol(projected_eyebox))
+            r = Ray(eyeboxpt,center-eyeboxpt)
+            intsct = surfaceintersection(display_plane,r)
+            closest = closestintersection(intsct)
+            display_intersection = point(closest)
+            @assert isapprox(display_intersection,projected_point) "error display_intersection $display_intersection projected_point $projected_point"
+            lenstrace = LensTrace(OpticalRay(r,1.0,.5),closest)
+            Vis.draw!(lenstrace)
+        end
+    end
+end
+export draw_projected_corners
+
 """assigns each lenslet/display subsystem a rectangular sub part of the eyebox"""
 function draw_eyebox_assignment(system = setup_nominal_system(),clear_screen = true;draw_eyebox = true)
     (;eyebox_rectangle,
@@ -167,20 +186,43 @@ function draw_eyebox_assignment(system = setup_nominal_system(),clear_screen = t
     num_distinct_eyeboxes = reduce(*,subdivisions_of_eyebox) 
     colors = distinguishable_colors(num_distinct_eyeboxes)
 
-    for (eyebox,plane,eyeboxnum) in zip(projected_eyeboxes,displayplanes,lenslet_eyebox_numbers)
-        localframe = Transform(pointonplane(plane),OpticSim.normal(plane))
-        transformedpoints = (inv(localframe)*eyebox)[1:2,:]
-        pts = [SVector{2}(x...) for x in eachcol(transformedpoints)]
-        # Vis.draw!(plane,color = colors[eyeboxnum])
-        Vis.draw!(ConvexPolygon(localframe,pts),color = colors[eyeboxnum])
-    end
+    #THIS is almost certainly wrong
+    # for (eyebox,plane,eyeboxnum,lens) in zip(projected_eyeboxes,displayplanes,lenslet_eyebox_numbers,lenses)
+    #     localframe = OpticSim.translation(-OpticSim.normal(lens))*OpticSim.localframe(shape(lens)) #the local frame of the lens is, unfortunately, stored only in the ConvexPoly shape. No other lens type has a local frame which is terrible design. Should be fixed.
+    #     transformedpoints = (inv(localframe)*eyebox)[1:2,:]
+    #     pts = [SVector{2}(x...) for x in eachcol(transformedpoints)]
+    #     # Vis.draw!(plane,color = colors[eyeboxnum])
+    #     Vis.draw!(ConvexPolygon(localframe,pts),color = colors[eyeboxnum])
+    # end
 end
 export draw_eyebox_assignment
+
+#compute the ray from each lenslet's eyebox center to the geometric center of the lenslet. Trace this ray through the lens and draw the refracted ray. The refracted ray should line up exactly with -normal(lenslet).
+function draw_eyebox_rays(system = setup_nominal_system())
+    (;lenses, lenslet_eyebox_centers,) = system
+
+    for (lens,eyebox_center) in zip(lenses,lenslet_eyebox_centers)
+        r = Ray(centroid(lens),centroid(lens)-eyebox_center)
+        refrac_ray = ray(trace(LensAssembly(lens),OpticalRay(r,1.0,.5)))
+        Vis.draw!(refrac_ray,color = "yellow")
+    end
+end
+
+function draw_eyebox_polygons(system = setup_nominal_system())
+    (;projected_eyebox_polygons) = system
+    for poly in projected_eyebox_polygons
+        Vis.draw!(poly)
+    end
+end
+export draw_eyebox_polygons
 
 function draw_system(system = setup_nominal_system())
     draw_eyebox_assignment(system,draw_eyebox=false)
     draw_subdivided_eyeboxes(system,false)
-    Vis.draw!(draw_eyebox_rays(system))
+    # Vis.draw!(compute_eyebox_rays(system))
+    draw_eyebox_rays(system)
+    draw_projected_corners(system)
+    draw_eyebox_polygons(system)
 end
 export draw_system
 
@@ -212,17 +254,20 @@ function test_project_eyebox_to_display_plane()
         1.0,-1.0,0.0,
         -1.0,-1.0,0.0
         )
-    correct_answer = SMatrix{3,4}(0.15, -0.15, 11.5, 
-    -0.15, -0.15, 11.5, 
-    -0.15, 0.15, 11.5, 
-    0.15, 0.15, 11.5)
+    correct_answer = SMatrix{3,4}(
+        1.3,1.0, 11.5, 
+        1.0,1.0, 11.5, 
+        1.0,1.3, 11.5, 
+        1.3,1.3, 11.5)
     fl = 1.5
-    lenscenter = [0.0,0.0,10.0]
-    lens = ParaxialLensRect(fl,.5,.5,[0.0,0.0,-1.0],lenscenter)
-    displayplane = Plane([0.0,0.0,-1.0],[0.0,0.0,lenscenter[3]+fl])
+    lenscenter = [1.0,1.0,10.0]
+    lens = ParaxialLensRect(fl,.5,.5,[0.0,0.0,1.0],lenscenter)
+    displayplane = Plane([0.0,0.0,1.0],[0.0,0.0,lenscenter[3]+fl])
 
-    answer = project_eyebox_to_display_plane(boxpoly,lens,displayplane)
-    @assert isapprox(answer,correct_answer)
+    answer,polygons = project_eyebox_to_display_plane(boxpoly,lens,displayplane)
+    @assert isapprox(answer,correct_answer) "computed points $answer"
+    @info "eyebox points $answer"
+    @info "eyebox polygons $polygons"
 end
 export test_project_eyebox_to_display_plane
 

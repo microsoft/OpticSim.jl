@@ -34,6 +34,7 @@ struct LensletSystem{T<:Real}
     lenslet_eyebox_centers::Vector{SVector{3,T}}
     system_properties::Dict
     subdivided_eyebox_polys::Vector{SMatrix{3,4,T}}
+    projected_eyebox_polygons::Vector{ConvexPolygon{N,T}} where{N}
 end
 
 
@@ -83,7 +84,7 @@ end
 """returns display plane represented in world coordinates, and the center point of the display"""
 function display_plane(lens) 
     center_point = centroid(lens) + -OpticSim.normal(lens)* OpticSim.focallength(lens)
-    pln = Plane(-OpticSim.normal(lens), center_point, vishalfsizeu = .5, vishalfsizev = .5)
+    pln = Plane(OpticSim.normal(lens), center_point, vishalfsizeu = .5, vishalfsizev = .5,interface = opaqueinterface())
     return pln,center_point
 end
 export display_plane
@@ -140,14 +141,24 @@ function test_compute_lenslet_eyebox_data(eyeboxtransform,eyeboxpoly,subdivision
     subpolys = compute_lenslet_eyebox_data(eyeboxtransform,eyeboxpoly,subdivisions)
 end
 
-function project_eyebox_to_display_plane(eyeboxpoly::AbstractMatrix{T},lens,displayplane)::SMatrix where{T<:Real}
+function project_eyebox_to_display_plane(eyeboxpoly::AbstractMatrix{T},lens,displayplane) where{T<:Real}
     rowdim,coldim = size(eyeboxpoly)
     rays = [Ray(SVector{rowdim}(point),opticalcenter(lens)-SVector{rowdim}(point)) for point in eachcol(eyeboxpoly)]
-
+    
     points = collect([point(closestintersection(surfaceintersection(displayplane,ray),false)) for ray in rays])
 
-    SMatrix{rowdim,coldim}(reinterpret(Float64,points)...)
+    eyebox = SMatrix{rowdim,coldim}(reinterpret(Float64,points)...)
+    threeDpts, toworld, _ = projectonbestfitplane(eyebox,[0.0,0.0,-1.0])
+    twoDpts = reshape(threeDpts[1:2,:],2*size(threeDpts)[2])
+    twoDpts = collect(reinterpret(SVector{2,T},twoDpts))
+    polygon = ConvexPolygon(toworld,twoDpts,opaqueinterface())
+    for (eyept,polypt) in zip(eachcol(eyebox),eachcol(vertices(polygon)))
+        @assert isapprox(eyept,polypt)
+    end
+
+    return eyebox,polygon
 end
+export project_eyebox_to_display_plane
 
 """System parameters for a typical HMD."""
 function systemparameters() 
@@ -240,26 +251,19 @@ function setup_system(eye_box,fov,eye_relief,pupil_diameter,display_sphere_radiu
     #assign each lenslet the index into subdivided_eyeboxpolys that corresponds to the subdivided eyebox polygon the lenslet is supposed to cover.
     lenslet_eyebox_numbers = eyebox_number.(lattice_coordinates,Ref(cluster),Ref(length(subdivided_eyeboxpolys)))
 
-    #compute display rectangles that will cover the assigned eyebox polygons
+    #compute centroids of the subdivided eyeboxes on the eyebox plane
     lensleteyeboxcenters = [Statistics.mean(eachcol(x)) for x in lenslet_eye_boxes] 
 
-    
+    offset_lenses = replace_optical_center.(lensleteyeboxcenters,display_plane_centers,lenses)  #make new lenses with optical centers of lenses to put display centers directly behind lenslets
    
-    # testresults = test_replace_optical_center.(lensleteyeboxcenters,lenslet_geometric_centers,display_plane_centers,lenses)
-    # repropoints = [round.(x,digits = 2) for x in testresults]
+    projected = project_eyebox_to_display_plane.(lenslet_eye_boxes,offset_lenses,displayplanes) #repeate subdivided_eyeboxpolys enough times to cover all lenses
+    projected_eyeboxes = [x[1] for x in projected]
+    projected_polygons = [x[2] for x in projected]
+    @info "typeof polygon $(eltype(projected_polygons))"
 
-    # @info "reprojected points $(repropoints)"
-
-    #project eyebox into lenslet display plane and compute bounding box. This is the size of the display for this lenslet
-    subdivs = extend(lenses,subdivided_eyeboxpolys)
-    
-    projected_eyeboxes = project_eyebox_to_display_plane.(subdivs,lenses,displayplanes) #repeate subdivided_eyeboxpolys enough times to cover all lenses
     eyebox_rectangle = Rectangle(ustrip(mm,eye_box[1]/2),ustrip(mm,eye_box[2]/2),[0.0,0.0,1.0],[0.0,0.0,eyeboxz], interface = opaqueinterface())
-
-    projected_eyebox_centers = [Statistics.mean(eachcol(x)) for x in projected_eyeboxes]
-    lenses = replace_optical_center.(lensleteyeboxcenters,projected_eyebox_centers,lenses)  #make new lenses with optical centers that will cause the centroid of the eyebox assigned to the lens to project to the center of the display plane.
-
-    return LensletSystem{Float64}(eyebox_rectangle,subdivisions,lenses,lattice_coordinates,lensletcolors,projected_eyeboxes,displayplanes,lenslet_eye_boxes,lenslet_eyebox_numbers,lensleteyeboxcenters,props,subdivided_eyeboxpolys)
+  
+    return LensletSystem{Float64}(eyebox_rectangle,subdivisions,offset_lenses,lattice_coordinates,lensletcolors,projected_eyeboxes,displayplanes,lenslet_eye_boxes,lenslet_eyebox_numbers,lensleteyeboxcenters,props,subdivided_eyeboxpolys,projected_polygons)
 
 end
 export setup_system
