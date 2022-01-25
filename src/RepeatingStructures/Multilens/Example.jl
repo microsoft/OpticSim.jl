@@ -142,13 +142,23 @@ function testspherelenslets()
 end
 export testspherelenslets
 
-function draw_projected_eyeboxes(system = setup_nominal_system())
-    (;projected_eyeboxes,lenslet_eyebox_numbers,subdivisions_of_eyebox) = system
+function draw_projected_corners(system = setup_nominal_system())
+    (;lenslet_eye_boxes, lenslet_eyebox_numbers,subdivisions_of_eyebox,lenses,displayplanes) = system
     colors = distinguishable_colors(reduce(*,subdivisions_of_eyebox))
 
-    for projected_eyebox in projected_eyeboxes
-        Vis.draw!(ConvexPolygon(identitytransform(),))
+    for (lenslet_eyebox,lenslet_eyebox_number,lens,display_plane) in zip(lenslet_eye_boxes,lenslet_eyebox_numbers,lenses,displayplanes)
+        center = opticalcenter(lens)
+        for eyeboxpt in eachcol(lenslet_eyebox)
+            r = Ray(eyeboxpt,center-eyeboxpt)
+            intsct = surfaceintersection(display_plane,r)
+            closest = closestintersection(intsct)
+            display_intersection = point(closest)
+            lenstrace = LensTrace(OpticalRay(r,1.0,.5),closest)
+            Vis.draw!(lenstrace)
+        end
+    end
 end
+export draw_projected_corners
 
 """assigns each lenslet/display subsystem a rectangular sub part of the eyebox"""
 function draw_eyebox_assignment(system = setup_nominal_system(),clear_screen = true;draw_eyebox = true)
@@ -202,6 +212,7 @@ function draw_system(system = setup_nominal_system())
     draw_subdivided_eyeboxes(system,false)
     # Vis.draw!(compute_eyebox_rays(system))
     draw_eyebox_rays(system)
+    draw_projected_corners(system)
 
     # for lens in system.lenses
     #     nrml = -normal(lens)

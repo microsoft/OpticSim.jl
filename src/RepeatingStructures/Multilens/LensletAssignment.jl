@@ -83,7 +83,7 @@ end
 """returns display plane represented in world coordinates, and the center point of the display"""
 function display_plane(lens) 
     center_point = centroid(lens) + -OpticSim.normal(lens)* OpticSim.focallength(lens)
-    pln = Plane(OpticSim.normal(lens), center_point, vishalfsizeu = .5, vishalfsizev = .5)
+    pln = Plane(OpticSim.normal(lens), center_point, vishalfsizeu = .5, vishalfsizev = .5,interface = opaqueinterface())
     return pln,center_point
 end
 export display_plane
@@ -146,7 +146,9 @@ function project_eyebox_to_display_plane(eyeboxpoly::AbstractMatrix{T},lens,disp
     
     points = collect([point(closestintersection(surfaceintersection(displayplane,ray),false)) for ray in rays])
 
-    SMatrix{rowdim,coldim}(reinterpret(Float64,points)...)
+    eyebox = SMatrix{rowdim,coldim}(reinterpret(Float64,points)...)
+    twoDpts, toworld, tolocal = projectonbestfitplane(eyebox,[0.0,0.0,1.0])
+    return eyebox,ConvexPolygon(toworld,twoDpts,opaqueinterface())
 end
 
 """System parameters for a typical HMD."""
