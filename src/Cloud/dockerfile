@@ -1,6 +1,6 @@
 FROM mcr.microsoft.com/azureml/openmpi3.1.2-ubuntu18.04
 
-ENV JULIA_VERSION_MAJOR 1.6
+ENV JULIA_VERSION_MAJOR 1.7
 ENV JULIA_VERSION_MINOR 0
 
 # install stuff for xvfb-run

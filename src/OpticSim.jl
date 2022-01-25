@@ -29,14 +29,14 @@ include("utilities.jl")
 include("GlassCat/GlassCat.jl")
 import .GlassCat: plot_indices, index, polyfit_indices, absairindex, absorption, info, glassid, glassname, glassforid, isair, findglass, modelglass, glassfromMIL, GlassID
 
+include("Data/Data.jl")
 include("Geometry/Geometry.jl")
-include("RepeatingStructures/Repeat.jl")
 include("Optical/Optical.jl")
+include("RepeatingStructures/Repeat.jl")
 include("Vis/Vis.jl")
 include("Examples/Examples.jl")
 include("Optimization/Optimization.jl")
 include("Cloud/Cloud.jl")
-
 # define the NotebooksUtils module
 include("NotebooksUtils/NotebooksUtils.jl")
 

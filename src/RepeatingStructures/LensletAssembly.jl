@@ -4,20 +4,20 @@
 
 """Encapsulates the lens assembly and the display for one lenslet."""
 
-struct Display{T} <: Surface{T}
-    surface::Rectangle{T}
+struct Display{T} <: OpticSim.Surface{T}
+    surface::OpticSim.Rectangle{T}
     pixellattice::LatticeBasis{2,T}
     pixelpitch::Tuple{T,T} # x,y pitch of pixels
     xresolution::T
     yresolution::T
-    transform::Geometry.Transform{T}
+    transform::OpticSim.Geometry.Transform{T}
 
-    function Display(xres::Int64, yres::Int64, xpitch::Unitful.Length, ypitch::Unitful.Length, transform::Geometry.Transform{T}) where {T <: Real}
+    function Display(xres::Int64, yres::Int64, xpitch::Unitful.Length, ypitch::Unitful.Length, transform::OpticSim.Geometry.Transform{T}) where {T <: Real}
         # convert xpitch,ypitch to unitless numbers representing μm
-        pitchx = ustrip(μm, xpitch)
-        pitchy = ustrip(μm, ypitch)
+        pitchx = Unitful.ustrip(Unitful.μm, xpitch)
+        pitchy = Unitful.ustrip(Unitful.μm, ypitch)
         size = (xres * pitchx, yres * pitchy)
-        surface = Rectangle(size[1] / T(2), size[2] / T(2), SVector(T(0), T(0), T(1)), SVector(T(0), T(0), T(0))) # surface normal is +z axis
+        surface = OpticSim.Rectangle(size[1] / T(2), size[2] / T(2), SVector(T(0), T(0), T(1)), SVector(T(0), T(0), T(0))) # surface normal is +z axis
         pixellattice = Repeat.rectangularlattice(size[2], size[1]) # lattice takes ypitch,xpitch in that order
         return new{T}(surface, pixellattice, (pitchx, pitchy), xres, yres, transform)
     end
@@ -31,12 +31,12 @@ uv(a::Display,p::SVector{3,T}) where {T <: Real} = uv(a.surface, p)
 onsurface(a::Display, point::SVector{3,T}) where {T <: Real} = onsurface(a.surface, point)
 pixelposition(xindex::Int,yindex::Int) = transform * pixellattice[yindex,xindex]
 struct LensletAssembly{T}
-    lens::ParaxialLens{T}
-    transform::Geometry.Transform{T}
+    lens::OpticSim.ParaxialLens{T}
+    transform::OpticSim.Geometry.Transform{T}
     display::Display{T}
-    worldtodisplay::Geometry.Transform{T}
+    worldtodisplay::OpticSim.Geometry.Transform{T}
 
-    LensletAssembly(lens::ParaxialLens{T}, transform::Geometry.Transform{T}, display::Display{T}) where {T} = new{T}(lens, transform, display, display.transform * transform)
+    LensletAssembly(lens::OpticSim.ParaxialLens{T}, transform::OpticSim.Geometry.Transform{T}, display::Display{T}) where {T} = new{T}(lens, transform, display, display.transform * transform)
 end
 
 lens(a::LensletAssembly) = a.lens
@@ -85,10 +85,10 @@ function convertlazysets(verts::LazySets.VectorIterator)
 
 """Returns a number between 0 and 1 representing the ratio of the lens radiance to the pupil radiance. Assume lᵣ is the radiance transmitted through the lens from the display point. Some of this radiance, pᵣ, passes through the pupil. The beam energy is the ratio pᵣ/lᵣ. Returns beam energy and the centroid of the intersection polygon to simplify ray casting."""
 function beamenergy(assy::LensletAssembly{T}, displaypoint::AbstractVector{T}, pupilpoints::SMatrix{3,N,T}) where {N,T <: Real}
-    llens::ParaxialLens{T} = lens(assy)
+    llens::OpticSim.ParaxialLens{T} = lens(assy)
     virtpoint = point(virtualpoint(llens, displaypoint))
     projectedpoints = project(assy, displaypoint, pupilpoints)
-    lensverts = vertices(llens)
+    lensverts = OpticSim.vertices(llens)
     rows, cols = size(lensverts)
     temp = SMatrix{1,cols,T}(reshape(fill(0, cols), 1, cols))
     lensverts3D = vcat(lensverts, temp)
@@ -120,7 +120,7 @@ function activebox(lenslet::LensletAssembly{T}, worldpoly::SVector{N,SVector{3,T
     for point in worldpoly
         locpoint = transform(lenslet) * point
 
-        for lenspoint in vertices(lens)
+        for lenspoint in OpticSim.vertices(lens)
             ray = Ray(locpoint, lenspoint - locpoint)
             refractedray, _, _ = processintersection(interface(lens), lenspoint, ray, T(OpticSim.GlassCat.TEMP_REF), T(OpticSim.GlassCat.PRESSURE_REF))
             displaypoint = surfaceintersection(display, refractedray)
