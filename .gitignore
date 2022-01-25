@@ -20,6 +20,9 @@ src/GlassCat/data/jl/
 # Local History for Visual Studio Code
 .history/
 
+#make sure image files don't accidentally get added to repo
+src/*.svg
+src/*.png
 
 ## Julia.gitignore ##
 

@@ -297,7 +297,7 @@ function AcceleratedParametricSurface(surf::T, numsamples::Int = 17; interface::
 end
 
 function BoundingBox(surf::ZernikeSurface{T,3,P,Q,M}) where {T<:Real,P,Q,M}
-    bb = BoundingBox(z.asp)
+    bb = BoundingBox(surf.asp)
     # zernike terms have condition than |Zᵢ| <= 1
     # so this gives us a (loose) bounding box
     ak = P > 0 ? sum(abs.(Zernike.normalisation(T, n, m) * k for (n, m, k) in surf.coeffs)) : zero(T)

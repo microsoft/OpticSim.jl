@@ -162,9 +162,9 @@ function Base.:*(transform::Transform{T}, v::SVector{3,S}) where {T<:Real,S<:Num
 
     res = t * Vec4(v)
     if (t[4,4] == one(T))
-        return SVector(res[1], res[2], res[3])
+        return SVector{3,S}(res[1], res[2], res[3])
     else    
-        return SVector(res[1]/res[4], res[2]/res[4], res[3]/res[4])
+        return SVector{3,S}(res[1]/res[4], res[2]/res[4], res[3]/res[4])
     end
 end
 
@@ -200,6 +200,7 @@ function Base.:*(transform::Transform{T}, m::SMatrix{3,N,S}) where{N,T<:Real,S<:
 end
 
 """ The t and m matrices are allowed to be of different element type. This allows transforming a Unitful matrix for example:
+WARNING: this doesn't work. The translation component of the transform matrix has to be in Unitful units but the rotation part has to be in unitless units for this to work. Only works if one assumes that the translation part of the transform implicitly has the same units as the Unitful vectors being transformed. Brittle and likely to cause obscure bugs.
 ```
 id = identitytransform()
 m = fill(1mm,3,4)
