@@ -26,7 +26,6 @@ using FileIO
 include("Visualization.jl")
 include("Emitters.jl")
 include("VisRepeatingStructures.jl")
-include("HeadEyeModel.jl")
 
 end # module Vis
 export Vis

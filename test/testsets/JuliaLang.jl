@@ -19,7 +19,7 @@ and pop it from the set
     # here we ignore the specific methods which we know are ok but are still failing
     # for some weird reason the unbound args check seems to fail for some (seemingly random) methods with Vararg arguments
     methods_to_ignore = Dict(
-        OpticSim => VERSION >= v"1.6.0-DEV" ? [
+        OpticSim => VERSION >= v"1.7" ? [
             (OpticSim.LensAssembly, Tuple{Vararg{Union{CSGTree{T},LensAssembly{T},OpticSim.Surface{T}},N} where N} where {T<:Real}),
             (OpticSim.MultiHologramInterface, Tuple{Vararg{HologramInterface{T},N}} where {N} where {T<:Real}),
         ] : [],

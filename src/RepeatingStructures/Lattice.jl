@@ -140,7 +140,7 @@ export tilesinside
 """The vertices of the containing shape are the columns of the matrix containingshape"""
 tilesinside(containingshape::AbstractMatrix,lattice::Repeat.AbstractBasis) = tilesinside(LazySets.VPolygon(containingshape), lattice)
 
-tilesinside(xmin::T,ymin::T,xmax::T,ymax::T,lattice::Repeat.AbstractBasis) where {T <: Real} = tilesinside(SMatrix{2,4,T}(xmin, ymin, xmin, ymax, xmax, ymax, xmax, ymin), lattice)
+tilesinside(xmin::T,ymin::T,xmax::T,ymax::T,lattice::Repeat.AbstractBasis) where {T <: AbstractFloat} = tilesinside(SMatrix{2,4,T}(xmin, ymin, xmin, ymax, xmax, ymax, xmax, ymin), lattice)
 
 using Plots
 
@@ -174,3 +174,28 @@ function testtilesinside()
 end
 end
 export testtilesinside
+
+
+"""This function returns the radius of the longest basis vector of the lattice cluster. Most lattices defined in this project have symmetric basis vectors so the radii of all basis vectors will be identical. This function is used in determing which clusters "fit" within the eye pupil."""
+function euclideandiameter(basismatrix::SMatrix)
+    maximum(norm.([basismatrix[:,i] for i in 1:size(basismatrix)[2]]))
+end
+export euclideandiameter
+
+""" Lattic bases can have real basis vectors. This returns the maximum Euclidean distance between lattice basis center points."""
+euclideandiameter(a::Repeat.AbstractBasis) =  euclideandiameter(Repeat.basismatrix(a))
+
+"""Only will work properly if lattice basis matrix contains only integer or rational terms. Returns the integer lattice coords of point in the given basis if the point is in the span of latticebasis. Otherwise returns nothing"""
+function latticepoint(lattice_basis_matrix::AbstractMatrix, origin, point) 
+    Ainv = inv(Rational.(lattice_basis_matrix))
+    b = [(point .- origin)...]
+    x = Ainv * b
+    if reduce(&, (1, 1) .== denominator.(x))
+        return Integer.(x)
+    else
+        return nothing
+    end
+end
+export latticepoint
+
+latticepoint(latticebasis::AbstractBasis,origin,point) = latticepoint(basismatrix(latticebasis),origin,point)

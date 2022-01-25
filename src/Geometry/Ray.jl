@@ -73,6 +73,7 @@ function closestpointonray(r::AbstractRay{T,N}, point::SVector{N,T}) where {T,N}
         return o
     end
 end
+export closestpointonray
 
 """
     distance(r::Ray{T,N}, point::SVector{N,T}) -> Union{Nothing,T}

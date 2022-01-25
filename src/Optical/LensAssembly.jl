@@ -328,6 +328,7 @@ function trace(assembly::LensAssembly{T}, r::OpticalRay{T,N}, temperature::T = T
     if power(r) < POWER_THRESHOLD || recursion > TRACE_RECURSION_LIMIT
         return nopower
     end
+
     intsct = closestintersection(assembly, r)
     if intsct === nothing
         return nothing
