@@ -142,6 +142,14 @@ function testspherelenslets()
 end
 export testspherelenslets
 
+function draw_projected_eyeboxes(system = setup_nominal_system())
+    (;projected_eyeboxes,lenslet_eyebox_numbers,subdivisions_of_eyebox) = system
+    colors = distinguishable_colors(reduce(*,subdivisions_of_eyebox))
+
+    for projected_eyebox in projected_eyeboxes
+        Vis.draw!(ConvexPolygon(identitytransform(),))
+end
+
 """assigns each lenslet/display subsystem a rectangular sub part of the eyebox"""
 function draw_eyebox_assignment(system = setup_nominal_system(),clear_screen = true;draw_eyebox = true)
     (;eyebox_rectangle,
@@ -232,17 +240,18 @@ function test_project_eyebox_to_display_plane()
         1.0,-1.0,0.0,
         -1.0,-1.0,0.0
         )
-    correct_answer = SMatrix{3,4}(0.15, -0.15, 11.5, 
-    -0.15, -0.15, 11.5, 
-    -0.15, 0.15, 11.5, 
-    0.15, 0.15, 11.5)
+    correct_answer = SMatrix{3,4}(
+        1.3,1.0, 11.5, 
+        1.0,1.0, 11.5, 
+        1.0,1.3, 11.5, 
+        1.3,1.3, 11.5)
     fl = 1.5
-    lenscenter = [0.0,0.0,10.0]
-    lens = ParaxialLensRect(fl,.5,.5,[0.0,0.0,-1.0],lenscenter)
-    displayplane = Plane([0.0,0.0,-1.0],[0.0,0.0,lenscenter[3]+fl])
+    lenscenter = [1.0,1.0,10.0]
+    lens = ParaxialLensRect(fl,.5,.5,[0.0,0.0,1.0],lenscenter)
+    displayplane = Plane([0.0,0.0,1.0],[0.0,0.0,lenscenter[3]+fl])
 
     answer = project_eyebox_to_display_plane(boxpoly,lens,displayplane)
-    @assert isapprox(answer,correct_answer)
+    @assert isapprox(answer,correct_answer) "computed points $answer"
 end
 export test_project_eyebox_to_display_plane
 

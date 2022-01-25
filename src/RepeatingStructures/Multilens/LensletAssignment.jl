@@ -250,10 +250,8 @@ function setup_system(eye_box,fov,eye_relief,pupil_diameter,display_sphere_radiu
 
     # @info "reprojected points $(repropoints)"
 
-    #project eyebox into lenslet display plane and compute bounding box. This is the size of the display for this lenslet
+    #make as many subdivided eyebox polygons as are necessary to cover all the lenses
     subdivs = extend(lenses,subdivided_eyeboxpolys)
-   
-   
 
     
     projected_eyeboxes = project_eyebox_to_display_plane.(subdivs,lenses,displayplanes) #repeate subdivided_eyeboxpolys enough times to cover all lenses
