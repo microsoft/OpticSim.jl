@@ -143,16 +143,17 @@ end
 export testspherelenslets
 
 function draw_projected_corners(system = setup_nominal_system())
-    (;lenslet_eye_boxes, lenslet_eyebox_numbers,subdivisions_of_eyebox,lenses,displayplanes) = system
+    (;lenslet_eye_boxes, subdivisions_of_eyebox,lenses,displayplanes,projected_eyeboxes) = system
     colors = distinguishable_colors(reduce(*,subdivisions_of_eyebox))
 
-    for (lenslet_eyebox,lenslet_eyebox_number,lens,display_plane) in zip(lenslet_eye_boxes,lenslet_eyebox_numbers,lenses,displayplanes)
+    for (lenslet_eyebox,lens,display_plane,projected_eyebox) in zip(lenslet_eye_boxes,lenses,displayplanes,projected_eyeboxes)
         center = opticalcenter(lens)
-        for eyeboxpt in eachcol(lenslet_eyebox)
+        for (eyeboxpt,projected_point) in zip(eachcol(lenslet_eyebox),eachcol(projected_eyebox))
             r = Ray(eyeboxpt,center-eyeboxpt)
             intsct = surfaceintersection(display_plane,r)
             closest = closestintersection(intsct)
             display_intersection = point(closest)
+            @assert isapprox(display_intersection,projected_point) "error display_intersection $display_intersection projected_point $projected_point"
             lenstrace = LensTrace(OpticalRay(r,1.0,.5),closest)
             Vis.draw!(lenstrace)
         end
@@ -198,14 +199,22 @@ export draw_eyebox_assignment
 
 #compute the ray from each lenslet's eyebox center to the geometric center of the lenslet. Trace this ray through the lens and draw the refracted ray. The refracted ray should line up exactly with -normal(lenslet).
 function draw_eyebox_rays(system = setup_nominal_system())
-    (;lenses, lenslet_eyebox_centers) = system
+    (;lenses, lenslet_eyebox_centers,) = system
 
     for (lens,eyebox_center) in zip(lenses,lenslet_eyebox_centers)
         r = Ray(centroid(lens),centroid(lens)-eyebox_center)
         refrac_ray = ray(trace(LensAssembly(lens),OpticalRay(r,1.0,.5)))
-        Vis.draw!(refrac_ray)
+        Vis.draw!(refrac_ray,color = "yellow")
     end
 end
+
+function draw_eyebox_polygons(system = setup_nominal_system())
+    (;projected_eyebox_polygons) = system
+    for poly in projected_eyebox_polygons
+        Vis.draw!(poly)
+    end
+end
+export draw_eyebox_polygons
 
 function draw_system(system = setup_nominal_system())
     draw_eyebox_assignment(system,draw_eyebox=false)
@@ -213,13 +222,7 @@ function draw_system(system = setup_nominal_system())
     # Vis.draw!(compute_eyebox_rays(system))
     draw_eyebox_rays(system)
     draw_projected_corners(system)
-
-    # for lens in system.lenses
-    #     nrml = -normal(lens)
-    #     center = centroid(lens)
-    #     r = Ray(center,nrml)
-    #     Vis.draw!(r,color = "black")
-    # end
+    draw_eyebox_polygons(system)
 end
 export draw_system
 
@@ -261,8 +264,10 @@ function test_project_eyebox_to_display_plane()
     lens = ParaxialLensRect(fl,.5,.5,[0.0,0.0,1.0],lenscenter)
     displayplane = Plane([0.0,0.0,1.0],[0.0,0.0,lenscenter[3]+fl])
 
-    answer = project_eyebox_to_display_plane(boxpoly,lens,displayplane)
+    answer,polygons = project_eyebox_to_display_plane(boxpoly,lens,displayplane)
     @assert isapprox(answer,correct_answer) "computed points $answer"
+    @info "eyebox points $answer"
+    @info "eyebox polygons $polygons"
 end
 export test_project_eyebox_to_display_plane
 
