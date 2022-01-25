@@ -14,20 +14,25 @@ const hexcoords = [
 		cos60 sin60
 		]
 
+"""`scale` will scale the canonical basis vectors of this hexagonal tiling"""
 struct HexBasis1{N,T} <: AbstractBasis{N,T}
-    HexBasis1(::Type{T} = Float64) where{T<:Real} = new{2,T}()
+    scale::T
+    
+    HexBasis1(scale::T = 1.0) where{T<:Real} = new{2,T}(scale)
 end
 export HexBasis1
 
-basismatrix(::HexBasis1{2,T}) where{T} = SMatrix{2,2,T}(T(1.5),T(.5)*sqrt(T(3)),T(1.5),T(-.5)*(sqrt(T(3))))
+scale(a::HexBasis1) = a.scale
+
+basismatrix(a::HexBasis1{2,T}) where{T} = scale(a) * SMatrix{2,2,T}(T(1.5),T(.5)*sqrt(T(3)),T(1.5),T(-.5)*(sqrt(T(3))))
 
 # SVector{2,SVector{2,T}}(hexe₁(T),hexe₂(T))
 
 """Returns the vertices of the unit tile polygon for the basis"""
-function tilevertices(::HexBasis1{2,T}) where{T}
+function tilevertices(a::HexBasis1{2,T}) where{T}
 sin60 = T(.5)*sqrt(T(3))
 cos60 = T(.5)
-return SMatrix{2,6}(
+return scale(a)*SMatrix{2,6}(
 		1, 0,
 		cos60, -sin60,
 		-cos60, -sin60,
@@ -79,11 +84,9 @@ function region(::Type{HexBasis1},centerpoint::Tuple{Int64,Int64}, n::Int64)
     f(i) = i==0 ? () : (neighbors(HexBasis1,centerpoint,i)...,f(i-1)...)
     cells = (centerpoint...,f(n)...)
     numcells = length(cells) ÷ 2
-    println(numcells)
     # convert to matrix form since that is what the drawing code expects
     temp = MMatrix{2,numcells,Int64}(undef)
     for i in 1:numcells
-        println(cells[i])
         temp[1,i] = cells[2*i-1]
         temp[2,i] = cells[2*i]
     end
@@ -163,15 +166,19 @@ function hexcellsinbox(numi,numj)
 end
 export Repeat
 
+"""`scale` will scale the canonical basis vectors of this hexagonal tiling"""
 struct HexBasis3{N,T}<:AbstractBasis{N,T}
-    HexBasis3(::Type{T} = Float64) where{T} = new{2,T}()
+    scale::T
+    HexBasis3(scale::T = 1.0) where{T<:Real} = new{2,T}(scale)
 end
 export HexBasis3
 
-function tilevertices(::HexBasis3{2,T}) where{T}
+scale(a::HexBasis3) = a.scale
+
+function tilevertices(a::HexBasis3{2,T}) where{T}
     sin60 = T(.5)*sqrt(T(3))
     cos60 = T(.5)
-    return SMatrix{2,6,T}(
+    return scale(a) * SMatrix{2,6,T}(
         0, 1,
         -sin60, cos60,
         -sin60, -cos60,
@@ -180,5 +187,5 @@ function tilevertices(::HexBasis3{2,T}) where{T}
         sin60, cos60)
 end
 
-basismatrix(::HexBasis3{2,T}) where{T} = SMatrix{2,2,T}(T(2*sin60),T(0),T(sin60),T(1.5))
+basismatrix(a::HexBasis3{2,T}) where{T} = scale(a)*SMatrix{2,2,T}(T(2*sin60),T(0),T(sin60),T(1.5))
 

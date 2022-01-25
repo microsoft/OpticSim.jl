@@ -63,6 +63,7 @@ distancefromplane(p::Plane{T,N}, point::SVector{N,T}) where {N,T<:Real} = dot(no
 uvrange(::Type{Plane{T,N}}) where {T<:Real,N} = ((-one(T), one(T)), (-one(T), one(T)))
 point(p::Plane{T}, u::T, v::T) where {T<:Real} = p.pointonplane + p.vishalfsizeu * u * p.visuvec + p.vishalfsizev * v * p.visvvec
 normal(p::Plane{T}, ::T, ::T) where {T<:Real} = normal(p)
+pointonplane(p::Plane{T}) where{T<:Real} = p.pointonplane
 
 function surfaceintersection(pln::Plane{T,N}, r::AbstractRay{T,N}) where {T<:Real,N}
     n̂ = normal(pln)
