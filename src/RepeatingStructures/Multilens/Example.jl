@@ -4,7 +4,7 @@
 
 
 """ Typical properties for near eye VR display """
-nominal_system_inputs() = (eye_relief = 20mm, fov = (50°,5°),eyebox = (10mm,8mm),display_radius = 125.0mm, pupil_diameter = 3.5mm,pixel_pitch = .9μm, minfnumber = 2.0, mtf = .2, cycles_per_degree = 11, max_display_size = 250μm, )
+nominal_system_inputs() = (eye_relief = 20mm, fov = (5°,5°),eyebox = (10mm,8mm),display_radius = 125.0mm, pupil_diameter = 3.5mm,pixel_pitch = .9μm, minfnumber = 2.0, mtf = .2, cycles_per_degree = 11, max_display_size = 250μm, )
 export nominal_system_inputs
 
 xcoords(a::SMatrix{3,4}) = a[1,:]
@@ -52,13 +52,13 @@ end
 export test_paraxial_lens
 
 """Example that shows how to call setup_system with typical values"""
-function setup_nominal_system()
+function setup_nominal_system()::LensletSystem
     (;eye_relief,fov,eyebox,display_radius,pupil_diameter,minfnumber,pixel_pitch) = nominal_system_inputs()
     setup_system(eyebox,fov,eye_relief,pupil_diameter,display_radius,minfnumber,pixel_pitch)
 end
 export setup_nominal_system
 
-function draw_eyebox_rays(sys = setup_nominal_system())
+function compute_eyebox_rays(sys = setup_nominal_system())
     (;lenses,projected_eyeboxes,eyebox_rectangle) = sys
     centers = [x for x in centroid.(shape.(lenses))] #use the geometric center of the lenses not the optical center_point
     display_centers = matcentroid.(projected_eyeboxes)
@@ -66,10 +66,10 @@ function draw_eyebox_rays(sys = setup_nominal_system())
     ray_traces = Vector{LensTrace{Float64,3}}(undef,0)
 
     tracked_rays = [trace(CSGOpticalSystem(LensAssembly(lens),eyebox_rectangle),OpticalRay(ray,1.0,.530),trackrays = ray_traces) for (lens,ray) in zip(lenses,rays)]
-    # all_rays = vcat(tracked_rays,ray_traces)
+
     return [x for x in ray_traces]
 end
-export draw_eyebox_rays
+export compute_eyebox_rays
 
 """Example call of system_properties function"""
 function systemproperties_call()
@@ -167,20 +167,40 @@ function draw_eyebox_assignment(system = setup_nominal_system(),clear_screen = t
     num_distinct_eyeboxes = reduce(*,subdivisions_of_eyebox) 
     colors = distinguishable_colors(num_distinct_eyeboxes)
 
-    for (eyebox,plane,eyeboxnum) in zip(projected_eyeboxes,displayplanes,lenslet_eyebox_numbers)
-        localframe = Transform(pointonplane(plane),OpticSim.normal(plane))
-        transformedpoints = (inv(localframe)*eyebox)[1:2,:]
-        pts = [SVector{2}(x...) for x in eachcol(transformedpoints)]
-        # Vis.draw!(plane,color = colors[eyeboxnum])
-        Vis.draw!(ConvexPolygon(localframe,pts),color = colors[eyeboxnum])
-    end
+    #THIS is almost certainly wrong
+    # for (eyebox,plane,eyeboxnum,lens) in zip(projected_eyeboxes,displayplanes,lenslet_eyebox_numbers,lenses)
+    #     localframe = OpticSim.translation(-OpticSim.normal(lens))*OpticSim.localframe(shape(lens)) #the local frame of the lens is, unfortunately, stored only in the ConvexPoly shape. No other lens type has a local frame which is terrible design. Should be fixed.
+    #     transformedpoints = (inv(localframe)*eyebox)[1:2,:]
+    #     pts = [SVector{2}(x...) for x in eachcol(transformedpoints)]
+    #     # Vis.draw!(plane,color = colors[eyeboxnum])
+    #     Vis.draw!(ConvexPolygon(localframe,pts),color = colors[eyeboxnum])
+    # end
 end
 export draw_eyebox_assignment
+
+#compute the ray from each lenslet's eyebox center to the geometric center of the lenslet. Trace this ray through the lens and draw the refracted ray. The refracted ray should line up exactly with -normal(lenslet).
+function draw_eyebox_rays(system = setup_nominal_system())
+    (;lenses, lenslet_eyebox_centers) = system
+
+    for (lens,eyebox_center) in zip(lenses,lenslet_eyebox_centers)
+        r = Ray(centroid(lens),centroid(lens)-eyebox_center)
+        refrac_ray = ray(trace(LensAssembly(lens),OpticalRay(r,1.0,.5)))
+        Vis.draw!(refrac_ray)
+    end
+end
 
 function draw_system(system = setup_nominal_system())
     draw_eyebox_assignment(system,draw_eyebox=false)
     draw_subdivided_eyeboxes(system,false)
-    Vis.draw!(draw_eyebox_rays(system))
+    # Vis.draw!(compute_eyebox_rays(system))
+    draw_eyebox_rays(system)
+
+    # for lens in system.lenses
+    #     nrml = -normal(lens)
+    #     center = centroid(lens)
+    #     r = Ray(center,nrml)
+    #     Vis.draw!(r,color = "black")
+    # end
 end
 export draw_system
 
