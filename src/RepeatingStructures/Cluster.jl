@@ -32,25 +32,37 @@ julia> lattice[1,1]  #returns the locations of the 3 elements in the cluster at 
 
 ```
 """
-abstract type AbstractLatticeCluster end
+abstract type AbstractLatticeCluster{N1,N} end
 
-"""Basic lattic cluster type"""
-struct LatticeCluster{N1, N, T<:Real, B1<:AbstractBasis{N,Int},B2<:AbstractBasis{N,T}} <: AbstractLatticeCluster
+"""returns the euclidean distance between lattice clusters (norm of the longest lattice basis vector). The companion function `latticediameter` returns the distance in lattice space which does not take into account the size the element basis underlying the cluster."""
+euclideandiameter(a::AbstractLatticeCluster) = euclideandiameter(elementbasis(a))*latticediameter(a)
+export euclideandiameter
+
+"""Basic lattic cluster type. N1 is the number of tiles in the cluster, N is the dimension."""
+struct LatticeCluster{N1, N, T<:Real, B1<:AbstractBasis{N,Int},B2<:AbstractBasis{N,T}} <: AbstractLatticeCluster{N1,N}
     clusterbasis::B1 #this basis defines the offsets of the clusters
     elementbasis::B2 #this basis defines the underlying lattice
 
-    clusterelements::SVector{N1,NTuple{N,Int}} #vector containing the lattice indices of the elements in the cluster. Each column is one lattice coordinate. These indices are assumed to be offsets from the origin of the lattice.
+    clusterelements::SVector{N1,NTuple{N,Int64}} #vector containing the lattice indices of the elements in the cluster. Each column is one lattice coordinate. These indices are assumed to be offsets from the origin of the lattice.
 
-    LatticeCluster(clusterbasis::B1,eltlattice::B2,clusterelements::SVector{N1,NTuple{N,Int}}) where{N1,N,T<:Real,B1<:AbstractBasis{N,Int},B2<:AbstractBasis{N,T}} = new{N1,N,T,B1,B2}(clusterbasis,eltlattice,clusterelements)
+    LatticeCluster(clusterbasis::B1,eltlattice::B2,clusterelements::SVector{N1,NTuple{N,Int64}}) where{N1,N,T<:Real,B1<:AbstractBasis{N,Int64},B2<:AbstractBasis{N,T}} = new{N1,N,T,B1,B2}(clusterbasis,eltlattice,clusterelements)
 end
 export LatticeCluster
+
+LatticeCluster(clusterbasis::B1,eltlattice::B2,clusterelements::SMatrix{N,N1,Int64}) where{N1,N,T<:Real,B1<:AbstractBasis{N,Int64},B2<:AbstractBasis{N,T}} = LatticeCluster(clusterbasis,eltlattice,SVector{N1}(reinterpret(reshape,NTuple{N,Int64},clusterelements)))
+
 
 clusterelements(a::LatticeCluster) = a.clusterelements
 export clusterelements
 elementbasis(a::LatticeCluster) = a.elementbasis
+export elementbasis
 clustersize(a::LatticeCluster) = length(a.clusterelements)
 clusterbasis(a::LatticeCluster) = a.clusterbasis
 export clusterbasis
+
+""" Lattice clusters have integer basis vectors. These represent the lattice in unit steps of the underlying element basis, not the Euclidean distance between lattice cluster centers. For example, the lattice cluster basis vectors for a hex3 lattice are (-1,2),(2,-1), where the units of the basis vectors represent steps in the underlying element basis. To get a Euclidean distance measure between cluster centers you need to multiply by the size of the element basis diameter. In the case of lenslet layout you need to multiply the cluster diameter by the lenslet diameter."""
+latticediameter(a::Repeat.AbstractLatticeCluster) =   euclideandiameter(Repeat.basismatrix(Repeat.clusterbasis(a)))
+export latticediameter
 
 """returns the positions of every element in a cluster given the cluster indices"""
 function Base.getindex(A::LatticeCluster{N1,N,T,B1,B2}, indices::Vararg{Int, N}) where{N1,N,T,B1<:AbstractBasis{N,Int},B2<:AbstractBasis{N,T}} 
@@ -90,8 +102,9 @@ function clustercoordinates(a::LatticeCluster{N1,N},indices::Vararg{Int,N}) wher
 end
 export clustercoordinates
 
+
 """Given the (i,j) coordinates of a tile defined in the the underlying lattice basis of elements of the cluster compute the coordinates (cᵢ,cⱼ) of the cluster containing the tile, and the tile number of the tile in that cluster"""
-function cluster_coordinates_from_tile_coordinates(cluster::LatticeCluster{N1,N},i::Int,j::Int) where{N1,N}
+function cluster_coordinates_from_tile_coordinates(cluster::S,i::Int,j::Int) where{N1,N, S<:AbstractLatticeCluster{N1,N}}
     found = false
     bmatrix = Rational.(basismatrix(clusterbasis(cluster)))
 
@@ -113,6 +126,7 @@ end
 export cluster_coordinates_from_tile_coordinates
 
 
+cluster_coordinates_from_tile_coordinates(cluster::S,coords::NTuple{2,Int64}) where{N1,N, S<:AbstractLatticeCluster{N1,N}} = cluster_coordinates_from_tile_coordinates(cluster,coords...)
 
 """
 May want to have many properties associated with the elements in a cluster, which is why properties is represented as a DataFrame. The DataFrame in the properties field should have as many rows as there are elements in a cluster. At a minimum it must have a :Color and a :Name column.
@@ -132,7 +146,7 @@ function hex3RGB()
 end
 ```
 """
-struct ClusterWithProperties{N1,N,T} <: AbstractLatticeCluster
+struct ClusterWithProperties{N1,N,T} <: AbstractLatticeCluster{N1,N}
     cluster::LatticeCluster{N1,N,T}
     properties::DataFrame
 end

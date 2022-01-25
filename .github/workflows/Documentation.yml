@@ -12,7 +12,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@latest
         with:
-          version: 1.6
+          version: 1.7
       - name: Install dependencies
         run: |
           xvfb-run julia --project=docs/ -e '
