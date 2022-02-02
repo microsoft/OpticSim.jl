@@ -62,9 +62,14 @@
         subdivs = Vector{Tuple{Int64,Int64}}(undef,0)
         areas = Vector(undef,0)
 
-        for cycles in 15:30
-            OpticSim.Repeat.Multilens.system_properties(15mm,(10mm,9mm),(100°,70°),3.5mm,.1,cycles)
+        try
+            for cycles in 15:30
+                OpticSim.Repeat.Multilens.system_properties(15mm,(10mm,9mm),(100°,70°),3.5mm,.1,cycles)
+            end
+        catch err #if any errors then failure
+            return false
         end
+        return true
     end
 
     @test generate_clusters() #shouldn't get assertion failures for any of the frequencies between 15:30
