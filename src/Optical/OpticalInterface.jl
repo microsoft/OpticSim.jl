@@ -55,6 +55,15 @@ transmission(::NullInterface{T}) where {T<:Real} = one(T)
 export NullInterface
 
 ######################################################################
+""" Interface that scales ray power according to the values stored in spectrum data. Assumes zero reflection and 100% reflection.
+
+Example
+"""
+struct FilterInterface{T} <: OpticalInterface{T}
+    spectrum::Vector{T}
+end
+
+######################################################################
 
 """
     ParaxialInterface{T} <: OpticalInterface{T}
