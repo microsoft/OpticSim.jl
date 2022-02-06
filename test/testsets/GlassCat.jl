@@ -194,7 +194,7 @@ using Unitful.DefaultSymbols
         @test index(Air, 600nm) == 1.0
 
         # test against true values
-        g = SCHOTT.N_BK7
+        g = OpticSim.Examples.Examples_N_BK7
         @test index(g, 533nm) ≈ 1.519417351519283 atol=1e-14
         @test index(g, 533nm, temperature=35°C) ≈ 1.519462486258311 atol=1e-14
         @test index(g, 533nm, pressure=2.0) ≈ 1.518994119690216 atol=1e-14
@@ -212,12 +212,12 @@ using Unitful.DefaultSymbols
         # test that everything is alloc-less
         @test (@wrappedallocs absorption(g, 600nm)) == 0
         @test (@wrappedallocs index(g, 533nm)) == 0
-        @test (@allocated SCHOTT.N_BK7) == 0
+        @test (@allocated OpticSim.Examples.Examples_N_BK7) == 0
 
-        @test glassforid(glassid(SCHOTT.N_BK7)) == SCHOTT.N_BK7
+        @test glassforid(glassid(OpticSim.Examples.Examples_N_BK7)) == OpticSim.Examples.Examples_N_BK7
 
         @test isair(Air) == true
-        @test isair(SCHOTT.N_BK7) == false
+        @test isair(OpticSim.Examples.Examples_N_BK7) == false
 
         # test MIL and model glasses
         fit_acc = 0.001
@@ -243,7 +243,7 @@ using Unitful.DefaultSymbols
         @test index(CARGILLE.OG0608, 0.578) == 1.4596475735607324
 
         # make sure that the other functions work
-        plot_indices(SCHOTT.N_BK7; polyfit = true, fiterror = true)
+        plot_indices(OpticSim.Examples.Examples_N_BK7; polyfit = true, fiterror = true)
     end
 
     @testset "Air.jl" begin
