@@ -144,7 +144,7 @@ function choosecluster(pupildiameter::Unitful.Length, lensletdiameter::Unitful.L
     end
 
     maxcluster = clusters[clusterindex](ratio*scale)
-    @assert Repeat.euclideandiameter(maxcluster) <= ustrip(mm,pupildiameter)
+    @assert isapprox(Repeat.euclideandiameter(maxcluster), ustrip(mm,pupildiameter))
 
     scaledlensletdiameter = lensletdiameter*ratio
     return (cluster = maxcluster, lensletdiameter = scaledlensletdiameter, packingdistance = pupildiameter * ustrip(mm, lensletdiameter))
