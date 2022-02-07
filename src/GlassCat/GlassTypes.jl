@@ -69,6 +69,32 @@ struct Glass <: AbstractGlass
     p::Float64
     meltfreq::Int
 
+    """Use this function to create custom glasses after build time. This will automatically update internal data structures consistently. The convention is for a family of glasses to be in their own module.
+    
+    Example:
+    
+    module MyGlasses
+        const myglass1 = Glass("$(@__MODULE__).myglass1",....)
+    end
+
+    using the @__MODULE__ macro is safer then typing the module name. If you decide to change the module name the glass names will automatically be updated.
+    """
+    function Glass(glassname::String, dispform, C1, C2, C3, C4, C5, C6, C7, C8, C9, C10, λmin, λmax, D₀, D₁, D₂, E₀, E₁, λₜₖ, temp, ΔPgF, PR, relcost, TCE, CR, status, SR, transmission, Nd, AR, FR, exclude_sub, Vd, ignore_thermal_exp, p, meltfreq)
+
+        index = length(AGF_GLASSES) + 1
+        if any(==(glassname,AGF_GLASS_NAMES))
+            throw(ErrorException("attempt to add a glass to the glass table that has the same name as an existing glass"))
+        end
+
+        push!(AGF_GLASS_NAMES,glassname)
+        tempid = GlassID(AGF,index)
+        newglass = Glass(tempid,dispform, C1, C2, C3, C4, C5, C6, C7, C8, C9, C10, λmin, λmax, D₀, D₁, D₂, E₀, E₁, λₜₖ, temp, ΔPgF, PR, relcost, TCE, CR, status, SR, transmission, Nd, AR, FR, exclude_sub, Vd, ignore_thermal_exp, p, meltfreq)
+        #add the new glass to the glasses table
+        push!(AGF_GLASSES,newglass)
+        return newglass
+    end
+
+    """For internal use only. End users should use the other Glass constructor that accepts a glassname rather than an id"""
     function Glass(ID::GlassID, dispform, C1, C2, C3, C4, C5, C6, C7, C8, C9, C10, λmin, λmax, D₀, D₁, D₂, E₀, E₁, λₜₖ, temp, ΔPgF, PR, relcost, TCE, CR, status, SR, transmission, Nd, AR, FR, exclude_sub, Vd, ignore_thermal_exp, p, meltfreq)
         # need a constructor to massage the transmission data
         if transmission === nothing
