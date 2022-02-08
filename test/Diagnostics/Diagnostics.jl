@@ -93,7 +93,7 @@ function visualizerefraction()
 end
 
 function plotreflectedvsrefractedpower()
-    lens = OpticSim.SphericalLens(OpticSim.GlassCat.SCHOTT.BAK50, 0.0, Inf64, Inf64, 5.0, 10.0)
+    lens = OpticSim.SphericalLens(OpticSim.Examples.Examples_BAK50, 0.0, Inf64, Inf64, 5.0, 10.0)
     reflectpow = Array{Float64,1}(undef, 0)
     refractpow = Array{Float64,1}(undef, 0)
     green = 500 * Unitful.u"nm"
