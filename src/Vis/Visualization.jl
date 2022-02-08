@@ -153,8 +153,8 @@ function make2dy(scene::Makie.LScene = current_3d_scene)
     # use 2d camera
     Makie.cam2d!(s)
 
-    scene_transform = Makie.qrotation(Makie.Vec3f0(0, 1, 0), 0.5pi)
-    scene_transform_inv = Makie.qrotation(Makie.Vec3f0(0, 1, 0), -0.5pi)    # to use with the ticks and names
+    scene_transform = Makie.qrotation(Makie.Vec3f(0, 1, 0), 0.5pi)
+    scene_transform_inv = Makie.qrotation(Makie.Vec3f(0, 1, 0), -0.5pi)    # to use with the ticks and names
 
     # set rotation to look onto yz plane
     s.transformation.rotation[] = scene_transform
@@ -186,8 +186,8 @@ function make2dx(scene::Makie.LScene = current_3d_scene)
     # use 2d camera
     Makie.cam2d!(s)
 
-    scene_transform= Makie.qrotation(Makie.Vec3f0(0, 0, 1), 0.5pi) * Makie.qrotation(Makie.Vec3f0(1, 0, 0), 0.5pi)
-    scene_transform_inv=Makie.qrotation(Makie.Vec3f0(1, 0, 0), -0.5pi) * Makie.qrotation(Makie.Vec3f0(0, 0, 1), -0.5pi) 
+    scene_transform= Makie.qrotation(Makie.Vec3f(0, 0, 1), 0.5pi) * Makie.qrotation(Makie.Vec3f(1, 0, 0), 0.5pi)
+    scene_transform_inv=Makie.qrotation(Makie.Vec3f(1, 0, 0), -0.5pi) * Makie.qrotation(Makie.Vec3f(0, 0, 1), -0.5pi) 
 
     # set rotation to look onto yz plane
     s.transformation.rotation[] = scene_transform
@@ -353,8 +353,8 @@ function draw!(scene::Makie.LScene, surf::Surface{T}; numdivisions::Int = 30, no
     end
     draw!(scene, mesh; kwargs..., normals = false)
     if normals
-        ndirs = Makie.Point3f0.(samplesurface(surf, normal, numdivisions ÷ 10))
-        norigins = Makie.Point3f0.(samplesurface(surf, point, numdivisions ÷ 10))
+        ndirs = Makie.Point3f.(samplesurface(surf, normal, numdivisions ÷ 10))
+        norigins = Makie.Point3f.(samplesurface(surf, point, numdivisions ÷ 10))
         Makie.arrows!(scene, norigins, ndirs, arrowsize = 0.2, arrowcolor = normalcolor, linecolor = normalcolor, linewidth = 2)
     end
 end
@@ -379,8 +379,8 @@ function draw!(scene::Makie.LScene, tmesh::TriangleMesh{T}; linewidth = 3, shade
     end
     if normals
         @warn "Normals being drawn from triangulated mesh, precision may be low"
-        norigins = [Makie.Point3f0(centroid(t)) for t in tmesh.triangles[1:10:end]]
-        ndirs = [Makie.Point3f0(normal(t)) for t in tmesh.triangles[1:10:end]]
+        norigins = [Makie.Point3f(centroid(t)) for t in tmesh.triangles[1:10:end]]
+        ndirs = [Makie.Point3f(normal(t)) for t in tmesh.triangles[1:10:end]]
         if length(norigins) > 0
             Makie.arrows!(scene, norigins, ndirs, arrowsize = 0.2, arrowcolor = normalcolor, linecolor = normalcolor, linewidth = 2)
         end
@@ -619,7 +619,7 @@ Draw a [`Ray`](@ref) in a given `color` optionally scaling the size using `raysc
 """
 function draw!(scene::Makie.LScene, ray::AbstractRay{T,N}; color = :yellow, rayscale = 1.0, kwargs...) where {T<:Real,N}
     arrow_size = min(0.05, rayscale * 0.05)
-    Makie.arrows!(scene, [Makie.Point3f0(origin(ray))], [Makie.Point3f0(rayscale * direction(ray))]; kwargs..., arrowsize = arrow_size, arrowcolor = color, linecolor = color, linewidth=arrow_size * 0.5)
+    Makie.arrows!(scene, [Makie.Point3f(origin(ray))], [Makie.Point3f(rayscale * direction(ray))]; kwargs..., arrowsize = arrow_size, arrowcolor = color, linecolor = color, linewidth=arrow_size * 0.5)
 end
 
 """
