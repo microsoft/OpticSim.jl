@@ -2,13 +2,16 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # See LICENSE in the project root for full license information.
 
+
 #TODO this is redundant. Many of these systems are already defined in Examples.otherexamples.jl. We should only have one copy 
+
 function cooketriplet(::Type{T} = Float64) where {T<:Real}
     return AxisymmetricOpticalSystem{T}(
         DataFrame(
             SurfaceType = ["Object", "Standard", "Standard", "Standard", "Stop", "Standard", "Standard", "Image"],
             Radius = [Inf, 26.777, 66.604, -35.571, 35.571, 35.571, -26.777, Inf],
             Thickness = [Inf, 4.0, 2.0, 4.0, 2.0, 4.0, 44.748, missing],
+
             Material = [Air, OpticSim.Examples.Examples_N_SK16, Air, OpticSim.Examples.Examples_N_SF2, Air, OpticSim.Examples.Examples_N_SK16, Air, missing],
             SemiDiameter = [Inf, 8.580, 7.513, 7.054, 6.033, 7.003, 7.506, 15.0]
         )
