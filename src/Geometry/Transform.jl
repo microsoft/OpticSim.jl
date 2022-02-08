@@ -209,7 +209,7 @@ id*m #returns a matrix filled with Unitful quantities. If both matrices had to b
 """
 Base.:*(transform::Transform{T},m::SMatrix{4,N,S}) where{N,T<:Real,S<:Number} = matrix(transform)*m
 
-Base.transpose(a::Transform{T}) where{T<:Real} = Transform{T}(a')
+Base.transpose(a::Transform{T}) where{T<:Real} = Transform{T}(a.matrix')
 
 # END of functions for compatibility with base matrix API
 
