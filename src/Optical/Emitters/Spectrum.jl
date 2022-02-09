@@ -88,7 +88,6 @@ struct Measured{T} <: AbstractSpectrum{T}
 
         power::Vector{T} where {T<:Real} = samples[!, :Power] # no missing values allowed and must be real numbers
         maxpower = maximum(power)
-        T = eltype(power)
         p = sortperm(wavelengths)
         wavelengths = wavelengths[p]
         power = power[p] ./ maxpower #make sure power values have the same sorted permutation as wavelengths normalized with maximum power equal to 1
