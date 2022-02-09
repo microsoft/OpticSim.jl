@@ -196,16 +196,15 @@ export anglesubdivisions
 
 
 """Computes the approximate fov required of each lenslet for the given constraints. This is strictly correct only for a lenslet centered in front of the eyebox, but the approximation is good enough for high level analysis"""
-function lensletangles(eyerelief::Unitful.Length, eyebox::NTuple{2,Unitful.Length}, pupildiameter::Unitful.Length; clusterproperties=defaultclusterproperties(), RGB=true)
+function lensletangles(eyerelief::Unitful.Length, eyebox::NTuple{2,Unitful.Length}, pupildiameter::Unitful.Length, clusterproperties, RGB=true)
     return eyeboxangles(eyebox, eyerelief) ./ anglesubdivisions(pupildiameter, clusterproperties.λ, clusterproperties.mtf, clusterproperties.cyclesperdegree, RGB=RGB)
 end
 export lensletangles
 
 
 """Multilens displays tradeoff pixel redundancy for a reduction in total track of the display, by using many short focal length lenses to cover the eyebox. This function computes the ratio of pixels in the multilens display vs. a conventional display of the same nominal resolution"""
-function pixelredundancy(fov, eyerelief::Unitful.Length, eyebox::NTuple{2,Unitful.Length}, pupildiameter::Unitful.Length, lensletdiameter; RGB=true)
+function pixelredundancy(fov, eyerelief::Unitful.Length, eyebox::NTuple{2,Unitful.Length}, pupildiameter::Unitful.Length, lensletdiameter,angles; RGB=true)
     nominalresolution = ustrip.(°, fov)  #remove degree units so pixel redundancy doesn't have units of °^-2
-    angles = lensletangles(eyerelief, eyebox, pupildiameter, RGB=RGB)
     numlenses = numberoflenslets(fov, eyerelief, lensletdiameter)
     return (numlenses * angles[1] * angles[2]) / ( nominalresolution[1] * nominalresolution[2])
 end
@@ -258,15 +257,19 @@ Dict{Symbol, Any} with 14 entries:
 
 ```
 """
-function system_properties(eyerelief::Unitful.Length, eyebox::NTuple{2,Unitful.Length}, fov, pupildiameter::Unitful.Length, mtf, cyclesperdegree; minfnumber=2.0,RGB=true,λ=530nm,pixelpitch=.9μm, maxdisplaysize = 250μm)::Dict{Symbol,Any}
+function system_properties(eyerelief::Unitful.Length, eyebox::NTuple{2,Unitful.Length}, fov, pupildiameter::Unitful.Length, mtf, cyclesperdegree; minfnumber=2.0,RGB=true,λ=530nm,pixelpitch=.9μm, maxdisplaysize = 250μm,eyebox_subdivisions::Union{Nothing,Tuple{Int,Int}} = nothing)::Dict{Symbol,Any}
     diameter = diameter_for_cycles_deg(mtf, cyclesperdegree, λ)
     clusterdata = choosecluster(pupildiameter, diameter)
     difflimit = diffractionlimit(λ, clusterdata.lensletdiameter)
     numlenses = numberoflenslets(fov, eyerelief, clusterdata.lensletdiameter)
-    redundancy = pixelredundancy(fov, eyerelief, eyebox, pupildiameter,clusterdata.lensletdiameter,  RGB=RGB)
-    subdivisions = anglesubdivisions(pupildiameter, λ, mtf, cyclesperdegree, RGB=RGB)
+    if eyebox_subdivisions === nothing
+        subdivisions = anglesubdivisions(pupildiameter, λ, mtf, cyclesperdegree, RGB=RGB)
+    else
+        subdivisions = eyebox_subdivisions
+    end
     eyebox_angles = eyeboxangles(eyebox,eyerelief)
-    angles = lensletangles(eyerelief, eyebox, pupildiameter, clusterproperties=(mtf = mtf, minfnumber = minfnumber, cyclesperdegree = cyclesperdegree, λ = λ, pixelpitch = pixelpitch))
+    angles = lensletangles(eyerelief, eyebox, pupildiameter, (mtf = mtf, minfnumber = minfnumber, cyclesperdegree = cyclesperdegree, λ = λ, pixelpitch = pixelpitch))
+    redundancy = pixelredundancy(fov, eyerelief, eyebox, pupildiameter,clusterdata.lensletdiameter, angles,  RGB=RGB)
 
     focal_length = compute_focal_length(angles,clusterdata.lensletdiameter,minfnumber,maxdisplaysize)
     dispsize = lensletdisplaysize(angles,focal_length)
