@@ -6,7 +6,7 @@ using DelimitedFiles: readdlm # used in agffile_to_catalog
 using StringEncodings
 using StaticArrays
 using Unitful
-import Unitful: Length, Temperature, Quantity, Units
+import Unitful: Length, Temperature
 
 """
     generate_jls(sourcenames::Vector{<:AbstractString}, mainfile::AbstractString, jldir::AbstractString, agfdir::AbstractString; test::Bool = false)
