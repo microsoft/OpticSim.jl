@@ -203,28 +203,15 @@ export lensletangles
 
 
 """Multilens displays tradeoff pixel redundancy for a reduction in total track of the display, by using many short focal length lenses to cover the eyebox. This function computes the ratio of pixels in the multilens display vs. a conventional display of the same nominal resolution"""
-function pixelredundancy(fov, eyerelief::Unitful.Length, eyebox::NTuple{2,Unitful.Length}, pupildiameter::Unitful.Length, ppd; RGB=true)
-    lensprops = defaultclusterproperties()
-    clusterdata = choosecluster(pupildiameter, lensprops.λ, lensprops.mtf, lensprops.cyclesperdegree)
-    nominalresolution = ustrip.(°, fov) .* ppd #remove degree units so pixel redundancy doesn't have units of °^-2
+function pixelredundancy(fov, eyerelief::Unitful.Length, eyebox::NTuple{2,Unitful.Length}, pupildiameter::Unitful.Length, lensletdiameter; RGB=true)
+    nominalresolution = ustrip.(°, fov)  #remove degree units so pixel redundancy doesn't have units of °^-2
     angles = lensletangles(eyerelief, eyebox, pupildiameter, RGB=RGB)
-    pixelsperlenslet = angles .* ppd
-    numlenses = numberoflenslets(fov, eyerelief, clusterdata.lensletdiameter)
-    return (numlenses * pixelsperlenslet[1] * pixelsperlenslet[2]) / ( nominalresolution[1] * nominalresolution[2])
+    numlenses = numberoflenslets(fov, eyerelief, lensletdiameter)
+    return (numlenses * angles[1] * angles[2]) / ( nominalresolution[1] * nominalresolution[2])
 end
 export pixelredundancy
 
 label(color) = color ? "RGB" : "Monochrome"
-
-"""generates a contour plot showing pixel redundancy as a function of ppd and pupil diameter"""
-function redundancy_ppdvspupildiameter()
-    x = 20:2:45
-    y = 3.0:.05:4
-
-    RGB = true
-    Plots.plot(Plots.contour(x, y, (x, y) -> pixelredundancy((50, 35), 18mm, (10mm, 6mm), y * mm, x, RGB=RGB), fill=true, xlabel="pixels per degree", ylabel="pupil diameter", legendtitle="pixel redundancy", title="$(label(RGB)) lenslets"))
-end
-export redundancy_ppdvspupildiameter
 
 """generates a contour plot of lenslet display size as a function of ppd and pupil diameter"""
 function displaysize_ppdvspupildiameter()
@@ -276,7 +263,7 @@ function system_properties(eyerelief::Unitful.Length, eyebox::NTuple{2,Unitful.L
     clusterdata = choosecluster(pupildiameter, diameter)
     difflimit = diffractionlimit(λ, clusterdata.lensletdiameter)
     numlenses = numberoflenslets(fov, eyerelief, clusterdata.lensletdiameter)
-    redundancy = pixelredundancy(fov, eyerelief, eyebox, pupildiameter, difflimit, RGB=RGB)
+    redundancy = pixelredundancy(fov, eyerelief, eyebox, pupildiameter,clusterdata.lensletdiameter,  RGB=RGB)
     subdivisions = anglesubdivisions(pupildiameter, λ, mtf, cyclesperdegree, RGB=RGB)
     eyebox_angles = eyeboxangles(eyebox,eyerelief)
     angles = lensletangles(eyerelief, eyebox, pupildiameter, clusterproperties=(mtf = mtf, minfnumber = minfnumber, cyclesperdegree = cyclesperdegree, λ = λ, pixelpitch = pixelpitch))
