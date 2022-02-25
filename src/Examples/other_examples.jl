@@ -182,7 +182,7 @@ end
 function planoplano(::Type{T} = Float64) where {T<:Real}
     AxisymmetricOpticalSystem{T}(
         DataFrame(
-            SurfaceType = ["Object", 1, 2, "Image"],
+            SurfaceType = ["Object", "Standard", "Standard", "Image"],
             Radius = [Inf64, Inf64, Inf64, Inf64],
             Thickness = [Inf64, 10.0, 57.8, missing],
             Material = [Air, Examples_N_BK7, Air, missing],
