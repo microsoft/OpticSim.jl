@@ -761,7 +761,7 @@ function plotOPD!(sys::AxisymmetricOpticalSystem{T}; label = nothing, color = no
             end
         end
     end
-    raygenerator = RayListSource(rays)
+    raygenerator = Emitters.Sources.RayListSource(rays)
     chiefray = OpticalRay(sourcepos, -sourcepos, 1.0, wavelength)
     chiefres = trace(sys, chiefray, test = true)
     xs = Vector{T}()

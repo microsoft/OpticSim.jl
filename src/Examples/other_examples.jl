@@ -191,20 +191,6 @@ function planoplano(::Type{T} = Float64) where {T<:Real}
     )
 end
 
-function autodrawrays(lens::AxisymmetricOpticalSystem = cooketriplet(), angle = 10; kwargs...)
-    f1 = HexapolarField(lens, collimated = true, wavelength = 0.45, sourcenum = 1)
-    Vis.drawtracerays(lens, raygenerator = f1, test = true, trackallrays = true, colorbysourcenum = true; kwargs...)
-    f2 = HexapolarField(lens, collimated = true, wavelength = 0.45, sourceangle = angle / 180 * π, sourcenum = 2)
-    Vis.drawtracerays!(lens, raygenerator = f2, test = true, trackallrays = true, colorbysourcenum = true; kwargs...)
-end
-
-function autospotdiag(lens::AxisymmetricOpticalSystem = cooketriplet(); kwargs...)
-    f1 = HexapolarField(lens, collimated = true, wavelength = 0.45, sourcenum = 1)
-    f2 = HexapolarField(lens, collimated = true, wavelength = 0.45, sourceangle = 5 / 180 * π, sourcenum = 2)
-    f3 = HexapolarField(lens, collimated = true, wavelength = 0.45, sourceangle = 10 / 180 * π, sourcenum = 3)
-    Vis.spotdiaggrid(lens, [f1, f2, f3]; kwargs...)
-end
-
 # Display the spot diagram of a simple cooketriplet lens
 function hexapolarspotdiagramexample(lens = cooketriplet(), numrings::Int = 5, angle = 0.0)
     Vis.spotdiag(lens, samples = numrings, sourceangle = angle)
@@ -249,7 +235,7 @@ function prism_refraction()
         r = OpticalRay(SVector(0.0, -3.0, 10.0), SVector(0.0, 0.5, -1.0), 1.0, λ)
         push!(rays, r)
     end
-    raygen = RayListSource(rays)
+    raygen = Emitters.Sources.RayListSource(rays)
     # draw the result
     Vis.drawtracerays(sys, raygenerator = raygen, test = true, trackallrays = true)
 end
@@ -311,7 +297,7 @@ function eyetrackHOE(nrays = 5000, det = false, showhead = true, zeroorder = fal
     barrelloc = camloc - barrellength / 2 * camdir_norm
     barreltop = Plane(camdir_norm, camloc)
     barrelbot = Plane(-camdir_norm, camloc - 3 * barrellength * camdir_norm)
-    barrelrot = OpticSim.rotmatbetween(SVector(0.0, 0.0, 1.0), camdir_norm)
+    barrelrot = OpticSim.Geometry.rotmatbetween(SVector(0.0, 0.0, 1.0), camdir_norm)
     cambarrel = (
         barrelbot ∩
         barreltop ∩
@@ -333,7 +319,7 @@ function eyetrackHOE(nrays = 5000, det = false, showhead = true, zeroorder = fal
         p = point(rect, rand() * 2 - 1, rand() * 2 - 1)
         rays[i] = OpticalRay(sourceloc, p - sourceloc, 1.0, 0.78)
     end
-    source = RayListSource(rays)
+    source = Emitters.Sources.RayListSource(rays)
 
     sys = CSGOpticalSystem(LensAssembly(obj, cornea, camlens, cambarrel, camap), camdet, 800, 800)
     if det

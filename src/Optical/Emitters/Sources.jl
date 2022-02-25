@@ -22,6 +22,15 @@ Base.firstindex(s::AbstractSource) = 0
 Base.lastindex(s::AbstractSource) = length(s) - 1
 Base.copy(a::AbstractSource) = a # most don't have any heap allocated stuff so don't really need copying
 
+""" Simple ray generator that takes a vector of OpticalRay objects."""
+struct RayListSource{T,N} <: AbstractSource{T}
+    rays::Vector{OpticalRay{T,N}}
+end
+
+iterate(raylist::RayListSource) = iterate(raylist.rays)
+iterate(raylist::RayListSource, state) = iterate(raylist.rays,state)
+generate(raylist::RayListSource,state) = state >= length(raylist.rays) ? nothing : raylist.rays[state+1]
+
 """
     Source{T<:Real, Tr<:Transform{T}, S<:Spectrum.AbstractSpectrum{T}, O<:Origins.AbstractOriginDistribution{T}, D<:Directions.AbstractDirectionDistribution{T}, P<:AngularPower.AbstractAngularPowerDistribution{T}} <: AbstractSource{T}
 
