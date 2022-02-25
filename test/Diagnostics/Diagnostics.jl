@@ -3,6 +3,8 @@
 # See LICENSE in the project root for full license information.
 
 # Programs used to visualize output, profile code or perform debugging tasks, as opposed to unit testing
+
+# WARNING: many of the functions in this module depend on old functions such as HexapolarField which no longer exist
 module Diagnostics
 
 using OpticSim
@@ -151,29 +153,6 @@ function doubleconvex(a::AbstractVector{T}; detpix::Int = 100) where {T<:Real}
         SemiDiameter = [T(Inf64), T(9.0), T(9.0), T(15.0)],
     ), detpix, detpix, T, temperature = OpticSim.GlassCat.TEMP_REF_UNITFUL, pressure = OpticSim.GlassCat.PRESSURE_REF)
     #! format: on
-end
-
-function RMS_spot_size(a::AbstractVector{T}, b::AxisymmetricOpticalSystem{T}, samples::Int = 3) where {T}
-    # RMSE spot size
-    lens = Optimization.updateoptimizationvariables(b, a)
-    field = HexapolarField(lens, collimated = true, samples = samples)
-    error = zero(T)
-    hits = 0
-    for r in field
-        traceres = OpticSim.trace(lens, r, test = true)
-        if traceres !== nothing
-            hitpoint = point(traceres)
-            if abs(hitpoint[1]) > eps(T) && abs(hitpoint[2]) > eps(T)
-                dist_to_axis = hitpoint[1]^2 + hitpoint[2]^2
-                error += dist_to_axis
-            end
-            hits += 1
-        end
-    end
-    if hits > 0
-        error = sqrt(error / hits)
-    end
-    return error
 end
 
 function testfinitedifferences()
