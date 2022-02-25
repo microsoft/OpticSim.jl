@@ -136,7 +136,7 @@ using Ipopt
 using Zygote
 using NLopt
 
-doubleconvexprescription() = DataFrame(SurfaceType = ["Object", "Standard", "Standard", "Image"], Radius = [(Inf64), 60.0, -60.0, (Inf64)], Thickness = [(Inf64), (10.0), (77.8), missing], Material = [OpticSim.GlassCat.Air, OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air, missing], SemiDiameter = [(Inf64), (9.0), (9.0), (15.0)])
+doubleconvexprescription() = DataFrame(SurfaceType = ["Object", "Standard", "Standard", "Image"], Radius = [(Inf64), 60.0, -60.0, (Inf64)], Thickness = [(Inf64), (10.0), (77.8), missing], Material = [OpticSim.GlassCat.Air, OpticSim.Examples.Examples_N_BK7, OpticSim.GlassCat.Air, missing], SemiDiameter = [(Inf64), (9.0), (9.0), (15.0)])
 
 function doubleconvex(a::AbstractVector{T}; detpix::Int = 100) where {T<:Real}
     frontradius = a[1]
@@ -147,7 +147,7 @@ function doubleconvex(a::AbstractVector{T}; detpix::Int = 100) where {T<:Real}
         Radius = [T(Inf64), frontradius, rearradius, T(Inf64)],
         Conic = [missing, -1.0, 1.0, missing],
         Thickness = [T(Inf64), T(10.0), T(77.8), missing],
-        Material = [OpticSim.GlassCat.Air, OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air, missing],
+        Material = [OpticSim.GlassCat.Air, OpticSim.Examples.Examples_N_BK7, OpticSim.GlassCat.Air, missing],
         SemiDiameter = [T(Inf64), T(9.0), T(9.0), T(15.0)],
     ), detpix, detpix, T, temperature = OpticSim.GlassCat.TEMP_REF_UNITFUL, pressure = OpticSim.GlassCat.PRESSURE_REF)
     #! format: on

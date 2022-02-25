@@ -6,7 +6,7 @@
 export draw_cooketriplet, draw_schmidtcassegraintelescope, draw_lensconstruction, draw_zoomlenses, draw_HOEfocus, draw_HOEcollimate, draw_multiHOE, draw_stackedbeamsplitters
 
 function draw_cooketriplet(filename::Union{Nothing,AbstractString} = nothing)
-    g1, g2 = SCHOTT.N_SK16, SCHOTT.N_SF2
+    g1, g2 = Examples_N_SK16, Examples_N_SF2
     sys = AxisymmetricOpticalSystem{Float64}(DataFrame(
         SurfaceType  = ["Object", "Standard", "Standard", "Standard", "Stop", "Standard", "Standard", "Image"],
         Radius       = [Inf,      26.777,     66.604,     -35.571,    35.571, 35.571,     -26.777,    Inf    ],
@@ -67,7 +67,7 @@ function draw_schmidtcassegraintelescope(filename::Union{Nothing,AbstractString}
     topsurf = Plane(
         SVector(0.0, 0.0, 1.0),
         SVector(0.0, 0.0, 0.0),
-        interface = FresnelInterface{Float64}(SCHOTT.N_BK7, Air),
+        interface = FresnelInterface{Float64}(Examples_N_BK7, Air),
         vishalfsizeu = 12.00075,
         vishalfsizev = 12.00075)
     botsurf = AcceleratedParametricSurface(ZernikeSurface(
@@ -75,19 +75,19 @@ function draw_schmidtcassegraintelescope(filename::Union{Nothing,AbstractString}
         radius = -1.14659768e+4,
         aspherics = [(4, 3.68090959e-7), (6, 2.73643352e-11), (8, 3.20036892e-14)]),
         17,
-        interface = FresnelInterface{Float64}(SCHOTT.N_BK7, Air))
+        interface = FresnelInterface{Float64}(Examples_N_BK7, Air))
     coverlens = Cylinder(12.00075, 1.4) ∩ topsurf ∩ leaf(botsurf, Transform(rotmatd(0, 180, 0), Vec3(0.0, 0.0, -0.65)))
 
     # big mirror with a hole in it
     frontsurfacereflectance = 1.0
     bigmirror = (
-        ConicLens(SCHOTT.N_BK7, -72.65, -95.2773500000134, 0.077235, Inf, 0.0, 0.2, 12.18263; frontsurfacereflectance) -
+        ConicLens(Examples_N_BK7, -72.65, -95.2773500000134, 0.077235, Inf, 0.0, 0.2, 12.18263; frontsurfacereflectance) -
         leaf(Cylinder(4.0, 0.3, interface = opaqueinterface()), translation(0.0, 0.0, -72.75))
     )
 
     # small mirror supported on a spider
     backsurfacereflectance = 1.0
-    smallmirror = SphericalLens(SCHOTT.N_BK7, -40.65, Inf, -49.6845, 1.13365, 4.3223859; backsurfacereflectance)
+    smallmirror = SphericalLens(Examples_N_BK7, -40.65, Inf, -49.6845, 1.13365, 4.3223859; backsurfacereflectance)
 
     obscuration1 = Circle(4.5, SVector(0.0, 0.0, 1.0), SVector(0.0, 0.0, -40.649), interface = opaqueinterface())
     obscurations2 = Spider(3, 0.5, 12.0, SVector(0.0, 0.0, -40.65))
@@ -119,16 +119,16 @@ function draw_lensconstruction(filename::Union{Nothing,AbstractString} = nothing
                 αcoeffs = [(1, 0, 0.3), (1, 1, 1.0)],
                 βcoeffs = [(1, 0, -0.1), (2, 0, 0.4), (3, 0, -0.6)],
                 normradius = 9.5),
-            interface = FresnelInterface{Float64}(SCHOTT.N_BK7, Air)),
+            interface = FresnelInterface{Float64}(Examples_N_BK7, Air)),
         translation(0.0, 0.0, 5.0))
     botsurface = Plane(
         SVector(0.0, 0.0, -1.0),
         SVector(0.0, 0.0, -5.0),
         vishalfsizeu = 9.5,
         vishalfsizev = 9.5,
-        interface = FresnelInterface{Float64}(SCHOTT.N_BK7, Air))
+        interface = FresnelInterface{Float64}(Examples_N_BK7, Air))
     barrel = Cylinder(
-        9.0, 20.0, interface = FresnelInterface{Float64}(SCHOTT.N_BK7, Air, reflectance=0.0, transmission=0.0)
+        9.0, 20.0, interface = FresnelInterface{Float64}(Examples_N_BK7, Air, reflectance=0.0, transmission=0.0)
     )
     lens = (barrel ∩ topsurface ∩ botsurface)(Transform(0.0, Float64(π), 0.0, 0.0, 0.0, -5.0))
     detector = Rectangle(15.0, 15.0, [0.0, 0.0, 1.0], [0.0, 0.0, -67.8], interface = opaqueinterface())
@@ -144,7 +144,7 @@ function draw_HOEfocus(filename::Union{Nothing,AbstractString} = nothing)
     int = HologramInterface(
         SVector(0.0, -3.0, -20.0), ConvergingBeam,
         SVector(0.0, 0.0, -1.0), CollimatedBeam,
-        0.55, 9.0, Air, SCHOTT.N_BK7, Air, Air, Air, 0.05, false)
+        0.55, 9.0, Air, Examples_N_BK7, Air, Air, Air, 0.05, false)
     obj = HologramSurface(rect, int)
     sys = CSGOpticalSystem(
         LensAssembly(obj),
@@ -167,7 +167,7 @@ function draw_HOEcollimate(filename::Union{Nothing,AbstractString} = nothing)
     int = HologramInterface(
         SVector(0.1, -0.05, -1.0), CollimatedBeam,
         SVector(0.0, 0.0, 10), DivergingBeam,
-        0.55, 9.0, Air, SCHOTT.N_BK7, Air, Air, Air, 0.05, false)
+        0.55, 9.0, Air, Examples_N_BK7, Air, Air, Air, 0.05, false)
     obj = HologramSurface(rect, int)
     sys = CSGOpticalSystem(
         LensAssembly(obj),
@@ -190,11 +190,11 @@ function draw_multiHOE(filename::Union{Nothing,AbstractString} = nothing)
     int1 = HologramInterface(
         SVector(-5.0, 0.0, -20.0), ConvergingBeam,
         SVector(0.0, -1.0, -1.0), CollimatedBeam,
-        0.55, 100.0, Air, SCHOTT.N_BK7, Air, Air, Air, 0.05, false)
+        0.55, 100.0, Air, Examples_N_BK7, Air, Air, Air, 0.05, false)
     int2 = HologramInterface(
         SVector(5.0, 0.0, -20.0), ConvergingBeam,
         SVector(0.0, 1.0, -1.0), CollimatedBeam,
-        0.55, 100.0, Air, SCHOTT.N_BK7, Air, Air, Air, 0.05, false)
+        0.55, 100.0, Air, Examples_N_BK7, Air, Air, Air, 0.05, false)
     mint = MultiHologramInterface(int1, int2)
     obj = MultiHologramSurface(rect, mint)
     sys = CSGOpticalSystem(
@@ -224,13 +224,13 @@ function draw_stackedbeamsplitters(filenames::Vector{<:Union{Nothing,AbstractStr
     interfacemodes = [ReflectOrTransmit, Transmit, Reflect]
 
     for (interfacemode, filename) in zip(interfacemodes, filenames)
-        interface = FresnelInterface{Float64}(SCHOTT.N_BK7, Air; reflectance=0.5, transmission=0.5, interfacemode)
+        interface = FresnelInterface{Float64}(Examples_N_BK7, Air; reflectance=0.5, transmission=0.5, interfacemode)
         bs_1 = OpticSim.transform(
                 Cuboid(10.0, 20.0, 2.0, interface=interface),
                 translation(0.0, 0.0, -30.0-2*sqrt(2))*rotationX(π/4))
 
         l1 = OpticSim.transform(
-            SphericalLens(SCHOTT.N_BK7, -70.0, 30.0, Inf, 5.0, 10.0),
+            SphericalLens(Examples_N_BK7, -70.0, 30.0, Inf, 5.0, 10.0),
             translation(0.0, -1.34, 0.0))
 
         bs_2 = OpticSim.transform(
@@ -238,7 +238,7 @@ function draw_stackedbeamsplitters(filenames::Vector{<:Union{Nothing,AbstractStr
             translation(0.0, 40.0, -30.0+2*sqrt(2))*rotationX(π/4))
             
         l2 = OpticSim.transform(
-            SphericalLens(SCHOTT.N_BK7, -70.0, 30.0, Inf, 5.0, 10.0),
+            SphericalLens(Examples_N_BK7, -70.0, 30.0, Inf, 5.0, 10.0),
             translation(0.0, 40.0, 0.0))
 
         la = LensAssembly(bs_1(), l1(), bs_2(), l2())
