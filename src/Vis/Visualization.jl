@@ -792,30 +792,6 @@ function spotdiag(sys::CSGOpticalSystem{T}, raygenerator::OpticalRayGenerator{T}
     return spotdiag!(sys, raygenerator; kwargs...)
 end
 
-"""
-    spotdiag(sys::AxisymmetricOpticalSystem{T}; size = (500, 500), hexapolar::Bool = true, collimated::Bool = true, samples::Int = 5, wavelength::T = 0.55, sourceangle::T = zero(T), sourcepos::SVector{3,T} = SVector{3,T}(0.0, 0.0, 10.0), kwargs...)
-
-Plot a spot diagram for an [`AxisymmetricOpticalSystem`](@ref), rays are distributed across the entrance pupil of the system either in a hexapolar of rectangular grid pattern depending on `hexapolar`.
-
-The input rays can be `collimated`, in which case the `sourceangle` parameter determines their direction.
-Otherwise rays are treated as coming from a point source at `sourcepos`.
-
-Also `spotdiag!` of the same arguments to add to an existing plot.
-"""
-function spotdiag(sys::AxisymmetricOpticalSystem{T}; kwargs...) where {T<:Real}
-    Plots.plot()
-    return spotdiag!(sys; kwargs...)
-end
-
-function spotdiag!(sys::AxisymmetricOpticalSystem{T}; color = nothing, hexapolar::Bool = true, collimated::Bool = true, samples::Int = 5, wavelength::T = 0.55, sourceangle::T = zero(T), sourcepos::SVector{3,T} = SVector{3,T}(0.0, 0.0, 10.0), kwargs...) where {T<:Real}
-    if hexapolar
-        source = HexapolarField(sys, samples = samples, collimated = collimated, wavelength = wavelength, sourcepos = sourcepos, sourceangle = sourceangle)
-    else
-        source = GridField(sys, samples = samples, collimated = collimated, wavelength = wavelength, sourcepos = sourcepos, sourceangle = sourceangle)
-    end
-    return spotdiag!(sys.system, source, color = color; kwargs...)
-end
-
 function spotdiag!(sys::CSGOpticalSystem{T}, raygenerator::OpticalRayGenerator{T}; color = nothing, label = nothing, size = (500, 500), kwargs...) where {T<:Real}
     xs = Vector{T}()
     ys = Vector{T}()
