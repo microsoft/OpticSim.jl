@@ -29,7 +29,7 @@ end
 
 Base.length(raylist::RayListSource) = length(raylist.rays)
 Base.iterate(raylist::RayListSource) = length(raylist.rays) == 0 ? nothing : (raylist.rays[1],1)
-Base.iterate(raylist::RayListSource, state) = state > length(raylist.rays) ? nothing : (raylist.rays[state],state)
+Base.iterate(raylist::RayListSource, state) = state > length(raylist.rays) ? nothing : (raylist.rays[state+1],state+1)
 
 """
     Source{T<:Real, Tr<:Transform{T}, S<:Spectrum.AbstractSpectrum{T}, O<:Origins.AbstractOriginDistribution{T}, D<:Directions.AbstractDirectionDistribution{T}, P<:AngularPower.AbstractAngularPowerDistribution{T}} <: AbstractSource{T}
