@@ -191,15 +191,6 @@ function planoplano(::Type{T} = Float64) where {T<:Real}
     )
 end
 
-# Display the spot diagram of a simple cooketriplet lens
-function hexapolarspotdiagramexample(lens = cooketriplet(), numrings::Int = 5, angle = 0.0)
-    Vis.spotdiag(lens, samples = numrings, sourceangle = angle)
-end
-
-function cartesiangridspotdiagramexample(lens = cooketriplet(), numsamples::Int = 5, angle = 0.0)
-    Vis.spotdiag(lens, hexapolar = false, samples = numsamples, sourceangle = angle)
-end
-
 function prism_refraction()
     # build the triangular prism
     int = FresnelInterface{Float64}(Examples_N_SF14, Air)
