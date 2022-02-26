@@ -27,9 +27,9 @@ struct RayListSource{T,N} <: AbstractSource{T}
     rays::Vector{OpticalRay{T,N}}
 end
 
-iterate(raylist::RayListSource) = iterate(raylist.rays)
-iterate(raylist::RayListSource, state) = iterate(raylist.rays,state)
-generate(raylist::RayListSource,state) = state >= length(raylist.rays) ? nothing : raylist.rays[state+1]
+iterate(raylist::RayListSource) = length(raylist.rays) == 0 ? nothing : (raylist.rays[1],1)
+iterate(raylist::RayListSource, state) = state >= length(raylist.rays) ? nothing : (raylist.rays[state],state+1)
+generate(raylist::RayListSource,state) = state >= length(raylist.rays) ? nothing : raylist.rays[state]
 
 """
     Source{T<:Real, Tr<:Transform{T}, S<:Spectrum.AbstractSpectrum{T}, O<:Origins.AbstractOriginDistribution{T}, D<:Directions.AbstractDirectionDistribution{T}, P<:AngularPower.AbstractAngularPowerDistribution{T}} <: AbstractSource{T}

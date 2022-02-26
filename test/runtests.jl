@@ -95,7 +95,8 @@ end
 include("Benchmarks/Benchmarks.jl")
 
 alltestsets = [
-     "Lenses",
+    "Emitters",
+    "Lenses",
     "Comparison",
     "Paraxial",
    "ParaxialAnalysis",
@@ -108,8 +109,7 @@ alltestsets = [
     "SurfaceDefs",
     "Intersection",
     "OpticalSystem",
-    "Emitters",
-    "Allocations",
+   "Allocations",
     "GlassCat",  
     "Visualization"
 ]
