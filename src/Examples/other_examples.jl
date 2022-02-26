@@ -191,6 +191,7 @@ function planoplano(::Type{T} = Float64) where {T<:Real}
     )
 end
 
+"""This example no longer works correctly. The visualization code needs to be updated to support RayListSource"""
 function prism_refraction()
     # build the triangular prism
     int = FresnelInterface{Float64}(Examples_N_SF14, Air)
@@ -237,7 +238,7 @@ function fresnel(convex = true; kwargs...)
     Vis.drawtracerays(sys; test = true, trackallrays = true, numdivisions = 30, kwargs...)
 end
 
-
+"""This example no longer works correctly. The visualization code needs to be updated to support RayListSource"""
 function eyetrackHOE(nrays = 5000, det = false, showhead = true, zeroorder = false; kwargs...)
     # TODO update for new specs from Chris
     hoehalfwidth = 50.0 #25.0
