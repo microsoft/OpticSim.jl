@@ -198,7 +198,9 @@ function FresnelLens(insidematerial::G, frontvertex::T, radius::T, thickness::T,
     backplane = leaf(Plane(zero(T), zero(T), -one(T), zero(T), zero(T), frontvertex - thickness, vishalfsizeu = semidiameter, vishalfsizev = semidiameter))
     fresnel = backplane ∩ fresnel
     if !reverse
-        fresnel = leaf(fresnel, rotationd(T, zero(T), T(180.0), zero(T)))
+        fresnel = fresnel(rotationd(T, zero(T), T(180.0), zero(T)))
+    else
+        fresnel = fresnel(Geometry.identitytransform())
     end
     return fresnel
 end
