@@ -95,11 +95,11 @@ function visualizerefraction()
 end
 
 function plotreflectedvsrefractedpower()
-    lens = OpticSim.SphericalLens(OpticSim.Examples.Examples_BAK50, 0.0, Inf64, Inf64, 5.0, 10.0)
+    lens = OpticSim.SphericalLens(OpticSim.Examples.Examples_N_BK7, 0.0, Inf64, Inf64, 5.0, 10.0)
     reflectpow = Array{Float64,1}(undef, 0)
     refractpow = Array{Float64,1}(undef, 0)
     green = 500 * Unitful.u"nm"
-    glass = OpticSim.GlassCat.SCHOTT.BAK50
+    glass = OpticSim.Examples.Examples_N_BK7
 
     incidentindex = OpticSim.GlassCat.index(glass, green)
     transmittedindex = OpticSim.GlassCat.index(OpticSim.GlassCat.Air, green)
