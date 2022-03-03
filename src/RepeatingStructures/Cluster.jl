@@ -128,8 +128,17 @@ export cluster_coordinates_from_tile_coordinates
 
 cluster_coordinates_from_tile_coordinates(cluster::S,coords::NTuple{2,Int64}) where{N1,N, S<:AbstractLatticeCluster{N1,N}} = cluster_coordinates_from_tile_coordinates(cluster,coords...)
 
+abstract type ClusterColors end
+abstract type MonochromeCluster <: ClusterColors end
+abstract type RGBCluster <: ClusterColors end
+
+
+
 """
 May want to have many properties associated with the elements in a cluster, which is why properties is represented as a DataFrame. The DataFrame in the properties field should have as many rows as there are elements in a cluster. At a minimum it must have a :Color and a :Name column.
+
+Clusters can be type tagged as being either MonochromeCluster or RGBCluster. If you are using the lenslet assignment functions in Multilens
+then you should explicitly include an RGB type if the cluster has RGB lenslets.
 
 Example: a lattice cluster of three hexagonal elements, labeled R,G,B with colors red,green,blue.
 
@@ -142,13 +151,16 @@ function hex3RGB()
     clusterbasis = LatticeBasis(( -1,2),(2,-1)) #lattice indices, in the element lattice basis, representing the repeating pattern of the cluster
     lattice = LatticeCluster(clusterbasis,eltlattice,clusterelements)
     properties =  DataFrame(Color = colors, Name = names)
-    return ClusterWithProperties(lattice,properties)
+    return ClusterWithProperties{RGBCluster}(lattice,properties) #NOTE: this is an RGB cluster so it has been explicitly tagged with an RGBCluster type.
 end
 ```
 """
-struct ClusterWithProperties{N1,N,T} <: AbstractLatticeCluster{N1,N}
+struct ClusterWithProperties{N1,N,T,Q<:ClusterColors} <: AbstractLatticeCluster{N1,N}
     cluster::LatticeCluster{N1,N,T}
     properties::DataFrame
+
+    ClusterWithProperties(cluster::L,properties::D) where{L<:LatticeCluster,D<:DataFrame} = ClusterWithProperties{MonochromeCluster}(cluster,properties)
+    ClusterWithProperties{Q}(cluster::L,properties::D) where{N1,N,T,Q<:ClusterColors,L<:LatticeCluster{N1,N,T},D<:DataFrame} = new{N1,N,T,Q}(cluster,properties)
 end
 export ClusterWithProperties
 

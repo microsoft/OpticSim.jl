@@ -117,6 +117,7 @@ function subdivide(poly::T, xsubdivisions, ysubdivisions)::Vector{T} where{T<:SM
 end
 export subdivide
 
+"""Assigns an eyebox to each lenslet in the cluster"""
 function eyebox_number(tilecoords::NTuple{2,Int64},cluster::R,num_eyeboxes::Integer)::Int64 where {R<:AbstractLatticeCluster}
     _, tile_index = cluster_coordinates_from_tile_coordinates(cluster,tilecoords)
     eyeboxnum = mod(tile_index-1,num_eyeboxes) + 1
