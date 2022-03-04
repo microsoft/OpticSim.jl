@@ -162,7 +162,7 @@ function eyebox_number(tilecoords::NTuple{2,Int64},cluster::ClusterWithPropertie
     @assert length(gindices) == length(bindices)
     @assert mod(length(rindices), num_eyeboxes) == 0 #if num_eyeboxes doesn't evenly divide the number of available r,g,b, lenslets then the system won't work properly
     allcolors = [rindices;gindices;bindices] #stack all the indices for the different colors into a single vector
-    matchingindex = allcolors[findfirst(x->x==tile_index,allcolors)] #
+    matchingindex = findfirst(x->x==tile_index,allcolors) #
     eyeboxnum = mod(matchingindex-1,num_eyeboxes) + 1
     return eyeboxnum
 end 
