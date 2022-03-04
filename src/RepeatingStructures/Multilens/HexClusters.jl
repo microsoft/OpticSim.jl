@@ -43,7 +43,7 @@ function hex12(scale::T =  1.0) where{T<:Real}
     )
 
     eltlattice = HexBasis3(scale)
-    clusterbasis = LatticeBasis((2, 2), (-3, 2))
+    clusterbasis = LatticeBasis((2, 2), (-4, 2))
     return LatticeCluster(clusterbasis, eltlattice, clusterelements)
 end
 export hex12
