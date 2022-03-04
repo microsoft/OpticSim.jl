@@ -52,9 +52,9 @@ end
 export test_paraxial_lens
 
 """Example that shows how to call setup_system with typical values"""
-function setup_nominal_system()::LensletSystem
+function setup_nominal_system(;eyebox_subdivisions = nothing)::LensletSystem
     (;eye_relief,fov,eyebox,display_radius,pupil_diameter,minfnumber,pixel_pitch) = nominal_system_inputs()
-    setup_system(eyebox,fov,eye_relief,pupil_diameter,display_radius,minfnumber,pixel_pitch)
+    setup_system(eyebox,fov,eye_relief,pupil_diameter,display_radius,minfnumber,pixel_pitch,eyebox_subdivisions = eyebox_subdivisions)
 end
 export setup_nominal_system
 
@@ -227,7 +227,7 @@ end
 export draw_system
 
 """draw subdivided eyeboxes to make sure they are in the right place"""
-function draw_subdivided_eyeboxes(system = setup_nominal_system, clear_screen = true)
+function draw_subdivided_eyeboxes(system = setup_nominal_system(), clear_screen = true)
     (;subdivided_eyebox_polys) = system
 
     colors = distinguishable_colors(length(subdivided_eyebox_polys))
