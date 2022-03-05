@@ -206,7 +206,7 @@ If you do this
 setup_system(eye_box,(1,1.2),...)
 ```
 the system will assume the angle is in radians."""
-function setup_system(eye_box,fov,eye_relief,pupil_diameter,display_sphere_radius,min_fnumber,pixel_pitch)
+function setup_system(eye_box,fov,eye_relief,pupil_diameter,display_sphere_radius,min_fnumber,pixel_pitch; eyebox_subdivisions::Union{Nothing,Tuple{Int,Int}} = nothing)
     #All coordinates are ultimately transformed into the eyeball_frame coordinate systems
     (eyeball_frame,eye_box_frame) = setup_coordinate_frames()
         
@@ -220,7 +220,7 @@ function setup_system(eye_box,fov,eye_relief,pupil_diameter,display_sphere_radiu
     eyeboxz = (eye_box_frame*SVector(0.0,0.0,0.0))[3]
     eyebox_plane = Plane([0.0,0.0,1.0],[0.0,0.0,eyeboxz])
     #get system properties
-    props = system_properties(eye_relief,eye_box,fov,pupil_diameter,.2,11,pixelpitch = pixel_pitch, minfnumber = min_fnumber)
+    props = system_properties(eye_relief,eye_box,fov,pupil_diameter,.2,11,pixelpitch = pixel_pitch, minfnumber = min_fnumber, eyebox_subdivisions=eyebox_subdivisions)
 
     subdivisions = props[:subdivisions] #tuple representing how the eyebox can be subdivided given the cluster used for the lenslets
     
