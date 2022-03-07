@@ -131,7 +131,9 @@ export closestpackingdistance
 
 """Tries clusters of various sizes to choose the largest one which fits within the eye pupil. Larger clusters allow for greater reduction of the fov each lenslet must cover so it returns the largest feasible cluster"""
 function choosecluster(pupildiameter::Unitful.Length, lensletdiameter::Unitful.Length)
-    clusters = (hex3RGB, hex4RGB, hex7RGB , hex9RGB, hex12RGB,hex19RGB) #, hex37RGB) # hex37RGB leave out for now. Leads to designs with thousands of small lenslets. May not be practical.
+   #for now don't use cluster sizes that are not divisible by 3 since this causes problems with RGB subdivision of the lenslets. Maybe add back in later.
+    # clusters = (hex3RGB, hex4RGB, hex7RGB , hex9RGB, hex12RGB,hex19RGB) #, hex37RGB) # hex37RGB leave out for now. Leads to designs with thousands of small lenslets. May not be practical.   
+    clusters = (hex3RGB, hex9RGB, hex12RGB,hex18RGB) #, hex37RGB) # hex37RGB leave out for now. Leads to designs with thousands of small lenslets. May not be practical.
     pupildiameter
     ratio = 0.0
     clusterindex = 0
@@ -190,6 +192,8 @@ function anglesubdivisions(pupildiameter::Unitful.Length, λ::Unitful.Length, mt
         return RGB ? (4,3) : (6,6)
     elseif numelements == 19
         return RGB ? (3, 2) : (5, 3)
+    elseif numelements == 18
+        return RGB ? (3,2) : (6,3)
     elseif numelements == 12
         return RGB ? (2, 2) : (4, 3)
    elseif numelements == 9

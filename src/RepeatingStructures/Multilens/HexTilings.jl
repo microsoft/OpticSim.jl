@@ -67,6 +67,16 @@ function hex12RGB(scale::T = 1.0) where{T<:Real}
 end
 export hex12RGB
 
+function hex18RGB(scale::T = 1.0) where{T<:Real}
+    lattice = hex18(scale)
+    colors = clustercolors(lattice)
+    names = colornames(colors)
+    properties =  DataFrames.DataFrame(Color=colors, Name=names)
+    # properties =  DataFrames.DataFrame(Color = colors)
+    return Repeat.ClusterWithProperties{Repeat.RGBCluster}(lattice, properties)
+end
+export hex18RGB
+
 function hex19RGB(scale::T = 1.0) where{T<:Real}
     lattice = hex19(scale)
 
