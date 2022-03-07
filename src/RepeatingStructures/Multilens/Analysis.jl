@@ -184,7 +184,7 @@ export numberoflenslets
 eyeboxangles(eyebox,eyerelief) = @. atand(uconvert(Unitful.NoUnits, eyebox / eyerelief))
 export eyeboxangles
 
-"""computes how the fov can be subdivided among lenslets based on cluster size. Assumes the horizontal size of the eyebox is larger than the vertical so the larger number of subdivisions will always be the first number in the returns Tuple."""
+"""This code is tightly linked to the cluster sizes returned by choosecluster. This is not goood design to link these two functions. Think about how to decouple these two functions. computes how the fov can be subdivided among lenslets based on cluster size. Assumes the horizontal size of the eyebox is larger than the vertical so the larger number of subdivisions will always be the first number in the returns Tuple."""
 function anglesubdivisions(pupildiameter::Unitful.Length, λ::Unitful.Length, mtf, cyclesperdegree;RGB=true)
     cluster, _ = choosecluster(pupildiameter, λ, mtf, cyclesperdegree)
     numelements = Repeat.clustersize(cluster)
