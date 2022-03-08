@@ -24,7 +24,7 @@ function hex3RGB(scale::T = 1.0) where{T<:Real}
     colors = clustercolors(lattice)
     names = colornames(colors)
     properties =  DataFrames.DataFrame(Color=colors, Name=names)
-    return Repeat.ClusterWithProperties(hex3(scale), properties)
+    return Repeat.ClusterWithProperties{Repeat.RGBCluster}(hex3(scale), properties)
 end
 export hex3RGB
 
@@ -33,7 +33,7 @@ function hex4RGB(scale::T = 1.0) where{T<:Real}
     colors = clustercolors(lattice)
     names = colornames(colors)
     properties =  DataFrames.DataFrame(Color=colors, Name=names)
-    return Repeat.ClusterWithProperties(hex4(scale), properties)
+    return Repeat.ClusterWithProperties{Repeat.RGBCluster}(hex4(scale), properties)
 end
 export hex4RGB
 
@@ -42,7 +42,7 @@ function hex7RGB(scale::T = 1.0) where{T<:Real}
     colors = clustercolors(lattice)
     names = colornames(colors)
     properties =  DataFrames.DataFrame(Color=colors, Name=names)
-    return Repeat.ClusterWithProperties(hex7(scale), properties)
+    return Repeat.ClusterWithProperties{Repeat.RGBCluster}(hex7(scale), properties)
 end
 export hex7RGB
 
@@ -51,7 +51,7 @@ function hex9RGB(scale::T = 1.0) where{T<:Real}
     colors = clustercolors(lattice)
     names = colornames(colors)
     properties =  DataFrames.DataFrame(Color=colors, Name=names)
-    return Repeat.ClusterWithProperties(hex9(scale), properties)
+    return Repeat.ClusterWithProperties{Repeat.RGBCluster}(hex9(scale), properties)
 end
 export hex9RGB
 
@@ -63,9 +63,19 @@ function hex12RGB(scale::T = 1.0) where{T<:Real}
 
     names = colornames(colors)
     properties =  DataFrames.DataFrame(Color=colors, Name=names)
-    return Repeat.ClusterWithProperties(lattice, properties)
+    return Repeat.ClusterWithProperties{Repeat.RGBCluster}(lattice, properties)
 end
 export hex12RGB
+
+function hex18RGB(scale::T = 1.0) where{T<:Real}
+    lattice = hex18(scale)
+    colors = clustercolors(lattice)
+    names = colornames(colors)
+    properties =  DataFrames.DataFrame(Color=colors, Name=names)
+    # properties =  DataFrames.DataFrame(Color = colors)
+    return Repeat.ClusterWithProperties{Repeat.RGBCluster}(lattice, properties)
+end
+export hex18RGB
 
 function hex19RGB(scale::T = 1.0) where{T<:Real}
     lattice = hex19(scale)
@@ -75,7 +85,7 @@ function hex19RGB(scale::T = 1.0) where{T<:Real}
     names = colornames(colors)
     properties =  DataFrames.DataFrame(Color=colors, Name=names)
     # properties =  DataFrames.DataFrame(Color = colors)
-    return Repeat.ClusterWithProperties(lattice, properties)
+    return Repeat.ClusterWithProperties{Repeat.RGBCluster}(lattice, properties)
 end
 export hex19RGB
 
@@ -85,5 +95,5 @@ function hex37RGB(scale::T = 1.0) where{T<:Real}
     names = colornames(colors)
     properties =  DataFrames.DataFrame(Color=colors, Name=names)
     # properties =  DataFrames.DataFrame(Color = colors)
-    return Repeat.ClusterWithProperties(lattice, properties)
+    return Repeat.ClusterWithProperties{Repeat.RGBCluster}(lattice, properties)
 end
