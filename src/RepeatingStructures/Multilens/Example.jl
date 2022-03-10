@@ -4,7 +4,7 @@
 
 
 """ Typical properties for near eye VR display """
-nominal_system_inputs() = (eye_relief = 20mm, fov = (5°,5°),eyebox = (10mm,8mm),display_radius = 125.0mm, pupil_diameter = 3.5mm,pixel_pitch = .9μm, minfnumber = 2.0, mtf = .2, cycles_per_degree = 11, max_display_size = 250μm, )
+nominal_system_inputs() = (eye_relief = 20mm, fov = (20°,20°),eyebox = (10mm,8mm),display_radius = 125.0mm, pupil_diameter = 3.5mm,pixel_pitch = .9μm, minfnumber = 2.0, mtf = .2, cycles_per_degree = 11, max_display_size = 250μm, )
 export nominal_system_inputs
 
 xcoords(a::SMatrix{3,4}) = a[1,:]
@@ -52,9 +52,9 @@ end
 export test_paraxial_lens
 
 """Example that shows how to call setup_system with typical values"""
-function setup_nominal_system(;eyebox_subdivisions = nothing)::LensletSystem
+function setup_nominal_system(;no_eyebox_subdivision::Bool = false)::LensletSystem
     (;eye_relief,fov,eyebox,display_radius,pupil_diameter,minfnumber,pixel_pitch) = nominal_system_inputs()
-    setup_system(eyebox,fov,eye_relief,pupil_diameter,display_radius,minfnumber,pixel_pitch,eyebox_subdivisions = eyebox_subdivisions)
+    setup_system(eyebox,fov,eye_relief,pupil_diameter,display_radius,minfnumber,pixel_pitch,no_eyebox_subdivision = no_eyebox_subdivision)
 end
 export setup_nominal_system
 
