@@ -11,7 +11,21 @@ using Random
 using StaticArrays
 
 @testset "Emitters" begin
-    @testset "AngularPower" begin
+    @testset "RayListSource" begin
+        rays = Vector{OpticalRay{Float64,3}}(undef, 0)
+        for i in 0:7
+            λ = ((i / 7) * 200 + 450) / 1000
+            r = OpticalRay(SVector(0.0, -3.0, 10.0), SVector(0.0, 0.5, -1.0), 1.0, λ)
+            push!(rays, r)
+        end
+        raygen = Emitters.Sources.RayListSource(rays)
+
+        for (i,ray) in enumerate(raygen)
+            @assert ray == rays[i]
+        end
+    end
+
+    @testset "AngularPower" begin     
         @testset "Lambertian" begin
             @test typeof(AngularPower.Lambertian()) === AngularPower.Lambertian{Float64}
             @test_throws MethodError AngularPower.Lambertian(String)

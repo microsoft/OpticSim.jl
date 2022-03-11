@@ -5,6 +5,5 @@
 using OpticSim # this will only work after the main build steps are completed
 @info "Running representative workload"
 # add stuff here #
-Examples.autodrawrays()
 Examples.hexapolarspotdiagramexample()
 @info "Finished running representative workload"

@@ -28,7 +28,7 @@ using Optim
 function objective(a::AbstractVector{T}, b::AxisymmetricOpticalSystem{T}, samples::Int = 3) where {T}
     # RMSE spot size
     system = Optimization.updateoptimizationvariables(b, a)
-    # distribute rays evenly across entrance pupil using HexapolarField
+    # distribute rays evenly across entrance pupil using HexapolarField. The latest version of OpticSim no longer supports HexapolarField. 
     field = HexapolarField(system, collimated = true, samples = samples)
     error = zero(T)
     hits = 0
