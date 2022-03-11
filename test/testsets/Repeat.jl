@@ -47,7 +47,24 @@
         reconstructed = Repeat.tilecoordinates(cluster,coords...,tileindex)
         @test all((i,j) .== reconstructed)
     end
- 
+
+    function testassignment()
+        #test assignment of eyebox numbers to RGB clusters
+        rgb_cluster = Repeat.Multilens.hex12RGB()
+        cluster_coords = map(x->Tuple(x),eachcol(Repeat.clustercoordinates(rgb_cluster,0,0))) #create the cluster coordinates corresponding to each of the tiles in the cluster
+        eyeboxnumbers = (1,1,2,1,2,2,3,3,3,4,4,4) #correct eyebox number assignment for the tiles in the cluster
+        for (index,coord) in enumerate(cluster_coords)
+            boxnum = eyeboxnumbers[index]
+            num = Repeat.Multilens.eyebox_number(coord,rgb_cluster,4)
+            if num != boxnum
+                return false
+            end
+        end
+        return true
+    end
+
+    @test testassignment()
+
     #verify that the 0,0 cluster is correct
     for (index,element) in pairs(Repeat.clusterelements(cluster))
         coords, tileindex = Repeat.cluster_coordinates_from_tile_coordinates(cluster, element...)

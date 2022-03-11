@@ -34,17 +34,6 @@ function hex3cluster()
     return LatticeCluster(clusterbasis,eltlattice,clusterelts)
 end
 
-""" Create a ClusterWithProperties with three types of elements, R,G,B """
-function hex3RGB()
-    clusterelements = SVector((0,0),(-1,0),(-1,1))
-    colors = [colorant"red",colorant"green",colorant"blue"]
-    names = ["R","G","B"]
-    eltlattice = HexBasis1()
-    clusterbasis = LatticeBasis(( -1,2),(2,-1))
-    lattice = LatticeCluster(clusterbasis,eltlattice,clusterelements)
-    properties =  DataFrame(Color = colors, Name = names)
-    return ClusterWithProperties(lattice,properties)
-end
 
 """ Create a ClusterWithProperties with four types of elements, R,G,B,W """
 function hexRGBW()
@@ -58,37 +47,9 @@ function hexRGBW()
     return ClusterWithProperties(lattice,properties)
 end
 
-function hex12RGB()
-    clusterelements = SVector(
-        (-1,1),(0,1),
-        (-1,0),(0,0),(1,0),
-        (-1,-1),(0,-1),(1,-1),(2,-1),
-        (0,-2),(1,-2),(2,-2)
-    )
-    red = colorant"red"
-    grn = colorant"green"
-    blu = colorant"blue"
-    colors = [
-        grn,blu,
-        blu,red,grn,
-        red,grn,blu,red,
-        blu,red,grn
-        ]
-    names = [
-        "G3","B0",
-        "B2","R1","G2",
-        "R0","G1","B1","R3",
-        "B3","R2","G0"
-    ]
-    eltlattice = HexBasis3()
-    clusterbasis = LatticeBasis((2,2),(-3,2))
-    lattice = LatticeCluster(clusterbasis,eltlattice,clusterelements)
-    properties =  DataFrame(Color = colors, Name = names)
-    return ClusterWithProperties(lattice,properties)
-end
 
 """ draw 3 repeats of hex3RGB cluster """
 drawhex3RGB() = Vis.draw(hex3RGB(),[0 1 0; 0 0 1])
 
 """ draw 3 repeats of hex12RGB cluster """
-drawhex12RGB() = Vis.draw(hex12RGB(),[0 1 0; 0 0 1])
+drawhex12RGB() = Vis.draw(Repeat.Multilens.hex12RGB(),[0 1 0 1; 0 0 1 1])

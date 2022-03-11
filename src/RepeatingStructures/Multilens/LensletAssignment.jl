@@ -117,11 +117,55 @@ function subdivide(poly::T, xsubdivisions, ysubdivisions)::Vector{T} where{T<:SM
 end
 export subdivide
 
+"""Assigns an eyebox to each lenslet in the cluster"""
 function eyebox_number(tilecoords::NTuple{2,Int64},cluster::R,num_eyeboxes::Integer)::Int64 where {R<:AbstractLatticeCluster}
     _, tile_index = cluster_coordinates_from_tile_coordinates(cluster,tilecoords)
     eyeboxnum = mod(tile_index-1,num_eyeboxes) + 1
     return eyeboxnum
 end
+
+"""For RGB clusters have to extract the indices of the color tiles and distribute the eyeboxes separately among RGB.
+
+Example:
+
+Assume there are 4 eyeboxes. The red,green, and blue tiles should each have the 4 eyebox numbers distributed evenly among them.
+
+julia> hex12RGB()
+ClusterWithProperties{12, 2, Float64, OpticSim.Repeat.RGBCluster}(LatticeCluster{12, 2, Float64, 
+LatticeBasis{2, Int64}, HexBasis3{2, Float64}}(LatticeBasis{2, Int64}([2 -3; 2 2]), HexBasis3{2, 
+Float64}(1.0), [(-1, 1), (0, 1), (-1, 0), (0, 0), (1, 0), (-1, -1), (0, -1), (1, -1), (2, -1), (0, -2), (1, -2), (2, -2)]), 12×2 DataFrame
+ Row │ Color   Name   
+     │ String  String 
+─────┼────────────────
+   1 │ green   G1
+   2 │ blue    B1
+   3 │ blue    B1
+   4 │ red     R2
+   5 │ green   G2
+   6 │ red     R2
+   7 │ green   G3
+   8 │ blue    B3
+   9 │ red     R3
+  10 │ blue    B4
+  11 │ red     R4
+  12 │ green   G4)
+
+julia> rgbtileindices(ans)
+([4, 6, 9, 11], [1, 5, 7, 12], [2, 3, 8, 10])
+
+Assume eyebox_number is called with tilecoords that correspond to tile_index 9. The red tiles have indices [4, 6, 9, 11]. 9 is the third element in this vector so it should get eyebox number 3. If tile_index is 2 then this is a blue tile. The index of the element 2 in the blue vector is 1 so this tile should get eyebox 1.
+"""
+function eyebox_number(tilecoords::NTuple{2,Int64},cluster::ClusterWithProperties{A,B,C,Repeat.RGBCluster},num_eyeboxes::Integer)::Int64 where{A,B,C}
+    _, tile_index = cluster_coordinates_from_tile_coordinates(cluster,tilecoords)
+    rindices,gindices,bindices = Repeat.rgbtileindices(cluster)
+    @assert length(rindices) == length(gindices) 
+    @assert length(gindices) == length(bindices)
+    @assert mod(length(rindices), num_eyeboxes) == 0 #if num_eyeboxes doesn't evenly divide the number of available r,g,b, lenslets then the system won't work properly
+    allcolors = [rindices;gindices;bindices] #stack all the indices for the different colors into a single vector
+    matchingindex = findfirst(x->x==tile_index,allcolors) #
+    eyeboxnum = mod(matchingindex-1,num_eyeboxes) + 1
+    return eyeboxnum
+end 
 
 function eyebox_assignment(tilecoords::NTuple{2,Int64},cluster::R,eyeboxes) where{R<:AbstractLatticeCluster}
     #compute cluster
@@ -206,7 +250,7 @@ If you do this
 setup_system(eye_box,(1,1.2),...)
 ```
 the system will assume the angle is in radians."""
-function setup_system(eye_box,fov,eye_relief,pupil_diameter,display_sphere_radius,min_fnumber,pixel_pitch;eyebox_subdivisions = nothing)
+function setup_system(eye_box,fov,eye_relief,pupil_diameter,display_sphere_radius,min_fnumber,pixel_pitch;no_eyebox_subdivision::Bool = false)
     #All coordinates are ultimately transformed into the eyeball_frame coordinate systems
     (eyeball_frame,eye_box_frame) = setup_coordinate_frames()
         
@@ -220,7 +264,7 @@ function setup_system(eye_box,fov,eye_relief,pupil_diameter,display_sphere_radiu
     eyeboxz = (eye_box_frame*SVector(0.0,0.0,0.0))[3]
     eyebox_plane = Plane([0.0,0.0,1.0],[0.0,0.0,eyeboxz])
     #get system properties
-    props = system_properties(eye_relief,eye_box,fov,pupil_diameter,.2,11,pixelpitch = pixel_pitch, minfnumber = min_fnumber,eyebox_subdivisions = eyebox_subdivisions)
+    props = system_properties(eye_relief,eye_box,fov,pupil_diameter,.2,11,pixelpitch = pixel_pitch, minfnumber = min_fnumber,no_eyebox_subdivision = no_eyebox_subdivision)
 
     subdivisions = props[:subdivisions] #tuple representing how the eyebox can be subdivided given the cluster used for the lenslets
     
@@ -259,7 +303,7 @@ function setup_system(eye_box,fov,eye_relief,pupil_diameter,display_sphere_radiu
     projected = project_eyebox_to_display_plane.(lenslet_eye_boxes,offset_lenses,displayplanes) #repeate subdivided_eyeboxpolys enough times to cover all lenses
     projected_eyeboxes = [x[1] for x in projected]
     projected_polygons = [x[2] for x in projected]
-    @info "typeof polygon $(eltype(projected_polygons))"
+    @info "Lenslet diameter $(props[:lenslet_diameter])"
 
     eyebox_rectangle = Rectangle(ustrip(mm,eye_box[1]/2),ustrip(mm,eye_box[2]/2),[0.0,0.0,1.0],[0.0,0.0,eyeboxz], interface = opaqueinterface())
   

@@ -130,8 +130,14 @@ closestpackingdistance(pupildiameter::Unitful.Length) = pupildiameter * cosd(30)
 export closestpackingdistance
 
 """Tries clusters of various sizes to choose the largest one which fits within the eye pupil. Larger clusters allow for greater reduction of the fov each lenslet must cover so it returns the largest feasible cluster"""
-function choosecluster(pupildiameter::Unitful.Length, lensletdiameter::Unitful.Length)
-    clusters = (hex3RGB, hex4RGB, hex7RGB , hex9RGB, hex12RGB,hex19RGB) #, hex37RGB) # hex37RGB leave out for now. Leads to designs with thousands of small lenslets. May not be practical.
+function choosecluster(pupildiameter::Unitful.Length, lensletdiameter::Unitful.Length, no_eyebox_subdivision::Bool = false)
+   #for now don't use cluster sizes that are not divisible by 3 since this causes problems with RGB subdivision of the lenslets. Maybe add back in later.
+    # clusters = (hex3RGB, hex4RGB, hex7RGB , hex9RGB, hex12RGB,hex19RGB) #, hex37RGB) # hex37RGB leave out for now. Leads to designs with thousands of small lenslets. May not be practical. 
+    if no_eyebox_subdivision
+        clusters = (hex3RGB,)
+    else   
+        clusters = (hex3RGB, hex9RGB, hex12RGB,hex18RGB) #, hex37RGB) # hex37RGB leave out for now. Leads to designs with thousands of small lenslets. May not be practical.
+    end
     pupildiameter
     ratio = 0.0
     clusterindex = 0
@@ -161,9 +167,9 @@ end
 export choosecluster
 
 """Computes the largest feasible cluster size meeting constraints"""
-function choosecluster(pupildiameter::Unitful.Length, λ::Unitful.Length, mtf, cyclesperdeg::T) where {T <: Real} 
+function choosecluster(pupildiameter::Unitful.Length, λ::Unitful.Length, mtf, cyclesperdeg::T, no_eyebox_subdivisions::Bool = false) where {T <: Real} 
     diam = diameter_for_cycles_deg(mtf, cyclesperdeg, λ)
-    return choosecluster(pupildiameter, diam) # use minimum diameter for now.
+    return choosecluster(pupildiameter, diam, no_eyebox_subdivisions) # use minimum diameter for now.
 end
 
 """This computes the approximate size of the entire display, not the individual lenslet displays."""
@@ -182,14 +188,15 @@ export numberoflenslets
 eyeboxangles(eyebox,eyerelief) = @. atand(uconvert(Unitful.NoUnits, eyebox / eyerelief))
 export eyeboxangles
 
-"""computes how the fov can be subdivided among lenslets based on cluster size. Assumes the horizontal size of the eyebox is larger than the vertical so the larger number of subdivisions will always be the first number in the returns Tuple."""
-function anglesubdivisions(pupildiameter::Unitful.Length, λ::Unitful.Length, mtf, cyclesperdegree;RGB=true)
-    cluster, _ = choosecluster(pupildiameter, λ, mtf, cyclesperdegree)
+"""This code is tightly linked to the cluster sizes returned by choosecluster. This is not goood design to link these two functions. Think about how to decouple these two functions. computes how the fov can be subdivided among lenslets based on cluster size. Assumes the horizontal size of the eyebox is larger than the vertical so the larger number of subdivisions will always be the first number in the returns Tuple."""
+function anglesubdivisions(cluster, pupildiameter::Unitful.Length, λ::Unitful.Length, mtf, cyclesperdegree;RGB=true)
     numelements = Repeat.clustersize(cluster)
     if numelements == 37
         return RGB ? (4,3) : (6,6)
     elseif numelements == 19
         return RGB ? (3, 2) : (5, 3)
+    elseif numelements == 18
+        return RGB ? (3,2) : (6,3)
     elseif numelements == 12
         return RGB ? (2, 2) : (4, 3)
    elseif numelements == 9
@@ -258,16 +265,14 @@ Dict{Symbol, Any} with 14 entries:
 
 ```
 """
-function system_properties(eyerelief::Unitful.Length, eyebox::NTuple{2,Unitful.Length}, fov, pupildiameter::Unitful.Length, mtf, cyclesperdegree; minfnumber=2.0,RGB=true,λ=530nm,pixelpitch=.9μm, maxdisplaysize = 250μm,eyebox_subdivisions::Union{Nothing,Tuple{Int,Int}} = nothing)::Dict{Symbol,Any}
+function system_properties(eyerelief::Unitful.Length, eyebox::NTuple{2,Unitful.Length}, fov, pupildiameter::Unitful.Length, mtf, cyclesperdegree; minfnumber=2.0,RGB=true,λ=530nm,pixelpitch=.9μm, maxdisplaysize = 250μm, no_eyebox_subdivision::Bool = false)::Dict{Symbol,Any}
     diameter = diameter_for_cycles_deg(mtf, cyclesperdegree, λ)
-    clusterdata = choosecluster(pupildiameter, diameter)
+    clusterdata = choosecluster(pupildiameter, diameter,no_eyebox_subdivision)
     difflimit = diffractionlimit(λ, clusterdata.lensletdiameter)
     numlenses = numberoflenslets(fov, eyerelief, clusterdata.lensletdiameter)
-    if eyebox_subdivisions === nothing
-        subdivisions = anglesubdivisions(pupildiameter, λ, mtf, cyclesperdegree, RGB=RGB)
-    else
-        subdivisions = eyebox_subdivisions
-    end
+
+    subdivisions = anglesubdivisions(clusterdata.cluster, pupildiameter, λ, mtf, cyclesperdegree, RGB=RGB)
+    
     eyebox_angles = eyeboxangles(eyebox,eyerelief)
     angles = eyebox_angles ./ subdivisions
     redundancy = pixelredundancy(fov, eyerelief, eyebox, pupildiameter,clusterdata.lensletdiameter, angles,  RGB=RGB)
