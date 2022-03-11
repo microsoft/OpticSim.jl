@@ -107,9 +107,9 @@ end
 #-------------------------------------
 # draw source
 #-------------------------------------
-function OpticSim.Vis.draw!(scene::Makie.LScene, s::Sources.Source{T}; parent_transform::Geometry.Transform = Transform(), debug::Bool=false, kwargs...) where {T<:Real}
+function OpticSim.Vis.draw!(scene::Makie.LScene, s::S; parent_transform::Geometry.Transform = Transform(), debug::Bool=false, kwargs...) where {T<:Real,S<:Sources.AbstractSource{T}}
    
-    OpticSim.Vis.draw!(scene, s.origins;  transform=parent_transform * s.transform, debug=debug, kwargs...)
+    OpticSim.Vis.draw!(scene, Emitters.Sources.origins(s);  transform=parent_transform * Emitters.Sources.transform(s), debug=debug, kwargs...)
 
     if (debug)
         m = zeros(T, length(s), 7)
@@ -119,11 +119,11 @@ function OpticSim.Vis.draw!(scene::Makie.LScene, s::Sources.Source{T}; parent_tr
             m[index, 1:7] = [ray.origin... ray.direction... OpticSim.power(optical_ray)]
         end
         
-        m[:, 4:6] .*= m[:, 7] * ARRROW_LENGTH * visual_size(s.origins)  
+        m[:, 4:6] .*= m[:, 7] * ARRROW_LENGTH * visual_size(Emitters.Sources.origins(s))  
 
         # Makie.arrows!(scene, [Makie.Point3f(origin(ray))], [Makie.Point3f(rayscale * direction(ray))]; kwargs..., arrowsize = min(0.05, rayscale * 0.05), arrowcolor = color, linecolor = color, linewidth = 2)
         color = :yellow
-        arrow_size = ARRROW_SIZE * visual_size(s.origins)
+        arrow_size = ARRROW_SIZE * visual_size(Emitters.Sources.origins(s))
         Makie.arrows!(scene, m[:,1], m[:,2], m[:,3], m[:,4], m[:,5], m[:,6]; kwargs...,  arrowcolor=color, linecolor=color, arrowsize=arrow_size, linewidth=arrow_size*0.5)
     end
 
@@ -152,6 +152,6 @@ end
 #-------------------------------------
 function OpticSim.Vis.draw!(scene::Makie.LScene, s::Sources.CompositeSource{T}; parent_transform::Geometry.Transform = Transform(), kwargs...) where {T<:Real}
     for source in s.sources
-        OpticSim.Vis.draw!(scene, source; parent_transform=parent_transform*s.transform, kwargs...)
+        OpticSim.Vis.draw!(scene, source; parent_transform=parent_transform*Emitters.Sources.transform(s), kwargs...)
     end
 end

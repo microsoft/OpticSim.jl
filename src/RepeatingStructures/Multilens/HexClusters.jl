@@ -43,25 +43,22 @@ function hex12(scale::T =  1.0) where{T<:Real}
     )
 
     eltlattice = HexBasis3(scale)
-    clusterbasis = LatticeBasis((2, 2), (-3, 2))
+    clusterbasis = LatticeBasis((2, 2), (-4, 2))
     return LatticeCluster(clusterbasis, eltlattice, clusterelements)
 end
 export hex12
 
-#TODO fix cluster basis vectors.
-"""WARNING: the cluster basis vectors are incorrect. Still need to figure out what these are. This will not tile properly"""
 function hex18(scale::T =  1.0) where{T<:Real}
-    throw(ErrorException("not yet working"))
+    #  throw(ErrorException("not yet working"))
     clusterelements = SVector(
         (-2,1),(-1, 1),(0, 1),(1,1),
         (-2,0),(-1, 0),(0, 0),(1, 0),(2,0),
         (-1, -1),(0, -1),(1, -1),(2, -1),
-        (0, -2),(1, -2),(2, -2),
-        (1,-3),(2,-3)
-    )
+        (-1,-2),(0, -2),(1, -2),(2, -2),(3,-2)
+     )
 
     eltlattice = HexBasis3(scale)
-    clusterbasis = LatticeBasis((2, 2), (-3, 2))
+    clusterbasis = LatticeBasis((4, 1), (-2,4))
     return LatticeCluster(clusterbasis, eltlattice, clusterelements)
 end
 export hex18

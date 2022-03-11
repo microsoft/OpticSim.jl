@@ -3,6 +3,8 @@
 # See LICENSE in the project root for full license information.
 
 # Programs used to visualize output, profile code or perform debugging tasks, as opposed to unit testing
+
+# WARNING: many of the functions in this module depend on old functions such as HexapolarField which no longer exist
 module Diagnostics
 
 using OpticSim
@@ -59,7 +61,7 @@ function vistest(sys::AbstractOpticalSystem{Float64}; kwargs...)
     r3 = OpticalRay([5.0, 5.0, 1.0], [0.0, 0.0, -1.0], 1.0, λ)
     r4 = OpticalRay([0.0, -5.0, 1.0], [0.0, 0.08715574274765818, -0.9961946980917454], 1.0, λ)
     r5 = OpticalRay([-5.0, -5.0, 1.0], [0.08715574274765818, -0.01738599476176408, -0.9960429728140486], 1.0, λ)
-    raygen = RayListSource(r1, r2, r3, r4, r5)
+    raygen = Emitters.Sources.RayListSource([r1, r2, r3, r4, r5])
     Vis.drawtracerays(sys, raygenerator = raygen, trackallrays = true, test = true; kwargs...)
     for (i, r) in enumerate(raygen)
         t = OpticSim.trace(sys, r, test = true)
@@ -136,7 +138,7 @@ using Ipopt
 using Zygote
 using NLopt
 
-doubleconvexprescription() = DataFrame(SurfaceType = ["Object", "Standard", "Standard", "Image"], Radius = [(Inf64), 60.0, -60.0, (Inf64)], Thickness = [(Inf64), (10.0), (77.8), missing], Material = [OpticSim.GlassCat.Air, OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air, missing], SemiDiameter = [(Inf64), (9.0), (9.0), (15.0)])
+doubleconvexprescription() = DataFrame(SurfaceType = ["Object", "Standard", "Standard", "Image"], Radius = [(Inf64), 60.0, -60.0, (Inf64)], Thickness = [(Inf64), (10.0), (77.8), missing], Material = [OpticSim.GlassCat.Air, OpticSim.Examples.Examples_N_BK7, OpticSim.GlassCat.Air, missing], SemiDiameter = [(Inf64), (9.0), (9.0), (15.0)])
 
 function doubleconvex(a::AbstractVector{T}; detpix::Int = 100) where {T<:Real}
     frontradius = a[1]
@@ -147,33 +149,10 @@ function doubleconvex(a::AbstractVector{T}; detpix::Int = 100) where {T<:Real}
         Radius = [T(Inf64), frontradius, rearradius, T(Inf64)],
         Conic = [missing, -1.0, 1.0, missing],
         Thickness = [T(Inf64), T(10.0), T(77.8), missing],
-        Material = [OpticSim.GlassCat.Air, OpticSim.GlassCat.SCHOTT.N_BK7, OpticSim.GlassCat.Air, missing],
+        Material = [OpticSim.GlassCat.Air, OpticSim.Examples.Examples_N_BK7, OpticSim.GlassCat.Air, missing],
         SemiDiameter = [T(Inf64), T(9.0), T(9.0), T(15.0)],
     ), detpix, detpix, T, temperature = OpticSim.GlassCat.TEMP_REF_UNITFUL, pressure = OpticSim.GlassCat.PRESSURE_REF)
     #! format: on
-end
-
-function RMS_spot_size(a::AbstractVector{T}, b::AxisymmetricOpticalSystem{T}, samples::Int = 3) where {T}
-    # RMSE spot size
-    lens = Optimization.updateoptimizationvariables(b, a)
-    field = HexapolarField(lens, collimated = true, samples = samples)
-    error = zero(T)
-    hits = 0
-    for r in field
-        traceres = OpticSim.trace(lens, r, test = true)
-        if traceres !== nothing
-            hitpoint = point(traceres)
-            if abs(hitpoint[1]) > eps(T) && abs(hitpoint[2]) > eps(T)
-                dist_to_axis = hitpoint[1]^2 + hitpoint[2]^2
-                error += dist_to_axis
-            end
-            hits += 1
-        end
-    end
-    if hits > 0
-        error = sqrt(error / hits)
-    end
-    return error
 end
 
 function testfinitedifferences()
