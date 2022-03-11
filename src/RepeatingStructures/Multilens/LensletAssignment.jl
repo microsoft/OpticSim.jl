@@ -250,7 +250,7 @@ If you do this
 setup_system(eye_box,(1,1.2),...)
 ```
 the system will assume the angle is in radians."""
-function setup_system(eye_box,fov,eye_relief,pupil_diameter,display_sphere_radius,min_fnumber,pixel_pitch;eyebox_subdivisions = nothing)
+function setup_system(eye_box,fov,eye_relief,pupil_diameter,display_sphere_radius,min_fnumber,pixel_pitch;no_eyebox_subdivision::Bool = false)
     #All coordinates are ultimately transformed into the eyeball_frame coordinate systems
     (eyeball_frame,eye_box_frame) = setup_coordinate_frames()
         
@@ -264,7 +264,7 @@ function setup_system(eye_box,fov,eye_relief,pupil_diameter,display_sphere_radiu
     eyeboxz = (eye_box_frame*SVector(0.0,0.0,0.0))[3]
     eyebox_plane = Plane([0.0,0.0,1.0],[0.0,0.0,eyeboxz])
     #get system properties
-    props = system_properties(eye_relief,eye_box,fov,pupil_diameter,.2,11,pixelpitch = pixel_pitch, minfnumber = min_fnumber,eyebox_subdivisions = eyebox_subdivisions)
+    props = system_properties(eye_relief,eye_box,fov,pupil_diameter,.2,11,pixelpitch = pixel_pitch, minfnumber = min_fnumber,no_eyebox_subdivision = no_eyebox_subdivision)
 
     subdivisions = props[:subdivisions] #tuple representing how the eyebox can be subdivided given the cluster used for the lenslets
     
@@ -303,7 +303,7 @@ function setup_system(eye_box,fov,eye_relief,pupil_diameter,display_sphere_radiu
     projected = project_eyebox_to_display_plane.(lenslet_eye_boxes,offset_lenses,displayplanes) #repeate subdivided_eyeboxpolys enough times to cover all lenses
     projected_eyeboxes = [x[1] for x in projected]
     projected_polygons = [x[2] for x in projected]
-    @info "typeof polygon $(eltype(projected_polygons))"
+    @info "Lenslet diameter $(props[:lenslet_diameter])"
 
     eyebox_rectangle = Rectangle(ustrip(mm,eye_box[1]/2),ustrip(mm,eye_box[2]/2),[0.0,0.0,1.0],[0.0,0.0,eyeboxz], interface = opaqueinterface())
   
