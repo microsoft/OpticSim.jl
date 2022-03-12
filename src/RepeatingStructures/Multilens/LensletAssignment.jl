@@ -167,6 +167,15 @@ function eyebox_number(tilecoords::NTuple{2,Int64},cluster::ClusterWithPropertie
     return eyeboxnum
 end 
 
+
+# function test_eyebox_number()
+#     cluster = hex9RGB()
+#     tilecoords = Repeat.clusterelements(cluster)
+#     eyeboxes = eyebox_number.(tilecoords,Ref(cluster),Ref(3))
+#     println("eyeboxes $eyeboxes rgbindices $(Repeat.rgbtileindices(cluster))")
+# end
+# export test_eyebox_number
+
 function eyebox_assignment(tilecoords::NTuple{2,Int64},cluster::R,eyeboxes) where{R<:AbstractLatticeCluster}
     #compute cluster
     eyeboxnum = eyebox_number(tilecoords,cluster,length(eyeboxes))
@@ -179,10 +188,6 @@ function compute_lenslet_eyebox_data(eyeboxtransform,eyeboxpoly::SMatrix{3,4,T,1
     strippedpolys =  map(x-> ustrip.(mm,x),  subdivided_eyeboxpolys)
     subdivided_eyeboxpolys =[eyeboxtransform * x for x in strippedpolys] #these have units of mm which don't interact well with Transform.
     return subdivided_eyeboxpolys
-end
-
-function test_compute_lenslet_eyebox_data(eyeboxtransform,eyeboxpoly,subdivisions)
-    subpolys = compute_lenslet_eyebox_data(eyeboxtransform,eyeboxpoly,subdivisions)
 end
 
 function project_eyebox_to_display_plane(eyeboxpoly::AbstractMatrix{T},lens,displayplane) where{T<:Real}
@@ -287,7 +292,6 @@ function setup_system(eye_box,fov,eye_relief,pupil_diameter,display_sphere_radiu
 
     @info "Subdividing eyebox polygon into $subdivisions sub boxes"
     subdivided_eyeboxpolys::Vector{SMatrix{3,4}} = compute_lenslet_eyebox_data(eye_box_frame,eyeboxpoly,subdivisions)
-    test_compute_lenslet_eyebox_data(eye_box_frame,eyeboxpoly,subdivisions)
 
     #assign each lenslet one of the subdivided eyebox polygons
     lenslet_eye_boxes = eyebox_assignment.(lattice_coordinates,Ref(cluster),Ref(subdivided_eyeboxpolys))
@@ -311,6 +315,41 @@ function setup_system(eye_box,fov,eye_relief,pupil_diameter,display_sphere_radiu
 
 end
 export setup_system
+
+
+function test_eyebox_assignment()
+    subdivisions = (3,2)
+    cluster = Repeat.Multilens.hex18RGB()
+    eye_box_frame = Geometry.identitytransform()
+    eye_box = (10*Unitful.DefaultSymbols.mm,9*Unitful.DefaultSymbols.mm)
+    lattice_coordinates = Repeat.clusterelements(cluster)
+
+   #compute subdivided eyebox polygons and assign to appropriate lenslets
+   eyeboxpoly::SMatrix{3,4}  =  Unitful.DefaultSymbols.mm * (eye_box_frame * Repeat.Multilens.eyeboxpolygon(ustrip.(Unitful.DefaultSymbols.mm,eye_box)...)) #four corners of the eyebox frame which is assumed centered around the positive Z axis. Transformed to the eyeballframe. Have to switch back and forth between Unitful and unitless quantities because Transform doesn't work with Unitful values.
+    subdivided_eyeboxpolys::Vector{SMatrix{3,4}} = Repeat.Multilens.compute_lenslet_eyebox_data(eye_box_frame,eyeboxpoly,subdivisions)
+
+     
+    # println("lenslet eyeboxes")
+    # println(lenslet_eye_boxes)
+
+    #assign each lenslet the index into subdivided_eyeboxpolys that corresponds to the subdivided eyebox polygon the lenslet is supposed to cover.
+    lenslet_eyebox_numbers = Repeat.Multilens.eyebox_number.(lattice_coordinates,Ref(cluster),Ref(length(subdivided_eyeboxpolys)))
+    # println(lattice_coordinates)
+    # println("lenslet eybox nums $lenslet_eyebox_numbers")
+    offset_latticecoords = [tuple(x...) for x in eachcol(Repeat.clustercoordinates(cluster,1,1))]
+    # println("offset coords $offset_latticecoords")
+    offset_eyebox_numbers = Repeat.Multilens.eyebox_number.(offset_latticecoords,Ref(cluster),Ref(length(subdivided_eyeboxpolys)))
+    # println("eyebox numbers of offset cluster $offset_eyebox_numbers")
+    
+    #assign each lenslet one of the subdivided eyebox polygons
+    lenslet_eye_boxes = eyebox_assignment.(lattice_coordinates,Ref(cluster),Ref(subdivided_eyeboxpolys))
+   #compute centroids of the subdivided eyeboxes on the eyebox plane
+   println(lenslet_eyebox_numbers)
+   println("offset numbers $offset_eyebox_numbers")
+    return [Statistics.mean(eachcol(x)) for x in lenslet_eye_boxes] 
+
+end
+export test_eyebox_assignment
 
 
 

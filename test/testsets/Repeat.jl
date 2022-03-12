@@ -65,6 +65,38 @@
 
     @test testassignment()
 
+    """This verifies that the eyebox number assignment is invariant to the offset of the cluster"""
+    function test_eyebox_assignment()
+        subdivisions = (3,1)
+        cluster = Repeat.Multilens.hex9RGB()
+        eye_box_frame = Geometry.identitytransform()
+        eye_box = (10*Unitful.DefaultSymbols.mm,9*Unitful.DefaultSymbols.mm)
+        lattice_coordinates = Repeat.clusterelements(cluster)
+    
+       #compute subdivided eyebox polygons and assign to appropriate lenslets
+       eyeboxpoly::SMatrix{3,4}  =  Unitful.DefaultSymbols.mm * (eye_box_frame * Repeat.Multilens.eyeboxpolygon(ustrip.(Unitful.DefaultSymbols.mm,eye_box)...)) #four corners of the eyebox frame which is assumed centered around the positive Z axis. Transformed to the eyeballframe. Have to switch back and forth between Unitful and unitless quantities because Transform doesn't work with Unitful values.
+        subdivided_eyeboxpolys::Vector{SMatrix{3,4}} = Repeat.Multilens.compute_lenslet_eyebox_data(eye_box_frame,eyeboxpoly,subdivisions)
+    
+         
+        # println("lenslet eyeboxes")
+        # println(lenslet_eye_boxes)
+    
+        #assign each lenslet the index into subdivided_eyeboxpolys that corresponds to the subdivided eyebox polygon the lenslet is supposed to cover.
+        lenslet_eyebox_numbers = Repeat.Multilens.eyebox_number.(lattice_coordinates,Ref(cluster),Ref(length(subdivided_eyeboxpolys)))
+        # println(lattice_coordinates)
+        # println("lenslet eybox nums $lenslet_eyebox_numbers")
+        offset_latticecoords = [tuple(x...) for x in eachcol(Repeat.clustercoordinates(cluster,1,1))]
+        # println("offset coords $offset_latticecoords")
+        offset_eyebox_numbers = Repeat.Multilens.eyebox_number.(offset_latticecoords,Ref(cluster),Ref(length(subdivided_eyeboxpolys)))
+        # println("eyebox numbers of offset cluster $offset_eyebox_numbers")
+        
+        lenslet_eyebox_numbers == offset_eyebox_numbers
+    end
+
+    @test test_eyebox_assignment()
+
+  
+
     #verify that the 0,0 cluster is correct
     for (index,element) in pairs(Repeat.clusterelements(cluster))
         coords, tileindex = Repeat.cluster_coordinates_from_tile_coordinates(cluster, element...)

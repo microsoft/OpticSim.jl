@@ -178,6 +178,7 @@ clustersize(a::ClusterWithProperties) = clustersize(a.cluster)
 export clustersize
 clusterbasis(a::ClusterWithProperties) = clusterbasis(a.cluster)
 export clusterbasis
+clusterelements(a::ClusterWithProperties) = clusterelements(a.cluster)
 
 """return 3 Vectors, call them r,g,b. The r tuple contains the indices of all tiles colored red, g contains those colored green, etc. Not efficient but shouldn't be in a critical inner loop."""
 function rgbtileindices(a::ClusterWithProperties{A,B,C,RGBCluster}) where{A,B,C}
