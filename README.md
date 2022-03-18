@@ -43,6 +43,8 @@ A large variety of surface types are supported, and these can be composed into c
 
 This software provides extensive control over the modelling, simulation, visualization and optimization of optical systems. It is especially suited for designs that have a procedural architecture.
 
+The latest version of OpticSim requires Julia v1.7 or higher.
+
 # Installation
 
 Before you can use the software you will need to download glass files. See the documentation for detailed information about how to do this.
