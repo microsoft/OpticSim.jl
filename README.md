@@ -47,11 +47,11 @@ This software provides extensive control over the modelling, simulation, visuali
 
 Before you can use the software you will need to download glass files. See the documentation for detailed information about how to do this.
 
-Startup times will be significantly reduced if you create a precompiled sysimage file. There is a Julia script file to do this for you located in the top level OpticSim directory: precompilesysimage.jl. If you do this:
+Startup times will be significantly reduced if you create a precompiled sysimage file. There is a Julia script file to do this for you located in the top level OpticSim directory: precompilesysimage.jl. Run this file at the REPL
 ```
-include "precompilesysimage.jl"
+include("precompilesysimage.jl)"
 ```
-it will create a file JuliaSysimage.dll (.so on Linux). If the file already exists delete it before executing the script. It will not overwrite an existing sysimage file.
+and it will create a file JuliaSysimage.dll (.so on Linux). If the file already exists delete it before executing the script. It will not overwrite an existing sysimage file.
 
 ## Contributing
 
