@@ -285,7 +285,7 @@ function setup_system(eye_box,fov,eye_relief,pupil_diameter,display_sphere_radiu
     displayplanes = [x[1] for x in temp]
     display_plane_centers = [x[2] for x in temp]
 
-    lensletcolors = pointcolor.(lattice_coordinates,Ref(cluster))
+    lensletcolors = lensletcolor.(lattice_coordinates,Ref(cluster))
 
     #compute subdivided eyebox polygons and assign to appropriate lenslets
     eyeboxpoly::SMatrix{3,4}  =  mm * (eye_box_frame * eyeboxpolygon(ustrip.(mm,eye_box)...)) #four corners of the eyebox frame which is assumed centered around the positive Z axis. Transformed to the eyeballframe. Have to switch back and forth between Unitful and unitless quantities because Transform doesn't work with Unitful values.

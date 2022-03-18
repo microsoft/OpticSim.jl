@@ -4,7 +4,7 @@
 
 
 """ Typical properties for near eye VR display """
-nominal_system_inputs() = (eye_relief = 20mm, fov = (20°,20°),eyebox = (10mm,8mm),display_radius = 125.0mm, pupil_diameter = 3.5mm,pixel_pitch = .9μm, minfnumber = 2.0, mtf = .2, cycles_per_degree = 11, max_display_size = 250μm, )
+nominal_system_inputs() = (eye_relief = 20mm, fov = (5°,8°),eyebox = (10mm,8mm),display_radius = 125.0mm, pupil_diameter = 3.5mm,pixel_pitch = .9μm, minfnumber = 2.0, mtf = .2, cycles_per_degree = 11, max_display_size = 250μm, )
 export nominal_system_inputs
 
 xcoords(a::SMatrix{3,4}) = a[1,:]
@@ -52,8 +52,11 @@ end
 export test_paraxial_lens
 
 """Example that shows how to call setup_system with typical values"""
-function setup_nominal_system(;no_eyebox_subdivision::Bool = false)::LensletSystem
+function setup_nominal_system(;fov_nominal::Union{Nothing,Tuple{T,T}} = nothing, no_eyebox_subdivision::Bool = false)::LensletSystem where{T}
     (;eye_relief,fov,eyebox,display_radius,pupil_diameter,minfnumber,pixel_pitch) = nominal_system_inputs()
+    if fov_nominal !== nothing
+        fov = fov_nominal
+    end
     setup_system(eyebox,fov,eye_relief,pupil_diameter,display_radius,minfnumber,pixel_pitch,no_eyebox_subdivision = no_eyebox_subdivision)
 end
 export setup_nominal_system
@@ -143,19 +146,26 @@ end
 export testspherelenslets
 
 function draw_projected_corners(system = setup_nominal_system())
-    (;lenslet_eye_boxes, subdivisions_of_eyebox,lenses,displayplanes,projected_eyeboxes) = system
-    colors = distinguishable_colors(reduce(*,subdivisions_of_eyebox))
+    (;lenslet_eye_boxes, subdivisions_of_eyebox,lenses,displayplanes,projected_eyeboxes,lattice_coordinates) = system
+    colors = distinguishable_colors(*(subdivisions_of_eyebox...))
+    cluster = system.system_properties[:cluster_data][:cluster]
+    cluster_coords = Repeat.clusterelements(cluster)
 
-    for (lenslet_eyebox,lens,display_plane,projected_eyebox) in zip(lenslet_eye_boxes,lenses,displayplanes,projected_eyeboxes)
-        center = opticalcenter(lens)
-        for (eyeboxpt,projected_point) in zip(eachcol(lenslet_eyebox),eachcol(projected_eyebox))
-            r = Ray(eyeboxpt,center-eyeboxpt)
-            intsct = surfaceintersection(display_plane,r)
-            closest = closestintersection(intsct)
-            display_intersection = point(closest)
-            @assert isapprox(display_intersection,projected_point) "error display_intersection $display_intersection projected_point $projected_point"
-            lenstrace = LensTrace(OpticalRay(r,1.0,.5),closest)
-            Vis.draw!(lenstrace)
+    for (lenslet_eyebox,lens,display_plane,projected_eyebox,lattice_coordinate) in zip(lenslet_eye_boxes,lenses,displayplanes,projected_eyeboxes,lattice_coordinates)
+
+
+
+        if lensletcolor(lattice_coordinate,cluster) == "red" && lattice_coordinate in cluster_coords
+            center = opticalcenter(lens)
+            for (eyeboxpt,projected_point) in zip(eachcol(lenslet_eyebox),eachcol(projected_eyebox))
+                r = Ray(eyeboxpt,center-eyeboxpt)
+                intsct = surfaceintersection(display_plane,r)
+                closest = closestintersection(intsct)
+                display_intersection = point(closest)
+                @assert isapprox(display_intersection,projected_point) "error display_intersection $display_intersection projected_point $projected_point"
+                lenstrace = LensTrace(OpticalRay(r,1.0,.5),closest)
+                Vis.draw!(lenstrace)
+            end
         end
     end
 end

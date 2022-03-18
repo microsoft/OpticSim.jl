@@ -13,7 +13,7 @@ function clustercolors(lattice)
     colors = Vector{String}(undef, length(elements))
 
     for (i, element) in pairs(elements)
-        colors[i] = pointcolor(element, lattice)
+        colors[i] = lensletcolor(element, lattice)
     end
     return colors
 end

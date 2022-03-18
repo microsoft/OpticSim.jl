@@ -34,11 +34,17 @@ julia> lattice[1,1]  #returns the locations of the 3 elements in the cluster at 
 """
 abstract type AbstractLatticeCluster{N1,N} end
 
-"""returns the euclidean distance between lattice clusters (norm of the longest lattice basis vector). The companion function `latticediameter` returns the distance in lattice space which does not take into account the size the element basis underlying the cluster."""
-euclideandiameter(a::AbstractLatticeCluster) = euclideandiameter(elementbasis(a))*latticediameter(a)
+"""returns the diameter of the circle which encloses the centers of all the lattice cluster elements. This takes into account the size of the underlying element basis. When clusters are scaled it is the element basis which contains the scale factor. The companion function `latticediameter` returns the distance in lattice space which does not take into account the size of the element basis underlying the cluster."""
+function euclideandiameter(a::AbstractLatticeCluster) 
+    basis = elementbasis(a)
+    all_vertices = tilevertices.(clusterelements(a),Ref(basis))
+    hcat()
+    poly = LazySets.VPolygon(Vector(map(x -> Float64.(basis[x...]),clusterelements(a))))
+    return LazySets.diameter(poly)
+end
 export euclideandiameter
 
-"""Basic lattic cluster type. N1 is the number of tiles in the cluster, N is the dimension."""
+"""Basic lattice cluster type. N1 is the number of tiles in the cluster, N is the dimension."""
 struct LatticeCluster{N1, N, T<:Real, B1<:AbstractBasis{N,Int},B2<:AbstractBasis{N,T}} <: AbstractLatticeCluster{N1,N}
     clusterbasis::B1 #this basis defines the offsets of the clusters
     elementbasis::B2 #this basis defines the underlying lattice
@@ -63,6 +69,9 @@ export clusterbasis
 """ Lattice clusters have integer basis vectors. These represent the lattice in unit steps of the underlying element basis, not the Euclidean distance between lattice cluster centers. For example, the lattice cluster basis vectors for a hex3 lattice are (-1,2),(2,-1), where the units of the basis vectors represent steps in the underlying element basis. To get a Euclidean distance measure between cluster centers you need to multiply by the size of the element basis diameter. In the case of lenslet layout you need to multiply the cluster diameter by the lenslet diameter."""
 latticediameter(a::Repeat.AbstractLatticeCluster) =   euclideandiameter(Repeat.basismatrix(Repeat.clusterbasis(a)))
 export latticediameter
+
+
+
 
 """returns the positions of every element in a cluster given the cluster indices"""
 function Base.getindex(A::LatticeCluster{N1,N,T,B1,B2}, indices::Vararg{Int, N}) where{N1,N,T,B1<:AbstractBasis{N,Int},B2<:AbstractBasis{N,T}} 

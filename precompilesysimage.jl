@@ -15,5 +15,5 @@ info = Pkg.TOML.parsefile("Project.toml")
 create_sysimage(
     collect(keys(info["deps"])),
     sysimage_path = "JuliaSysimage" * extension, 
-    precompile_execution_file = "src/precompilation_functions.jl" #the functions in the file will be used to create precompilation statements. All of these functions should then execute very quickly the first time.
+    precompile_execution_file = "precompilation_functions.jl" #the functions in the file will be used to create precompilation statements. All of these functions should then execute very quickly the first time.
     )

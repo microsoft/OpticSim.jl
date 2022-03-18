@@ -17,7 +17,7 @@ colororigins(::Repeat.HexBasis1) = ((0, 0), (-1, 0), (-1, 1))
 colororigins(::Repeat.HexBasis3) = ((0, 0), (0, -1), (1, -1))
 
 """ For lenslets arranged in a hexagonal pattern cross talk between lenslets can be reduced by arranging the color of the lenslets so that each lenslet is surrounded only by lenslets of a different color. This function computes the color to assign to any lattice point to ensure this property holds."""
-function pointcolor(point, cluster::Repeat.AbstractLatticeCluster)
+function lensletcolor(point, cluster::Repeat.AbstractLatticeCluster)
     latticematrix = colorbasis(Repeat.elementbasis(cluster))
     origins = colororigins(Repeat.elementbasis(cluster))
     colors = zip(origins, ("red", "green", "blue"))
@@ -27,7 +27,7 @@ function pointcolor(point, cluster::Repeat.AbstractLatticeCluster)
         end
     end
 end
-export pointcolor
+export lensletcolor
 
 defaultclusterproperties() = (mtf = .2, minfnumber = 2.0, cyclesperdegree = 11, λ = 530nm, pixelpitch = .9μm)
 export defaultclusterproperties
