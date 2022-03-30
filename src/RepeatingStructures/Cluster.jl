@@ -38,9 +38,8 @@ abstract type AbstractLatticeCluster{N1,N} end
 function euclideandiameter(a::AbstractLatticeCluster) 
     basis = elementbasis(a)
     all_vertices = tilevertices.(clusterelements(a),Ref(basis))
-    hcat()
-    poly = LazySets.VPolygon(Vector(map(x -> Float64.(basis[x...]),clusterelements(a))))
-    return LazySets.diameter(poly)
+    center = mean()
+    return 
 end
 export euclideandiameter
 

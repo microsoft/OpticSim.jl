@@ -148,7 +148,9 @@ function choosecluster(pupildiameter::Unitful.Length, lensletdiameter::Unitful.L
         scale = ustrip(mm,lensletdiameter)/euclideandiameter(elementbasis(cluster)) #scale the element basis of the cluster to match lenslet diameter
         scaledcluster = clusterfunc(scale) #make a new instance of the cluster type scaled so the element basis has diameter equal to lenslet diameter
 
-        temp = ustrip(mm,pupildiameter) / (euclideandiameter(scaledcluster))
+        diam = euclideandiameter(scaledcluster)*2.0
+        # temp = ustrip(mm,pupildiameter) / (euclideandiameter(scaledcluster))
+        temp = ustrip(mm,pupildiameter) / diam
 
         if temp >= 1.0
             ratio = temp
@@ -159,7 +161,7 @@ function choosecluster(pupildiameter::Unitful.Length, lensletdiameter::Unitful.L
     end
 
     maxcluster = clusters[clusterindex](ratio*scale)
-    @assert isapprox(Repeat.euclideandiameter(maxcluster), ustrip(mm,pupildiameter))
+    @assert isapprox(Repeat.euclideandiameter(maxcluster)*2.0, ustrip(mm,pupildiameter))
 
     scaledlensletdiameter = lensletdiameter*ratio
     return (cluster = maxcluster, lensletdiameter = scaledlensletdiameter, packingdistance = pupildiameter * ustrip(mm, lensletdiameter))
