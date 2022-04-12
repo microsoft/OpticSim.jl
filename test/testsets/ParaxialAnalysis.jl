@@ -43,6 +43,41 @@ using Unitful.DefaultSymbols
         @test isapprox([.75,.75,0.0],centroid)
     end
 
+    function compute_beam_energy()
+        focal_length = 40.0
+        local_frame = Transform(SVector(-1.0, 0.0, 0.0), SVector(0.0, 1.0, 0.0), SVector(0.0, 0.0, -1.0), SVector(-60.0, 0.0, 0.0))
+        local_vertices = [
+            SVector(20.0, 0.0),
+            SVector(10.0, -17.3205),
+            SVector(-10.0, -17.3205),
+            SVector(-20.0, 0.0),
+            SVector(-10.0, 17.3205),
+            SVector(10.0, 17.3205),
+        ]
+        OA_shift = SVector(0.0, 0.0)
+    
+    
+        paraxial_lens = ParaxialLensConvexPoly(
+            focal_length, 
+            local_frame, 
+            local_vertices, 
+            OA_shift
+        )
+
+        detector = Ellipse(15.0, 15.0, SVector(0.0, 0.0, 1.0), SVector(-30.0, 3.0, -136.0), interface=opaqueinterface())
+        
+        show(stdout,MIME("text/plain"), vertices(paraxial_lens))
+        display = OpticSim.Repeat.Display(1,1,1.0μm,1.0μm, local_frame )
+        lenslet = OpticSim.Repeat.LensletAssembly(paraxial_lens, identitytransform(), display)
+        displaypoint = inv(paraxial_lens.shape.local_frame) * origin(local_frame)
+
+        res = OpticSim.Repeat.beamenergy(lenslet, displaypoint, Geometry.vertices3d(detector) )
+        # energy,centroid = OpticSim.Repeat.beamenergy(lenslet, displaypoint, Geometry.vertices3d(detector) )
+    end
+    @testset "BeamEnergy2" begin
+        
+    end
+
     @testset "SphericalPolygon" begin
         """creates a circular polygon that subtends a half angle of θ"""
         function sphericalcircle(θ, nsides = 10)

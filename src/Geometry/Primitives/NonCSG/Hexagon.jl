@@ -74,20 +74,52 @@ function surfaceintersection(hex::Hexagon{T}, r::AbstractRay{T,3}) where {T<:Rea
     end
 end
 
-"""Returns the vertices of the Hexagon represented in the local coordinate frame. The vertices lie in the z = 0 plane and are 2D"""
-function vertices3d(hex::Hexagon{T}) where{T<:Real} #written this way to ensure 0 allocations. Higher level features like ... allocate.
+"""Vertices of hexagon defined in the plane of the hexagon, as defined by uvec and vvec. The origin of the hexagon lies at the same location as the 3D centroid of the hexagon."""
+function vertices(hex::Hexagon{T}) where{T<:Real} 
     uvec = hex.side_length * hex.uvec
     vvec = hex.side_length * hex.vvec
     c = centroid(hex)
     h = sin(π\3)
-    pts = SVector{6,SVector{3,T}}(
-        uvec + c,
-        (.5*uvec + vvec*h)+ c,
-        (-.5*uvec + vvec*h)+ c,
-        (-uvec)+ c,
-        (-.5*uvec - vvec*h)+ c,
-        (.5*uvec - vvec*h)+ c,
-        )
+    
+    return SVector{6,SVector{3,T}}(
+    uvec ,
+    (.5*uvec + vvec*h),
+    (-.5*uvec + vvec*h),
+    (-uvec),
+    (-.5*uvec - vvec*h),
+    (.5*uvec - vvec*h),
+    )
+end
+
+# """Returns the vertices of the Hexagon represented in the local coordinate frame. The vertices lie in the z = 0 plane and are 2D"""
+# function vertices3d(hex::Hexagon{T}) where{T<:Real} #written this way to ensure 0 allocations. Higher level features like ... allocate.
+#     uvec = hex.side_length * hex.uvec
+#     vvec = hex.side_length * hex.vvec
+#     c = centroid(hex)
+#     h = sin(π\3)
+#     pts = SVector{6,SVector{3,T}}(
+#         uvec + c,
+#         (.5*uvec + vvec*h)+ c,
+#         (-.5*uvec + vvec*h)+ c,
+#         (-uvec)+ c,
+#         (-.5*uvec - vvec*h)+ c,
+#         (.5*uvec - vvec*h)+ c,
+#         )
+
+#     temp = MMatrix{3,6,T}(undef)
+
+#     for (j,pt) in pairs(pts)
+#         for i in 1:3
+#             temp[i,j] = pts[j][i]
+#         end
+#     end
+
+#     return SMatrix{3,6,T}(temp)
+# end
+
+"""Returns the vertices of the Hexagon represented in the inverse of the local coordinate frame."""
+function vertices3d(hex::Hexagon{T}) where{T<:Real} #written this way to ensure 0 allocations. Higher level features like ... allocate.
+   pts = vertices(hex) .+ centroid(hex)
 
     temp = MMatrix{3,6,T}(undef)
 

@@ -34,9 +34,9 @@ struct LensletAssembly{T}
     lens::OpticSim.ParaxialLens{T}
     transform::OpticSim.Geometry.Transform{T}
     display::Display{T}
-    worldtodisplay::OpticSim.Geometry.Transform{T}
+    display_to_world::OpticSim.Geometry.Transform{T}
 
-    LensletAssembly(lens::OpticSim.ParaxialLens{T}, transform::OpticSim.Geometry.Transform{T}, display::Display{T}) where {T} = new{T}(lens, transform, display, display.transform * transform)
+    LensletAssembly(lens::OpticSim.ParaxialLens{T}, transform::OpticSim.Geometry.Transform{T}, display::Display{T}) where {T} = new{T}(lens, transform, display, transform * display.transform)
 end
 
 lens(a::LensletAssembly) = a.lens
@@ -46,12 +46,13 @@ transform(a::LensletAssembly) = a.transform
 worldtolens(a::LensletAssembly, pt::SVector{3}) = a.transform * pt
 worldtolens(a::LensletAssembly,mat::SMatrix{3}) = a.transform * mat
 lenstodisplay(a::LensletAssembly,pt::SVector{3,T}) where {T <: Real} = a.display.transform * pt
-worldtodisplay(a::LensletAssembly,pt::SVector{3,T}) where {T <: Real} = a.worldtodisplay * pt
+worldtodisplay(a::LensletAssembly,pt::SVector{3,T}) where {T <: Real} = OpticSim.Geometry.inv(a.display_to_world) * pt
 
-vertices3d(vertices::SMatrix{2,N,T}) where {N,T <: Real} = vcat(vertices, zero(SMatrix{1,N,T}))
-export vertices3d
+"""append a row of zeros to 2D coordinates"""
+extend_to_3D(vertices::SMatrix{2,N,T}) where {N,T <: Real} = vcat(vertices, zero(SMatrix{1,N,T}))
+export extend_to_3D
 
-"""Projects vertexpoints in world space onto the lens plane and converts them to two dimensional points represented in the local x,y coordinates of the lens coordinate frame. Used for projecting eye pupil onto lens plane."""
+"""Projects vertexpoints in world space onto the lens plane and converts them to two dimensional points represented in the local x,y coordinates of the lens coordinate frame. Used for projecting eye pupil onto lens plane. `displaypoint` is assumed to be in the lens coordinate frame."""
 function project(lenslet::LensletAssembly{T}, displaypoint::SVector{3,T}, vertexpoints::SMatrix{3,N,T}) where {T <: Real,N}
     projectedpoints = MMatrix{2,N,T}(undef)
     locvertices = worldtolens(lenslet, vertexpoints) # transform pupil vertices into local coordinate frame of lens
@@ -89,9 +90,7 @@ function beamenergy(assy::LensletAssembly{T}, displaypoint::AbstractVector{T}, p
     virtpoint = point(virtualpoint(llens, displaypoint))
     projectedpoints = project(assy, displaypoint, pupilpoints)
     lensverts = OpticSim.vertices(llens)
-    rows, cols = size(lensverts)
-    temp = SMatrix{1,cols,T}(reshape(fill(0, cols), 1, cols))
-    lensverts3D = vcat(lensverts, temp)
+    lensverts3D = extend_to_3D(lensverts)
     beamlens = SphericalPolygon(lensverts3D, virtpoint, T(1))
 
     projpoly = LazySets.VPolygon(projectedpoints)

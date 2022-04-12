@@ -8,7 +8,7 @@
 `distancefromplane(p::PlanarShape,point)`  returns distance of the point from the plane the planar shape lies within
 `normal(p::PlanarShape)` returns normal of plane
 `interface(p::PlanarShape)` returns optical interface of plane
-`vertices(p::PlanarShape)` returns vertices of shape. For Ellipse this is an approximation.
+`vertices(p::PlanarShape)` returns 2D vertices of shape in the plane of the shape. For Ellipse this is an approximation.
 
 There are default functions for plane,normal,interface,vertices which assume each PlanarShape type has a field of the same name
 `  
