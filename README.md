@@ -47,7 +47,7 @@ This software provides extensive control over the modelling, simulation, visuali
 
 Before you can use the software you will need to download glass files. See the documentation for detailed information about how to do this.
 
-*Warning*: During installation OpticSim automatically downloads glass catalogs from a variety of public sources. The Schott website keeps moving their catalog on their website so our software can't find it to download. This caused all our examples to fail because they use Schott glasses. We have replaced the glasses in the examples with hard coded glass files so all examples now work (if they don't file an issue). 
+*Warning*: During installation OpticSim automatically downloads glass catalogs from a variety of public sources. The Schott website keeps moving their catalog on their website so our software can't find it to download. This caused all our examples to fail because they use Schott glasses. We have replaced the glasses in the examples with hard coded glass files so all examples now work (if they don't please file an issue). 
 
 **If you want to use Schott glasses you will have to manually download and install the Schott catalog.**
 
