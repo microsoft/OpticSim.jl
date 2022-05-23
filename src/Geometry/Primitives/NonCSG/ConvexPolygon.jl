@@ -92,7 +92,7 @@ end
 
 #this function allocates. Don't know why, it shouldn't but it does.
 function vertices(poly::ConvexPolygon{N,T}) where{N,T<:Real}
-   return poly.local_frame * to3d(poly.local_points)
+    return poly.local_points
 end
 
 
