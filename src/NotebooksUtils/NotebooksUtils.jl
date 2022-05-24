@@ -20,7 +20,7 @@ mutable struct Defs
     authors::String     # authors
     desc::String        # description of the notebook
     width::Int64
-    html::String        # work area to accumulate html syntaxt in order to save cell space (ouput at the end of a single cell)
+    html::String        # work area to accumulate html syntax in order to save cell space (output at the end of a single cell)
 end
 Defs() = Defs("?Authors?")
 Defs(authors) = Defs(authors, "")
@@ -34,7 +34,7 @@ end
 """
     function run(notebook_filename)
 
-Launch Pluto and allow teh user to open a specific notebook.
+Launch Pluto and allow the user to open a specific notebook.
 """
 function run(notebook_filename)
     run(; path=notebook_filename)
@@ -43,8 +43,8 @@ end
 """
     function run(; port=nothing, path=nothing, sysimage_file=nothing )
 
-Launch Pluto and allow teh user to open a specific notebook.
-Also allow the usage of a sysimage file for faster loading.        
+Launch Pluto and allow the user to open a specific notebook.
+Also allow the usage of a sysimage file for faster loading.
 """
 function run(; port=nothing, path=nothing, sysimage_file=nothing, auto_detect_sysimage = false )
 
@@ -115,7 +115,7 @@ end
 
 Launch Pluto and allow the user to open a specific sample notebook. If a notebook of the same name exists in the current working folder,
 it will be opened in Pluto, otherwise, the original sample notebook will be copied to the current folder and be used.
-This beheviour will prevent users from updating the original sample notebook. 
+This behaviour will prevent users from updating the original sample notebook.
 """
 function run_sample(sample_name::String, edit_original::Bool = false)
     folder, basename = splitdir(sample_name)
@@ -263,7 +263,7 @@ end
 """
     function SetDocsBackend(be::String)
 
-    Sets the backend for documantation images.
+    Sets the backend for documentation images.
 """
 function SetDocsBackend(be::String)
     if (be == "Web")

@@ -125,7 +125,7 @@ function ρatairyvalue(airyvalue)
 end
 export ρatairyvalue
 
-""" Spacing between lenslets which guarantess that for any pixel visible in all lenslets every point on the eyebox plane is covered. This is closest packing of circles."""
+""" Spacing between lenslets which guarantees that for any pixel visible in all lenslets every point on the eyebox plane is covered. This is closest packing of circles."""
 closestpackingdistance(pupildiameter::Unitful.Length) = pupildiameter * cosd(30)
 export closestpackingdistance
 

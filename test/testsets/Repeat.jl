@@ -21,7 +21,7 @@
     @test isapprox(Repeat.Multilens.spherepoint(1,0.0,π/4), [sqrt(2)/2,0.0,sqrt(2)/2])
 
 
-    """ Create a LatticeCluser with three elements at (0,0),(-1,0),(-1,1) coordinates in the HexBasis1 lattice"""
+    """ Create a LatticeCluster with three elements at (0,0),(-1,0),(-1,1) coordinates in the HexBasis1 lattice"""
     function hex3cluster()
         clusterelts = SVector((0,0),(-1,0),(-1,1))
         eltlattice = Repeat.HexBasis1()

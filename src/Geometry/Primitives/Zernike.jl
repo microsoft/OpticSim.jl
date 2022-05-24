@@ -216,7 +216,7 @@ end
 function normal(z::ZernikeSurface{T,3,P,Q,M}, ρ::T, ϕ::T)::SVector{3,T} where {T<:Real,P,Q,M}
     du, dv = partials(z, ρ, ϕ)
     if ρ == zero(T) && norm(dv) == zero(T)
-        # in cases where there is no δϕ at ρ = 0 (i.e. anything which is rotationally symetric)
+        # in cases where there is no δϕ at ρ = 0 (i.e. anything which is rotationally symmetric)
         # then we get some big problems, hardcoding this case solves the problems
         return SVector{3,T}(0, 0, 1)
     end

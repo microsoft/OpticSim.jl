@@ -131,7 +131,7 @@ end
 function eigenresults(rline::AbstractRay{T,N}, curve::Array{T,2}) where {T<:Real,N} # force rline and curve to use same number type to avoid expensive runtime conversion.
     dim = curvedimension(curve)
     orderofcurve = curveorder(curve)
-    movinglineorder = max(orderofcurve, Int64(ceil(orderofcurve * 2 / dim - 1))) # Hve two constraints for movingline order. Must be big enough to result in a nullspace >= orderofcurve for the first step of computing the moving lines. Also need need at least as many eigenvalues as possible intersections of the line with the curve. Eigenmatrix is square of size qgxqg so need this matrix to be at least of size qx by qx. Take the greater of the the two constraint values.
+    movinglineorder = max(orderofcurve, Int64(ceil(orderofcurve * 2 / dim - 1))) # Have two constraints for movingline order. Must be big enough to result in a nullspace >= orderofcurve for the first step of computing the moving lines. Also need need at least as many eigenvalues as possible intersections of the line with the curve. Eigenmatrix is square of size qgxqg so need this matrix to be at least of size qx by qx. Take the greater of the the two constraint values.
 
     cmat = orthogonalitymatrix(curve, movinglineorder)
 

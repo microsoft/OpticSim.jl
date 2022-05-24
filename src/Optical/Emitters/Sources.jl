@@ -46,7 +46,7 @@ transform(::RayListSource) = identitytransform()
 """
     Source{T<:Real, Tr<:Transform{T}, S<:Spectrum.AbstractSpectrum{T}, O<:Origins.AbstractOriginDistribution{T}, D<:Directions.AbstractDirectionDistribution{T}, P<:AngularPower.AbstractAngularPowerDistribution{T}} <: AbstractSource{T}
 
-This data-type represents the basic emitter (Source), which is a combination of a Spectrum, Angular Power Distribution, Origins and Directions distibution and a 3D Transform.
+This data-type represents the basic emitter (Source), which is a combination of a Spectrum, Angular Power Distribution, Origins and Directions distribution and a 3D Transform.
 
 ```julia
 Source(::Type{T} = Float64;

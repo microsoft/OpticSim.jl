@@ -200,11 +200,11 @@ function dSdx(coeffs::SVector{NP1,T}, m::Int, x::T)::T where {T<:Real,NP1}
     dαₙ₊₁ = zero(T)
     dαₙ = zero(T)
     @inbounds for n in N:-1:0
-        # calcualte deriv
+        # calculate deriv
         Bmn = B(m, n)
         k = (A(m, n) + Bmn * x)
         Cmnp1 = C(m, n + 1)
-        if n < N # derivative calcualted from N-1 to 0, so ignore first iteration
+        if n < N # derivative calculated from N-1 to 0, so ignore first iteration
             # 2 eq B.11
             dαₙ = Bmn * αₙ₊₁ + k * dαₙ₊₁ - Cmnp1 * dαₙ₊₂
             if n > 0
@@ -639,7 +639,7 @@ end
 function normal(z::QTypeSurface{T,D,M,N}, ρ::T, θ::T)::SVector{3,T} where {T<:Real,D,M,N}
     du, dv = partials(z, ρ, θ)
     if ρ == zero(T) && norm(dv) == zero(T)
-        # in cases where there is no δθ at ρ = 0 (i.e. anything which is rotationally symetric)
+        # in cases where there is no δθ at ρ = 0 (i.e. anything which is rotationally symmetric)
         # then we get some big problems, hardcoding this case solves the problems
         return SVector{3,T}(0, 0, 1)
     end

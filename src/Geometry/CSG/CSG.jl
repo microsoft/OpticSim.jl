@@ -288,7 +288,7 @@ end
 Calculates the intersection of `r` with CSG object, `obj`.
 
 Returns an [`EmptyInterval`](@ref) if there is no intersection, an [`Interval`](@ref) if there is one or two
-interesections and a [`DisjointUnion`](@ref) if there are more than two intersections.
+intersections and a [`DisjointUnion`](@ref) if there are more than two intersections.
 
 The ray is intersected with the [`LeafNode`](@ref)s that make up the CSG object and the resulting `Interval`s and
 `DisjointUnion`s are composed with the same boolean operations to give a final result.
@@ -395,7 +395,7 @@ end
 
 ########################################################################################################################
 
-# currrently we assume that no triangles span 2 sides of a shape, i.e. any triangle only crosses one shape boundary and
+# currently we assume that no triangles span 2 sides of a shape, i.e. any triangle only crosses one shape boundary and
 # so splitting is trivial
 function uniontri!(
     csg::CSGTree{T}, tri::Triangle{T}, triangles::Vector{Triangle{T}}, thisforcoplanar::Bool = false
@@ -576,7 +576,7 @@ function splittri2out!(
     end
 end
 
-# visualization functions from CSG objects, most actualy work happens in the above functions
+# visualization functions from CSG objects, most actually work happens in the above functions
 function makemeshi(a::UnionNode{T}, subdivisions::Int = 30)::Vector{Triangle{T}} where {T<:Real}
     # do the two children in parallel
     th1 = Threads.@spawn makemesh(a.leftchild, subdivisions)

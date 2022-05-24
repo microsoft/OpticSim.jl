@@ -214,7 +214,7 @@ Base.transpose(a::Transform{T}) where{T<:Real} = Transform{T}(a.matrix')
 # END of functions for compatibility with base matrix API
 
 
-# for compatability ith the "old" RigidBodyTransform
+# for compatibility ith the "old" RigidBodyTransform
 """
 identitytransform([S::Type]) -> Transform{S}
 
@@ -240,7 +240,7 @@ end
 """
     Transform(colx::Vec3{T}, coly::Vec3{T},colz::Vec3{T}, colw::Vec3{T}, ::Type{T} = Float64) where {T<:Real}
 
-Costruct a transform from the input columns.     
+Construct a transform from the input columns.     
 """
 function Transform(colx::Vec3{T}, coly::Vec3{T}, colz::Vec3{T}, colw::Vec3{T} = zero(Vec3{T})) where {T<:Real}
     return Transform{T}(vcat(hcat(colx,coly,colz,colw),SMatrix{1,4,T}(zero(T),zero(T),zero(T),one(T)) ))
@@ -250,7 +250,7 @@ end
 """
     Transform(colx::Vec3{T}, coly::Vec3{T},colz::Vec3{T}, colw::Vec3{T}, ::Type{T} = Float64) where {T<:Real}
 
-Costruct a transform from the input columns.     
+Construct a transform from the input columns.     
 """
 function Transform(colx::Vec4{T}, coly::Vec4{T}, colz::Vec4{T}, colw::Vec4{T}) where {T<:Real}
     return Transform{T}(hcat(colx,coly,colz,colw))
@@ -259,7 +259,7 @@ end
 """
     Transform(origin, forward) -> Transform{S}
 
-Returns the [`Transform`](@ref) of type `S` (default `Float64`) representing the local frame with origin and forward direction. the other 2 axes are computed automaticlly.
+Returns the [`Transform`](@ref) of type `S` (default `Float64`) representing the local frame with origin and forward direction. the other 2 axes are computed automatically.
 """
 function Transform(origin::Vec3{T}, forward::Vec3{T} = unitZ3()) where {T<:Real}
     forward = normalize(forward)
@@ -515,7 +515,7 @@ export world2local
 """
     decomposeRTS(tr::Transform{T}) where {T<:Real}
 
-return a touple containing the rotation matrix, the translation vector and the scale vecto represnting the transform.
+return a tuple containing the rotation matrix, the translation vector and the scale vecto represnting the transform.
 """
 function decomposeRTS(tr::Transform{T}) where {T<:Real}
     t = Vec3(tr[1,4], tr[2,4], tr[3,4])

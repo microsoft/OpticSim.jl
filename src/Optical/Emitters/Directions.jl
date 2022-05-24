@@ -190,7 +190,7 @@ function Emitters.generate(d::HexapolarCone{T}, n::Int64) where {T<:Real}
         pind = n - (t - 6 * ringi)
         
         ϕ = (pind / (6 * ringi)) * 2π
-        # elevation calculated as ring fraction multipled by max angle
+        # elevation calculated as ring fraction multiplied by max angle
         θ = acos(clamp(one(T) +  (cos(ρ * θmax) - 1), -one(T), one(T)))
         return normalize(sin(θ) * (cos(ϕ) * uvec + sin(ϕ) * vvec) + cos(θ) * dir)
     end

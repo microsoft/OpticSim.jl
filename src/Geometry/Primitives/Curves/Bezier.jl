@@ -302,7 +302,7 @@ end
 # end
 
 # "Creates a differentiable function to evaluate a surface point. Zygote has trouble with mutable arrays so this creates a function
-# which unrolls all loops and converts array indexing to variables. Stopped working on this because it became so diffult to make it work."
+# which unrolls all loops and converts array indexing to variables. Stopped working on this because it became so difficult to make it work."
 # function pointinline(surf::BezierSurface{P,S,N,M}, u::T, v::T) where {T<:Real,P,S,N,M}
 #     controlpoints = surf.controlpolygon
 #     qi = zeros(MVector{N * (M + 1),MVector{N,S},1})

@@ -65,7 +65,7 @@ global current_mode = nothing           # modes:    nothing, :default  -> Origin
                                         #           :pluto             -> support pluto notebooks 
                                         #           :docs              -> support documenter figures 
 
-# added the following 2 functions to allow us to hack the drawing mechanisim while in a pluto notebook
+# added the following 2 functions to allow us to hack the drawing mechanism while in a pluto notebook
 set_current_main_scene(scene) = (global current_main_scene = scene)
 set_current_3d_scene(lscene) = (global current_3d_scene = lscene)
 
@@ -160,8 +160,8 @@ function make2dy(scene::Makie.LScene = current_3d_scene)
     s.transformation.rotation[] = scene_transform
     # hide x ticks
 
-    # there is a bug in Makie 0.14.2 which cause an exception setting the X showticks to false. 
-    # we work wround it by making sure the labels we want to turn off are ortogonal to the view direction 
+    # there is a bug in Makie 0.14.2 which causes an exception setting the X showticks to false.
+    # we work around it by making sure the labels we want to turn off are orthogonal to the view direction
     # s[Makie.OldAxis].attributes.showticks[] = (false, true, true)
     s[Makie.OldAxis].attributes.showticks[] = (true, true, true)
 
@@ -193,8 +193,8 @@ function make2dx(scene::Makie.LScene = current_3d_scene)
     s.transformation.rotation[] = scene_transform
     # hide y ticks
 
-    # there is a bug in Makie 0.14.2 which cause an exception setting the X showticks to false. 
-    # we work wround it by making sure the labels we want to turn off are ortogonal to the view direction 
+    # there is a bug in Makie 0.14.2 which causes an exception setting the X showticks to false.
+    # we work around it by making sure the labels we want to turn off are orthogonal to the view direction
     s[Makie.OldAxis].attributes.showticks[] = (true, false, true)
 
     # set tick and axis label rotation and position
@@ -850,7 +850,7 @@ end
 Calculates and displays the surface sag of an arbitrary [`Surface`](@ref) or [`CSGTree`](@ref).
 
 Rays are shot in a grid of size defined by `resolution` across a arectangular area defined by `halfsizes`.
-This rectangle is centred at `postion` with normal along `direction` and rotation defined by `rotationvec`.
+This rectangle is centered at `position` with normal along `direction` and rotation defined by `rotationvec`.
 `offset` is subtracted from the sag measurements to provide values relative to the appropriate zero level.
 """
 function surfacesag(object::Union{CSGTree{T},Surface{T}}, resolution::Tuple{Int,Int}, halfsizes::Tuple{T,T}; offset::T = T(10), position::SVector{3,T} = SVector{3,T}(0.0, 0.0, 10.0), direction::SVector{3,T} = SVector{3,T}(0.0, 0.0, -1.0), rotationvec::SVector{3,T} = SVector{3,T}(0.0, 1.0, 0.0)) where {T<:Real}

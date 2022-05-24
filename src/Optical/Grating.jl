@@ -206,7 +206,7 @@ function processintersection(opticalinterface::HologramInterface{T}, point::SVec
     else
         nsig = one(T)
     end
-    # get the signal magnitue in the substrate
+    # get the signal magnitude in the substrate
     mag_Ksig = 2π * nₛ / opticalinterface.recordingλ
     # and direction
     if opticalinterface.signalbeamstate === CollimatedBeam
@@ -216,7 +216,7 @@ function processintersection(opticalinterface::HologramInterface{T}, point::SVec
     elseif opticalinterface.signalbeamstate === DivergingBeam
         Ksig_raw = normalize(point - opticalinterface.signalpointordir)
     else
-        throw(ErrorException("Invalide beam state"))
+        throw(ErrorException("Invalid beam state"))
     end
     # refract it for the substrate interface
     sigonside = dot(Ksig_raw, normal) < zero(T)
@@ -233,7 +233,7 @@ function processintersection(opticalinterface::HologramInterface{T}, point::SVec
     else
         nref = one(T)
     end
-    # get the reference magnitue in the substrate
+    # get the reference magnitude in the substrate
     mag_Kref = 2π * nₛ / opticalinterface.recordingλ
     if opticalinterface.referencebeamstate === CollimatedBeam
         Kref_raw = opticalinterface.referencepointordir
@@ -242,7 +242,7 @@ function processintersection(opticalinterface::HologramInterface{T}, point::SVec
     elseif opticalinterface.referencebeamstate === DivergingBeam
         Kref_raw = normalize(point - opticalinterface.referencepointordir)
     else
-        throw(ErrorException("Invalide beam state"))
+        throw(ErrorException("Invalid beam state"))
     end
     # refract it for the substrate interface
     refonside = dot(Kref_raw, normal) < zero(T)

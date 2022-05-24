@@ -10,7 +10,7 @@ Transmission values are linearly interpolated from the adjacent values in the da
 
 Absorption is defined as ``\\frac{-\\log(t)}{\\tau}`` where ``t`` is the transmission value and ``\\tau`` is the thickness, both of which are provided in the data table.
 
-If unitless, arguments are interpretted as μm, °C and Atm respectively.
+If unitless, arguments are interpreted as μm, °C and Atm respectively.
 
 # Examples
 ```julia-repl
@@ -87,7 +87,7 @@ end
 Compute the refractive index of `glass` at `wavelength`, optionally at specified `temperature` and `pressure`.
 Result is relative to the refractive index of air at given temperature and pressure.
 
-If unitless, arguments are interpretted as μm, °C and Atm respectively.
+If unitless, arguments are interpreted as μm, °C and Atm respectively.
 
 **This is defined to always equal 1.0 for Air at any temperature and pressure**, use [`absairindex`](@ref) for the absolute refractive index of air at a given temperature and pressure.
 
@@ -109,7 +109,7 @@ function index(glass::Glass, wavelength::Length; temperature::Temperature = TEMP
 end
 
 function index(glass::Glass, λ::T; temperature::T = T(TEMP_REF), pressure::T = T(PRESSURE_REF))::T where {T<:Real}
-    # all calculations for the material must be done at the refernce temperature
+    # all calculations for the material must be done at the reference temperature
     reference_temp = T(glass.temp)
 
     # to work out the wavelength at the reference temperature we need the RIs of air at system temp and at reference temp
@@ -215,7 +215,7 @@ end
 """
     absairindex(wavelength; temperature=20°C, pressure=1Atm)
 
-Compute the absolute refractive index of air at `wavelength`, optionally at specified `temperature` and `pressure`. If unitless, arguments are interpretted as μm, °C and Atm respectively.
+Compute the absolute refractive index of air at `wavelength`, optionally at specified `temperature` and `pressure`. If unitless, arguments are interpreted as μm, °C and Atm respectively.
 
 # Examples
 ```julia-repl

@@ -546,7 +546,7 @@
         r = Ray([0.9, 1.0, 1.9], [0.0, -1.0, 0.0])
         @test surfaceintersection(annulus, r) isa EmptyInterval
 
-        # polygon stop intesection
+        # polygon stop intersection
         polygon_stop_frame = Transform()
         polygon_stop_poly = ConvexPolygon(polygon_stop_frame, [SVector(0.0, 0.0), SVector(1.0, 0.0), SVector(0.5, 0.5)], opaqueinterface(Float64))
         polygon_stop = InfiniteStopConvexPoly(polygon_stop_poly)        
@@ -596,7 +596,7 @@
         end
 
         if missedintersections > 0
-            @warn "$missedintersections out of total $(length(samples)) bezier suface intersections were missed"
+            @warn "$missedintersections out of total $(length(samples)) bezier surface intersections were missed"
         end
 
         # miss from outside
@@ -715,7 +715,7 @@
         end
 
         if missedintersections > 0
-            @warn "$missedintersections out of total $(length(samples)) zernike suface intersections were missed"
+            @warn "$missedintersections out of total $(length(samples)) zernike surface intersections were missed"
         end
 
         # hit from inside
@@ -831,7 +831,7 @@
         end
 
         if missedintersections > 0
-            @warn "$missedintersections out of total $(length(samples)) qtype suface intersections were missed"
+            @warn "$missedintersections out of total $(length(samples)) qtype surface intersections were missed"
         end
 
         # hit from inside
@@ -1137,7 +1137,7 @@
         end
 
         if missedintersections > 0
-            @warn "$missedintersections out of total $(length(samples)) chebychev suface intersections were missed"
+            @warn "$missedintersections out of total $(length(samples)) Chebyshev surface intersections were missed"
         end
 
         z1 = TestData.chebyshevsurface1()
@@ -1260,7 +1260,7 @@
         end
 
         if missedintersections > 0
-            @warn "$missedintersections out of total $(length(samples1) + length(samples2)) gridsag suface intersections were missed"
+            @warn "$missedintersections out of total $(length(samples1) + length(samples2)) gridsag surface intersections were missed"
         end
 
         # hit from inside

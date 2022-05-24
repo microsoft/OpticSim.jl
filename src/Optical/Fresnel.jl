@@ -74,7 +74,7 @@ end
 """
     fresnel(nᵢ::T, nₜ::T, sinθᵢ::T, sinθₜ::T) -> Tuple{T,T}
 
-Returns reflectance and tranmission power coefficients according to the [Fresnel equations](https://en.wikipedia.org/wiki/Fresnel_equations).
+Returns reflectance and transmission power coefficients according to the [Fresnel equations](https://en.wikipedia.org/wiki/Fresnel_equations).
 For geometric ray tracing this coefficient can be used directly to compute intensity on the detector plane. For Huygens phase optics need to take the square root to compute the amplitude.
 The power of the transmitted and refracted rays may not sum to one because of the area correction applied to the transmitted component.
 The intensity per area can increase or decrease depending on the indices of refraction.
