@@ -35,7 +35,7 @@
 </tbody>
 </table>
 
-# This rep is no longer being maintained. The latest version of OpticSim can be found at https://github.com/brianguenter/OpticSim.jl
+# This repo is no longer being maintained. The latest version of OpticSim can be found at https://github.com/brianguenter/OpticSim.jl
 
 
 ## Contributing
