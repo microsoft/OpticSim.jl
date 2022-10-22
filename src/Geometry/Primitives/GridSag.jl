@@ -39,8 +39,7 @@ struct GridSagSurface{T,N,S<:Union{ZernikeSurface{T,N},ChebyshevSurface{T,N}},Nu
 
     function GridSagSurface(basesurface::S, sag_grid::AbstractArray{T,2}; interpolation::GridSagInterpolation = GridSagBicubic, decenteruv::Tuple{T,T} = (zero(T), zero(T))) where {T<:Real,N,S<:Union{ZernikeSurface{T,N},ChebyshevSurface{T,N}}}
         grid = []
-        Nv, Nu, d = size(sag_grid)
-        @assert d == 4
+        Nv, Nu = size(sag_grid)
         for r in 1:Nu
             row = []
             for c in 1:Nv
