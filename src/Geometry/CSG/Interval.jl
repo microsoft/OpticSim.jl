@@ -563,7 +563,7 @@ difference(a::DisjointUnion, b::DisjointUnion) = intervalintersection(a, interva
 Apply a Transform to an Interval object
 """
 function Base.:*(transformation::Transform{T}, a::Interval{T}) where {T<:Real}
-    # looks ridiculous but necessary to dissambiguate the elements of the interval
+    # looks ridiculous but necessary to disambiguate the elements of the interval
     u = upper(a)
     l = lower(a)
     if l isa RayOrigin{T}

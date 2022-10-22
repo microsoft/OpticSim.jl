@@ -134,7 +134,7 @@ function FresnelLens(insidematerial::G, frontvertex::T, radius::T, thickness::T,
         if radius == zero(T) || isinf(radius)
             @error "Invalid radius"
         end
-        # spherical lens which makes things much easier, we can just caluclate groove positions directly
+        # spherical lens which makes things much easier, we can just calculate groove positions directly
         n = 1
         if radius > zero(T)
             sphere = Sphere(radius, interface = interface)

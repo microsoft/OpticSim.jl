@@ -38,7 +38,7 @@ export 𝐃sd
 eyeradius() = 12mm
 export eyeradius
 
-"""Posterior focal length, i.e., optical distance from entrance pupil to the retina. Focal length will change depending on accomodation. This value is for focus at ∞. When the eye is focused at 25cm focal length will be ≈ 22mm. Because the index of refraction of the vitreous humor is approximately 1.33 the physical distance from the entrance pupil to the retina will be 24mm/1.33 = 18mm."""
+"""Posterior focal length, i.e., optical distance from entrance pupil to the retina. Focal length will change depending on accommodation. This value is for focus at ∞. When the eye is focused at 25cm focal length will be ≈ 22mm. Because the index of refraction of the vitreous humor is approximately 1.33 the physical distance from the entrance pupil to the retina will be 24mm/1.33 = 18mm."""
 eyefocallength() = 24mm
 export eyefocallength
 

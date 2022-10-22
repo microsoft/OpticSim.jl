@@ -39,7 +39,7 @@ spatialdimension(::Spline{T,S,N,M}) where {T,S,N,M} = N
 curveorder(::Spline{T,S,N,M}) where {T,S,N,M} = M
 
 function point(curve::BSplineCurve{P,S,N,M}, u::T)::SVector{N,S} where {T<:Real,P,S,N,M}
-    # returns the raw point type of the curve - for Homogeneous curve types this will be a homogenous point
+    # returns the raw point type of the curve - for Homogeneous curve types this will be a homogeneous point
     span = findspan(curve, u)
     bases = basisfunctions(curve.knotvector, u, M)
     c = zeros(MVector{N,S})

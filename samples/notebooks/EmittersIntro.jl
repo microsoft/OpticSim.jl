@@ -90,7 +90,7 @@ The OpticSim package comes with various implementations of each of these basic e
   * **Point** - a single point
   * **RectUniform** - a uniformly sampled rectangle with user defined number of samples
   * **RectGrid** - a rectangle sampled in a grid fashion
-  * **Hexapolar** - a circle (or an ellipse) sampled in an hexapolar fasion (rings)
+  * **Hexapolar** - a circle (or an ellipse) sampled in an hexapolar fashion (rings)
 - Rays Directions Distribution - the interface **length** returns the number of samples, and **generate** returns the n'th sample.
   * **Constant**
   * **RectGrid**

@@ -26,7 +26,7 @@ struct ConvexPolygon{N,T<:Real}  <: PlanarShape{T}
     local_frame::Transform{T}
     # local_points::Vector{SVector{2, T}}
     local_points::SMatrix{2,N,T}
-    # for efficency
+    # for efficiency
     _local_frame_inv::Transform{T}                                  # cache the inverse matrix to avoid computing it for every intersection test
     _local_lines::Vector{SVector{3, SVector{2, T}}}                 # defines the edge points + a third point representing the slopes in order to save some calculationsduring ray checking
     _length::Int64                                                  # cache the length of the polygon 

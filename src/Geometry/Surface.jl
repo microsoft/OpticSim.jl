@@ -47,7 +47,7 @@ If the origin o is on the inside of the plane then the inside interval will be (
 
 It is the programmer's responsibility to return Interval results from surfaceintersection that maintain these properties.
 
-The following must be impemented only if the surface is being used as a detector
+The following must be implemented only if the surface is being used as a detector
 ```julia
 uv(surface::Surface{T}, p::SVector{3,T}) -> SVector{2,T}
 uvtopix(surface::Surface{T}, uv::SVector{2,T}, imsize::Tuple{Int,Int}) -> Tuple{Int,Int}
@@ -165,7 +165,7 @@ export samplesurface
     triangulate(surf::ParametricSurface{S,N}, quads_per_row::Int, extensionu::Bool = false, extensionv::Bool = false, radialu::Bool = false, radialv::Bool = false)
 
 Create an array of triangles representing the parametric surface where vertices are sampled on an even grid in UV space.
-The surface can be extended by 1% in u and v separately, and specifying either u or v as being radial - i.e. detemining the radius on the surface e.g. rho for zernike - will result in that dimension being sampled using sqwrt so that area of triangles is uniform. The extension will also only apply to the maximum in this case.
+The surface can be extended by 1% in u and v separately, and specifying either u or v as being radial - i.e. determining the radius on the surface e.g. rho for zernike - will result in that dimension being sampled using sqwrt so that area of triangles is uniform. The extension will also only apply to the maximum in this case.
 """
 function triangulate(surf::ParametricSurface{T,N}, subdivisons::Int, extensionu::Bool = false, extensionv::Bool = false, radialu::Bool = false, radialv::Bool = false) where {T,N}
     triangles = newintrianglepool!(T)

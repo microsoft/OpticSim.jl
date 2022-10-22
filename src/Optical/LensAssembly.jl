@@ -9,7 +9,7 @@ Structure which contains the elements of the optical system, these can be [`CSGT
 
 In order to prevent type ambiguities bespoke structs are created for each possible number of elements e.g. `LensAssembly3`.
 These are parameterized by the types of the elements to prevent ambiguities.
-Basic surface types such as [`Rectangle`](@ref) (which can occur in large numbers) are stored independently in `Vector`s, so type paramters are only needed for CSG objects.
+Basic surface types such as [`Rectangle`](@ref) (which can occur in large numbers) are stored independently in `Vector`s, so type parameters are only needed for CSG objects.
 
 Each struct looks like this:
 ```julia

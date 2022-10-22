@@ -36,7 +36,7 @@ const SEED = 12312487
 const ALL_TESTS = isempty(ARGS) || "all" in ARGS || "All" in ARGS || "ALL" in ARGS
 const TESTSET_DIR = "testsets"
 
-"""Evalute all functions not requiring arguments in a given module and test they don't throw anything"""
+"""Evaluate all functions not requiring arguments in a given module and test they don't throw anything"""
 macro test_all_no_arg_functions(m)
     quote
         for n in names($m, all = true)

@@ -339,7 +339,7 @@ function center_data()
 end
 export center_data
 
-"""verify that paraxial lens properly transorms rays into local coordinate frame to compute intersections with convex poly shape"""
+"""verify that paraxial lens properly transforms rays into local coordinate frame to compute intersections with convex poly shape"""
 function test_paraxial_convex_poly()
     lens,eyebox_center,display_center = center_data()
 

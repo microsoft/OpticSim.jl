@@ -97,7 +97,7 @@ function surfaceintersection(pln::Plane{T,N}, r::AbstractRay{T,N}) where {T<:Rea
 end
 
 function BoundingBox(pln::Plane{T,3}) where {T<:Real}
-    # TODO! this is far from ideal, we should try and do something better for intersection with non-axis-algined planes
+    # TODO! this is far from ideal, we should try and do something better for intersection with non-axis-aligned planes
     # valid for axis aligned planes, otherwise we have to assume an infinite bounding box
     if normal(pln) === SVector{3,T}(0, 0, 1)
         return BoundingBox(typemin(T), typemax(T), typemin(T), typemax(T), typemin(T), pln.pointonplane[3])

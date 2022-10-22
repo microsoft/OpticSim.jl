@@ -103,7 +103,7 @@ begin
 	csg1_surf2 = leaf(csg1_surf1, OpticSim.translation(-0.5, -0.5, 0.0))
 	csg1_surf3 = leaf(csg1_surf1, Transform(0.0, Float64(π), 0.0, 0.5, -0.5, 0.0))
 	
-	# transformed cilinder
+	# transformed cylinder
 	csg1_surf4_1 = leaf(Cylinder(0.3, 1.0), OpticSim.translation(0.0, 0.0, 0.0))
 	csg1_surf4 = leaf(csg1_surf4_1, OpticSim.rotation(deg2rad(cyl_rot_x), deg2rad(cyl_rot_y), deg2rad(cyl_rot_z)))
 	

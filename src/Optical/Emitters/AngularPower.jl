@@ -49,7 +49,7 @@ end
 GGaussian power distribution. Ray power is calculated by:
 
 `power = power * exp(-(gaussianu * l^2 + gaussianv * m^2))`
-where l and m are the cos_angles between the two axes respectivly.
+where l and m are the cos_angles between the two axes respectively.
 """
 struct Gaussian{T} <: AbstractAngularPowerDistribution{T}
     gaussianu::T

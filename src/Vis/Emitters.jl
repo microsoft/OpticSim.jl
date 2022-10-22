@@ -32,7 +32,7 @@ function maybe_draw_debug_info(scene::Makie.LScene, o::Origins.AbstractOriginDis
     pos = origin(transform)
 
     if (debug)
-        # this is a stupid hack to force makie to render in 3d - for some scenes, makie decide with no apperent reason to show in 2d instead of 3d
+        # this is a stupid hack to force makie to render in 3d - for some scenes, makie decide with no apparent reason to show in 2d instead of 3d
         Makie.scatter!(scene, [pos[1], pos[1]+0.1], [pos[2], pos[2]+0.1], [pos[3], pos[3]+0.1], color=:red, markersize=0)
 
         # draw the origin and normal of the surface
